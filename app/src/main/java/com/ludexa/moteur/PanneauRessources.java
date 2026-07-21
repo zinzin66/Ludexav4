@@ -26,9 +26,9 @@ public class PanneauRessources extends ScrollView {
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
-        // Ajout des 5 sections prévues dans l'accordéon
+        // Ajout des sections de l'accordéon avec leurs logiques spécifiques
         layoutPrincipal.addView(creerSectionScenes(context));
-        layoutPrincipal.addView(creerSectionGenerique(context, "Objets à placer", "Texte, Rond, Carré..."));
+        layoutPrincipal.addView(creerSectionObjets(context)); // Nouvelle vraie section Objets
         layoutPrincipal.addView(creerSectionGenerique(context, "Arborescence", "Gestion de l'ordre Z"));
         layoutPrincipal.addView(creerSectionAssets(context));
         layoutPrincipal.addView(creerSectionVariables(context));
@@ -36,7 +36,7 @@ public class PanneauRessources extends ScrollView {
         addView(layoutPrincipal);
     }
 
-    // Méthode pour construire les sections génériques de l'accordéon
+    // Méthode pour construire les sections génériques restantes (ex: Arborescence)
     private View creerSectionGenerique(Context context, String titre, String contenuApercu) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -53,7 +53,6 @@ public class PanneauRessources extends ScrollView {
         txt.setTextColor(Color.LTGRAY);
         contenu.addView(txt);
 
-        // Logique de bascule (Afficher/Masquer)
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
                 contenu.setVisibility(View.GONE);
@@ -61,6 +60,50 @@ public class PanneauRessources extends ScrollView {
             } else {
                 contenu.setVisibility(View.VISIBLE);
                 btnTitre.setText(titre + " ▼");
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+
+    // --- NOUVELLE SECTION : OBJETS À PLACER ---
+    private View creerSectionObjets(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Objets à placer ▼");
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        contenu.setPadding(20, 10, 10, 20);
+
+        // Boutons spécifiques pour ajouter des éléments visuels
+        Button btnAjouterTexte = new Button(context);
+        btnAjouterTexte.setText("+ Ajouter un Texte");
+        btnAjouterTexte.setOnClickListener(v -> Toast.makeText(context, "Texte ajouté au Canvas", Toast.LENGTH_SHORT).show());
+
+        Button btnAjouterCarre = new Button(context);
+        btnAjouterCarre.setText("+ Ajouter un Carré");
+        btnAjouterCarre.setOnClickListener(v -> Toast.makeText(context, "Carré ajouté au Canvas", Toast.LENGTH_SHORT).show());
+
+        Button btnAjouterRond = new Button(context);
+        btnAjouterRond.setText("+ Ajouter un Rond");
+        btnAjouterRond.setOnClickListener(v -> Toast.makeText(context, "Rond ajouté au Canvas", Toast.LENGTH_SHORT).show());
+
+        contenu.addView(btnAjouterTexte);
+        contenu.addView(btnAjouterCarre);
+        contenu.addView(btnAjouterRond);
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Objets à placer ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Objets à placer ▼");
             }
         });
 
@@ -82,20 +125,32 @@ public class PanneauRessources extends ScrollView {
         contenu.setPadding(20, 10, 10, 20);
 
         Button btnCreer = new Button(context);
-        btnCreer.setText("Créer");
+        btnCreer.setText("Créer une scène");
         btnCreer.setOnClickListener(v -> afficherPopupCreer(context, "une nouvelle scène"));
+        contenu.addView(btnCreer);
 
+        LinearLayout itemScene = new LinearLayout(context);
+        itemScene.setOrientation(LinearLayout.HORIZONTAL);
+        itemScene.setPadding(0, 10, 0, 10);
+        
+        TextView nomScene = new TextView(context);
+        nomScene.setText("Niveau_1");
+        nomScene.setTextColor(Color.WHITE);
+        nomScene.setPadding(10, 10, 20, 10);
+        
         Button btnRenommer = new Button(context);
         btnRenommer.setText("Renommer");
-        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Scene_1"));
+        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Niveau_1"));
 
         Button btnSupprimer = new Button(context);
         btnSupprimer.setText("Supprimer");
-        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer cette scène ?"));
+        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer la scène 'Niveau_1' ?"));
 
-        contenu.addView(btnCreer);
-        contenu.addView(btnRenommer);
-        contenu.addView(btnSupprimer);
+        itemScene.addView(nomScene);
+        itemScene.addView(btnRenommer);
+        itemScene.addView(btnSupprimer);
+        
+        contenu.addView(itemScene);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -124,16 +179,28 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
+        LinearLayout itemAsset = new LinearLayout(context);
+        itemAsset.setOrientation(LinearLayout.HORIZONTAL);
+        itemAsset.setPadding(0, 10, 0, 10);
+        
+        TextView nomAsset = new TextView(context);
+        nomAsset.setText("Sprite_Joueur");
+        nomAsset.setTextColor(Color.WHITE);
+        nomAsset.setPadding(10, 10, 20, 10);
+
         Button btnRenommer = new Button(context);
         btnRenommer.setText("Renommer");
-        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Nom_Actuel_Asset"));
+        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Sprite_Joueur"));
 
         Button btnSupprimer = new Button(context);
         btnSupprimer.setText("Supprimer");
-        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer cet asset ?"));
+        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer l'asset 'Sprite_Joueur' ?"));
 
-        contenu.addView(btnRenommer);
-        contenu.addView(btnSupprimer);
+        itemAsset.addView(nomAsset);
+        itemAsset.addView(btnRenommer);
+        itemAsset.addView(btnSupprimer);
+        
+        contenu.addView(itemAsset);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -163,11 +230,10 @@ public class PanneauRessources extends ScrollView {
         contenu.setPadding(20, 10, 10, 20);
 
         Button btnCreer = new Button(context);
-        btnCreer.setText("Créer");
+        btnCreer.setText("Créer une variable");
         btnCreer.setOnClickListener(v -> afficherPopupCreer(context, "une variable"));
         contenu.addView(btnCreer);
 
-        // Exemple visuel d'une variable dans la liste avec son propre bouton supprimer
         LinearLayout itemVariable = new LinearLayout(context);
         itemVariable.setOrientation(LinearLayout.HORIZONTAL);
         itemVariable.setPadding(0, 10, 0, 10);
