@@ -42,16 +42,36 @@ public class InterfaceEditeur extends Activity {
         boutonRedo.setText("Redo");
         bandeauHaut.addView(boutonRedo);
 
+        // --- Instanciation du Canvas (placée ici pour être accessible par les boutons de zoom et de déplacement) ---
+        CanvasEditeur canvasEditeur = new CanvasEditeur(this);
+        LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+        canvasEditeur.setLayoutParams(paramsCentre);
+
+        // --- Boutons de Zoom ---
         Button boutonZoomMoins = new Button(this);
-        boutonZoomMoins.setText("-");
+        boutonZoomMoins.setText("[-]");
+        boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
         bandeauHaut.addView(boutonZoomMoins);
 
+        Button boutonZoomReset = new Button(this);
+        boutonZoomReset.setText("[[]]");
+        boutonZoomReset.setOnClickListener(v -> canvasEditeur.zoomReset());
+        bandeauHaut.addView(boutonZoomReset);
+
         Button boutonZoomPlus = new Button(this);
-        boutonZoomPlus.setText("+");
+        boutonZoomPlus.setText("[+]");
+        boutonZoomPlus.setOnClickListener(v -> canvasEditeur.zoomPlus());
         bandeauHaut.addView(boutonZoomPlus);
 
+        // --- Bouton Déplacer ---
         Button boutonDeplacerScene = new Button(this);
         boutonDeplacerScene.setText("Déplacer Scène");
+        boutonDeplacerScene.setOnClickListener(v -> {
+            boolean nouveauMode = !canvasEditeur.isPanMode();
+            canvasEditeur.setPanMode(nouveauMode);
+            boutonDeplacerScene.setText(nouveauMode ? "Mode: Déplacement" : "Déplacer Scène");
+        });
         bandeauHaut.addView(boutonDeplacerScene);
 
         Button boutonBasculeBlueprint = new Button(this);
@@ -62,28 +82,25 @@ public class InterfaceEditeur extends Activity {
         boutonBuild.setText("Build");
         bandeauHaut.addView(boutonBuild);
 
-        // ---- Zone Milieu (Canvas à gauche, Inspecteur à droite) ----
+        // ---- Zone Milieu (Menu Gauche, Canvas, Inspecteur) ----
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        // ---- Zone centrale (Canvas provisoire) ----
-        TextView zoneCentraleProvisoire = new TextView(this);
-        zoneCentraleProvisoire.setText("[ Canvas — à venir ]");
-        zoneCentraleProvisoire.setTextSize(20f);
-        zoneCentraleProvisoire.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
-        zoneCentraleProvisoire.setLayoutParams(paramsCentre);
+        // 1. Menu de Gauche (Accordéon / Ressources)
+        PanneauRessources panneauRessources = new PanneauRessources(this);
 
-        // ---- Menu Inspecteur (Droite) ----
-        // On instancie la classe séparée qui gère toute sa propre logique
+        // 2. Zone centrale (Canvas intégré)
+        // (canvasEditeur est déjà instancié plus haut)
+
+        // 3. Menu Inspecteur (Droite)
         InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
 
-        // Assemblage final de la zone milieu
-        zoneMilieu.addView(zoneCentraleProvisoire);
+        // Assemblage final de la zone milieu (Respect de l'ordre visuel)
+        zoneMilieu.addView(panneauRessources);
+        zoneMilieu.addView(canvasEditeur);
         zoneMilieu.addView(menuInspecteur);
 
         layoutPrincipal.addView(bandeauHaut);
