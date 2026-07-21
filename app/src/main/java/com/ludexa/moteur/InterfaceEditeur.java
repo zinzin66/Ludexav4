@@ -43,8 +43,13 @@ public class InterfaceEditeur extends Activity {
         boutonRedo.setText("Redo");
         bandeauHaut.addView(boutonRedo);
 
+        // --- Scène active (nouvelle, avec un objet de test pour vérifier l'affichage) ---
+        Scene sceneActive = new Scene("SceneDepart");
+        sceneActive.ajouterObjet(new ObjetBase("Carré", 300f, 300f, 80f, 80f));
+
         // --- Instanciation du Canvas ---
         CanvasEditeur canvasEditeur = new CanvasEditeur(this);
+        canvasEditeur.setScene(sceneActive);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasEditeur.setLayoutParams(paramsCentre);
@@ -75,9 +80,9 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonDeplacerScene);
 
-        // --- Bouton Blueprint (MODIFIÉ) ---
+        // --- Bouton Blueprint ---
         Button boutonBasculeBlueprint = new Button(this);
-        boutonBasculeBlueprint.setText("Blueprint");
+        boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
             startActivity(intent);
@@ -95,9 +100,9 @@ public class InterfaceEditeur extends Activity {
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        PanneauRessources panneauRessources = new PanneauRessources(this);
-        InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
-
+        PanneauRessources panneauRessources = new PanneauRessources(this, sceneActive, canvasEditeur);
+        InspecteurProprietes menuInspecteur = new InspecteurProprietes(this, sceneActive, canvasEditeur);
+        canvasEditeur.setInspecteur(menuInspecteur);
         zoneMilieu.addView(panneauRessources);
         zoneMilieu.addView(canvasEditeur);
         zoneMilieu.addView(menuInspecteur);

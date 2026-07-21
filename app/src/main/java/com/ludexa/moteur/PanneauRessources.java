@@ -1,164 +1,68 @@
 package com.ludexa.moteur;
 
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.text.InputType;
 import android.view.View;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-public class PanneauRessources extends LinearLayout {
+public class PanneauRessources extends ScrollView {
 
-    private ScrollView zoneDefilante;
-    private boolean estOuvert = true;
+    private Scene sceneActive;
+    private CanvasEditeur canvasEditeur;
 
-    public PanneauRessources(Context context) {
+    public PanneauRessources(Context context, Scene scene, CanvasEditeur canvas) {
         super(context);
-        // Le panneau global superpose les éléments de haut en bas
-        setOrientation(LinearLayout.VERTICAL);
-        setBackgroundColor(Color.parseColor("#EEEEEE"));
-
-        // 1. Bouton placé en premier (donc tout en haut à gauche)
-        Button btnToggle = new Button(context);
-        btnToggle.setText("<");
-        btnToggle.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-        // Conteneur principal de l'accordéon
-        LinearLayout conteneurAccordeon = new LinearLayout(context);
-        conteneurAccordeon.setOrientation(LinearLayout.VERTICAL);
-        conteneurAccordeon.setLayoutParams(new LayoutParams(400, LayoutParams.WRAP_CONTENT));
-
-        // 2. Zone défilante placée sous le bouton
-        zoneDefilante = new ScrollView(context);
-        // Largeur fixe de 400, hauteur prenant l'espace restant
-        zoneDefilante.setLayoutParams(new LayoutParams(400, 0, 1f));
-        zoneDefilante.addView(conteneurAccordeon);
-
-        // Action du bouton de bascule
-        btnToggle.setOnClickListener(v -> {
-            estOuvert = !estOuvert;
-            zoneDefilante.setVisibility(estOuvert ? VISIBLE : GONE);
-            btnToggle.setText(estOuvert ? "<" : ">");
-        });
-
-        // Ajout au layout principal : le bouton d'abord, la zone défilante ensuite
-        addView(btnToggle);
-        addView(zoneDefilante);
-
-        // Ajout des 4 sections de l'accordéon
-        conteneurAccordeon.addView(creerSectionScene(context));
-        conteneurAccordeon.addView(creerSectionObjet(context));
-        conteneurAccordeon.addView(creerSectionAsset(context));
-        conteneurAccordeon.addView(creerSectionVariable(context));
+        this.sceneActive = scene;
+        this.canvasEditeur = canvas;
+        init(context);
     }
 
-    private View creerSectionScene(Context context) {
-        return creerSectionGenerique(context, "SCÈNES", contenu -> {
-            LinearLayout ligneBoutons = new LinearLayout(context);
-            
-            Button btnAjouter = new Button(context);
-            btnAjouter.setText("+");
-            
-            Button btnSupprimer = new Button(context);
-            btnSupprimer.setText("-");
-            
-            Button btnRenommer = new Button(context);
-            btnRenommer.setText("Renommer");
-            btnRenommer.setOnClickListener(v -> afficherPopupTexte(context, "Renommer la scène"));
+    private void init(Context context) {
+        setBackgroundColor(Color.parseColor("#333333"));
+        setLayoutParams(new LinearLayout.LayoutParams(400, LinearLayout.LayoutParams.MATCH_PARENT));
 
-            ligneBoutons.addView(btnAjouter);
-            ligneBoutons.addView(btnSupprimer);
-            ligneBoutons.addView(btnRenommer);
-            contenu.addView(ligneBoutons);
+        LinearLayout layoutPrincipal = new LinearLayout(context);
+        layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
-            ScrollView liste = creerListeGenerique(context, "Liste des scènes...");
-            contenu.addView(liste);
-        });
+        layoutPrincipal.addView(creerSectionScenes(context));
+        layoutPrincipal.addView(creerSectionObjets(context));
+        layoutPrincipal.addView(creerSectionGenerique(context, "Arborescence", "Gestion de l'ordre Z"));
+        layoutPrincipal.addView(creerSectionAssets(context));
+        layoutPrincipal.addView(creerSectionVariables(context));
+
+        addView(layoutPrincipal);
     }
 
-    private View creerSectionObjet(Context context) {
-        return creerSectionGenerique(context, "OBJETS", contenu -> {
-            String[] objets = {"Carré", "Rond", "Texte", "Entrée Texte", "Barre défilement"};
-            
-            LinearLayout conteneurBoutons = new LinearLayout(context);
-            conteneurBoutons.setOrientation(LinearLayout.VERTICAL);
-            
-            for (String nomObj : objets) {
-                Button btnObj = new Button(context);
-                btnObj.setText("+ " + nomObj);
-                conteneurBoutons.addView(btnObj);
-            }
-            contenu.addView(conteneurBoutons);
-
-            ScrollView liste = creerListeGenerique(context, "Objets sur la scène...");
-            contenu.addView(liste);
-        });
-    }
-
-    private View creerSectionAsset(Context context) {
-        return creerSectionGenerique(context, "ASSETS", contenu -> {
-            LinearLayout ligneBoutons = new LinearLayout(context);
-            
-            Button btnRenommer = new Button(context);
-            btnRenommer.setText("Renommer");
-            
-            Button btnSupprimer = new Button(context);
-            btnSupprimer.setText("Supprimer");
-            btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer cet asset ?"));
-
-            ligneBoutons.addView(btnRenommer);
-            ligneBoutons.addView(btnSupprimer);
-            contenu.addView(ligneBoutons);
-
-            ScrollView liste = creerListeGenerique(context, "[Image] - Liste des assets...");
-            contenu.addView(liste);
-        });
-    }
-
-    private View creerSectionVariable(Context context) {
-        return creerSectionGenerique(context, "VARIABLES", contenu -> {
-            LinearLayout ligneBoutons = new LinearLayout(context);
-            
-            Button btnCreer = new Button(context);
-            btnCreer.setText("Créer");
-            btnCreer.setOnClickListener(v -> afficherPopupCreationVariable(context));
-            
-            Button btnSupprimer = new Button(context);
-            btnSupprimer.setText("Supprimer");
-            btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer cette variable ?"));
-
-            ligneBoutons.addView(btnCreer);
-            ligneBoutons.addView(btnSupprimer);
-            contenu.addView(ligneBoutons);
-
-            ScrollView liste = creerListeGenerique(context, "Liste des variables...");
-            contenu.addView(liste);
-        });
-    }
-
-    // --- METHODES UTILITAIRES POUR L'INTERFACE ---
-
-    private interface RemplisseurSection {
-        void remplir(LinearLayout contenu);
-    }
-
-    private View creerSectionGenerique(Context context, String titre, RemplisseurSection remplisseur) {
+    private View creerSectionGenerique(Context context, String titre, String contenuApercu) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
-        btnTitre.setText(titre);
-        btnTitre.setBackgroundColor(Color.parseColor("#CCCCCC"));
+        btnTitre.setText(titre + " ▼");
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(10, 10, 10, 10);
-        
-        remplisseur.remplir(contenu);
+        contenu.setPadding(20, 10, 10, 20);
+
+        TextView txt = new TextView(context);
+        txt.setText("[ " + contenuApercu + " ]");
+        txt.setTextColor(Color.LTGRAY);
+        contenu.addView(txt);
 
         btnTitre.setOnClickListener(v -> {
-            boolean estVisible = contenu.getVisibility() == VISIBLE;
-            contenu.setVisibility(estVisible ? GONE : VISIBLE);
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText(titre + " ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText(titre + " ▼");
+            }
         });
 
         section.addView(btnTitre);
@@ -166,58 +70,307 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 
-    private ScrollView creerListeGenerique(Context context, String textePlaceholder) {
-        ScrollView scrollView = new ScrollView(context);
-        TextView tv = new TextView(context);
-        tv.setText(textePlaceholder);
-        tv.setPadding(0, 20, 0, 20);
-        scrollView.addView(tv);
-        return scrollView;
+    // --- SECTION OBJETS À PLACER (maintenant connectée à la vraie Scene) ---
+    private View creerSectionObjets(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Objets à placer ▼");
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        contenu.setPadding(20, 10, 10, 20);
+
+        Button btnAjouterCarre = new Button(context);
+        btnAjouterCarre.setText("+ Ajouter un Carré");
+        btnAjouterCarre.setOnClickListener(v -> {
+            ObjetBase nouveau = new ObjetBase("Carré", 150f, 150f, 80f, 80f);
+            sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            Toast.makeText(context, "Carré ajouté à la scène", Toast.LENGTH_SHORT).show();
+        });
+
+        Button btnAjouterTexte = new Button(context);
+        btnAjouterTexte.setText("+ Ajouter un Texte");
+        btnAjouterTexte.setOnClickListener(v -> Toast.makeText(context, "Texte : à implémenter", Toast.LENGTH_SHORT).show());
+
+        Button btnAjouterRond = new Button(context);
+        btnAjouterRond.setText("+ Ajouter un Rond");
+        btnAjouterRond.setOnClickListener(v -> Toast.makeText(context, "Rond : à implémenter", Toast.LENGTH_SHORT).show());
+
+        contenu.addView(btnAjouterCarre);
+        contenu.addView(btnAjouterTexte);
+        contenu.addView(btnAjouterRond);
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Objets à placer ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Objets à placer ▼");
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
     }
 
-    // --- POPUPS NATIVES ---
+    private View creerSectionScenes(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
 
-    private void afficherPopupTexte(Context context, String titre) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(titre);
-        final EditText input = new EditText(context);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-        builder.setPositiveButton("OK", null);
-        builder.setNegativeButton("Annuler", null);
-        builder.show();
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Scènes ▼");
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        contenu.setPadding(20, 10, 10, 20);
+
+        Button btnCreer = new Button(context);
+        btnCreer.setText("Créer une scène");
+        btnCreer.setOnClickListener(v -> afficherPopupCreer(context, "une nouvelle scène"));
+        contenu.addView(btnCreer);
+
+        LinearLayout itemScene = new LinearLayout(context);
+        itemScene.setOrientation(LinearLayout.HORIZONTAL);
+        itemScene.setPadding(0, 10, 0, 10);
+
+        TextView nomScene = new TextView(context);
+        nomScene.setText("Niveau_1");
+        nomScene.setTextColor(Color.WHITE);
+        nomScene.setPadding(10, 10, 20, 10);
+
+        Button btnRenommer = new Button(context);
+        btnRenommer.setText("Renommer");
+        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Niveau_1"));
+
+        Button btnSupprimer = new Button(context);
+        btnSupprimer.setText("Supprimer");
+        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer la scène 'Niveau_1' ?"));
+
+        itemScene.addView(nomScene);
+        itemScene.addView(btnRenommer);
+        itemScene.addView(btnSupprimer);
+
+        contenu.addView(itemScene);
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Scènes ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Scènes ▼");
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+
+    private View creerSectionAssets(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Assets ▼");
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        contenu.setPadding(20, 10, 10, 20);
+
+        LinearLayout itemAsset = new LinearLayout(context);
+        itemAsset.setOrientation(LinearLayout.HORIZONTAL);
+        itemAsset.setPadding(0, 10, 0, 10);
+
+        TextView nomAsset = new TextView(context);
+        nomAsset.setText("Sprite_Joueur");
+        nomAsset.setTextColor(Color.WHITE);
+        nomAsset.setPadding(10, 10, 20, 10);
+
+        Button btnRenommer = new Button(context);
+        btnRenommer.setText("Renommer");
+        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Sprite_Joueur"));
+
+        Button btnSupprimer = new Button(context);
+        btnSupprimer.setText("Supprimer");
+        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer l'asset 'Sprite_Joueur' ?"));
+
+        itemAsset.addView(nomAsset);
+        itemAsset.addView(btnRenommer);
+        itemAsset.addView(btnSupprimer);
+
+        contenu.addView(itemAsset);
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Assets ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Assets ▼");
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+
+    private View creerSectionVariables(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Variables ▼");
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        contenu.setPadding(20, 10, 10, 20);
+
+        Button btnCreer = new Button(context);
+        btnCreer.setText("Créer une variable");
+        btnCreer.setOnClickListener(v -> afficherPopupCreer(context, "une variable"));
+        contenu.addView(btnCreer);
+
+        LinearLayout itemVariable = new LinearLayout(context);
+        itemVariable.setOrientation(LinearLayout.HORIZONTAL);
+        itemVariable.setPadding(0, 10, 0, 10);
+
+        TextView nomVariable = new TextView(context);
+        nomVariable.setText("scoreJoueur");
+        nomVariable.setTextColor(Color.WHITE);
+        nomVariable.setPadding(10, 10, 20, 10);
+
+        Button btnSupprimerVar = new Button(context);
+        btnSupprimerVar.setText("Supprimer");
+        btnSupprimerVar.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer la variable 'scoreJoueur' ?"));
+
+        itemVariable.addView(nomVariable);
+        itemVariable.addView(btnSupprimerVar);
+        contenu.addView(itemVariable);
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Variables ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Variables ▼");
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+
+    private void afficherPopupCreer(Context context, String type) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Créer " + type);
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setHint("Entrez le nom...");
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nom = champTexte.getText().toString();
+            Toast.makeText(context, "Création : " + nom, Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommer(Context context, String nomActuel) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setText(nomActuel);
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString();
+            Toast.makeText(context, "Renommé en : " + nouveauNom, Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
     }
 
     private void afficherPopupConfirmation(Context context, String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Confirmation");
-        builder.setMessage(message);
-        builder.setPositiveButton("Oui", null);
-        builder.setNegativeButton("Non", null);
-        builder.show();
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Confirmation");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText(message);
+        txtMessage.setPadding(0, 0, 0, 20);
+        layoutDialog.addView(txtMessage);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnOui = new Button(context);
+        btnOui.setText("Oui");
+        btnOui.setOnClickListener(v -> {
+            Toast.makeText(context, "Action confirmée", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        Button btnNon = new Button(context);
+        btnNon.setText("Non");
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
     }
-
-    private void afficherPopupCreationVariable(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Créer une variable");
-
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
-
-        final EditText nomInput = new EditText(context);
-        nomInput.setHint("Nom de la variable");
-        layout.addView(nomInput);
-
-        final Spinner typeSpinner = new Spinner(context);
-        String[] types = {"Locale", "Globale"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, types);
-        typeSpinner.setAdapter(adapter);
-        layout.addView(typeSpinner);
-
-        builder.setView(layout);
-        builder.setPositiveButton("Créer", null);
-        builder.setNegativeButton("Annuler", null);
-        builder.show();
     }
-}
