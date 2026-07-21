@@ -16,6 +16,15 @@ public class CanvasEditeur extends View {
 
     private Scene sceneActive;
     private ObjetBase objetSelectionne;
+private InspecteurProprietes inspecteurLie;
+
+public void setInspecteur(InspecteurProprietes inspecteur) {
+    this.inspecteurLie = inspecteur;
+}
+
+public void deselectionner() {
+    this.objetSelectionne = null;
+}
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -159,6 +168,9 @@ public class CanvasEditeur extends View {
 
                 if (!isPanMode) {
                     objetSelectionne = trouverObjetSousToucher(x, y);
+                    if (inspecteurLie != null) {
+                        inspecteurLie.afficherObjet(objetSelectionne);
+                    }
                     invalidate();
                 }
                 return true;
