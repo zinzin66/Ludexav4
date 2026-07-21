@@ -13,22 +13,25 @@ import android.widget.Toast;
 
 public class PanneauRessources extends ScrollView {
 
-    public PanneauRessources(Context context) {
+    private Scene sceneActive;
+    private CanvasEditeur canvasEditeur;
+
+    public PanneauRessources(Context context, Scene scene, CanvasEditeur canvas) {
         super(context);
+        this.sceneActive = scene;
+        this.canvasEditeur = canvas;
         init(context);
     }
 
     private void init(Context context) {
-        // Définition de l'apparence du panneau gauche
         setBackgroundColor(Color.parseColor("#333333"));
         setLayoutParams(new LinearLayout.LayoutParams(400, LinearLayout.LayoutParams.MATCH_PARENT));
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
-        // Ajout des sections de l'accordéon avec leurs logiques spécifiques
         layoutPrincipal.addView(creerSectionScenes(context));
-        layoutPrincipal.addView(creerSectionObjets(context)); // Nouvelle vraie section Objets
+        layoutPrincipal.addView(creerSectionObjets(context));
         layoutPrincipal.addView(creerSectionGenerique(context, "Arborescence", "Gestion de l'ordre Z"));
         layoutPrincipal.addView(creerSectionAssets(context));
         layoutPrincipal.addView(creerSectionVariables(context));
@@ -36,7 +39,6 @@ public class PanneauRessources extends ScrollView {
         addView(layoutPrincipal);
     }
 
-    // Méthode pour construire les sections génériques restantes (ex: Arborescence)
     private View creerSectionGenerique(Context context, String titre, String contenuApercu) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -68,7 +70,7 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // --- NOUVELLE SECTION : OBJETS À PLACER ---
+    // --- SECTION OBJETS À PLACER (maintenant connectée à la vraie Scene) ---
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -80,21 +82,25 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
-        // Boutons spécifiques pour ajouter des éléments visuels
-        Button btnAjouterTexte = new Button(context);
-        btnAjouterTexte.setText("+ Ajouter un Texte");
-        btnAjouterTexte.setOnClickListener(v -> Toast.makeText(context, "Texte ajouté au Canvas", Toast.LENGTH_SHORT).show());
-
         Button btnAjouterCarre = new Button(context);
         btnAjouterCarre.setText("+ Ajouter un Carré");
-        btnAjouterCarre.setOnClickListener(v -> Toast.makeText(context, "Carré ajouté au Canvas", Toast.LENGTH_SHORT).show());
+        btnAjouterCarre.setOnClickListener(v -> {
+            ObjetBase nouveau = new ObjetBase("Carré", 150f, 150f, 80f, 80f);
+            sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            Toast.makeText(context, "Carré ajouté à la scène", Toast.LENGTH_SHORT).show();
+        });
+
+        Button btnAjouterTexte = new Button(context);
+        btnAjouterTexte.setText("+ Ajouter un Texte");
+        btnAjouterTexte.setOnClickListener(v -> Toast.makeText(context, "Texte : à implémenter", Toast.LENGTH_SHORT).show());
 
         Button btnAjouterRond = new Button(context);
         btnAjouterRond.setText("+ Ajouter un Rond");
-        btnAjouterRond.setOnClickListener(v -> Toast.makeText(context, "Rond ajouté au Canvas", Toast.LENGTH_SHORT).show());
+        btnAjouterRond.setOnClickListener(v -> Toast.makeText(context, "Rond : à implémenter", Toast.LENGTH_SHORT).show());
 
-        contenu.addView(btnAjouterTexte);
         contenu.addView(btnAjouterCarre);
+        contenu.addView(btnAjouterTexte);
         contenu.addView(btnAjouterRond);
 
         btnTitre.setOnClickListener(v -> {
@@ -112,7 +118,6 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // Méthode spécifique pour la section Scènes
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -132,12 +137,12 @@ public class PanneauRessources extends ScrollView {
         LinearLayout itemScene = new LinearLayout(context);
         itemScene.setOrientation(LinearLayout.HORIZONTAL);
         itemScene.setPadding(0, 10, 0, 10);
-        
+
         TextView nomScene = new TextView(context);
         nomScene.setText("Niveau_1");
         nomScene.setTextColor(Color.WHITE);
         nomScene.setPadding(10, 10, 20, 10);
-        
+
         Button btnRenommer = new Button(context);
         btnRenommer.setText("Renommer");
         btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Niveau_1"));
@@ -149,7 +154,7 @@ public class PanneauRessources extends ScrollView {
         itemScene.addView(nomScene);
         itemScene.addView(btnRenommer);
         itemScene.addView(btnSupprimer);
-        
+
         contenu.addView(itemScene);
 
         btnTitre.setOnClickListener(v -> {
@@ -167,7 +172,6 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // Méthode spécifique pour la section Assets
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -182,7 +186,7 @@ public class PanneauRessources extends ScrollView {
         LinearLayout itemAsset = new LinearLayout(context);
         itemAsset.setOrientation(LinearLayout.HORIZONTAL);
         itemAsset.setPadding(0, 10, 0, 10);
-        
+
         TextView nomAsset = new TextView(context);
         nomAsset.setText("Sprite_Joueur");
         nomAsset.setTextColor(Color.WHITE);
@@ -199,7 +203,7 @@ public class PanneauRessources extends ScrollView {
         itemAsset.addView(nomAsset);
         itemAsset.addView(btnRenommer);
         itemAsset.addView(btnSupprimer);
-        
+
         contenu.addView(itemAsset);
 
         btnTitre.setOnClickListener(v -> {
@@ -217,7 +221,6 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // Méthode spécifique pour la section Variables
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -237,16 +240,16 @@ public class PanneauRessources extends ScrollView {
         LinearLayout itemVariable = new LinearLayout(context);
         itemVariable.setOrientation(LinearLayout.HORIZONTAL);
         itemVariable.setPadding(0, 10, 0, 10);
-        
+
         TextView nomVariable = new TextView(context);
         nomVariable.setText("scoreJoueur");
         nomVariable.setTextColor(Color.WHITE);
         nomVariable.setPadding(10, 10, 20, 10);
-        
+
         Button btnSupprimerVar = new Button(context);
         btnSupprimerVar.setText("Supprimer");
         btnSupprimerVar.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer la variable 'scoreJoueur' ?"));
-        
+
         itemVariable.addView(nomVariable);
         itemVariable.addView(btnSupprimerVar);
         contenu.addView(itemVariable);
@@ -266,7 +269,6 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // Fenêtre modale générique pour la création (Variables, Scènes...)
     private void afficherPopupCreer(Context context, String type) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer " + type);
@@ -302,7 +304,6 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 
-    // Fenêtre modale pour renommer
     private void afficherPopupRenommer(Context context, String nomActuel) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer");
@@ -338,7 +339,6 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 
-    // Fenêtre modale pour confirmer la suppression
     private void afficherPopupConfirmation(Context context, String message) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Confirmation");
@@ -373,4 +373,4 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-}
+    }
