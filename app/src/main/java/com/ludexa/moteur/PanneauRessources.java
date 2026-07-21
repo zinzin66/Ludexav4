@@ -2,154 +2,216 @@ package com.ludexa.moteur;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.text.InputType;
-import android.view.Gravity;
+import android.view.View;
 import android.widget.*;
 
 public class PanneauRessources extends LinearLayout {
 
-    private boolean estOuvert;
-    private LinearLayout.LayoutParams paramsOuvert;
-    private LinearLayout.LayoutParams paramsFerme;
-
-    private LinearLayout sectionScenes;
-    private ListView listeScenes;
-    private ArrayAdapter<String> adapterScenes;
-    private java.util.ArrayList<String> nomsScenes;
+    private ScrollView zoneDefilante;
+    private boolean estOuvert = true;
 
     public PanneauRessources(Context context) {
         super(context);
-        this.setOrientation(LinearLayout.VERTICAL);
+        setOrientation(LinearLayout.HORIZONTAL);
+        setBackgroundColor(Color.parseColor("#EEEEEE"));
 
-        estOuvert = true;
-        paramsOuvert = new LinearLayout.LayoutParams(400, LinearLayout.LayoutParams.MATCH_PARENT);
-        paramsFerme = new LinearLayout.LayoutParams(60, LinearLayout.LayoutParams.MATCH_PARENT);
-        this.setLayoutParams(paramsOuvert);
+        // Conteneur principal de l'accordéon (à gauche)
+        LinearLayout conteneurAccordeon = new LinearLayout(context);
+        conteneurAccordeon.setOrientation(LinearLayout.VERTICAL);
+        conteneurAccordeon.setLayoutParams(new LayoutParams(400, LayoutParams.MATCH_PARENT));
 
-        construireBoutonBascule();
-        construireSectionScenes();
-    }
+        zoneDefilante = new ScrollView(context);
+        zoneDefilante.addView(conteneurAccordeon);
 
-    private void construireBoutonBascule() {
-        Button boutonBascule = new Button(getContext());
-        boutonBascule.setText("<<");
-        boutonBascule.setOnClickListener(v -> {
+        // Bouton pour masquer/afficher le menu (à droite de l'accordéon)
+        Button btnToggle = new Button(context);
+        btnToggle.setText("<");
+        btnToggle.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
+        btnToggle.setOnClickListener(v -> {
             estOuvert = !estOuvert;
-            this.setLayoutParams(estOuvert ? paramsOuvert : paramsFerme);
-            sectionScenes.setVisibility(estOuvert ? VISIBLE : GONE);
-            boutonBascule.setText(estOuvert ? "<<" : ">>");
+            zoneDefilante.setVisibility(estOuvert ? VISIBLE : GONE);
+            btnToggle.setText(estOuvert ? "<" : ">");
         });
-        this.addView(boutonBascule);
+
+        // Ajout des 4 sections de l'accordéon
+        conteneurAccordeon.addView(creerSectionScene(context));
+        conteneurAccordeon.addView(creerSectionObjet(context));
+        conteneurAccordeon.addView(creerSectionAsset(context));
+        conteneurAccordeon.addView(creerSectionVariable(context));
+
+        // Ajout au layout principal de la classe
+        addView(zoneDefilante);
+        addView(btnToggle);
     }
 
-    private void construireSectionScenes() {
-        sectionScenes = new LinearLayout(getContext());
-        sectionScenes.setOrientation(LinearLayout.VERTICAL);
+    private View creerSectionScene(Context context) {
+        return creerSectionGenerique(context, "SCÈNES", contenu -> {
+            LinearLayout ligneBoutons = new LinearLayout(context);
+            
+            Button btnAjouter = new Button(context);
+            btnAjouter.setText("+");
+            
+            Button btnSupprimer = new Button(context);
+            btnSupprimer.setText("-");
+            
+            Button btnRenommer = new Button(context);
+            btnRenommer.setText("Renommer");
+            btnRenommer.setOnClickListener(v -> afficherPopupTexte(context, "Renommer la scène"));
 
-        TextView titre = new TextView(getContext());
-        titre.setText("Scènes");
-        titre.setTextSize(18f);
-        titre.setPadding(10, 10, 10, 10);
-        sectionScenes.addView(titre);
+            ligneBoutons.addView(btnAjouter);
+            ligneBoutons.addView(btnSupprimer);
+            ligneBoutons.addView(btnRenommer);
+            contenu.addView(ligneBoutons);
 
-        // Boutons Ajouter / Renommer / Supprimer
-        LinearLayout ligneBoutons = new LinearLayout(getContext());
-        ligneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+            ScrollView liste = creerListeGenerique(context, "Liste des scènes...");
+            contenu.addView(liste);
+        });
+    }
 
-        Button boutonAjouter = new Button(getContext());
-        boutonAjouter.setText("+");
-        boutonAjouter.setOnClickListener(v -> demanderNomScene());
-        ligneBoutons.addView(boutonAjouter);
-
-        Button boutonRenommer = new Button(getContext());
-        boutonRenommer.setText("Renommer");
-        boutonRenommer.setOnClickListener(v -> {
-            int position = listeScenes.getCheckedItemPosition();
-            if (position != ListView.INVALID_POSITION) {
-                renommerScene(position);
-            } else {
-                Toast.makeText(getContext(), "Sélectionne une scène d'abord", Toast.LENGTH_SHORT).show();
+    private View creerSectionObjet(Context context) {
+        return creerSectionGenerique(context, "OBJETS", contenu -> {
+            String[] objets = {"Carré", "Rond", "Texte", "Entrée Texte", "Barre défilement"};
+            
+            LinearLayout conteneurBoutons = new LinearLayout(context);
+            conteneurBoutons.setOrientation(LinearLayout.VERTICAL);
+            
+            for (String nomObj : objets) {
+                Button btnObj = new Button(context);
+                btnObj.setText("+ " + nomObj);
+                conteneurBoutons.addView(btnObj);
             }
+            contenu.addView(conteneurBoutons);
+
+            ScrollView liste = creerListeGenerique(context, "Objets sur la scène...");
+            contenu.addView(liste);
         });
-        ligneBoutons.addView(boutonRenommer);
+    }
 
-        Button boutonSupprimer = new Button(getContext());
-        boutonSupprimer.setText("Supprimer");
-        boutonSupprimer.setOnClickListener(v -> {
-            int position = listeScenes.getCheckedItemPosition();
-            if (position != ListView.INVALID_POSITION) {
-                confirmerSuppressionScene(position);
-            } else {
-                Toast.makeText(getContext(), "Sélectionne une scène d'abord", Toast.LENGTH_SHORT).show();
-            }
+    private View creerSectionAsset(Context context) {
+        return creerSectionGenerique(context, "ASSETS", contenu -> {
+            LinearLayout ligneBoutons = new LinearLayout(context);
+            
+            Button btnRenommer = new Button(context);
+            btnRenommer.setText("Renommer");
+            
+            Button btnSupprimer = new Button(context);
+            btnSupprimer.setText("Supprimer");
+            btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer cet asset ?"));
+
+            ligneBoutons.addView(btnRenommer);
+            ligneBoutons.addView(btnSupprimer);
+            contenu.addView(ligneBoutons);
+
+            ScrollView liste = creerListeGenerique(context, "[Image] - Liste des assets...");
+            contenu.addView(liste);
         });
-        ligneBoutons.addView(boutonSupprimer);
-
-        sectionScenes.addView(ligneBoutons);
-
-        // Liste des scènes
-        nomsScenes = new java.util.ArrayList<>();
-        adapterScenes = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_single_choice, nomsScenes);
-        listeScenes = new ListView(getContext());
-        listeScenes.setAdapter(adapterScenes);
-        listeScenes.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        LinearLayout.LayoutParams paramsListe = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        listeScenes.setLayoutParams(paramsListe);
-        sectionScenes.addView(listeScenes);
-
-        this.addView(sectionScenes);
     }
 
-    private void demanderNomScene() {
-        EditText champNom = new EditText(getContext());
-        champNom.setInputType(InputType.TYPE_CLASS_TEXT);
+    private View creerSectionVariable(Context context) {
+        return creerSectionGenerique(context, "VARIABLES", contenu -> {
+            LinearLayout ligneBoutons = new LinearLayout(context);
+            
+            Button btnCreer = new Button(context);
+            btnCreer.setText("Créer");
+            btnCreer.setOnClickListener(v -> afficherPopupCreationVariable(context));
+            
+            Button btnSupprimer = new Button(context);
+            btnSupprimer.setText("Supprimer");
+            btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer cette variable ?"));
 
-        new AlertDialog.Builder(getContext())
-                .setTitle("Nom de la scène")
-                .setView(champNom)
-                .setPositiveButton("Ajouter", (dialog, which) -> {
-                    String nom = champNom.getText().toString().trim();
-                    if (!nom.isEmpty()) {
-                        nomsScenes.add(nom);
-                        adapterScenes.notifyDataSetChanged();
-                        Toast.makeText(getContext(), "Scène ajoutée : " + nom, Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Annuler", null)
-                .show();
+            ligneBoutons.addView(btnCreer);
+            ligneBoutons.addView(btnSupprimer);
+            contenu.addView(ligneBoutons);
+
+            ScrollView liste = creerListeGenerique(context, "Liste des variables...");
+            contenu.addView(liste);
+        });
     }
 
-    private void renommerScene(int position) {
-        EditText champNom = new EditText(getContext());
-        champNom.setText(nomsScenes.get(position));
+    // --- METHODES UTILITAIRES POUR L'INTERFACE ---
 
-        new AlertDialog.Builder(getContext())
-                .setTitle("Renommer la scène")
-                .setView(champNom)
-                .setPositiveButton("Valider", (dialog, which) -> {
-                    String nouveauNom = champNom.getText().toString().trim();
-                    if (!nouveauNom.isEmpty()) {
-                        nomsScenes.set(position, nouveauNom);
-                        adapterScenes.notifyDataSetChanged();
-                        Toast.makeText(getContext(), "Scène renommée : " + nouveauNom, Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("Annuler", null)
-                .show();
+    private interface RemplisseurSection {
+        void remplir(LinearLayout contenu);
     }
 
-    private void confirmerSuppressionScene(int position) {
-        String nom = nomsScenes.get(position);
-        new AlertDialog.Builder(getContext())
-                .setTitle("Supprimer la scène")
-                .setMessage("Supprimer \"" + nom + "\" ?")
-                .setPositiveButton("Supprimer", (dialog, which) -> {
-                    nomsScenes.remove(position);
-                    adapterScenes.notifyDataSetChanged();
-                    Toast.makeText(getContext(), "Scène supprimée : " + nom, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Annuler", null)
-                .show();
+    private View creerSectionGenerique(Context context, String titre, RemplisseurSection remplisseur) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText(titre);
+        btnTitre.setBackgroundColor(Color.parseColor("#CCCCCC"));
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        contenu.setPadding(10, 10, 10, 10);
+        
+        remplisseur.remplir(contenu);
+
+        btnTitre.setOnClickListener(v -> {
+            boolean estVisible = contenu.getVisibility() == VISIBLE;
+            contenu.setVisibility(estVisible ? GONE : VISIBLE);
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
     }
-                          }
+
+    private ScrollView creerListeGenerique(Context context, String textePlaceholder) {
+        ScrollView scrollView = new ScrollView(context);
+        TextView tv = new TextView(context);
+        tv.setText(textePlaceholder);
+        tv.setPadding(0, 20, 0, 20);
+        scrollView.addView(tv);
+        return scrollView;
+    }
+
+    // --- POPUPS NATIVES ---
+
+    private void afficherPopupTexte(Context context, String titre) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(titre);
+        final EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton("OK", null);
+        builder.setNegativeButton("Annuler", null);
+        builder.show();
+    }
+
+    private void afficherPopupConfirmation(Context context, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Confirmation");
+        builder.setMessage(message);
+        builder.setPositiveButton("Oui", null);
+        builder.setNegativeButton("Non", null);
+        builder.show();
+    }
+
+    private void afficherPopupCreationVariable(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Créer une variable");
+
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 20, 40, 20);
+
+        final EditText nomInput = new EditText(context);
+        nomInput.setHint("Nom de la variable");
+        layout.addView(nomInput);
+
+        final Spinner typeSpinner = new Spinner(context);
+        String[] types = {"Locale", "Globale"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, types);
+        typeSpinner.setAdapter(adapter);
+        layout.addView(typeSpinner);
+
+        builder.setView(layout);
+        builder.setPositiveButton("Créer", null);
+        builder.setNegativeButton("Annuler", null);
+        builder.show();
+    }
+}
