@@ -1,6 +1,7 @@
 package com.ludexa.moteur;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.*;
@@ -42,7 +43,7 @@ public class InterfaceEditeur extends Activity {
         boutonRedo.setText("Redo");
         bandeauHaut.addView(boutonRedo);
 
-        // --- Instanciation du Canvas (placée ici pour être accessible par les boutons de zoom et de déplacement) ---
+        // --- Instanciation du Canvas ---
         CanvasEditeur canvasEditeur = new CanvasEditeur(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
@@ -74,31 +75,29 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonDeplacerScene);
 
+        // --- Bouton Blueprint (MODIFIÉ) ---
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Blueprint");
+        boutonBasculeBlueprint.setOnClickListener(v -> {
+            Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
+            startActivity(intent);
+        });
         bandeauHaut.addView(boutonBasculeBlueprint);
 
         Button boutonBuild = new Button(this);
         boutonBuild.setText("Build");
         bandeauHaut.addView(boutonBuild);
 
-        // ---- Zone Milieu (Menu Gauche, Canvas, Inspecteur) ----
+        // ---- Zone Milieu ----
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        // 1. Menu de Gauche (Accordéon / Ressources)
         PanneauRessources panneauRessources = new PanneauRessources(this);
-
-        // 2. Zone centrale (Canvas intégré)
-        // (canvasEditeur est déjà instancié plus haut)
-
-        // 3. Menu Inspecteur (Droite)
         InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
 
-        // Assemblage final de la zone milieu (Respect de l'ordre visuel)
         zoneMilieu.addView(panneauRessources);
         zoneMilieu.addView(canvasEditeur);
         zoneMilieu.addView(menuInspecteur);

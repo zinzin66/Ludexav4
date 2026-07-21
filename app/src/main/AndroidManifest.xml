@@ -21,6 +21,11 @@
             android:screenOrientation="landscape"
             android:exported="false" />
 
+        <activity
+            android:name=".InterfaceBlueprint"
+            android:screenOrientation="landscape"
+            android:exported="false" />
+
     </application>
 
 </manifest>
