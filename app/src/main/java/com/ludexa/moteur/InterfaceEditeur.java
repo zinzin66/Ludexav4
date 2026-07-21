@@ -42,20 +42,29 @@ public class InterfaceEditeur extends Activity {
         boutonRedo.setText("Redo");
         bandeauHaut.addView(boutonRedo);
 
-        Button boutonZoomMoins = new Button(this);
-        boutonZoomMoins.setText("-");
-        bandeauHaut.addView(boutonZoomMoins);
-
-        Button boutonZoomPlus = new Button(this);
-        boutonZoomPlus.setText("+");
-        bandeauHaut.addView(boutonZoomPlus);
-
-        // --- Instanciation du Canvas (nécessaire ici pour le relier au bouton) ---
+        // --- Instanciation du Canvas (placée ici pour être accessible par les boutons de zoom et de déplacement) ---
         CanvasEditeur canvasEditeur = new CanvasEditeur(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasEditeur.setLayoutParams(paramsCentre);
 
+        // --- Boutons de Zoom ---
+        Button boutonZoomMoins = new Button(this);
+        boutonZoomMoins.setText("[-]");
+        boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
+        bandeauHaut.addView(boutonZoomMoins);
+
+        Button boutonZoomReset = new Button(this);
+        boutonZoomReset.setText("[[]]");
+        boutonZoomReset.setOnClickListener(v -> canvasEditeur.zoomReset());
+        bandeauHaut.addView(boutonZoomReset);
+
+        Button boutonZoomPlus = new Button(this);
+        boutonZoomPlus.setText("[+]");
+        boutonZoomPlus.setOnClickListener(v -> canvasEditeur.zoomPlus());
+        bandeauHaut.addView(boutonZoomPlus);
+
+        // --- Bouton Déplacer ---
         Button boutonDeplacerScene = new Button(this);
         boutonDeplacerScene.setText("Déplacer Scène");
         boutonDeplacerScene.setOnClickListener(v -> {
@@ -83,8 +92,8 @@ public class InterfaceEditeur extends Activity {
         // 1. Menu de Gauche (Accordéon / Ressources)
         PanneauRessources panneauRessources = new PanneauRessources(this);
 
-        // 2. Zone centrale (Canvas remplace le texte provisoire)
-        // (canvasEditeur est déjà instancié et configuré plus haut)
+        // 2. Zone centrale (Canvas intégré)
+        // (canvasEditeur est déjà instancié plus haut)
 
         // 3. Menu Inspecteur (Droite)
         InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
