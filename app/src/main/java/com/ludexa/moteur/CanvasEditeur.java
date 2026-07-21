@@ -12,6 +12,9 @@ public class CanvasEditeur extends View {
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
     private boolean isPanMode = false;
+    
+    // Nouvelle variable pour gérer le zoom
+    private float niveauZoom = 1.0f;
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -37,23 +40,53 @@ public class CanvasEditeur extends View {
         return isPanMode;
     }
 
+    // --- Méthodes de Zoom ---
+    public void zoomPlus() {
+        niveauZoom *= 1.25f; // Augmente de 25%
+        invalidate(); // Force le redessin
+    }
+
+    public void zoomMoins() {
+        niveauZoom /= 1.25f; // Diminue de 25%
+        invalidate();
+    }
+
+    public void zoomReset() {
+        niveauZoom = 1.0f; // Retour à la normale
+        invalidate();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        
+        // Sauvegarde de l'état du canvas avant transformation
+        canvas.save();
+        
+        // Appliquer le zoom par rapport au centre de l'écran
+        canvas.scale(niveauZoom, niveauZoom, getWidth() / 2f, getHeight() / 2f);
+
         int gridSize = 100;
+        
+        // On calcule une zone de dessin très large pour s'assurer que la grille 
+        // couvre tout l'écran même en cas de fort dézoom et déplacement
         int w = getWidth();
         int h = getHeight();
+        int limiteMax = (int) (Math.max(w, h) * 2 / niveauZoom);
 
         // Dessin de la grille avec offset de caméra
-        for (int i = (int)(cameraX % gridSize); i < w; i += gridSize) {
-            canvas.drawLine(i, 0, i, h, paintGrille);
+        for (int i = -limiteMax + (int)(cameraX % gridSize); i < limiteMax; i += gridSize) {
+            canvas.drawLine(i, -limiteMax, i, limiteMax, paintGrille);
         }
-        for (int i = (int)(cameraY % gridSize); i < h; i += gridSize) {
-            canvas.drawLine(0, i, w, i, paintGrille);
+        for (int i = -limiteMax + (int)(cameraY % gridSize); i < limiteMax; i += gridSize) {
+            canvas.drawLine(-limiteMax, i, limiteMax, i, paintGrille);
         }
 
         // Dessin du rectangle caméra (fixe au centre pour l'instant)
         canvas.drawRect(200 + cameraX, 200 + cameraY, 600 + cameraX, 500 + cameraY, paintCamera);
+        
+        // Restauration de l'état initial
+        canvas.restore();
     }
 
     @Override
@@ -69,11 +102,12 @@ public class CanvasEditeur extends View {
 
             case MotionEvent.ACTION_MOVE:
                 if (isPanMode) {
-                    cameraX += (x - lastTouchX);
-                    cameraY += (y - lastTouchY);
+                    // On divise le déplacement par le zoom pour que le mouvement sous le doigt reste naturel (1:1)
+                    cameraX += (x - lastTouchX) / niveauZoom;
+                    cameraY += (y - lastTouchY) / niveauZoom;
                     lastTouchX = x;
                     lastTouchY = y;
-                    invalidate(); // Redessine
+                    invalidate(); 
                 } else {
                     // TODO: Logique de sélection d'objet ici
                 }
