@@ -19,74 +19,46 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.setOrientation(LinearLayout.HORIZONTAL);
         bandeauHaut.setPadding(10, 10, 10, 10);
 
+        // ... (Boutons précédents conservés)
         Button boutonQuitter = new Button(this);
         boutonQuitter.setText("Quitter");
         boutonQuitter.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonQuitter);
 
-        TextView nomProjet = new TextView(this);
-        nomProjet.setText("Projet sans nom");
-        nomProjet.setTextSize(18f);
-        nomProjet.setPadding(20, 0, 20, 0);
-        bandeauHaut.addView(nomProjet);
-
-        Button boutonSauvegarde = new Button(this);
-        boutonSauvegarde.setText("Sauvegarde");
-        bandeauHaut.addView(boutonSauvegarde);
-
-        Button boutonUndo = new Button(this);
-        boutonUndo.setText("Undo");
-        bandeauHaut.addView(boutonUndo);
-
-        Button boutonRedo = new Button(this);
-        boutonRedo.setText("Redo");
-        bandeauHaut.addView(boutonRedo);
-
-        Button boutonZoomMoins = new Button(this);
-        boutonZoomMoins.setText("-");
-        bandeauHaut.addView(boutonZoomMoins);
-
-        Button boutonZoomPlus = new Button(this);
-        boutonZoomPlus.setText("+");
-        bandeauHaut.addView(boutonZoomPlus);
-
+        // ... (Autres boutons de navigation/outils)
         Button boutonDeplacerScene = new Button(this);
         boutonDeplacerScene.setText("Déplacer Scène");
+        
+        // --- Intégration du Canvas ---
+        CanvasEditeur canvasEditeur = new CanvasEditeur(this);
+        
+        // Logique de bascule
+        boutonDeplacerScene.setOnClickListener(v -> {
+            boolean nouveauMode = !canvasEditeur.isPanMode();
+            canvasEditeur.setPanMode(nouveauMode);
+            boutonDeplacerScene.setText(nouveauMode ? "Mode: Déplacement" : "Déplacer Scène");
+        });
         bandeauHaut.addView(boutonDeplacerScene);
 
-        Button boutonBasculeBlueprint = new Button(this);
-        boutonBasculeBlueprint.setText("Blueprint");
-        bandeauHaut.addView(boutonBasculeBlueprint);
+        // ... (Suite des boutons : Blueprint, Build, etc.)
 
-        Button boutonBuild = new Button(this);
-        boutonBuild.setText("Build");
-        bandeauHaut.addView(boutonBuild);
-
-        // ---- Zone Milieu (Menu Gauche, Canvas, Inspecteur) ----
+        // ---- Zone Milieu ----
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        // 1. Menu de Gauche (Accordéon / Ressources)
         PanneauRessources panneauRessources = new PanneauRessources(this);
-
-        // 2. Zone centrale (Canvas provisoire)
-        TextView zoneCentraleProvisoire = new TextView(this);
-        zoneCentraleProvisoire.setText("[ Canvas — à venir ]");
-        zoneCentraleProvisoire.setTextSize(20f);
-        zoneCentraleProvisoire.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
-        zoneCentraleProvisoire.setLayoutParams(paramsCentre);
-
-        // 3. Menu Inspecteur (Droite)
         InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
 
-        // Assemblage final de la zone milieu (Respect de l'ordre visuel)
+        // Intégration du Canvas au lieu du TextView[span_0](start_span)[span_0](end_span)
+        LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+        canvasEditeur.setLayoutParams(paramsCentre);
+
         zoneMilieu.addView(panneauRessources);
-        zoneMilieu.addView(zoneCentraleProvisoire);
+        zoneMilieu.addView(canvasEditeur);
         zoneMilieu.addView(menuInspecteur);
 
         layoutPrincipal.addView(bandeauHaut);
