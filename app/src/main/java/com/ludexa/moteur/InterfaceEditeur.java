@@ -100,7 +100,7 @@ public class InterfaceEditeur extends Activity {
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        PanneauRessources panneauRessources = new PanneauRessources(this);
+        PanneauRessources panneauRessources = new PanneauRessources(this, sceneActive, canvasEditeur);
         InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
 
         zoneMilieu.addView(panneauRessources);
