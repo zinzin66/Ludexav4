@@ -77,7 +77,7 @@ public class InterfaceEditeur extends Activity {
 
         // --- Bouton Blueprint (MODIFIÉ) ---
         Button boutonBasculeBlueprint = new Button(this);
-        boutonBasculeBlueprint.setText("Blueprint");
+        boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
             startActivity(intent);
