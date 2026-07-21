@@ -19,7 +19,12 @@ public class MainActivity extends Activity {
         sceneActive.ajouterObjet(carre);
 
         noeudStart = new NoeudEventStart();
+        NoeudActionDeplacer noeudDeplacer = new NoeudActionDeplacer(carre, 40f, 30f);
+
+        noeudStart.connecterPort("Suivant", noeudDeplacer, "Entrer");
+
         sceneActive.ajouterNoeud(noeudStart);
+        sceneActive.ajouterNoeud(noeudDeplacer);
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
