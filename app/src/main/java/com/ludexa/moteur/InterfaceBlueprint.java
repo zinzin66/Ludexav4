@@ -27,10 +27,10 @@ public class InterfaceBlueprint extends Activity {
         boutonRetour.setOnClickListener(v -> finish()); // Revient à l'InterfaceEditeur
         bandeauHaut.addView(boutonRetour);
 
-        // Instanciation du Canvas (pour le lier aux boutons de zoom)
+        // Instanciation du Canvas (nécessaire ici pour le lier aux boutons de zoom)
         CanvasBlueprint canvasBlueprint = new CanvasBlueprint(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+                0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasBlueprint.setLayoutParams(paramsCentre);
 
         // --- Boutons de Zoom ---
@@ -68,9 +68,26 @@ public class InterfaceBlueprint extends Activity {
         boutonCode.setOnClickListener(v -> afficherFenetreCode());
         bandeauHaut.addView(boutonCode);
 
-        // Assemblage
+        // ---- Zone Milieu (Panneau Gauche + Canvas) ----
+        LinearLayout zoneMilieu = new LinearLayout(this);
+        zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        zoneMilieu.setLayoutParams(paramsMilieu);
+
+        // 1. Panneau de gauche (Nœuds)
+        PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
+
+        // 2. Zone centrale (Canvas intégré)
+        // (canvasBlueprint est déjà instancié plus haut)
+
+        // Assemblage de la zone milieu
+        zoneMilieu.addView(panneauNoeuds);
+        zoneMilieu.addView(canvasBlueprint);
+
+        // Assemblage final
         layoutPrincipal.addView(bandeauHaut);
-        layoutPrincipal.addView(canvasBlueprint);
+        layoutPrincipal.addView(zoneMilieu);
 
         setContentView(layoutPrincipal);
     }
