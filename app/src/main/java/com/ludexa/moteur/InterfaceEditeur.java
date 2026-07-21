@@ -62,14 +62,17 @@ public class InterfaceEditeur extends Activity {
         boutonBuild.setText("Build");
         bandeauHaut.addView(boutonBuild);
 
-        // ---- Zone Milieu (Canvas à gauche, Inspecteur à droite) ----
+        // ---- Zone Milieu (Menu Gauche, Canvas, Inspecteur) ----
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        // ---- Zone centrale (Canvas provisoire) ----
+        // 1. Menu de Gauche (Accordéon / Ressources)
+        PanneauRessources panneauRessources = new PanneauRessources(this);
+
+        // 2. Zone centrale (Canvas provisoire)
         TextView zoneCentraleProvisoire = new TextView(this);
         zoneCentraleProvisoire.setText("[ Canvas — à venir ]");
         zoneCentraleProvisoire.setTextSize(20f);
@@ -78,11 +81,11 @@ public class InterfaceEditeur extends Activity {
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         zoneCentraleProvisoire.setLayoutParams(paramsCentre);
 
-        // ---- Menu Inspecteur (Droite) ----
-        // On instancie la classe séparée qui gère toute sa propre logique
+        // 3. Menu Inspecteur (Droite)
         InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
 
-        // Assemblage final de la zone milieu
+        // Assemblage final de la zone milieu (Respect de l'ordre visuel)
+        zoneMilieu.addView(panneauRessources);
         zoneMilieu.addView(zoneCentraleProvisoire);
         zoneMilieu.addView(menuInspecteur);
 
