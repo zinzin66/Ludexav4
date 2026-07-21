@@ -8,13 +8,14 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class CanvasEditeur extends View {
-    private Paint paintGrille, paintCamera, paintObjet;
+    private Paint paintGrille, paintCamera, paintObjet, paintSelection;
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
     private boolean isPanMode = false;
     private float niveauZoom = 1.0f;
 
     private Scene sceneActive;
+    private ObjetBase objetSelectionne;
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -33,11 +34,20 @@ public class CanvasEditeur extends View {
 
         paintObjet = new Paint();
         paintObjet.setColor(Color.BLUE);
+
+        paintSelection = new Paint();
+        paintSelection.setColor(Color.YELLOW);
+        paintSelection.setStyle(Paint.Style.STROKE);
+        paintSelection.setStrokeWidth(6);
     }
 
     public void setScene(Scene scene) {
         this.sceneActive = scene;
         invalidate();
+    }
+
+    public ObjetBase getObjetSelectionne() {
+        return objetSelectionne;
     }
 
     public void setPanMode(boolean enabled) {
@@ -84,7 +94,6 @@ public class CanvasEditeur extends View {
 
         canvas.drawRect(200 + cameraX, 200 + cameraY, 600 + cameraX, 500 + cameraY, paintCamera);
 
-        // Dessin des objets de la scène active
         if (sceneActive != null) {
             for (ObjetBase objet : sceneActive.objets) {
                 canvas.drawRect(
@@ -94,10 +103,48 @@ public class CanvasEditeur extends View {
                         objet.y + objet.hauteur + cameraY,
                         paintObjet
                 );
+
+                // Contour jaune si cet objet est sélectionné
+                if (objet == objetSelectionne) {
+                    canvas.drawRect(
+                            objet.x + cameraX - 4,
+                            objet.y + cameraY - 4,
+                            objet.x + objet.largeur + cameraX + 4,
+                            objet.y + objet.hauteur + cameraY + 4,
+                            paintSelection
+                    );
+                }
             }
         }
 
         canvas.restore();
+    }
+
+    // Convertit une coordonnée écran en coordonnée de scène (annule zoom + caméra)
+    private float[] ecranVersScene(float xEcran, float yEcran) {
+        float centreX = getWidth() / 2f;
+        float centreY = getHeight() / 2f;
+        float xZoom = centreX + (xEcran - centreX) / niveauZoom;
+        float yZoom = centreY + (yEcran - centreY) / niveauZoom;
+        return new float[]{xZoom - cameraX, yZoom - cameraY};
+    }
+
+    private ObjetBase trouverObjetSousToucher(float xEcran, float yEcran) {
+        if (sceneActive == null) return null;
+
+        float[] scenePos = ecranVersScene(xEcran, yEcran);
+        float xScene = scenePos[0];
+        float yScene = scenePos[1];
+
+        // On parcourt à l'envers pour sélectionner l'objet dessiné en dernier (au-dessus)
+        for (int i = sceneActive.objets.size() - 1; i >= 0; i--) {
+            ObjetBase objet = sceneActive.objets.get(i);
+            if (xScene >= objet.x && xScene <= objet.x + objet.largeur
+                    && yScene >= objet.y && yScene <= objet.y + objet.hauteur) {
+                return objet;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -109,6 +156,11 @@ public class CanvasEditeur extends View {
             case MotionEvent.ACTION_DOWN:
                 lastTouchX = x;
                 lastTouchY = y;
+
+                if (!isPanMode) {
+                    objetSelectionne = trouverObjetSousToucher(x, y);
+                    invalidate();
+                }
                 return true;
 
             case MotionEvent.ACTION_MOVE:
@@ -118,8 +170,6 @@ public class CanvasEditeur extends View {
                     lastTouchX = x;
                     lastTouchY = y;
                     invalidate();
-                } else {
-                    // TODO: Logique de sélection d'objet ici (prochaine étape)
                 }
                 return true;
         }
