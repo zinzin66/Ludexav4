@@ -8,13 +8,13 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class CanvasEditeur extends View {
-    private Paint paintGrille, paintCamera;
+    private Paint paintGrille, paintCamera, paintObjet;
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
     private boolean isPanMode = false;
-    
-    // Nouvelle variable pour gérer le zoom
     private float niveauZoom = 1.0f;
+
+    private Scene sceneActive;
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -30,6 +30,14 @@ public class CanvasEditeur extends View {
         paintCamera.setColor(Color.RED);
         paintCamera.setStyle(Paint.Style.STROKE);
         paintCamera.setStrokeWidth(5);
+
+        paintObjet = new Paint();
+        paintObjet.setColor(Color.BLUE);
+    }
+
+    public void setScene(Scene scene) {
+        this.sceneActive = scene;
+        invalidate();
     }
 
     public void setPanMode(boolean enabled) {
@@ -40,52 +48,55 @@ public class CanvasEditeur extends View {
         return isPanMode;
     }
 
-    // --- Méthodes de Zoom ---
     public void zoomPlus() {
-        niveauZoom *= 1.25f; // Augmente de 25%
-        invalidate(); // Force le redessin
+        niveauZoom *= 1.25f;
+        invalidate();
     }
 
     public void zoomMoins() {
-        niveauZoom /= 1.25f; // Diminue de 25%
+        niveauZoom /= 1.25f;
         invalidate();
     }
 
     public void zoomReset() {
-        niveauZoom = 1.0f; // Retour à la normale
+        niveauZoom = 1.0f;
         invalidate();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        
-        // Sauvegarde de l'état du canvas avant transformation
+
         canvas.save();
-        
-        // Appliquer le zoom par rapport au centre de l'écran
         canvas.scale(niveauZoom, niveauZoom, getWidth() / 2f, getHeight() / 2f);
 
         int gridSize = 100;
-        
-        // On calcule une zone de dessin très large pour s'assurer que la grille 
-        // couvre tout l'écran même en cas de fort dézoom et déplacement
         int w = getWidth();
         int h = getHeight();
         int limiteMax = (int) (Math.max(w, h) * 2 / niveauZoom);
 
-        // Dessin de la grille avec offset de caméra
-        for (int i = -limiteMax + (int)(cameraX % gridSize); i < limiteMax; i += gridSize) {
+        for (int i = -limiteMax + (int) (cameraX % gridSize); i < limiteMax; i += gridSize) {
             canvas.drawLine(i, -limiteMax, i, limiteMax, paintGrille);
         }
-        for (int i = -limiteMax + (int)(cameraY % gridSize); i < limiteMax; i += gridSize) {
+        for (int i = -limiteMax + (int) (cameraY % gridSize); i < limiteMax; i += gridSize) {
             canvas.drawLine(-limiteMax, i, limiteMax, i, paintGrille);
         }
 
-        // Dessin du rectangle caméra (fixe au centre pour l'instant)
         canvas.drawRect(200 + cameraX, 200 + cameraY, 600 + cameraX, 500 + cameraY, paintCamera);
-        
-        // Restauration de l'état initial
+
+        // Dessin des objets de la scène active
+        if (sceneActive != null) {
+            for (ObjetBase objet : sceneActive.objets) {
+                canvas.drawRect(
+                        objet.x + cameraX,
+                        objet.y + cameraY,
+                        objet.x + objet.largeur + cameraX,
+                        objet.y + objet.hauteur + cameraY,
+                        paintObjet
+                );
+            }
+        }
+
         canvas.restore();
     }
 
@@ -102,14 +113,13 @@ public class CanvasEditeur extends View {
 
             case MotionEvent.ACTION_MOVE:
                 if (isPanMode) {
-                    // On divise le déplacement par le zoom pour que le mouvement sous le doigt reste naturel (1:1)
                     cameraX += (x - lastTouchX) / niveauZoom;
                     cameraY += (y - lastTouchY) / niveauZoom;
                     lastTouchX = x;
                     lastTouchY = y;
-                    invalidate(); 
+                    invalidate();
                 } else {
-                    // TODO: Logique de sélection d'objet ici
+                    // TODO: Logique de sélection d'objet ici (prochaine étape)
                 }
                 return true;
         }
