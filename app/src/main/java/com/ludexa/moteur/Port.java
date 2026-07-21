@@ -1,3 +1,4 @@
+package com.ludexa.moteur;
 public class Port {
 
     public static final String TYPE_EXECUTION_ENTREE = "EXECUTION_ENTREE";
