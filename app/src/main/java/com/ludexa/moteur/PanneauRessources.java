@@ -14,12 +14,11 @@ public class PanneauRessources extends LinearLayout {
 
     public PanneauRessources(Context context) {
         super(context);
-        // On conserve l'orientation horizontale
-        setOrientation(LinearLayout.HORIZONTAL);
+        // Le panneau global superpose les éléments de haut en bas
+        setOrientation(LinearLayout.VERTICAL);
         setBackgroundColor(Color.parseColor("#EEEEEE"));
 
-        // 1. Bouton placé en premier (donc à gauche)
-        // Hauteur WRAP_CONTENT pour qu'il se place en haut
+        // 1. Bouton placé en premier (donc tout en haut à gauche)
         Button btnToggle = new Button(context);
         btnToggle.setText("<");
         btnToggle.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
@@ -27,23 +26,22 @@ public class PanneauRessources extends LinearLayout {
         // Conteneur principal de l'accordéon
         LinearLayout conteneurAccordeon = new LinearLayout(context);
         conteneurAccordeon.setOrientation(LinearLayout.VERTICAL);
-        // La largeur de l'accordéon est fixée à 400
-        conteneurAccordeon.setLayoutParams(new LayoutParams(400, LayoutParams.MATCH_PARENT));
+        conteneurAccordeon.setLayoutParams(new LayoutParams(400, LayoutParams.WRAP_CONTENT));
 
-        // 2. Zone défilante placée après le bouton (donc à sa droite)
+        // 2. Zone défilante placée sous le bouton
         zoneDefilante = new ScrollView(context);
-        zoneDefilante.setLayoutParams(new LayoutParams(400, LayoutParams.MATCH_PARENT));
+        // Largeur fixe de 400, hauteur prenant l'espace restant
+        zoneDefilante.setLayoutParams(new LayoutParams(400, 0, 1f));
         zoneDefilante.addView(conteneurAccordeon);
 
         // Action du bouton de bascule
         btnToggle.setOnClickListener(v -> {
             estOuvert = !estOuvert;
             zoneDefilante.setVisibility(estOuvert ? VISIBLE : GONE);
-            // < pour fermer quand c'est ouvert, > pour ouvrir quand c'est fermé
             btnToggle.setText(estOuvert ? "<" : ">");
         });
 
-        // Ajout au layout principal : bouton d'abord, puis l'accordéon
+        // Ajout au layout principal : le bouton d'abord, la zone défilante ensuite
         addView(btnToggle);
         addView(zoneDefilante);
 
