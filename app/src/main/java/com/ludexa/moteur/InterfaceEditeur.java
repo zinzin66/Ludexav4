@@ -2,6 +2,7 @@ package com.ludexa.moteur;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.widget.*;
 
 public class InterfaceEditeur extends Activity {
@@ -20,9 +21,7 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonQuitter = new Button(this);
         boutonQuitter.setText("Quitter");
-        boutonQuitter.setOnClickListener(v -> {
-            finish(); // Retour à l'écran précédent (Démarrage)
-        });
+        boutonQuitter.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonQuitter);
 
         TextView nomProjet = new TextView(this);
@@ -33,71 +32,62 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonSauvegarde = new Button(this);
         boutonSauvegarde.setText("Sauvegarde");
-        boutonSauvegarde.setOnClickListener(v -> {
-            // À implémenter
-        });
         bandeauHaut.addView(boutonSauvegarde);
 
         Button boutonUndo = new Button(this);
         boutonUndo.setText("Undo");
-        boutonUndo.setOnClickListener(v -> {
-            // À implémenter
-        });
         bandeauHaut.addView(boutonUndo);
 
         Button boutonRedo = new Button(this);
         boutonRedo.setText("Redo");
-        boutonRedo.setOnClickListener(v -> {
-            // À implémenter
-        });
         bandeauHaut.addView(boutonRedo);
 
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("-");
-        boutonZoomMoins.setOnClickListener(v -> {
-            // À implémenter
-        });
         bandeauHaut.addView(boutonZoomMoins);
 
         Button boutonZoomPlus = new Button(this);
         boutonZoomPlus.setText("+");
-        boutonZoomPlus.setOnClickListener(v -> {
-            // À implémenter
-        });
         bandeauHaut.addView(boutonZoomPlus);
 
         Button boutonDeplacerScene = new Button(this);
         boutonDeplacerScene.setText("Déplacer Scène");
-        boutonDeplacerScene.setOnClickListener(v -> {
-            // À implémenter
-        });
         bandeauHaut.addView(boutonDeplacerScene);
 
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Blueprint");
-        boutonBasculeBlueprint.setOnClickListener(v -> {
-            // À implémenter : ouvrir InterfaceBlueprint
-        });
         bandeauHaut.addView(boutonBasculeBlueprint);
 
         Button boutonBuild = new Button(this);
         boutonBuild.setText("Build");
-        boutonBuild.setOnClickListener(v -> {
-            // À implémenter
-        });
         bandeauHaut.addView(boutonBuild);
 
-        // ---- Zone centrale : réservée pour le Canvas, vide pour l'instant ----
+        // ---- Zone Milieu (Canvas à gauche, Inspecteur à droite) ----
+        LinearLayout zoneMilieu = new LinearLayout(this);
+        zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        zoneMilieu.setLayoutParams(paramsMilieu);
+
+        // ---- Zone centrale (Canvas provisoire) ----
         TextView zoneCentraleProvisoire = new TextView(this);
         zoneCentraleProvisoire.setText("[ Canvas — à venir ]");
         zoneCentraleProvisoire.setTextSize(20f);
-        zoneCentraleProvisoire.setGravity(android.view.Gravity.CENTER);
+        zoneCentraleProvisoire.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+                0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         zoneCentraleProvisoire.setLayoutParams(paramsCentre);
 
+        // ---- Menu Inspecteur (Droite) ----
+        // On instancie la classe séparée qui gère toute sa propre logique
+        InspecteurProprietes menuInspecteur = new InspecteurProprietes(this);
+
+        // Assemblage final de la zone milieu
+        zoneMilieu.addView(zoneCentraleProvisoire);
+        zoneMilieu.addView(menuInspecteur);
+
         layoutPrincipal.addView(bandeauHaut);
-        layoutPrincipal.addView(zoneCentraleProvisoire);
+        layoutPrincipal.addView(zoneMilieu);
 
         setContentView(layoutPrincipal);
     }
