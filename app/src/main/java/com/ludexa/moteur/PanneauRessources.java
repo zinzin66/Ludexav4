@@ -14,36 +14,44 @@ public class PanneauRessources extends LinearLayout {
 
     public PanneauRessources(Context context) {
         super(context);
+        // On conserve l'orientation horizontale
         setOrientation(LinearLayout.HORIZONTAL);
         setBackgroundColor(Color.parseColor("#EEEEEE"));
 
-        // Conteneur principal de l'accordéon (à gauche)
-        LinearLayout conteneurAccordeon = new LinearLayout(context);
-        conteneurAccordeon.setOrientation(LinearLayout.VERTICAL);
-        conteneurAccordeon.setLayoutParams(new LayoutParams(400, LayoutParams.MATCH_PARENT));
-
-        zoneDefilante = new ScrollView(context);
-        zoneDefilante.addView(conteneurAccordeon);
-
-        // Bouton pour masquer/afficher le menu (à droite de l'accordéon)
+        // 1. Bouton placé en premier (donc à gauche)
+        // Hauteur WRAP_CONTENT pour qu'il se place en haut
         Button btnToggle = new Button(context);
         btnToggle.setText("<");
-        btnToggle.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
+        btnToggle.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+        // Conteneur principal de l'accordéon
+        LinearLayout conteneurAccordeon = new LinearLayout(context);
+        conteneurAccordeon.setOrientation(LinearLayout.VERTICAL);
+        // La largeur de l'accordéon est fixée à 400
+        conteneurAccordeon.setLayoutParams(new LayoutParams(400, LayoutParams.MATCH_PARENT));
+
+        // 2. Zone défilante placée après le bouton (donc à sa droite)
+        zoneDefilante = new ScrollView(context);
+        zoneDefilante.setLayoutParams(new LayoutParams(400, LayoutParams.MATCH_PARENT));
+        zoneDefilante.addView(conteneurAccordeon);
+
+        // Action du bouton de bascule
         btnToggle.setOnClickListener(v -> {
             estOuvert = !estOuvert;
             zoneDefilante.setVisibility(estOuvert ? VISIBLE : GONE);
+            // < pour fermer quand c'est ouvert, > pour ouvrir quand c'est fermé
             btnToggle.setText(estOuvert ? "<" : ">");
         });
+
+        // Ajout au layout principal : bouton d'abord, puis l'accordéon
+        addView(btnToggle);
+        addView(zoneDefilante);
 
         // Ajout des 4 sections de l'accordéon
         conteneurAccordeon.addView(creerSectionScene(context));
         conteneurAccordeon.addView(creerSectionObjet(context));
         conteneurAccordeon.addView(creerSectionAsset(context));
         conteneurAccordeon.addView(creerSectionVariable(context));
-
-        // Ajout au layout principal de la classe
-        addView(zoneDefilante);
-        addView(btnToggle);
     }
 
     private View creerSectionScene(Context context) {
