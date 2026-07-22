@@ -25,7 +25,6 @@ public class PanneauRessources extends ScrollView {
 
     private void init(Context context) {
         setBackgroundColor(Color.parseColor("#333333"));
-        // Largeur légèrement augmentée pour que les boutons respirent
         setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
@@ -71,7 +70,6 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // --- SECTION OBJETS À PLACER ---
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -130,14 +128,37 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
-        Button btnCreer = new Button(context);
-        btnCreer.setText("Créer une scène");
-        btnCreer.setOnClickListener(v -> afficherPopupCreerScene(context));
-        contenu.addView(btnCreer);
-
         conteneurScenes = new LinearLayout(context);
         conteneurScenes.setOrientation(LinearLayout.VERTICAL);
+        conteneurScenes.setPadding(0, 0, 0, 20);
         contenu.addView(conteneurScenes);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnCreer = new Button(context);
+        btnCreer.setText("Créer");
+        btnCreer.setOnClickListener(v -> afficherPopupCreerScene(context));
+
+        Button btnRenommer = new Button(context);
+        btnRenommer.setText("Renommer");
+        btnRenommer.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            afficherPopupRenommerScene(context, editeur.sceneActive);
+        });
+
+        Button btnSupprimer = new Button(context);
+        btnSupprimer.setText("Supprimer");
+        btnSupprimer.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            afficherPopupSupprimerScene(context, editeur.sceneActive);
+        });
+
+        zoneBoutons.addView(btnCreer);
+        zoneBoutons.addView(btnRenommer);
+        zoneBoutons.addView(btnSupprimer);
+
+        contenu.addView(zoneBoutons);
 
         rafraichirScenes();
 
@@ -161,11 +182,6 @@ public class PanneauRessources extends ScrollView {
         InterfaceEditeur editeur = (InterfaceEditeur) getContext();
 
         for (Scene s : editeur.listeScenes) {
-            // Bloc principal de l'item en Vertical
-            LinearLayout itemScene = new LinearLayout(getContext());
-            itemScene.setOrientation(LinearLayout.VERTICAL);
-            itemScene.setPadding(0, 10, 0, 30);
-
             TextView nomScene = new TextView(getContext());
             nomScene.setText(s.nom);
             if (s == editeur.sceneActive) {
@@ -173,36 +189,16 @@ public class PanneauRessources extends ScrollView {
             } else {
                 nomScene.setTextColor(Color.WHITE);
             }
-            nomScene.setPadding(10, 0, 0, 10);
+            nomScene.setPadding(10, 15, 10, 15);
             nomScene.setTextSize(16f);
+            
+            nomScene.setOnClickListener(v -> editeur.changerScene(s));
 
-            // Sous-bloc pour aligner les boutons horizontalement
-            LinearLayout zoneBoutons = new LinearLayout(getContext());
-            zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-            Button btnOuvrir = new Button(getContext());
-            btnOuvrir.setText("Ouvrir");
-            btnOuvrir.setOnClickListener(v -> editeur.changerScene(s));
-
-            Button btnRenommer = new Button(getContext());
-            btnRenommer.setText("Renommer");
-            btnRenommer.setOnClickListener(v -> afficherPopupRenommerScene(getContext(), s));
-
-            Button btnSupprimer = new Button(getContext());
-            btnSupprimer.setText("Supprimer");
-            btnSupprimer.setOnClickListener(v -> afficherPopupSupprimerScene(getContext(), s));
-
-            zoneBoutons.addView(btnOuvrir);
-            zoneBoutons.addView(btnRenommer);
-            zoneBoutons.addView(btnSupprimer);
-
-            itemScene.addView(nomScene);
-            itemScene.addView(zoneBoutons);
-
-            conteneurScenes.addView(itemScene);
+            conteneurScenes.addView(nomScene);
         }
     }
-
+// fin 1
+// debut 2
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -214,7 +210,6 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
-        // Organisation sur deux lignes pour les Assets aussi
         LinearLayout itemAsset = new LinearLayout(context);
         itemAsset.setOrientation(LinearLayout.VERTICAL);
         itemAsset.setPadding(0, 10, 0, 30);
@@ -258,9 +253,7 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// fin 1
 
-    // debut 2
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -277,7 +270,6 @@ public class PanneauRessources extends ScrollView {
         btnCreer.setOnClickListener(v -> afficherPopupCreer(context, "une variable"));
         contenu.addView(btnCreer);
 
-        // Organisation sur deux lignes pour les Variables
         LinearLayout itemVariable = new LinearLayout(context);
         itemVariable.setOrientation(LinearLayout.VERTICAL);
         itemVariable.setPadding(0, 10, 0, 30);
@@ -317,7 +309,6 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // --- POPUPS SPÉCIFIQUES AUX SCÈNES ---
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
@@ -442,7 +433,6 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 
-    // --- POPUPS GÉNÉRIQUES (Assets / Variables) ---
     private void afficherPopupCreer(Context context, String type) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer " + type);
@@ -549,5 +539,4 @@ public class PanneauRessources extends ScrollView {
     }
 }
 // fin 2
-
-
+                
