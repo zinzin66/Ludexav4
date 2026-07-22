@@ -5,8 +5,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InterfaceEditeur extends Activity {
+
+    public List<Scene> listeScenes = new ArrayList<>();
+    public Scene sceneActive;
+    private CanvasEditeur canvasEditeur;
+    private PanneauRessources panneauRessources;
+    private InspecteurProprietes menuInspecteur;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,11 +52,12 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.addView(boutonRedo);
 
         // --- Scène active (nouvelle, avec un objet de test pour vérifier l'affichage) ---
-        Scene sceneActive = new Scene("SceneDepart");
+        sceneActive = new Scene("SceneDepart");
         sceneActive.ajouterObjet(new ObjetBase("Carré", 300f, 300f, 80f, 80f));
+        listeScenes.add(sceneActive);
 
         // --- Instanciation du Canvas ---
-        CanvasEditeur canvasEditeur = new CanvasEditeur(this);
+        canvasEditeur = new CanvasEditeur(this);
         canvasEditeur.setScene(sceneActive);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
@@ -100,9 +109,10 @@ public class InterfaceEditeur extends Activity {
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        PanneauRessources panneauRessources = new PanneauRessources(this, sceneActive, canvasEditeur);
-        InspecteurProprietes menuInspecteur = new InspecteurProprietes(this, sceneActive, canvasEditeur);
+        panneauRessources = new PanneauRessources(this, canvasEditeur);
+        menuInspecteur = new InspecteurProprietes(this, sceneActive, canvasEditeur);
         canvasEditeur.setInspecteur(menuInspecteur);
+        
         zoneMilieu.addView(panneauRessources);
         zoneMilieu.addView(canvasEditeur);
         zoneMilieu.addView(menuInspecteur);
@@ -111,5 +121,22 @@ public class InterfaceEditeur extends Activity {
         layoutPrincipal.addView(zoneMilieu);
 
         setContentView(layoutPrincipal);
+    }
+
+    public void creerScene(String nom) {
+        Scene nouvelleScene = new Scene(nom);
+        listeScenes.add(nouvelleScene);
+        changerScene(nouvelleScene);
+    }
+
+    public void changerScene(Scene scene) {
+        this.sceneActive = scene;
+        canvasEditeur.setScene(scene);
+        canvasEditeur.deselectionner();
+        if (menuInspecteur != null) {
+            menuInspecteur.afficherObjet(null);
+        }
+        panneauRessources.rafraichirScenes();
+        canvasEditeur.invalidate();
     }
 }
