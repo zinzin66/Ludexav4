@@ -1,3 +1,4 @@
+// debut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -24,7 +25,8 @@ public class PanneauRessources extends ScrollView {
 
     private void init(Context context) {
         setBackgroundColor(Color.parseColor("#333333"));
-        setLayoutParams(new LinearLayout.LayoutParams(400, LinearLayout.LayoutParams.MATCH_PARENT));
+        // Largeur légèrement augmentée pour que les boutons respirent
+        setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -159,9 +161,10 @@ public class PanneauRessources extends ScrollView {
         InterfaceEditeur editeur = (InterfaceEditeur) getContext();
 
         for (Scene s : editeur.listeScenes) {
+            // Bloc principal de l'item en Vertical
             LinearLayout itemScene = new LinearLayout(getContext());
-            itemScene.setOrientation(LinearLayout.HORIZONTAL);
-            itemScene.setPadding(0, 10, 0, 10);
+            itemScene.setOrientation(LinearLayout.VERTICAL);
+            itemScene.setPadding(0, 10, 0, 30);
 
             TextView nomScene = new TextView(getContext());
             nomScene.setText(s.nom);
@@ -170,7 +173,12 @@ public class PanneauRessources extends ScrollView {
             } else {
                 nomScene.setTextColor(Color.WHITE);
             }
-            nomScene.setPadding(10, 10, 20, 10);
+            nomScene.setPadding(10, 0, 0, 10);
+            nomScene.setTextSize(16f);
+
+            // Sous-bloc pour aligner les boutons horizontalement
+            LinearLayout zoneBoutons = new LinearLayout(getContext());
+            zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
 
             Button btnOuvrir = new Button(getContext());
             btnOuvrir.setText("Ouvrir");
@@ -184,10 +192,12 @@ public class PanneauRessources extends ScrollView {
             btnSupprimer.setText("Supprimer");
             btnSupprimer.setOnClickListener(v -> afficherPopupSupprimerScene(getContext(), s));
 
+            zoneBoutons.addView(btnOuvrir);
+            zoneBoutons.addView(btnRenommer);
+            zoneBoutons.addView(btnSupprimer);
+
             itemScene.addView(nomScene);
-            itemScene.addView(btnOuvrir);
-            itemScene.addView(btnRenommer);
-            itemScene.addView(btnSupprimer);
+            itemScene.addView(zoneBoutons);
 
             conteneurScenes.addView(itemScene);
         }
@@ -204,14 +214,19 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
+        // Organisation sur deux lignes pour les Assets aussi
         LinearLayout itemAsset = new LinearLayout(context);
-        itemAsset.setOrientation(LinearLayout.HORIZONTAL);
-        itemAsset.setPadding(0, 10, 0, 10);
+        itemAsset.setOrientation(LinearLayout.VERTICAL);
+        itemAsset.setPadding(0, 10, 0, 30);
 
         TextView nomAsset = new TextView(context);
         nomAsset.setText("Sprite_Joueur");
         nomAsset.setTextColor(Color.WHITE);
-        nomAsset.setPadding(10, 10, 20, 10);
+        nomAsset.setPadding(10, 0, 0, 10);
+        nomAsset.setTextSize(16f);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
 
         Button btnRenommer = new Button(context);
         btnRenommer.setText("Renommer");
@@ -221,9 +236,11 @@ public class PanneauRessources extends ScrollView {
         btnSupprimer.setText("Supprimer");
         btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer l'asset 'Sprite_Joueur' ?"));
 
+        zoneBoutons.addView(btnRenommer);
+        zoneBoutons.addView(btnSupprimer);
+
         itemAsset.addView(nomAsset);
-        itemAsset.addView(btnRenommer);
-        itemAsset.addView(btnSupprimer);
+        itemAsset.addView(zoneBoutons);
 
         contenu.addView(itemAsset);
 
@@ -241,7 +258,9 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
+// fin 1
 
+    // debut 2
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -258,21 +277,29 @@ public class PanneauRessources extends ScrollView {
         btnCreer.setOnClickListener(v -> afficherPopupCreer(context, "une variable"));
         contenu.addView(btnCreer);
 
+        // Organisation sur deux lignes pour les Variables
         LinearLayout itemVariable = new LinearLayout(context);
-        itemVariable.setOrientation(LinearLayout.HORIZONTAL);
-        itemVariable.setPadding(0, 10, 0, 10);
+        itemVariable.setOrientation(LinearLayout.VERTICAL);
+        itemVariable.setPadding(0, 10, 0, 30);
 
         TextView nomVariable = new TextView(context);
         nomVariable.setText("scoreJoueur");
         nomVariable.setTextColor(Color.WHITE);
-        nomVariable.setPadding(10, 10, 20, 10);
+        nomVariable.setPadding(10, 0, 0, 10);
+        nomVariable.setTextSize(16f);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
 
         Button btnSupprimerVar = new Button(context);
         btnSupprimerVar.setText("Supprimer");
         btnSupprimerVar.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer la variable 'scoreJoueur' ?"));
 
+        zoneBoutons.addView(btnSupprimerVar);
+
         itemVariable.addView(nomVariable);
-        itemVariable.addView(btnSupprimerVar);
+        itemVariable.addView(zoneBoutons);
+        
         contenu.addView(itemVariable);
 
         btnTitre.setOnClickListener(v -> {
@@ -393,7 +420,6 @@ public class PanneauRessources extends ScrollView {
                 Toast.makeText(context, "Impossible de supprimer la seule scène du projet.", Toast.LENGTH_SHORT).show();
             } else {
                 editeur.listeScenes.remove(scene);
-                // Si on supprime la scène active, on bascule automatiquement sur la première scène disponible
                 if (editeur.sceneActive == scene) {
                     editeur.changerScene(editeur.listeScenes.get(0));
                 } else {
@@ -521,5 +547,7 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-            }
-                
+}
+// fin 2
+
+
