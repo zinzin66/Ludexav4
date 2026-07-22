@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class CanvasEditeur extends View {
-    private Paint paintGrille, paintCamera, paintObjet, paintSelection;
+    private Paint paintGrille, paintCamera, paintObjet, paintSelection, paintTexte;
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
     private boolean isPanMode = false;
@@ -16,15 +16,15 @@ public class CanvasEditeur extends View {
 
     private Scene sceneActive;
     private ObjetBase objetSelectionne;
-private InspecteurProprietes inspecteurLie;
+    private InspecteurProprietes inspecteurLie;
 
-public void setInspecteur(InspecteurProprietes inspecteur) {
-    this.inspecteurLie = inspecteur;
-}
+    public void setInspecteur(InspecteurProprietes inspecteur) {
+        this.inspecteurLie = inspecteur;
+    }
 
-public void deselectionner() {
-    this.objetSelectionne = null;
-}
+    public void deselectionner() {
+        this.objetSelectionne = null;
+    }
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -43,6 +43,13 @@ public void deselectionner() {
 
         paintObjet = new Paint();
         paintObjet.setColor(Color.BLUE);
+        paintObjet.setAntiAlias(true);
+
+        // Nouveau pinceau spécifiquement pour le texte
+        paintTexte = new Paint();
+        paintTexte.setColor(Color.BLUE);
+        paintTexte.setTextSize(40f);
+        paintTexte.setAntiAlias(true);
 
         paintSelection = new Paint();
         paintSelection.setColor(Color.YELLOW);
@@ -105,21 +112,29 @@ public void deselectionner() {
 
         if (sceneActive != null) {
             for (ObjetBase objet : sceneActive.objets) {
-                canvas.drawRect(
-                        objet.x + cameraX,
-                        objet.y + cameraY,
-                        objet.x + objet.largeur + cameraX,
-                        objet.y + objet.hauteur + cameraY,
-                        paintObjet
-                );
+                float left = objet.x + cameraX;
+                float top = objet.y + cameraY;
+                float right = left + objet.largeur;
+                float bottom = top + objet.hauteur;
+
+                if ("rond".equals(objet.type)) {
+                    float cx = left + objet.largeur / 2f;
+                    float cy = top + objet.hauteur / 2f;
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    canvas.drawCircle(cx, cy, rayon, paintObjet);
+                } else if ("texte".equals(objet.type)) {
+                    canvas.drawText(objet.nom, left, bottom, paintTexte);
+                } else {
+                    canvas.drawRect(left, top, right, bottom, paintObjet);
+                }
 
                 // Contour jaune si cet objet est sélectionné
                 if (objet == objetSelectionne) {
                     canvas.drawRect(
-                            objet.x + cameraX - 4,
-                            objet.y + cameraY - 4,
-                            objet.x + objet.largeur + cameraX + 4,
-                            objet.y + objet.hauteur + cameraY + 4,
+                            left - 4,
+                            top - 4,
+                            right + 4,
+                            bottom + 4,
                             paintSelection
                     );
                 }
@@ -181,6 +196,18 @@ public void deselectionner() {
                     cameraY += (y - lastTouchY) / niveauZoom;
                     lastTouchX = x;
                     lastTouchY = y;
+                    invalidate();
+                } else if (objetSelectionne != null) {
+                    // Tâche 5 : Déplacement de l'objet sélectionné
+                    objetSelectionne.x += (x - lastTouchX) / niveauZoom;
+                    objetSelectionne.y += (y - lastTouchY) / niveauZoom;
+                    lastTouchX = x;
+                    lastTouchY = y;
+                    
+                    // Met à jour l'inspecteur pour voir les valeurs X/Y changer en direct
+                    if (inspecteurLie != null) {
+                        inspecteurLie.afficherObjet(objetSelectionne);
+                    }
                     invalidate();
                 }
                 return true;
