@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -7,6 +8,9 @@ import android.view.Gravity;
 import android.widget.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.FileWriter;
+import com.google.gson.Gson;
 
 public class InterfaceEditeur extends Activity {
 
@@ -41,6 +45,7 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonSauvegarde = new Button(this);
         boutonSauvegarde.setText("Sauvegarde");
+        boutonSauvegarde.setOnClickListener(v -> sauvegarderProjet());
         bandeauHaut.addView(boutonSauvegarde);
 
         Button boutonUndo = new Button(this);
@@ -139,4 +144,20 @@ public class InterfaceEditeur extends Activity {
         panneauRessources.rafraichirScenes();
         canvasEditeur.invalidate();
     }
+
+    private void sauvegarderProjet() {
+        try {
+            Gson gson = new Gson();
+            String json = gson.toJson(listeScenes);
+            File file = new File(getFilesDir(), "projet_sauvegarde.json");
+            FileWriter writer = new FileWriter(file);
+            writer.write(json);
+            writer.close();
+            Toast.makeText(this, "Projet sauvegardé dans : " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
+        }
+    }
 }
+// bas 1
