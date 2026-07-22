@@ -1,4 +1,3 @@
-// debut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -16,6 +15,7 @@ public class PanneauRessources extends ScrollView {
 
     private CanvasEditeur canvasEditeur;
     private LinearLayout conteneurScenes;
+    private LinearLayout conteneurArborescence;
 
     public PanneauRessources(Context context, CanvasEditeur canvas) {
         super(context);
@@ -32,42 +32,70 @@ public class PanneauRessources extends ScrollView {
 
         layoutPrincipal.addView(creerSectionScenes(context));
         layoutPrincipal.addView(creerSectionObjets(context));
-        layoutPrincipal.addView(creerSectionGenerique(context, "Arborescence", "Gestion de l'ordre Z"));
+        layoutPrincipal.addView(creerSectionArborescence(context));
         layoutPrincipal.addView(creerSectionAssets(context));
         layoutPrincipal.addView(creerSectionVariables(context));
 
         addView(layoutPrincipal);
     }
 
-    private View creerSectionGenerique(Context context, String titre, String contenuApercu) {
+    private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
-        btnTitre.setText(titre + " ▼");
+        btnTitre.setText("Arborescence ▼");
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
-        TextView txt = new TextView(context);
-        txt.setText("[ " + contenuApercu + " ]");
-        txt.setTextColor(Color.LTGRAY);
-        contenu.addView(txt);
+        conteneurArborescence = new LinearLayout(context);
+        conteneurArborescence.setOrientation(LinearLayout.VERTICAL);
+        contenu.addView(conteneurArborescence);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
                 contenu.setVisibility(View.GONE);
-                btnTitre.setText(titre + " ▶");
+                btnTitre.setText("Arborescence ▶");
             } else {
                 contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText(titre + " ▼");
+                btnTitre.setText("Arborescence ▼");
+                rafraichirArborescence();
             }
         });
 
         section.addView(btnTitre);
         section.addView(contenu);
         return section;
+    }
+
+    public void rafraichirArborescence() {
+        if (conteneurArborescence == null) return;
+        conteneurArborescence.removeAllViews();
+        
+        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+        if (editeur.sceneActive != null && editeur.sceneActive.listeObjets != null) {
+            for (int i = 0; i < editeur.sceneActive.listeObjets.size(); i++) {
+                ObjetBase obj = editeur.sceneActive.listeObjets.get(i);
+                
+                TextView txtObjet = new TextView(getContext());
+                txtObjet.setText("• " + obj.nom);
+                txtObjet.setTextColor(Color.WHITE);
+                txtObjet.setPadding(10, 10, 10, 10);
+                txtObjet.setTextSize(14f);
+                
+                conteneurArborescence.addView(txtObjet);
+            }
+        }
+        
+        if (conteneurArborescence.getChildCount() == 0) {
+            TextView txtVide = new TextView(getContext());
+            txtVide.setText("Aucun objet dans la scène");
+            txtVide.setTextColor(Color.LTGRAY);
+            txtVide.setPadding(10, 10, 10, 10);
+            conteneurArborescence.addView(txtVide);
+        }
     }
 
     private View creerSectionObjets(Context context) {
@@ -87,16 +115,29 @@ public class PanneauRessources extends ScrollView {
             ObjetBase nouveau = new ObjetBase("Carré", 150f, 150f, 80f, 80f);
             ((InterfaceEditeur)getContext()).sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
+            rafraichirArborescence();
             Toast.makeText(context, "Carré ajouté à la scène", Toast.LENGTH_SHORT).show();
         });
 
         Button btnAjouterTexte = new Button(context);
         btnAjouterTexte.setText("+ Ajouter un Texte");
-        btnAjouterTexte.setOnClickListener(v -> Toast.makeText(context, "Texte : à implémenter", Toast.LENGTH_SHORT).show());
+        btnAjouterTexte.setOnClickListener(v -> {
+            ObjetBase nouveau = new ObjetBase("Texte", 200f, 100f, 120f, 40f);
+            ((InterfaceEditeur)getContext()).sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+            Toast.makeText(context, "Texte ajouté à la scène", Toast.LENGTH_SHORT).show();
+        });
 
         Button btnAjouterRond = new Button(context);
         btnAjouterRond.setText("+ Ajouter un Rond");
-        btnAjouterRond.setOnClickListener(v -> Toast.makeText(context, "Rond : à implémenter", Toast.LENGTH_SHORT).show());
+        btnAjouterRond.setOnClickListener(v -> {
+            ObjetBase nouveau = new ObjetBase("Rond", 100f, 200f, 90f, 90f);
+            ((InterfaceEditeur)getContext()).sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+            Toast.makeText(context, "Rond ajouté à la scène", Toast.LENGTH_SHORT).show();
+        });
 
         contenu.addView(btnAjouterCarre);
         contenu.addView(btnAjouterTexte);
@@ -178,27 +219,31 @@ public class PanneauRessources extends ScrollView {
     }
 
     public void rafraichirScenes() {
+        if (conteneurScenes == null) return;
         conteneurScenes.removeAllViews();
         InterfaceEditeur editeur = (InterfaceEditeur) getContext();
 
-        for (Scene s : editeur.listeScenes) {
-            TextView nomScene = new TextView(getContext());
-            nomScene.setText(s.nom);
-            if (s == editeur.sceneActive) {
-                nomScene.setTextColor(Color.YELLOW);
-            } else {
-                nomScene.setTextColor(Color.WHITE);
-            }
-            nomScene.setPadding(10, 15, 10, 15);
-            nomScene.setTextSize(16f);
-            
-            nomScene.setOnClickListener(v -> editeur.changerScene(s));
+        if (editeur.listeScenes != null) {
+            for (Scene s : editeur.listeScenes) {
+                TextView nomScene = new TextView(getContext());
+                nomScene.setText(s.nom);
+                if (s == editeur.sceneActive) {
+                    nomScene.setTextColor(Color.YELLOW);
+                } else {
+                    nomScene.setTextColor(Color.WHITE);
+                }
+                nomScene.setPadding(10, 15, 10, 15);
+                nomScene.setTextSize(16f);
+                
+                nomScene.setOnClickListener(v -> {
+                    editeur.changerScene(s);
+                    rafraichirArborescence();
+                });
 
-            conteneurScenes.addView(nomScene);
+                conteneurScenes.addView(nomScene);
+            }
         }
     }
-// fin 1
-// debut 2
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -416,6 +461,7 @@ public class PanneauRessources extends ScrollView {
                 } else {
                     rafraichirScenes();
                 }
+                rafraichirArborescence();
                 Toast.makeText(context, "Scène supprimée", Toast.LENGTH_SHORT).show();
             }
             dialog.dismiss();
@@ -537,6 +583,5 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-}
-// fin 2
-                
+                            }
+            
