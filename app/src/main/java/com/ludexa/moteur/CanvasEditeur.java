@@ -197,6 +197,18 @@ public class CanvasEditeur extends View {
                     lastTouchX = x;
                     lastTouchY = y;
                     invalidate();
+                } else if (objetSelectionne != null) {
+                    // Tâche 5 : Déplacement de l'objet sélectionné
+                    objetSelectionne.x += (x - lastTouchX) / niveauZoom;
+                    objetSelectionne.y += (y - lastTouchY) / niveauZoom;
+                    lastTouchX = x;
+                    lastTouchY = y;
+                    
+                    // Met à jour l'inspecteur pour voir les valeurs X/Y changer en direct
+                    if (inspecteurLie != null) {
+                        inspecteurLie.afficherObjet(objetSelectionne);
+                    }
+                    invalidate();
                 }
                 return true;
         }
