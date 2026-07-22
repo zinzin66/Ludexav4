@@ -75,9 +75,9 @@ public class PanneauRessources extends ScrollView {
         conteneurArborescence.removeAllViews();
         
         InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-        if (editeur.sceneActive != null && editeur.sceneActive.listeObjets != null) {
-            for (int i = 0; i < editeur.sceneActive.listeObjets.size(); i++) {
-                ObjetBase obj = editeur.sceneActive.listeObjets.get(i);
+        if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+            for (int i = 0; i < editeur.sceneActive.objets.size(); i++) {
+                ObjetBase obj = editeur.sceneActive.objets.get(i);
                 
                 TextView txtObjet = new TextView(getContext());
                 txtObjet.setText("• " + obj.nom);
@@ -244,6 +244,8 @@ public class PanneauRessources extends ScrollView {
             }
         }
     }
+
+// fin 1
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -583,5 +585,4 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-                            }
-            
+                }
