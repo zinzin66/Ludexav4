@@ -13,12 +13,11 @@ import android.widget.Toast;
 
 public class PanneauRessources extends ScrollView {
 
-    private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
+    private LinearLayout conteneurScenes;
 
-    public PanneauRessources(Context context, Scene scene, CanvasEditeur canvas) {
+    public PanneauRessources(Context context, CanvasEditeur canvas) {
         super(context);
-        this.sceneActive = scene;
         this.canvasEditeur = canvas;
         init(context);
     }
@@ -70,7 +69,7 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
-    // --- SECTION OBJETS À PLACER (maintenant connectée à la vraie Scene) ---
+    // --- SECTION OBJETS À PLACER ---
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -86,7 +85,7 @@ public class PanneauRessources extends ScrollView {
         btnAjouterCarre.setText("+ Ajouter un Carré");
         btnAjouterCarre.setOnClickListener(v -> {
             ObjetBase nouveau = new ObjetBase("Carré", 150f, 150f, 80f, 80f);
-            sceneActive.ajouterObjet(nouveau);
+            ((InterfaceEditeur)getContext()).sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             Toast.makeText(context, "Carré ajouté à la scène", Toast.LENGTH_SHORT).show();
         });
@@ -131,31 +130,14 @@ public class PanneauRessources extends ScrollView {
 
         Button btnCreer = new Button(context);
         btnCreer.setText("Créer une scène");
-        btnCreer.setOnClickListener(v -> afficherPopupCreer(context, "une nouvelle scène"));
+        btnCreer.setOnClickListener(v -> afficherPopupCreerScene(context));
         contenu.addView(btnCreer);
 
-        LinearLayout itemScene = new LinearLayout(context);
-        itemScene.setOrientation(LinearLayout.HORIZONTAL);
-        itemScene.setPadding(0, 10, 0, 10);
+        conteneurScenes = new LinearLayout(context);
+        conteneurScenes.setOrientation(LinearLayout.VERTICAL);
+        contenu.addView(conteneurScenes);
 
-        TextView nomScene = new TextView(context);
-        nomScene.setText("Niveau_1");
-        nomScene.setTextColor(Color.WHITE);
-        nomScene.setPadding(10, 10, 20, 10);
-
-        Button btnRenommer = new Button(context);
-        btnRenommer.setText("Renommer");
-        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Niveau_1"));
-
-        Button btnSupprimer = new Button(context);
-        btnSupprimer.setText("Supprimer");
-        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer la scène 'Niveau_1' ?"));
-
-        itemScene.addView(nomScene);
-        itemScene.addView(btnRenommer);
-        itemScene.addView(btnSupprimer);
-
-        contenu.addView(itemScene);
+        rafraichirScenes();
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -170,6 +152,45 @@ public class PanneauRessources extends ScrollView {
         section.addView(btnTitre);
         section.addView(contenu);
         return section;
+    }
+
+    public void rafraichirScenes() {
+        conteneurScenes.removeAllViews();
+        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+
+        for (Scene s : editeur.listeScenes) {
+            LinearLayout itemScene = new LinearLayout(getContext());
+            itemScene.setOrientation(LinearLayout.HORIZONTAL);
+            itemScene.setPadding(0, 10, 0, 10);
+
+            TextView nomScene = new TextView(getContext());
+            nomScene.setText(s.nom);
+            if (s == editeur.sceneActive) {
+                nomScene.setTextColor(Color.YELLOW);
+            } else {
+                nomScene.setTextColor(Color.WHITE);
+            }
+            nomScene.setPadding(10, 10, 20, 10);
+
+            Button btnOuvrir = new Button(getContext());
+            btnOuvrir.setText("Ouvrir");
+            btnOuvrir.setOnClickListener(v -> editeur.changerScene(s));
+
+            Button btnRenommer = new Button(getContext());
+            btnRenommer.setText("Renommer");
+            btnRenommer.setOnClickListener(v -> afficherPopupRenommerScene(getContext(), s));
+
+            Button btnSupprimer = new Button(getContext());
+            btnSupprimer.setText("Supprimer");
+            btnSupprimer.setOnClickListener(v -> afficherPopupSupprimerScene(getContext(), s));
+
+            itemScene.addView(nomScene);
+            itemScene.addView(btnOuvrir);
+            itemScene.addView(btnRenommer);
+            itemScene.addView(btnSupprimer);
+
+            conteneurScenes.addView(itemScene);
+        }
     }
 
     private View creerSectionAssets(Context context) {
@@ -269,6 +290,133 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
+    // --- POPUPS SPÉCIFIQUES AUX SCÈNES ---
+    private void afficherPopupCreerScene(Context context) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Créer une scène");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setHint("Entrez le nom...");
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nom = champTexte.getText().toString();
+            if(!nom.isEmpty()) {
+                ((InterfaceEditeur)context).creerScene(nom);
+                Toast.makeText(context, "Scène créée : " + nom, Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommerScene(Context context, Scene scene) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer la scène");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setText(scene.nom);
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString();
+            if(!nouveauNom.isEmpty()) {
+                scene.nom = nouveauNom;
+                rafraichirScenes();
+                Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupSupprimerScene(Context context, Scene scene) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Supprimer la scène");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText("Voulez-vous vraiment supprimer la scène '" + scene.nom + "' ?");
+        txtMessage.setPadding(0, 0, 0, 20);
+        layoutDialog.addView(txtMessage);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnOui = new Button(context);
+        btnOui.setText("Oui");
+        btnOui.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            
+            if (editeur.listeScenes.size() <= 1) {
+                Toast.makeText(context, "Impossible de supprimer la seule scène du projet.", Toast.LENGTH_SHORT).show();
+            } else {
+                editeur.listeScenes.remove(scene);
+                // Si on supprime la scène active, on bascule automatiquement sur la première scène disponible
+                if (editeur.sceneActive == scene) {
+                    editeur.changerScene(editeur.listeScenes.get(0));
+                } else {
+                    rafraichirScenes();
+                }
+                Toast.makeText(context, "Scène supprimée", Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        });
+
+        Button btnNon = new Button(context);
+        btnNon.setText("Non");
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    // --- POPUPS GÉNÉRIQUES (Assets / Variables) ---
     private void afficherPopupCreer(Context context, String type) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer " + type);
@@ -373,4 +521,5 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-    }
+            }
+                
