@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.widget.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.io.File;
 import java.io.FileWriter;
 import com.google.gson.Gson;
@@ -19,6 +20,14 @@ public class InterfaceEditeur extends Activity {
     private CanvasEditeur canvasEditeur;
     private PanneauRessources panneauRessources;
     private InspecteurProprietes menuInspecteur;
+    
+    public Stack<Commande> undoStack = new Stack<>();
+    public Stack<Commande> redoStack = new Stack<>();
+
+    public void ajouterCommande(Commande c) {
+        undoStack.push(c);
+        redoStack.clear();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +36,6 @@ public class InterfaceEditeur extends Activity {
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
-        // ---- Bandeau du haut ----
         LinearLayout bandeauHaut = new LinearLayout(this);
         bandeauHaut.setOrientation(LinearLayout.HORIZONTAL);
         bandeauHaut.setPadding(10, 10, 10, 10);
@@ -50,25 +58,45 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonUndo = new Button(this);
         boutonUndo.setText("Undo");
+        boutonUndo.setOnClickListener(v -> {
+            if (!undoStack.isEmpty()) {
+                Commande c = undoStack.pop();
+                c.annuler();
+                redoStack.push(c);
+                canvasEditeur.invalidate();
+                if (menuInspecteur != null) {
+                    menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
+                }
+            }
+        });
         bandeauHaut.addView(boutonUndo);
 
         Button boutonRedo = new Button(this);
         boutonRedo.setText("Redo");
+        boutonRedo.setOnClickListener(v -> {
+            if (!redoStack.isEmpty()) {
+                Commande c = redoStack.pop();
+                c.executer();
+                undoStack.push(c);
+                canvasEditeur.invalidate();
+                if (menuInspecteur != null) {
+                    menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
+                }
+            }
+        });
         bandeauHaut.addView(boutonRedo);
 
-        // --- Scène active (nouvelle, avec un objet de test pour vérifier l'affichage) ---
         sceneActive = new Scene("SceneDepart");
         sceneActive.ajouterObjet(new ObjetBase("Carré", 300f, 300f, 80f, 80f));
         listeScenes.add(sceneActive);
 
-        // --- Instanciation du Canvas ---
         canvasEditeur = new CanvasEditeur(this);
         canvasEditeur.setScene(sceneActive);
+        canvasEditeur.setEditeur(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasEditeur.setLayoutParams(paramsCentre);
 
-        // --- Boutons de Zoom ---
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("[-]");
         boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
@@ -84,7 +112,6 @@ public class InterfaceEditeur extends Activity {
         boutonZoomPlus.setOnClickListener(v -> canvasEditeur.zoomPlus());
         bandeauHaut.addView(boutonZoomPlus);
 
-        // --- Bouton Déplacer ---
         Button boutonDeplacerScene = new Button(this);
         boutonDeplacerScene.setText("Déplacer Scène");
         boutonDeplacerScene.setOnClickListener(v -> {
@@ -94,7 +121,6 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonDeplacerScene);
 
-        // --- Bouton Blueprint ---
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
@@ -107,7 +133,6 @@ public class InterfaceEditeur extends Activity {
         boutonBuild.setText("Build");
         bandeauHaut.addView(boutonBuild);
 
-        // ---- Zone Milieu ----
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
