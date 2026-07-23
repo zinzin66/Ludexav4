@@ -20,7 +20,7 @@ public class CanvasBlueprint extends View {
     private Paint paintTexteTitre;
     private Paint paintTextePort;
     private Paint paintPort;
-    private Paint paintLien; // Nouvel outil de dessin pour les liens
+    private Paint paintLien; 
     
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
@@ -28,18 +28,15 @@ public class CanvasBlueprint extends View {
     
     private Blueprint blueprintActuel;
 
-    // Variables pour le déplacement d'un nœud
     private NoeudBase noeudEnDeplacement = null;
     private float decalageToucherX = 0;
     private float decalageToucherY = 0;
 
-    // Variables pour le tracé d'un lien (Tâche 8.5)
     private Port portDepartDrag = null;
     private NoeudBase noeudDepartDrag = null;
     private float dragCurrentX = 0;
     private float dragCurrentY = 0;
 
-    // Classe utilitaire pour la détection tactile des ports
     private class InfoPort {
         NoeudBase noeud;
         Port port;
@@ -175,7 +172,6 @@ public class CanvasBlueprint extends View {
         canvas.translate(cameraX, cameraY);
         
         if (blueprintActuel != null) {
-            // 1. Dessiner les liens enregistrés (Tâche 8.5)
             Path path = new Path();
             for (Blueprint.Lien lien : blueprintActuel.liens) {
                 Port pSortie = trouverPortParNom(lien.noeudDepart.portsSortie, lien.portSortieNom);
@@ -190,7 +186,6 @@ public class CanvasBlueprint extends View {
                 }
             }
 
-            // 2. Dessiner le lien en cours de création / drag (Tâche 8.5)
             if (portDepartDrag != null && noeudDepartDrag != null) {
                 float[] coordS = getCoordonneesPort(noeudDepartDrag, portDepartDrag);
                 if (coordS != null) {
@@ -198,7 +193,6 @@ public class CanvasBlueprint extends View {
                 }
             }
 
-            // 3. Dessiner les nœuds par dessus les liens
             for (NoeudBase noeud : blueprintActuel.noeuds) {
                 dessinerNoeud(canvas, noeud);
             }
@@ -217,9 +211,8 @@ public class CanvasBlueprint extends View {
     private void dessinerCourbe(Canvas canvas, Path path, float x1, float y1, float x2, float y2, Port portType) {
         path.reset();
         path.moveTo(x1, y1);
-        // Courbe de Bézier pour un effet naturel de câble
         float dist = Math.abs(x2 - x1) / 2f;
-        dist = Math.max(dist, 60f); // Courbure minimum
+        dist = Math.max(dist, 60f); 
         path.cubicTo(x1 + dist, y1, x2 - dist, y2, x2, y2);
         
         if (Port.TYPE_EXECUTION_ENTREE.equals(portType.type) || Port.TYPE_EXECUTION_SORTIE.equals(portType.type)) {
@@ -253,7 +246,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-  // haut 3
+    // haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -303,7 +296,7 @@ public class CanvasBlueprint extends View {
 
     private InfoPort trouverPortSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
-        float rayonTouch = 30f; // Tolérance généreuse pour le doigt
+        float margeY = 40f; // Tolérance très généreuse de 40px en haut et en bas du port
 
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
@@ -315,16 +308,16 @@ public class CanvasBlueprint extends View {
             float largeur = 260;
 
             for (int j = 0; j < noeud.portsEntree.size(); j++) {
-                float px = nx;
                 float py = startY + (j * 40);
-                if (Math.abs(sceneX - px) <= rayonTouch && Math.abs(sceneY - py) <= rayonTouch) {
+                // Hitbox large pour l'entrée (inclut le texte à droite du bord)
+                if (sceneX >= nx - 40 && sceneX <= nx + 140 && Math.abs(sceneY - py) <= margeY) {
                     return new InfoPort(noeud, noeud.portsEntree.get(j), true);
                 }
             }
             for (int j = 0; j < noeud.portsSortie.size(); j++) {
-                float px = nx + largeur;
                 float py = startY + (j * 40);
-                if (Math.abs(sceneX - px) <= rayonTouch && Math.abs(sceneY - py) <= rayonTouch) {
+                // Hitbox large pour la sortie (inclut le texte "Suivant" complet)
+                if (sceneX >= nx + largeur - 140 && sceneX <= nx + largeur + 40 && Math.abs(sceneY - py) <= margeY) {
                     return new InfoPort(noeud, noeud.portsSortie.get(j), false);
                 }
             }
@@ -352,7 +345,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-// haut 4
+    // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -367,19 +360,18 @@ public class CanvasBlueprint extends View {
                     float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
                     float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
                     
-                    // 1. Priorité aux ports (Tâche 8.5)
                     InfoPort portTouche = trouverPortSousToucher(sceneX, sceneY);
                     if (portTouche != null) {
-                        if (!portTouche.isEntree) { // Début de connexion depuis une sortie uniquement
+                        if (!portTouche.isEntree) { 
                             portDepartDrag = portTouche.port;
                             noeudDepartDrag = portTouche.noeud;
                             dragCurrentX = sceneX;
                             dragCurrentY = sceneY;
+                            invalidate(); // Force l'affichage immédiat du bout de câble !
                             return true;
                         }
                     }
 
-                    // 2. Sinon, nœud pour le déplacer
                     noeudEnDeplacement = trouverNoeudSousToucher(sceneX, sceneY);
                     if (noeudEnDeplacement != null) {
                         decalageToucherX = sceneX - blueprintActuel.noeudsX.get(noeudEnDeplacement.id);
@@ -416,18 +408,15 @@ public class CanvasBlueprint extends View {
                     float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
                     InfoPort portArrivee = trouverPortSousToucher(sceneX, sceneY);
                     
-                    // Validation de la connexion
                     if (portArrivee != null && portArrivee.isEntree && portArrivee.noeud != noeudDepartDrag) {
                         boolean isCompatEx = Port.TYPE_EXECUTION_SORTIE.equals(portDepartDrag.type) && Port.TYPE_EXECUTION_ENTREE.equals(portArrivee.port.type);
                         boolean isCompatDonnee = Port.TYPE_DONNEE_SORTIE.equals(portDepartDrag.type) && Port.TYPE_DONNEE_ENTREE.equals(portArrivee.port.type);
                         
                         if (isCompatEx || isCompatDonnee) {
-                            // 1. Visualisation (Création du Lien)
                             blueprintActuel.liens.add(new Blueprint.Lien(
                                 noeudDepartDrag, portDepartDrag.nom,
                                 portArrivee.noeud, portArrivee.port.nom
                             ));
-                            // 2. Logique moteur (Connexion réelle)
                             noeudDepartDrag.connecterPort(portDepartDrag.nom, portArrivee.noeud, portArrivee.port.nom);
                         }
                     }
@@ -445,5 +434,4 @@ public class CanvasBlueprint extends View {
 // bas 4
 
 
-    
 
