@@ -1,5 +1,7 @@
+// haut 1
 package com.ludexa.moteur;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.View;
@@ -7,6 +9,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class PanneauNoeuds extends ScrollView {
 
@@ -33,10 +36,9 @@ public class PanneauNoeuds extends ScrollView {
         conteneurEvenements.setOrientation(LinearLayout.VERTICAL);
         conteneurEvenements.setPadding(20, 10, 10, 20);
         
-        TextView txtEvtAvenir = new TextView(context);
-        txtEvtAvenir.setText("[ Nœuds Événements à venir ]");
-        txtEvtAvenir.setTextColor(Color.LTGRAY);
-        conteneurEvenements.addView(txtEvtAvenir);
+        // Ajout du vrai nœud Événement
+        TextView itemEventStart = creerItemNoeud(context, "Au Démarrage", "NoeudEventStart");
+        conteneurEvenements.addView(itemEventStart);
         
         // Logique de l'accordéon (masquer/afficher)
         btnEvenements.setOnClickListener(v -> {
@@ -57,10 +59,9 @@ public class PanneauNoeuds extends ScrollView {
         conteneurActions.setOrientation(LinearLayout.VERTICAL);
         conteneurActions.setPadding(20, 10, 10, 20);
         
-        TextView txtActAvenir = new TextView(context);
-        txtActAvenir.setText("[ Nœuds Actions à venir ]");
-        txtActAvenir.setTextColor(Color.LTGRAY);
-        conteneurActions.addView(txtActAvenir);
+        // Ajout du vrai nœud Action
+        TextView itemActionDeplacer = creerItemNoeud(context, "Déplacer Objet", "NoeudActionDeplacer");
+        conteneurActions.addView(itemActionDeplacer);
         
         // Logique de l'accordéon (masquer/afficher)
         btnActions.setOnClickListener(v -> {
@@ -81,4 +82,40 @@ public class PanneauNoeuds extends ScrollView {
 
         addView(layoutPrincipal);
     }
+
+    /**
+     * Crée un élément textuel stylisé, cliquable et glissable, représentant un nœud disponible.
+     */
+    private TextView creerItemNoeud(Context context, String libelle, String typeClasse) {
+        TextView item = new TextView(context);
+        item.setText(libelle);
+        item.setTextColor(Color.WHITE);
+        item.setPadding(20, 20, 20, 20);
+        item.setBackgroundColor(Color.parseColor("#444444"));
+        
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(0, 0, 0, 15);
+        item.setLayoutParams(params);
+
+        // Gestion du clic long pour enclencher le drag & drop
+        item.setOnLongClickListener(v -> {
+            // On embarque le nom de la classe pour que le Canvas (cible du drop) sache quoi instancier
+            ClipData data = ClipData.newPlainText("typeNoeud", typeClasse);
+            View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
+            v.startDragAndDrop(data, shadowBuilder, v, 0);
+            return true; // L'événement est consommé
+        });
+
+        // Gestion du clic court pour guider l'utilisateur
+        item.setOnClickListener(v -> {
+            Toast.makeText(context, "Maintenez appuyé pour glisser ce nœud", Toast.LENGTH_SHORT).show();
+        });
+
+        return item;
+    }
 }
+// bas 1
+        

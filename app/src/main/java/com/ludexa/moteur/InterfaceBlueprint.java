@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -27,7 +28,7 @@ public class InterfaceBlueprint extends Activity {
         boutonRetour.setOnClickListener(v -> finish()); // Revient à l'InterfaceEditeur
         bandeauHaut.addView(boutonRetour);
 
-        // Instanciation du Canvas (nécessaire ici pour le lier aux boutons de zoom)
+        // Instanciation du Canvas 
         CanvasBlueprint canvasBlueprint = new CanvasBlueprint(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
@@ -78,10 +79,14 @@ public class InterfaceBlueprint extends Activity {
         // 1. Panneau de gauche (Nœuds)
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        // 2. Zone centrale (Canvas intégré)
-        // (canvasBlueprint est déjà instancié plus haut)
+        // --- INJECTION DU TEST (Tâche 8.1) ---
+        Blueprint blueprintTest = new Blueprint();
+        blueprintTest.ajouterNoeud(new NoeudEventStart(), 150f, 200f);
+        blueprintTest.ajouterNoeud(new NoeudEventStart(), 500f, 350f);
+        canvasBlueprint.setBlueprint(blueprintTest);
+        // -------------------------------------
 
-        // Assemblage de la zone milieu
+        // 2. Assemblage de la zone milieu
         zoneMilieu.addView(panneauNoeuds);
         zoneMilieu.addView(canvasBlueprint);
 
@@ -131,3 +136,4 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
+// bas 1
