@@ -253,5 +253,197 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
+  // haut 3
+    private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
+        Float xObj = blueprintActuel.noeudsX.get(noeud.id);
+        Float yObj = blueprintActuel.noeudsY.get(noeud.id);
+        if (xObj == null || yObj == null) return;
+        
+        float x = xObj;
+        float y = yObj;
+        float largeur = 260;
+        int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
+        float hauteur = 60 + (maxPorts * 40) + 20; 
+        
+        RectF rectFond = new RectF(x, y, x + largeur, y + hauteur);
+        canvas.drawRoundRect(rectFond, 16, 16, paintNoeudBG);
+        
+        RectF rectTitre = new RectF(x, y, x + largeur, y + 45);
+        canvas.drawRoundRect(rectTitre, 16, 16, paintTitreBG);
+        canvas.drawRect(x, y + 25, x + largeur, y + 45, paintTitreBG);
+        
+        canvas.drawText(noeud.nom, x + 15, y + 32, paintTexteTitre);
+        
+        float startY = y + 70;
+        for (int i = 0; i < noeud.portsEntree.size(); i++) {
+            Port p = noeud.portsEntree.get(i);
+            definirCouleurPort(p);
+            float portY = startY + (i * 40);
+            canvas.drawCircle(x, portY, 8, paintPort);
+            canvas.drawText(p.nom, x + 20, portY + 6, paintTextePort);
+        }
+        
+        for (int i = 0; i < noeud.portsSortie.size(); i++) {
+            Port p = noeud.portsSortie.get(i);
+            definirCouleurPort(p);
+            float portY = startY + (i * 40);
+            canvas.drawCircle(x + largeur, portY, 8, paintPort);
+            float textWidth = paintTextePort.measureText(p.nom);
+            canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
+        }
+    }
+    
+    private void definirCouleurPort(Port p) {
+        if (Port.TYPE_EXECUTION_ENTREE.equals(p.type) || Port.TYPE_EXECUTION_SORTIE.equals(p.type)) {
+            paintPort.setColor(Color.WHITE);
+        } else {
+            paintPort.setColor(Color.parseColor("#44AAFF")); 
+        }
+    }
+
+    private InfoPort trouverPortSousToucher(float sceneX, float sceneY) {
+        if (blueprintActuel == null) return null;
+        float rayonTouch = 30f; // Tolérance généreuse pour le doigt
+
+        for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
+            NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            Float nx = blueprintActuel.noeudsX.get(noeud.id);
+            Float ny = blueprintActuel.noeudsY.get(noeud.id);
+            if (nx == null || ny == null) continue;
+
+            float startY = ny + 70;
+            float largeur = 260;
+
+            for (int j = 0; j < noeud.portsEntree.size(); j++) {
+                float px = nx;
+                float py = startY + (j * 40);
+                if (Math.abs(sceneX - px) <= rayonTouch && Math.abs(sceneY - py) <= rayonTouch) {
+                    return new InfoPort(noeud, noeud.portsEntree.get(j), true);
+                }
+            }
+            for (int j = 0; j < noeud.portsSortie.size(); j++) {
+                float px = nx + largeur;
+                float py = startY + (j * 40);
+                if (Math.abs(sceneX - px) <= rayonTouch && Math.abs(sceneY - py) <= rayonTouch) {
+                    return new InfoPort(noeud, noeud.portsSortie.get(j), false);
+                }
+            }
+        }
+        return null;
+    }
+
+    private NoeudBase trouverNoeudSousToucher(float sceneX, float sceneY) {
+        if (blueprintActuel == null) return null;
+        for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
+            NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            Float nx = blueprintActuel.noeudsX.get(noeud.id);
+            Float ny = blueprintActuel.noeudsY.get(noeud.id);
+            
+            if (nx != null && ny != null) {
+                float largeur = 260;
+                int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
+                float hauteur = 60 + (maxPorts * 40) + 20;
+                
+                if (sceneX >= nx && sceneX <= nx + largeur && sceneY >= ny && sceneY <= ny + hauteur) {
+                    return noeud;
+                }
+            }
+        }
+        return null;
+    }
+// bas 3
+// haut 4
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                lastTouchX = x;
+                lastTouchY = y;
+                
+                if (blueprintActuel != null) {
+                    float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
+                    float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
+                    
+                    // 1. Priorité aux ports (Tâche 8.5)
+                    InfoPort portTouche = trouverPortSousToucher(sceneX, sceneY);
+                    if (portTouche != null) {
+                        if (!portTouche.isEntree) { // Début de connexion depuis une sortie uniquement
+                            portDepartDrag = portTouche.port;
+                            noeudDepartDrag = portTouche.noeud;
+                            dragCurrentX = sceneX;
+                            dragCurrentY = sceneY;
+                            return true;
+                        }
+                    }
+
+                    // 2. Sinon, nœud pour le déplacer
+                    noeudEnDeplacement = trouverNoeudSousToucher(sceneX, sceneY);
+                    if (noeudEnDeplacement != null) {
+                        decalageToucherX = sceneX - blueprintActuel.noeudsX.get(noeudEnDeplacement.id);
+                        decalageToucherY = sceneY - blueprintActuel.noeudsY.get(noeudEnDeplacement.id);
+                    }
+                }
+                return true;
+
+            case MotionEvent.ACTION_MOVE:
+                if (portDepartDrag != null) {
+                    dragCurrentX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
+                    dragCurrentY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
+                    invalidate();
+                    return true;
+                } else if (noeudEnDeplacement != null && blueprintActuel != null) {
+                    float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
+                    float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
+                    blueprintActuel.noeudsX.put(noeudEnDeplacement.id, sceneX - decalageToucherX);
+                    blueprintActuel.noeudsY.put(noeudEnDeplacement.id, sceneY - decalageToucherY);
+                    invalidate();
+                } else {
+                    cameraX += (x - lastTouchX) / niveauZoom;
+                    cameraY += (y - lastTouchY) / niveauZoom;
+                    lastTouchX = x;
+                    lastTouchY = y;
+                    invalidate(); 
+                }
+                return true;
+                
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                if (portDepartDrag != null) {
+                    float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
+                    float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
+                    InfoPort portArrivee = trouverPortSousToucher(sceneX, sceneY);
+                    
+                    // Validation de la connexion
+                    if (portArrivee != null && portArrivee.isEntree && portArrivee.noeud != noeudDepartDrag) {
+                        boolean isCompatEx = Port.TYPE_EXECUTION_SORTIE.equals(portDepartDrag.type) && Port.TYPE_EXECUTION_ENTREE.equals(portArrivee.port.type);
+                        boolean isCompatDonnee = Port.TYPE_DONNEE_SORTIE.equals(portDepartDrag.type) && Port.TYPE_DONNEE_ENTREE.equals(portArrivee.port.type);
+                        
+                        if (isCompatEx || isCompatDonnee) {
+                            // 1. Visualisation (Création du Lien)
+                            blueprintActuel.liens.add(new Blueprint.Lien(
+                                noeudDepartDrag, portDepartDrag.nom,
+                                portArrivee.noeud, portArrivee.port.nom
+                            ));
+                            // 2. Logique moteur (Connexion réelle)
+                            noeudDepartDrag.connecterPort(portDepartDrag.nom, portArrivee.noeud, portArrivee.port.nom);
+                        }
+                    }
+                    portDepartDrag = null;
+                    noeudDepartDrag = null;
+                    invalidate();
+                    return true;
+                }
+                noeudEnDeplacement = null;
+                return true;
+        }
+        return super.onTouchEvent(event);
+    }
+}
+// bas 4
+
+
     
 
