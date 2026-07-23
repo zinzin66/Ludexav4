@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -8,7 +9,6 @@ import android.widget.LinearLayout;
 public class MainActivity extends Activity {
 
     private VueJeu vueJeu;
-    private NoeudEventStart noeudStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +18,7 @@ public class MainActivity extends Activity {
         ObjetBase carre = new ObjetBase("Carré", 50f, 50f, 120f, 120f);
         sceneActive.ajouterObjet(carre);
 
-        noeudStart = new NoeudEventStart();
+        NoeudEventStart noeudStart = new NoeudEventStart();
         NoeudActionDeplacer noeudDeplacer = new NoeudActionDeplacer(carre, 40f, 30f);
 
         noeudStart.connecterPort("Suivant", noeudDeplacer, "Entrer");
@@ -26,18 +26,26 @@ public class MainActivity extends Activity {
         sceneActive.ajouterNoeud(noeudStart);
         sceneActive.ajouterNoeud(noeudDeplacer);
 
+        // NOUVEAU : Création du Blueprint réel et ajout des nœuds
+        Blueprint blueprint = new Blueprint();
+        blueprint.ajouterNoeud(noeudStart, 0, 0);
+        blueprint.ajouterNoeud(noeudDeplacer, 200, 0);
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
-        vueJeu = new VueJeu(this, carre);
+        // NOUVEAU : On passe le Blueprint au constructeur de VueJeu
+        vueJeu = new VueJeu(this, carre, blueprint);
         LinearLayout.LayoutParams paramsVue = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         layout.addView(vueJeu, paramsVue);
 
         Button boutonPlay = new Button(this);
-        boutonPlay.setText("Play");
+        boutonPlay.setText("Redessiner (Test)");
         boutonPlay.setOnClickListener(v -> {
-            noeudStart.executer();
+            // L'exécution du Blueprint n'est plus codée en dur ici, 
+            // elle est gérée par MoteurLogique à l'affichage de la vue.
+            // Ce bouton sert uniquement à forcer le rafraîchissement visuel si besoin.
             vueJeu.invalidate();
         });
         layout.addView(boutonPlay);
@@ -45,3 +53,4 @@ public class MainActivity extends Activity {
         setContentView(layout);
     }
 }
+// bas 1
