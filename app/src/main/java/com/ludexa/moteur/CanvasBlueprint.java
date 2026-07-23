@@ -26,6 +26,11 @@ public class CanvasBlueprint extends View {
     
     private Blueprint blueprintActuel;
 
+    // Variables pour le déplacement d'un nœud
+    private NoeudBase noeudEnDeplacement = null;
+    private float decalageToucherX = 0;
+    private float decalageToucherY = 0;
+
     public CanvasBlueprint(Context context) {
         super(context);
         init();
@@ -61,7 +66,6 @@ public class CanvasBlueprint extends View {
         
         setBackgroundColor(Color.parseColor("#1E1E1E")); 
 
-        // Gestion du Drag & Drop pour recevoir les nœuds depuis PanneauNoeuds
         this.setOnDragListener((v, event) -> {
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
@@ -78,7 +82,6 @@ public class CanvasBlueprint extends View {
                         float screenX = event.getX();
                         float screenY = event.getY();
                         
-                        // Conversion écran -> scène
                         float x = ((screenX - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
                         float y = ((screenY - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
                         
@@ -107,8 +110,7 @@ public class CanvasBlueprint extends View {
         });
     }
 // bas 1
-    
-// haut 2
+    // haut 2
     public void setBlueprint(Blueprint blueprint) {
         this.blueprintActuel = blueprint;
         invalidate();
@@ -206,6 +208,29 @@ public class CanvasBlueprint extends View {
             paintPort.setColor(Color.parseColor("#44AAFF")); 
         }
     }
+// bas 2
+    // haut 3
+    private NoeudBase trouverNoeudSousToucher(float sceneX, float sceneY) {
+        if (blueprintActuel == null) return null;
+        
+        // Parcours inversé pour choper le nœud le plus "au-dessus" (dernier dessiné)
+        for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
+            NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            Float nx = blueprintActuel.noeudsX.get(noeud.id);
+            Float ny = blueprintActuel.noeudsY.get(noeud.id);
+            
+            if (nx != null && ny != null) {
+                float largeur = 260;
+                int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
+                float hauteur = 60 + (maxPorts * 40) + 20;
+                
+                if (sceneX >= nx && sceneX <= nx + largeur && sceneY >= ny && sceneY <= ny + hauteur) {
+                    return noeud;
+                }
+            }
+        }
+        return null;
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -216,17 +241,51 @@ public class CanvasBlueprint extends View {
             case MotionEvent.ACTION_DOWN:
                 lastTouchX = x;
                 lastTouchY = y;
+                
+                if (blueprintActuel != null) {
+                    // Conversion des coordonnées écran en coordonnées scène (incluant le zoom et la caméra)
+                    float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
+                    float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
+                    
+                    noeudEnDeplacement = trouverNoeudSousToucher(sceneX, sceneY);
+                    
+                    if (noeudEnDeplacement != null) {
+                        // On mémorise l'endroit exact où le doigt a touché le nœud par rapport à son origine
+                        decalageToucherX = sceneX - blueprintActuel.noeudsX.get(noeudEnDeplacement.id);
+                        decalageToucherY = sceneY - blueprintActuel.noeudsY.get(noeudEnDeplacement.id);
+                    }
+                }
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                cameraX += (x - lastTouchX) / niveauZoom;
-                cameraY += (y - lastTouchY) / niveauZoom;
-                lastTouchX = x;
-                lastTouchY = y;
-                invalidate(); 
+                if (noeudEnDeplacement != null && blueprintActuel != null) {
+                    float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
+                    float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
+                    
+                    // Mise à jour de la position du nœud en conservant le point d'ancrage du doigt
+                    blueprintActuel.noeudsX.put(noeudEnDeplacement.id, sceneX - decalageToucherX);
+                    blueprintActuel.noeudsY.put(noeudEnDeplacement.id, sceneY - decalageToucherY);
+                    invalidate();
+                } else {
+                    // Aucun nœud attrapé = déplacement classique de la caméra (Pan)
+                    cameraX += (x - lastTouchX) / niveauZoom;
+                    cameraY += (y - lastTouchY) / niveauZoom;
+                    lastTouchX = x;
+                    lastTouchY = y;
+                    invalidate(); 
+                }
+                return true;
+                
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                noeudEnDeplacement = null;
                 return true;
         }
         return super.onTouchEvent(event);
     }
 }
-// bas 2
+// bas 3
+
+
+
+    
