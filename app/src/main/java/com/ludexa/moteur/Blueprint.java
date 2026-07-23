@@ -29,6 +29,13 @@ public class Blueprint {
         this.noeudsY.put(noeud.id, y);
     }
 
+    // NOUVEAU : Centralise la création d'un lien et le câblage mémoire (utile pour l'éditeur Blueprint)
+    public void ajouterLien(NoeudBase depart, String portS, NoeudBase arrivee, String portE) {
+        Lien l = new Lien(depart, portS, arrivee, portE);
+        this.liens.add(l);
+        depart.connecterPort(portS, arrivee, portE);
+    }
+
     public static class Lien {
         public NoeudBase noeudDepart;
         public String portSortieNom;
@@ -46,8 +53,6 @@ public class Blueprint {
     // --- PARTIE SAUVEGARDE JSON (GSON) ---
 
     public String toJson() {
-        // On utilise un DTO pour éviter la récursion infinie causée par les références circulaires
-        // (ex: NoeudBase pointe vers Port qui pointe vers NoeudBase...)
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         BlueprintDTO dto = new BlueprintDTO();
 
@@ -58,7 +63,6 @@ public class Blueprint {
             ndto.x = noeudsX.containsKey(n.id) ? noeudsX.get(n.id) : 0f;
             ndto.y = noeudsY.containsKey(n.id) ? noeudsY.get(n.id) : 0f;
 
-            // Sauvegarder uniquement les valeurs saisies des ports d'entrée
             for (Port p : n.portsEntree) {
                 if (p.valeurSaisie != null && !p.valeurSaisie.isEmpty()) {
                     PortDTO pdto = new PortDTO();
@@ -91,14 +95,12 @@ public class Blueprint {
 
         Map<String, NoeudBase> dictionnaireNoeuds = new HashMap<>();
 
-        // 1. Recréer les nœuds par réflexion (instancie la bonne classe fille)
         for (NoeudDTO ndto : dto.noeuds) {
             try {
                 Class<?> clazz = Class.forName(ndto.classeType);
                 NoeudBase n = (NoeudBase) clazz.newInstance();
-                n.id = ndto.id; // On force l'ID pour correspondre à la sauvegarde
+                n.id = ndto.id;
 
-                // Restaurer les valeurs saisies des ports
                 for (PortDTO pdto : ndto.portsEntree) {
                     for (Port p : n.portsEntree) {
                         if (p.nom.equals(pdto.nom)) {
@@ -115,14 +117,12 @@ public class Blueprint {
             }
         }
 
-        // 2. Recréer les liens et re-câbler les objets en mémoire
         for (LienDTO ldto : dto.liens) {
             NoeudBase dep = dictionnaireNoeuds.get(ldto.idDepart);
             NoeudBase arr = dictionnaireNoeuds.get(ldto.idArrivee);
             if (dep != null && arr != null) {
-                Lien l = new Lien(dep, ldto.portDepart, arr, ldto.portArrivee);
-                bp.liens.add(l);
-                dep.connecterPort(ldto.portDepart, arr, ldto.portArrivee); // Refait le câblage dans NoeudBase
+                // Utilisation de la nouvelle méthode pour rétablir le lien et la connexion
+                bp.ajouterLien(dep, ldto.portDepart, arr, ldto.portArrivee);
             }
         }
 
