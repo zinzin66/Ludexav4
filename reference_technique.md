@@ -357,7 +357,8 @@ InterfaceEditeur) mais **son contenu n'a jamais été vérifié/documenté**
 dans cette référence. Avant toute modification liée au Blueprint visuel,
 demander ce fichier à l'utilisateur pour le documenter d'abord.
 
----
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 ## 6. Ce qui reste à faire (backlog, par ordre de priorité suggéré)
 
@@ -403,6 +404,27 @@ dessus vu que c'est une nouvelle pièce du contrat
 **8. Documenter puis connecter InterfaceBlueprint.java**
 Fichiers à joindre : `InterfaceBlueprint.java` (à donner à Claude
 d'abord pour le documenter dans ce fichier, avant toute tâche Gemini)
+
+8.1 — Afficher les nœuds existants sur le canvas
+Tâche : dans CanvasBlueprint, faire en sorte qu'il lise le Blueprint associé à la Scene et dessine chaque NoeudEventStart déjà présent (rectangle avec titre, ports d'entrée/sortie visibles) à ses coordonnées stockées. Pas de création/déplacement pour l'instant, juste l'affichage.
+Fichiers à fournir : Port.java, NoeudBase.java, Blueprint.java, NoeudEventStart.java, CanvasBlueprint.java
+
+8.2 — Lister les vrais nœuds dans PanneauNoeuds
+Tâche : remplacer le contenu placeholder des sections Événements/Actions par la vraie liste des classes de nœuds disponibles (NoeudEventStart, NoeudActionDeplacer), chacune affichée comme un item cliquable/glissable.
+Fichiers à fournir : PanneauNoeuds.java, NoeudEventStart.java, NoeudActionDeplacer.java, NoeudBase.java
+
+8.3 — Glisser un nœud du panneau vers le canvas pour le créer
+Tâche : gérer le drag depuis un item de PanneauNoeuds jusqu'au CanvasBlueprint ; au relâchement, instancier le bon type de NoeudBase dans le Blueprint de la Scene, aux coordonnées du point de dépôt, et rafraîchir l'affichage.
+Fichiers à fournir : PanneauNoeuds.java, CanvasBlueprint.java, Blueprint.java, NoeudBase.java
+
+8.4 — Déplacer un nœud posé sur le canvas
+Tâche : détection tactile sur un nœud déjà placé, suivi du doigt pour le repositionner, mise à jour de ses coordonnées stockées dans le Blueprint, redessin en continu.
+Fichiers à fournir : CanvasBlueprint.java, NoeudBase.java, Blueprint.java
+
+8.5 — Tracer une connexion visuelle entre deux ports
+Tâche : détecter le tap/drag depuis un port de sortie vers un port d'entrée compatible, créer un objet Lien dans le Blueprint, dessiner la courbe de connexion entre les deux nœuds sur le canvas.
+Fichiers à fournir : Port.java, Lien.java (si existant, sinon à créer), Blueprint.java, CanvasBlueprint.java, NoeudBase.java
+
 
 **9. Bouton Build (export réel)**
 Ne pas commencer avant que tout le reste soit stable — pas de fichiers
