@@ -10,8 +10,6 @@ public class Blueprint {
     public List<NoeudBase> noeuds;
     public List<Lien> liens;
     
-    // Conservation des coordonnées X et Y en dehors de NoeudBase 
-    // pour respecter la règle de ne pas modifier le système nodal figé.
     public Map<String, Float> noeudsX;
     public Map<String, Float> noeudsY;
 
@@ -28,7 +26,6 @@ public class Blueprint {
         this.noeudsY.put(noeud.id, y);
     }
 
-    // Classe interne pour représenter la connexion visuelle et logique
     public static class Lien {
         public NoeudBase noeudDepart;
         public String portSortieNom;
@@ -44,3 +41,4 @@ public class Blueprint {
     }
 }
 // bas 1
+
