@@ -30,7 +30,7 @@ public class CanvasBlueprint extends View {
 
     private void init() {
         paintGrille = new Paint();
-        paintGrille.setColor(Color.DKGRAY); // Grille sombre
+        paintGrille.setColor(Color.DKGRAY);
         paintGrille.setStrokeWidth(2);
         
         paintNoeudBG = new Paint();
@@ -56,7 +56,6 @@ public class CanvasBlueprint extends View {
         paintPort.setStyle(Paint.Style.FILL);
         paintPort.setAntiAlias(true);
         
-        // Fond gris très foncé
         setBackgroundColor(Color.parseColor("#1E1E1E")); 
     }
 
@@ -65,7 +64,6 @@ public class CanvasBlueprint extends View {
         invalidate();
     }
 
-    // --- Méthodes de Zoom ---
     public void zoomPlus() {
         niveauZoom *= 1.25f;
         invalidate();
@@ -80,8 +78,7 @@ public class CanvasBlueprint extends View {
         niveauZoom = 1.0f;
         invalidate();
     }
-// bas 1
-// haut 2
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -93,7 +90,7 @@ public class CanvasBlueprint extends View {
         int h = getHeight();
         int limiteMax = (int) (Math.max(w, h) * 2 / niveauZoom);
 
-        // Dessin de la grille avec offset de caméra
+        // Grille avec offset
         for (int i = -limiteMax + (int)(cameraX % gridSize); i < limiteMax; i += gridSize) {
             canvas.drawLine(i, -limiteMax, i, limiteMax, paintGrille);
         }
@@ -101,10 +98,9 @@ public class CanvasBlueprint extends View {
             canvas.drawLine(-limiteMax, i, limiteMax, i, paintGrille);
         }
         
-        // Appliquer l'offset de caméra pour les objets
         canvas.translate(cameraX, cameraY);
         
-        // Dessin des nœuds
+        // Dessin des nœuds du blueprint
         if (blueprintActuel != null) {
             for (NoeudBase noeud : blueprintActuel.noeuds) {
                 dessinerNoeud(canvas, noeud);
@@ -127,19 +123,19 @@ public class CanvasBlueprint extends View {
         int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
         float hauteur = 60 + (maxPorts * 40) + 20; 
         
-        // 1. Dessiner le fond du nœud (arrondi)
+        // Fond principal
         RectF rectFond = new RectF(x, y, x + largeur, y + hauteur);
         canvas.drawRoundRect(rectFond, 16, 16, paintNoeudBG);
         
-        // 2. Dessiner l'en-tête du nœud (arrondi en haut, carré en bas)
+        // En-tête
         RectF rectTitre = new RectF(x, y, x + largeur, y + 45);
         canvas.drawRoundRect(rectTitre, 16, 16, paintTitreBG);
         canvas.drawRect(x, y + 25, x + largeur, y + 45, paintTitreBG);
         
-        // 3. Titre
+        // Titre
         canvas.drawText(noeud.nom, x + 15, y + 32, paintTexteTitre);
         
-        // 4. Ports d'entrée
+        // Ports d'entrée
         float startY = y + 70;
         for (int i = 0; i < noeud.portsEntree.size(); i++) {
             Port p = noeud.portsEntree.get(i);
@@ -149,7 +145,7 @@ public class CanvasBlueprint extends View {
             canvas.drawText(p.nom, x + 20, portY + 6, paintTextePort);
         }
         
-        // 5. Ports de sortie
+        // Ports de sortie
         for (int i = 0; i < noeud.portsSortie.size(); i++) {
             Port p = noeud.portsSortie.get(i);
             definirCouleurPort(p);
@@ -164,11 +160,10 @@ public class CanvasBlueprint extends View {
         if (Port.TYPE_EXECUTION_ENTREE.equals(p.type) || Port.TYPE_EXECUTION_SORTIE.equals(p.type)) {
             paintPort.setColor(Color.WHITE);
         } else {
-            paintPort.setColor(Color.parseColor("#44AAFF")); // Bleu pour les données
+            paintPort.setColor(Color.parseColor("#44AAFF")); 
         }
     }
-// bas 2
-// haut 3
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -181,7 +176,6 @@ public class CanvasBlueprint extends View {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                // Dans le blueprint, on permet toujours le déplacement en glissant le fond
                 cameraX += (x - lastTouchX) / niveauZoom;
                 cameraY += (y - lastTouchY) / niveauZoom;
                 lastTouchX = x;
@@ -192,4 +186,5 @@ public class CanvasBlueprint extends View {
         return super.onTouchEvent(event);
     }
 }
-// bas 3
+// bas 1
+            
