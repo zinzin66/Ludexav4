@@ -102,23 +102,22 @@ public class CanvasBlueprint extends View {
                         float screenX = event.getX();
                         float screenY = event.getY();
                         
+                        // Conversion robuste des coordonnées de l'écran vers le monde virtuel
                         float x = ((screenX - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
                         float y = ((screenY - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
                         
                         NoeudBase nouveauNoeud = null;
+                        
+                        // Instanciation explicite sécurisée (remplace la réflexion défaillante)
                         if ("NoeudEventStart".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudEventStart();
                         } else if ("NoeudActionDeplacer".equals(typeNoeud)) {
-                            try {
-                                nouveauNoeud = (NoeudBase) Class.forName("com.ludexa.moteur.NoeudActionDeplacer").newInstance();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            nouveauNoeud = new NoeudActionDeplacer();
                         }
                         
                         if (nouveauNoeud != null) {
                             blueprintActuel.ajouterNoeud(nouveauNoeud, x, y);
-                            invalidate();
+                            invalidate(); // Force le redessin immédiat
                         }
                     }
                     return true;
@@ -130,6 +129,7 @@ public class CanvasBlueprint extends View {
         });
     }
 // bas 1
+
 // haut 2
     public void setBlueprint(Blueprint blueprint) {
         this.blueprintActuel = blueprint;
@@ -246,8 +246,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-
-    // haut 3
+// haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -345,7 +344,7 @@ public class CanvasBlueprint extends View {
     }
 // bas 3
 
-    // haut 4
+// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -439,5 +438,3 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
-
-
