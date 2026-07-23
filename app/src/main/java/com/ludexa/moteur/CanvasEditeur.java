@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -17,9 +18,17 @@ public class CanvasEditeur extends View {
     private Scene sceneActive;
     private ObjetBase objetSelectionne;
     private InspecteurProprietes inspecteurLie;
+    private InterfaceEditeur editeurLie;
+
+    private float dragStartX, dragStartY;
+    private boolean isDraggingObjet = false;
 
     public void setInspecteur(InspecteurProprietes inspecteur) {
         this.inspecteurLie = inspecteur;
+    }
+
+    public void setEditeur(InterfaceEditeur editeur) {
+        this.editeurLie = editeur;
     }
 
     public void deselectionner() {
@@ -45,7 +54,6 @@ public class CanvasEditeur extends View {
         paintObjet.setColor(Color.BLUE);
         paintObjet.setAntiAlias(true);
 
-        // Nouveau pinceau spécifiquement pour le texte
         paintTexte = new Paint();
         paintTexte.setColor(Color.BLUE);
         paintTexte.setTextSize(40f);
@@ -128,7 +136,6 @@ public class CanvasEditeur extends View {
                     canvas.drawRect(left, top, right, bottom, paintObjet);
                 }
 
-                // Contour jaune si cet objet est sélectionné
                 if (objet == objetSelectionne) {
                     canvas.drawRect(
                             left - 4,
@@ -144,7 +151,6 @@ public class CanvasEditeur extends View {
         canvas.restore();
     }
 
-    // Convertit une coordonnée écran en coordonnée de scène (annule zoom + caméra)
     private float[] ecranVersScene(float xEcran, float yEcran) {
         float centreX = getWidth() / 2f;
         float centreY = getHeight() / 2f;
@@ -160,7 +166,6 @@ public class CanvasEditeur extends View {
         float xScene = scenePos[0];
         float yScene = scenePos[1];
 
-        // On parcourt à l'envers pour sélectionner l'objet dessiné en dernier (au-dessus)
         for (int i = sceneActive.objets.size() - 1; i >= 0; i--) {
             ObjetBase objet = sceneActive.objets.get(i);
             if (xScene >= objet.x && xScene <= objet.x + objet.largeur
@@ -183,6 +188,13 @@ public class CanvasEditeur extends View {
 
                 if (!isPanMode) {
                     objetSelectionne = trouverObjetSousToucher(x, y);
+                    if (objetSelectionne != null) {
+                        dragStartX = objetSelectionne.x;
+                        dragStartY = objetSelectionne.y;
+                        isDraggingObjet = true;
+                    } else {
+                        isDraggingObjet = false;
+                    }
                     if (inspecteurLie != null) {
                         inspecteurLie.afficherObjet(objetSelectionne);
                     }
@@ -197,21 +209,34 @@ public class CanvasEditeur extends View {
                     lastTouchX = x;
                     lastTouchY = y;
                     invalidate();
-                } else if (objetSelectionne != null) {
-                    // Tâche 5 : Déplacement de l'objet sélectionné
+                } else if (objetSelectionne != null && isDraggingObjet) {
                     objetSelectionne.x += (x - lastTouchX) / niveauZoom;
                     objetSelectionne.y += (y - lastTouchY) / niveauZoom;
                     lastTouchX = x;
                     lastTouchY = y;
                     
-                    // Met à jour l'inspecteur pour voir les valeurs X/Y changer en direct
                     if (inspecteurLie != null) {
                         inspecteurLie.afficherObjet(objetSelectionne);
                     }
                     invalidate();
                 }
                 return true;
+
+            case MotionEvent.ACTION_UP:
+                if (!isPanMode && isDraggingObjet && objetSelectionne != null) {
+                    if (dragStartX != objetSelectionne.x || dragStartY != objetSelectionne.y) {
+                        if (editeurLie != null) {
+                            editeurLie.ajouterCommande(new CommandeDeplacement(
+                                    objetSelectionne, dragStartX, dragStartY,
+                                    objetSelectionne.x, objetSelectionne.y
+                            ));
+                        }
+                    }
+                    isDraggingObjet = false;
+                }
+                return true;
         }
         return super.onTouchEvent(event);
     }
 }
+// bas 1
