@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -11,8 +12,10 @@ public class VueJeu extends View {
     private ObjetBase objetAffiche;
     private Paint peintureCarre;
     private Paint peintureTexte;
+    private MoteurLogique moteur; // Le moteur logique qui va tourner en fond
 
-    public VueJeu(Context context, ObjetBase objet) {
+    // Le constructeur demande maintenant le Blueprint à exécuter
+    public VueJeu(Context context, ObjetBase objet, Blueprint blueprintActif) {
         super(context);
         this.objetAffiche = objet;
 
@@ -22,6 +25,20 @@ public class VueJeu extends View {
         peintureTexte = new Paint();
         peintureTexte.setColor(Color.BLACK);
         peintureTexte.setTextSize(32f);
+
+        // Instanciation du moteur logique
+        if (blueprintActif != null) {
+            this.moteur = new MoteurLogique(blueprintActif);
+        }
+    }
+
+    // Cette méthode d'Android s'exécute toute seule dès que la vue est affichée
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (this.moteur != null) {
+            this.moteur.executerDemarrage();
+        }
     }
 
     @Override
@@ -43,3 +60,4 @@ public class VueJeu extends View {
         );
     }
 }
+// bas 1
