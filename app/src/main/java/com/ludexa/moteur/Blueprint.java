@@ -1,4 +1,3 @@
-
 // haut 1
 package com.ludexa.moteur;
 
@@ -11,8 +10,8 @@ public class Blueprint {
     public List<NoeudBase> noeuds;
     public List<Lien> liens;
     
-    // On stocke les coordonnées X et Y dans le Blueprint,
-    // ce qui respecte la règle absolue de ne pas modifier NoeudBase.java
+    // Conservation des coordonnées X et Y en dehors de NoeudBase 
+    // pour respecter la règle de ne pas modifier le système nodal figé.
     public Map<String, Float> noeudsX;
     public Map<String, Float> noeudsY;
 
@@ -29,7 +28,7 @@ public class Blueprint {
         this.noeudsY.put(noeud.id, y);
     }
 
-    // Classe interne pour représenter un lien (prêt pour la tâche 8.5)
+    // Classe interne pour représenter la connexion visuelle et logique
     public static class Lien {
         public NoeudBase noeudDepart;
         public String portSortieNom;
