@@ -17,7 +17,6 @@ import java.io.BufferedReader;
 
 public class InterfaceBlueprint extends Activity {
 
-    // Variable statique pour recevoir la scène depuis l'éditeur sans utiliser la sérialisation complexe
     public static Scene sceneACharger; 
 
     private Blueprint blueprintActif;
@@ -37,16 +36,14 @@ public class InterfaceBlueprint extends Activity {
 
         Button boutonRetour = new Button(this);
         boutonRetour.setText("Retour Scène");
-        boutonRetour.setOnClickListener(v -> finish()); // Revient à l'InterfaceEditeur
+        boutonRetour.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonRetour);
 
-        // Instanciation du Canvas 
         canvasBlueprint = new CanvasBlueprint(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasBlueprint.setLayoutParams(paramsCentre);
 
-        // --- Boutons Sauvegarde & Chargement ---
         Button boutonSauvegarder = new Button(this);
         boutonSauvegarder.setText("Sauvegarder");
         boutonSauvegarder.setOnClickListener(v -> sauvegarderBlueprintLocal());
@@ -54,10 +51,9 @@ public class InterfaceBlueprint extends Activity {
 
         Button boutonCharger = new Button(this);
         boutonCharger.setText("Charger");
-        boutonCharger.setOnClickListener(v -> chargerBlueprintLocal());
+        boutonCharger.setOnClickListener(v -> chargerBlueprintLocal(false));
         bandeauHaut.addView(boutonCharger);
 
-        // --- Boutons de Zoom ---
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("[-]");
         boutonZoomMoins.setOnClickListener(v -> canvasBlueprint.zoomMoins());
@@ -73,7 +69,6 @@ public class InterfaceBlueprint extends Activity {
         boutonZoomPlus.setOnClickListener(v -> canvasBlueprint.zoomPlus());
         bandeauHaut.addView(boutonZoomPlus);
 
-        // --- Boutons Undo / Redo ---
         Button boutonUndo = new Button(this);
         boutonUndo.setText("[<]");
         bandeauHaut.addView(boutonUndo);
@@ -82,10 +77,8 @@ public class InterfaceBlueprint extends Activity {
         boutonRedo.setText("[>]");
         bandeauHaut.addView(boutonRedo);
 
-        // --- Boutons Nœuds & Code ---
         Button boutonSupprimerNode = new Button(this);
         boutonSupprimerNode.setText("Supprimer le node");
-        // CORRECTIF: Relier le bouton de suppression à la méthode du canvas
         boutonSupprimerNode.setOnClickListener(v -> canvasBlueprint.supprimerNoeudSelectionne());
         bandeauHaut.addView(boutonSupprimerNode);
 
@@ -94,42 +87,36 @@ public class InterfaceBlueprint extends Activity {
         boutonCode.setOnClickListener(v -> afficherFenetreCode());
         bandeauHaut.addView(boutonCode);
 
-        // ---- Zone Milieu (Panneau Gauche + Canvas) ----
+        // ---- Zone Milieu ----
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        // 1. Panneau de gauche (Nœuds)
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        blueprintActif = new Blueprint();
-        blueprintActif.ajouterNoeud(new NoeudEventStart(), 150f, 200f);
-        blueprintActif.ajouterNoeud(new NoeudEventStart(), 500f, 350f);
-        canvasBlueprint.setBlueprint(blueprintActif);
-        
         // --- CORRECTION : AJOUT DE LA SCENE AU CANVAS ---
-        // On récupère la vraie scène transmise par l'éditeur
         if (sceneACharger != null) {
             canvasBlueprint.sceneActive = sceneACharger;
         } else {
-            // Sécurité : si on lance l'activité directement sans passer par l'éditeur
             canvasBlueprint.sceneActive = new Scene("Scène Vide (Fallback)");
         }
-        // -------------------------------------
 
-        // 2. Assemblage de la zone milieu
+        // --- CORRECTION : CHARGEMENT AUTOMATIQUE SILENCIEUX ---
+        // Remplace la création par défaut des nœuds "Au Démarrage"
+        chargerBlueprintLocal(true);
+
         zoneMilieu.addView(panneauNoeuds);
         zoneMilieu.addView(canvasBlueprint);
 
-        // Assemblage final
         layoutPrincipal.addView(bandeauHaut);
         layoutPrincipal.addView(zoneMilieu);
 
         setContentView(layoutPrincipal);
     }
-
+// bas 1
+// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
             File dir = new File(getFilesDir(), "logique");
@@ -147,12 +134,19 @@ public class InterfaceBlueprint extends Activity {
         }
     }
 
-    private void chargerBlueprintLocal() {
+    private void chargerBlueprintLocal(boolean estChargementAuto) {
         try {
             File dir = new File(getFilesDir(), "logique");
             File file = new File(dir, "blueprint.json");
             if (!file.exists()) {
-                Toast.makeText(this, "Aucune sauvegarde trouvée", Toast.LENGTH_SHORT).show();
+                if (!estChargementAuto) {
+                    Toast.makeText(this, "Aucune sauvegarde trouvée", Toast.LENGTH_SHORT).show();
+                }
+                // Initialisation d'un blueprint VRAIMENT VIDE
+                if (blueprintActif == null) {
+                    blueprintActif = new Blueprint();
+                    canvasBlueprint.setBlueprint(blueprintActif);
+                }
                 return;
             }
             
@@ -168,10 +162,19 @@ public class InterfaceBlueprint extends Activity {
             blueprintActif = Blueprint.fromJson(sb.toString());
             canvasBlueprint.setBlueprint(blueprintActif);
             canvasBlueprint.invalidate();
-            Toast.makeText(this, "Blueprint chargé avec succès !", Toast.LENGTH_SHORT).show();
+            
+            if (!estChargementAuto) {
+                Toast.makeText(this, "Blueprint chargé avec succès !", Toast.LENGTH_SHORT).show();
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors du chargement", Toast.LENGTH_SHORT).show();
+            if (!estChargementAuto) {
+                Toast.makeText(this, "Erreur lors du chargement", Toast.LENGTH_SHORT).show();
+            }
+            if (blueprintActif == null) {
+                blueprintActif = new Blueprint();
+                canvasBlueprint.setBlueprint(blueprintActif);
+            }
         }
     }
 
@@ -213,4 +216,8 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 1
+// bas 2
+
+
+
+
