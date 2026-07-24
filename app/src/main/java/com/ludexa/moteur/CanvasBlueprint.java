@@ -249,6 +249,7 @@ public class CanvasBlueprint extends View {
 // bas 2
 
         // haut 3
+    // haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -459,3 +460,6 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 3
+                        
+    
+             
