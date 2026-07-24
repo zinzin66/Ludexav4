@@ -104,6 +104,12 @@ public class InterfaceBlueprint extends Activity {
         blueprintActif.ajouterNoeud(new NoeudEventStart(), 150f, 200f);
         blueprintActif.ajouterNoeud(new NoeudEventStart(), 500f, 350f);
         canvasBlueprint.setBlueprint(blueprintActif);
+        
+        // --- CORRECTION : AJOUT DE LA SCENE AU CANVAS ---
+        Scene sceneTest = new Scene("Scène de Test");
+        sceneTest.ajouterObjet(new ObjetBase("Joueur", 0, 0, 50, 50));
+        sceneTest.ajouterObjet(new ObjetBase("Ennemi", 100, 100, 50, 50));
+        canvasBlueprint.sceneActive = sceneTest;
         // -------------------------------------
 
         // 2. Assemblage de la zone milieu
