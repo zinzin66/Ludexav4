@@ -21,20 +21,17 @@ public class EditeurNoeudDialog extends Dialog {
         super(context);
         setTitle("Configurer : " + noeud.nom);
 
-        // Conteneur principal (Horizontal)
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
         root.setPadding(30, 30, 30, 30);
         root.setBackgroundColor(Color.parseColor("#2A2A2A"));
         root.setLayoutParams(new ViewGroup.LayoutParams(1000, 700));
 
-        // --- ZONE GAUCHE : Saisie et Pavé Numérique ---
         LinearLayout zoneGauche = new LinearLayout(context);
         zoneGauche.setOrientation(LinearLayout.VERTICAL);
         zoneGauche.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.2f));
         zoneGauche.setPadding(0, 0, 20, 0);
 
-        // Sélecteur de paramètres (Boutons X, Y...)
         LinearLayout barreParams = new LinearLayout(context);
         barreParams.setOrientation(LinearLayout.HORIZONTAL);
         List<String> params = noeud.getNomsParametres();
@@ -42,7 +39,7 @@ public class EditeurNoeudDialog extends Dialog {
         EditText champSaisie = new EditText(context);
         champSaisie.setTextColor(Color.WHITE);
         champSaisie.setTextSize(24);
-        champSaisie.setInputType(InputType.TYPE_NULL); // Désactive le clavier natif Android
+        champSaisie.setInputType(InputType.TYPE_NULL);
         champSaisie.setShowSoftInputOnFocus(false);
         champSaisie.setGravity(Gravity.CENTER);
 
@@ -64,12 +61,11 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
 
-        // Pavé Numérique
         String[][] touches = {
             {"7", "8", "9"},
             {"4", "5", "6"},
             {"1", "2", "3"},
-            {"-", "0", "."}, // Le "moins" ajouté pour des coordonnées négatives potentielles
+            {"-", "0", "."}, 
             {"", "DEL", ""}
         };
 
@@ -94,7 +90,6 @@ public class EditeurNoeudDialog extends Dialog {
                         } else {
                             champSaisie.setText(courant + touche);
                         }
-                        // Sauvegarde immédiate dans le nœud
                         noeud.setValeurParametre(champActif, champSaisie.getText().toString());
                     });
                 }
@@ -103,7 +98,6 @@ public class EditeurNoeudDialog extends Dialog {
             zoneGauche.addView(rowLayout);
         }
 
-        // Bouton Valider
         Button btnValider = new Button(context);
         btnValider.setText("VALIDER");
         btnValider.setBackgroundColor(Color.parseColor("#4CAF50"));
@@ -114,7 +108,6 @@ public class EditeurNoeudDialog extends Dialog {
         });
         zoneGauche.addView(btnValider);
 
-        // --- ZONE DROITE : Liste des Objets ---
         LinearLayout zoneDroite = new LinearLayout(context);
         zoneDroite.setOrientation(LinearLayout.VERTICAL);
         zoneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
