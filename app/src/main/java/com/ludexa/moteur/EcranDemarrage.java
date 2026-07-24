@@ -11,7 +11,7 @@ public class EcranDemarrage extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        NoeudBase.contexteApplication = this;   // ← ajoute cette ligne
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
         layoutPrincipal.setPadding(40, 40, 40, 40);
