@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import com.google.gson.Gson;
@@ -60,6 +59,18 @@ public class Blueprint {
             ndto.x = noeudsX.containsKey(n.id) ? noeudsX.get(n.id) : 0f;
             ndto.y = noeudsY.containsKey(n.id) ? noeudsY.get(n.id) : 0f;
 
+            // Sauvegarde des paramètres configurables (X, Y, etc.)
+            if (n.aDesParametresEditables() && n.getNomsParametres() != null) {
+                for (String paramNom : n.getNomsParametres()) {
+                    ndto.parametres.put(paramNom, n.getValeurParametre(paramNom));
+                }
+            }
+            
+            // Sauvegarde de l'identifiant de la cible (son nom)
+            if (n.requiertCibleObjet() && n.getCibleObjet() != null) {
+                ndto.cibleNom = n.getCibleObjet().nom;
+            }
+
             for (Port p : n.portsEntree) {
                 if (p.valeurSaisie != null && !p.valeurSaisie.isEmpty()) {
                     PortDTO pdto = new PortDTO();
@@ -83,7 +94,8 @@ public class Blueprint {
         return gson.toJson(dto);
     }
 
-    public static Blueprint fromJson(String json) {
+    // Nouvelle méthode acceptant la Scene pour pouvoir lier les cibles sauvegardées
+    public static Blueprint fromJson(String json, Scene scene) {
         Gson gson = new Gson();
         BlueprintDTO dto = gson.fromJson(json, BlueprintDTO.class);
         Blueprint bp = new Blueprint();
@@ -97,6 +109,23 @@ public class Blueprint {
                 Class<?> clazz = Class.forName(ndto.classeType);
                 NoeudBase n = (NoeudBase) clazz.newInstance();
                 n.id = ndto.id;
+
+                // Restauration des paramètres dynamiques (comme X, Y)
+                if (ndto.parametres != null) {
+                    for (Map.Entry<String, String> entry : ndto.parametres.entrySet()) {
+                        n.setValeurParametre(entry.getKey(), entry.getValue());
+                    }
+                }
+                
+                // Restauration de la cible en la cherchant dans la Scene
+                if (ndto.cibleNom != null && scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (ndto.cibleNom.equals(obj.nom)) {
+                            n.setCibleObjet(obj);
+                            break;
+                        }
+                    }
+                }
 
                 for (PortDTO pdto : ndto.portsEntree) {
                     for (Port p : n.portsEntree) {
@@ -125,6 +154,11 @@ public class Blueprint {
         return bp;
     }
 
+    // Surcharge pour garder la rétrocompatibilité si la scène n'est pas fournie
+    public static Blueprint fromJson(String json) {
+        return fromJson(json, null);
+    }
+
     private static class BlueprintDTO {
         List<NoeudDTO> noeuds = new ArrayList<>();
         List<LienDTO> liens = new ArrayList<>();
@@ -136,6 +170,10 @@ public class Blueprint {
         float x;
         float y;
         List<PortDTO> portsEntree = new ArrayList<>();
+        
+        // NOUVEAUX CHAMPS pour corriger le bug
+        Map<String, String> parametres = new HashMap<>(); 
+        String cibleNom; 
     }
 
     private static class PortDTO {
@@ -150,4 +188,3 @@ public class Blueprint {
         String portArrivee;
     }
 }
-// bas 1
