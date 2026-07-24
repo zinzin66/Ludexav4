@@ -12,8 +12,7 @@ public class NoeudActionDeplacer extends NoeudBase {
     public NoeudActionDeplacer() {
         super(genererId(), "Déplacer Objet", "Action");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
-        this.ajouterPort(new Port("X", Port.TYPE_DONNEE_ENTREE));
-        this.ajouterPort(new Port("Y", Port.TYPE_DONNEE_ENTREE));
+        // Les ports X et Y ont été retirés ici
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
