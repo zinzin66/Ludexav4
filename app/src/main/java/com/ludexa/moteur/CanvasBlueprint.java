@@ -102,23 +102,22 @@ public class CanvasBlueprint extends View {
                         float screenX = event.getX();
                         float screenY = event.getY();
                         
+                        // Conversion robuste des coordonnées de l'écran vers le monde virtuel
                         float x = ((screenX - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
                         float y = ((screenY - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
                         
                         NoeudBase nouveauNoeud = null;
+                        
+                        // Instanciation explicite sécurisée (remplace la réflexion défaillante)
                         if ("NoeudEventStart".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudEventStart();
                         } else if ("NoeudActionDeplacer".equals(typeNoeud)) {
-                            try {
-                                nouveauNoeud = (NoeudBase) Class.forName("com.ludexa.moteur.NoeudActionDeplacer").newInstance();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            nouveauNoeud = new NoeudActionDeplacer();
                         }
                         
                         if (nouveauNoeud != null) {
                             blueprintActuel.ajouterNoeud(nouveauNoeud, x, y);
-                            invalidate();
+                            invalidate(); // Force le redessin immédiat
                         }
                     }
                     return true;
@@ -130,7 +129,8 @@ public class CanvasBlueprint extends View {
         });
     }
 // bas 1
-    // haut 2
+
+// haut 2
     public void setBlueprint(Blueprint blueprint) {
         this.blueprintActuel = blueprint;
         invalidate();
@@ -246,7 +246,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-    // haut 3
+// haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -296,7 +296,7 @@ public class CanvasBlueprint extends View {
 
     private InfoPort trouverPortSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
-        float margeY = 40f; // Tolérance très généreuse de 40px en haut et en bas du port
+        float margeY = 40f; 
 
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
@@ -309,14 +309,12 @@ public class CanvasBlueprint extends View {
 
             for (int j = 0; j < noeud.portsEntree.size(); j++) {
                 float py = startY + (j * 40);
-                // Hitbox large pour l'entrée (inclut le texte à droite du bord)
                 if (sceneX >= nx - 40 && sceneX <= nx + 140 && Math.abs(sceneY - py) <= margeY) {
                     return new InfoPort(noeud, noeud.portsEntree.get(j), true);
                 }
             }
             for (int j = 0; j < noeud.portsSortie.size(); j++) {
                 float py = startY + (j * 40);
-                // Hitbox large pour la sortie (inclut le texte "Suivant" complet)
                 if (sceneX >= nx + largeur - 140 && sceneX <= nx + largeur + 40 && Math.abs(sceneY - py) <= margeY) {
                     return new InfoPort(noeud, noeud.portsSortie.get(j), false);
                 }
@@ -345,7 +343,8 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-    // haut 4
+
+// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -367,7 +366,7 @@ public class CanvasBlueprint extends View {
                             noeudDepartDrag = portTouche.noeud;
                             dragCurrentX = sceneX;
                             dragCurrentY = sceneY;
-                            invalidate(); // Force l'affichage immédiat du bout de câble !
+                            invalidate(); 
                             return true;
                         }
                     }
@@ -413,6 +412,13 @@ public class CanvasBlueprint extends View {
                         boolean isCompatDonnee = Port.TYPE_DONNEE_SORTIE.equals(portDepartDrag.type) && Port.TYPE_DONNEE_ENTREE.equals(portArrivee.port.type);
                         
                         if (isCompatEx || isCompatDonnee) {
+                            for (int i = 0; i < blueprintActuel.liens.size(); i++) {
+                                Blueprint.Lien l = blueprintActuel.liens.get(i);
+                                if (l.noeudDepart == noeudDepartDrag && l.portSortieNom.equals(portDepartDrag.nom)) {
+                                    blueprintActuel.liens.remove(i);
+                                    break;
+                                }
+                            }
                             blueprintActuel.liens.add(new Blueprint.Lien(
                                 noeudDepartDrag, portDepartDrag.nom,
                                 portArrivee.noeud, portArrivee.port.nom
@@ -432,6 +438,3 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
-
-
-

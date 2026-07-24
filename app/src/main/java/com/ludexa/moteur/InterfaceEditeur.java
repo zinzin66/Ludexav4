@@ -133,6 +133,29 @@ public class InterfaceEditeur extends Activity {
         boutonBuild.setText("Build");
         bandeauHaut.addView(boutonBuild);
 
+        Button boutonPlay = new Button(this);
+        boutonPlay.setText("Play");
+        boutonPlay.setOnClickListener(v -> {
+            // Création d'un Blueprint à la volée avec les nœuds de la scène
+            Blueprint blueprintActif = new Blueprint();
+            if (sceneActive != null && sceneActive.noeudsLogique != null) {
+                blueprintActif.noeuds.addAll(sceneActive.noeudsLogique);
+            }
+            
+            // Lancement du moteur logique
+            MoteurLogique moteur = new MoteurLogique(blueprintActif);
+            moteur.executerDemarrage();
+            
+            // Rafraîchissement de l'éditeur
+            canvasEditeur.invalidate();
+            if (menuInspecteur != null) {
+                menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
+            }
+            
+            Toast.makeText(this, "Exécution logique terminée", Toast.LENGTH_SHORT).show();
+        });
+        bandeauHaut.addView(boutonPlay);
+
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(

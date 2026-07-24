@@ -9,7 +9,16 @@ import android.content.Context;
 import android.os.Bundle;
 import android.widget.*;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+
 public class InterfaceBlueprint extends Activity {
+
+    private Blueprint blueprintActif;
+    private CanvasBlueprint canvasBlueprint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,10 +38,21 @@ public class InterfaceBlueprint extends Activity {
         bandeauHaut.addView(boutonRetour);
 
         // Instanciation du Canvas 
-        CanvasBlueprint canvasBlueprint = new CanvasBlueprint(this);
+        canvasBlueprint = new CanvasBlueprint(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasBlueprint.setLayoutParams(paramsCentre);
+
+        // --- Boutons Sauvegarde & Chargement (Tâche 9.2) ---
+        Button boutonSauvegarder = new Button(this);
+        boutonSauvegarder.setText("Sauvegarder");
+        boutonSauvegarder.setOnClickListener(v -> sauvegarderBlueprintLocal());
+        bandeauHaut.addView(boutonSauvegarder);
+
+        Button boutonCharger = new Button(this);
+        boutonCharger.setText("Charger");
+        boutonCharger.setOnClickListener(v -> chargerBlueprintLocal());
+        bandeauHaut.addView(boutonCharger);
 
         // --- Boutons de Zoom ---
         Button boutonZoomMoins = new Button(this);
@@ -79,11 +99,11 @@ public class InterfaceBlueprint extends Activity {
         // 1. Panneau de gauche (Nœuds)
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        // --- INJECTION DU TEST (Tâche 8.1) ---
-        Blueprint blueprintTest = new Blueprint();
-        blueprintTest.ajouterNoeud(new NoeudEventStart(), 150f, 200f);
-        blueprintTest.ajouterNoeud(new NoeudEventStart(), 500f, 350f);
-        canvasBlueprint.setBlueprint(blueprintTest);
+        // --- INJECTION DU TEST ---
+        blueprintActif = new Blueprint();
+        blueprintActif.ajouterNoeud(new NoeudEventStart(), 150f, 200f);
+        blueprintActif.ajouterNoeud(new NoeudEventStart(), 500f, 350f);
+        canvasBlueprint.setBlueprint(blueprintActif);
         // -------------------------------------
 
         // 2. Assemblage de la zone milieu
@@ -95,6 +115,51 @@ public class InterfaceBlueprint extends Activity {
         layoutPrincipal.addView(zoneMilieu);
 
         setContentView(layoutPrincipal);
+    }
+
+    private void sauvegarderBlueprintLocal() {
+        try {
+            File dir = new File(getFilesDir(), "logique");
+            if (!dir.exists()) dir.mkdirs();
+            File file = new File(dir, "blueprint.json");
+            
+            String json = blueprintActif.toJson();
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(json.getBytes());
+            fos.close();
+            Toast.makeText(this, "Blueprint sauvegardé (logique/blueprint.json)", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur de sauvegarde", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void chargerBlueprintLocal() {
+        try {
+            File dir = new File(getFilesDir(), "logique");
+            File file = new File(dir, "blueprint.json");
+            if (!file.exists()) {
+                Toast.makeText(this, "Aucune sauvegarde trouvée", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            FileInputStream fis = new FileInputStream(file);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            fis.close();
+            
+            blueprintActif = Blueprint.fromJson(sb.toString());
+            canvasBlueprint.setBlueprint(blueprintActif);
+            canvasBlueprint.invalidate();
+            Toast.makeText(this, "Blueprint chargé avec succès !", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors du chargement", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Fonction pour afficher la fenêtre modale contenant le code généré

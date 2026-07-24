@@ -1,6 +1,7 @@
+// haut 1
 package com.ludexa.moteur;
-public class Port {
 
+public class Port {
     public static final String TYPE_EXECUTION_ENTREE = "EXECUTION_ENTREE";
     public static final String TYPE_EXECUTION_SORTIE = "EXECUTION_SORTIE";
     public static final String TYPE_DONNEE_ENTREE   = "DONNEE_ENTREE";
@@ -9,7 +10,6 @@ public class Port {
     public String nom;
     public String type;
     public String valeurSaisie;
-
     public NoeudBase noeudDestination;
     public Port portDestination;
 
@@ -21,3 +21,4 @@ public class Port {
         this.portDestination = null;
     }
 }
+// bas 1
