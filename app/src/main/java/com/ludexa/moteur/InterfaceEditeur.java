@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Stack;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import com.google.gson.Gson;
 
 public class InterfaceEditeur extends Activity {
@@ -25,7 +26,6 @@ public class InterfaceEditeur extends Activity {
     public Stack<Commande> undoStack = new Stack<>();
     public Stack<Commande> redoStack = new Stack<>();
 
-    // --- NOUVEAU : Variables pour gérer l'affichage ---
     private LinearLayout layoutPrincipal;
     private boolean enModeJeu = false;
 
@@ -163,7 +163,6 @@ public class InterfaceEditeur extends Activity {
         setContentView(layoutPrincipal);
     }
 
-    // --- METHODE CORRIGEE : Basculer vers le mode Jeu ---
     private void basculerVersJeu() {
         ObjetBase objetCible = null;
         
@@ -171,39 +170,37 @@ public class InterfaceEditeur extends Activity {
             objetCible = sceneActive.objets.get(0);
         }
 
-        // 1. Charger le vrai Blueprint sauvegardé via le fichier JSON
-        String jsonDuBlueprint = "";
-        try {
-            // Assurez-vous que le nom du fichier correspond à celui utilisé lors de la sauvegarde du Blueprint
-            File file = new File(getFilesDir(), "blueprint.json"); 
-            if (file.exists()) {
-                Scanner scanner = new Scanner(file).useDelimiter("\\A");
-                jsonDuBlueprint = scanner.hasNext() ? scanner.next() : "";
-                scanner.close();
+        Blueprint blueprintActif = new Blueprint();
+        File dossierLogique = new File(getFilesDir(), "logique");
+        File fileBlueprint = new File(dossierLogique, "blueprint.json");
+
+        // Vérification cruciale : on s'assure que le fichier a bien été créé par une sauvegarde préalable
+        if (fileBlueprint.exists()) {
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(fileBlueprint));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+                br.close();
+                String json = sb.toString();
+                blueprintActif = Blueprint.fromJson(json, sceneActive);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Erreur lors de la lecture du Blueprint.", Toast.LENGTH_SHORT).show();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        // Création du Blueprint via la méthode statique avec la scène active
-        Blueprint blueprintActif = Blueprint.fromJson(jsonDuBlueprint, sceneActive);
-
-        // 2. Appeler MoteurLogique.executerDemarrage() SUR ce Blueprint chargé
-        if (blueprintActif != null) {
-            MoteurLogique moteur = new MoteurLogique(blueprintActif);
-            moteur.executerDemarrage();
-        }
-
-        // 3. Basculer l'affichage vers VueJeu
         VueJeu vueJeu = new VueJeu(this, objetCible, blueprintActif);
         
-        // Création du conteneur superposé
         FrameLayout conteneurJeu = new FrameLayout(this);
         conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
 
-        // Création du bouton Stop
         Button boutonStop = new Button(this);
         boutonStop.setText("⏹ STOP");
         boutonStop.setBackgroundColor(Color.RED);
@@ -218,7 +215,6 @@ public class InterfaceEditeur extends Activity {
         
         conteneurJeu.addView(boutonStop, paramsStop);
 
-        // Bascule de l'affichage
         setContentView(conteneurJeu);
         enModeJeu = true;
     }
@@ -228,7 +224,6 @@ public class InterfaceEditeur extends Activity {
             setContentView(layoutPrincipal);
             enModeJeu = false;
             
-            // On rafraîchit l'éditeur au retour au cas où
             canvasEditeur.invalidate();
             if (menuInspecteur != null) {
                 menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
@@ -236,7 +231,6 @@ public class InterfaceEditeur extends Activity {
         }
     }
     
-    // --- GESTION DU BOUTON RETOUR PHYSIQUE ---
     @Override
     public void onBackPressed() {
         if (enModeJeu) {
@@ -265,13 +259,30 @@ public class InterfaceEditeur extends Activity {
 
     private void sauvegarderProjet() {
         try {
+            // 1. Sauvegarde des scènes du projet
             Gson gson = new Gson();
-            String json = gson.toJson(listeScenes);
-            File file = new File(getFilesDir(), "projet_sauvegarde.json");
-            FileWriter writer = new FileWriter(file);
-            writer.write(json);
-            writer.close();
-            Toast.makeText(this, "Projet sauvegardé dans : " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            String jsonProjet = gson.toJson(listeScenes);
+            File fileProjet = new File(getFilesDir(), "projet_sauvegarde.json");
+            FileWriter writerProjet = new FileWriter(fileProjet);
+            writerProjet.write(jsonProjet);
+            writerProjet.close();
+
+            // 2. Sauvegarde spécifique du Blueprint dans le dossier "logique"
+            File dossierLogique = new File(getFilesDir(), "logique");
+            if (!dossierLogique.exists()) {
+                dossierLogique.mkdirs(); // Crée le dossier s'il n'existe pas
+            }
+            File fileBlueprint = new File(dossierLogique, "blueprint.json");
+            Blueprint blueprintASauvegarder = new Blueprint();
+            if (sceneActive != null && sceneActive.noeudsLogique != null) {
+                blueprintASauvegarder.noeuds.addAll(sceneActive.noeudsLogique);
+            }
+            
+            FileWriter writerBp = new FileWriter(fileBlueprint);
+            writerBp.write(blueprintASauvegarder.toJson());
+            writerBp.close();
+
+            Toast.makeText(this, "Projet et Blueprint sauvegardés avec succès.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
