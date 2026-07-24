@@ -12,7 +12,6 @@ public class NoeudActionDeplacer extends NoeudBase {
     public NoeudActionDeplacer() {
         super(genererId(), "Déplacer Objet", "Action");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
-        // Les ports X et Y ont été retirés ici
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
@@ -31,8 +30,6 @@ public class NoeudActionDeplacer extends NoeudBase {
         }
         propagerExecution("Suivant");
     }
-
-    // --- IMPLEMENTATION DES PARAMETRES POUR L'EDITEUR ---
     
     @Override
     public List<String> getNomsParametres() {
@@ -52,7 +49,6 @@ public class NoeudActionDeplacer extends NoeudBase {
             if ("X".equals(nom)) deplacementX = Float.parseFloat(valeur);
             if ("Y".equals(nom)) deplacementY = Float.parseFloat(valeur);
         } catch (NumberFormatException e) {
-            // La saisie peut être temporairement vide ou inclure seulement un ".", on ignore l'erreur
         }
     }
 
