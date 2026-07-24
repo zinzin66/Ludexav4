@@ -22,6 +22,11 @@ public class CanvasBlueprint extends View {
     private Paint paintPort;
     private Paint paintLien; 
     
+    // Nouveaux pinceaux pour la sélection et l'édition
+    private Paint paintSelection;
+    private Paint paintBoutonEdition;
+    private Paint paintTexteBouton;
+    
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
     private float niveauZoom = 1.0f;
@@ -36,6 +41,9 @@ public class CanvasBlueprint extends View {
     private NoeudBase noeudEnDeplacement = null;
     private float decalageToucherX = 0;
     private float decalageToucherY = 0;
+    
+    // Nouvel état : nœud sélectionné
+    private NoeudBase noeudSelectionne = null;
 
     private Port portDepartDrag = null;
     private NoeudBase noeudDepartDrag = null;
@@ -89,6 +97,24 @@ public class CanvasBlueprint extends View {
         paintLien.setStrokeWidth(6);
         paintLien.setAntiAlias(true);
         
+        // Initialisation pour la sélection
+        paintSelection = new Paint();
+        paintSelection.setColor(Color.parseColor("#FFD700")); // Jaune
+        paintSelection.setStyle(Paint.Style.STROKE);
+        paintSelection.setStrokeWidth(6);
+        paintSelection.setAntiAlias(true);
+
+        // Initialisation pour le bouton d'édition intégré
+        paintBoutonEdition = new Paint();
+        paintBoutonEdition.setColor(Color.parseColor("#4A4A4A"));
+        paintBoutonEdition.setStyle(Paint.Style.FILL);
+        
+        paintTexteBouton = new Paint();
+        paintTexteBouton.setColor(Color.WHITE);
+        paintTexteBouton.setTextSize(16);
+        paintTexteBouton.setTextAlign(Paint.Align.CENTER);
+        paintTexteBouton.setAntiAlias(true);
+        
         setBackgroundColor(Color.parseColor("#1E1E1E")); 
 
         this.setOnDragListener((v, event) -> {
@@ -132,6 +158,7 @@ public class CanvasBlueprint extends View {
 
     public void setBlueprint(Blueprint blueprint) {
         this.blueprintActuel = blueprint;
+        noeudSelectionne = null;
         invalidate();
     }
 
@@ -149,7 +176,37 @@ public class CanvasBlueprint extends View {
         niveauZoom = 1.0f;
         invalidate();
     }
+    
+    // --- METHODE : À appeler depuis l'interface (Bandeau) ---
+    public void supprimerNoeudSelectionne() {
+        if (noeudSelectionne != null && blueprintActuel != null) {
+            blueprintActuel.liens.removeIf(l -> 
+                l.noeudDepart == noeudSelectionne || l.noeudArrivee == noeudSelectionne
+            );
+            
+            for (NoeudBase noeud : blueprintActuel.noeuds) {
+                for (Port p : noeud.portsSortie) {
+                    if (p.noeudDestination == noeudSelectionne) {
+                        p.noeudDestination = null;
+                        p.portDestination = null;
+                    }
+                }
+            }
+            
+            blueprintActuel.noeuds.remove(noeudSelectionne);
+            blueprintActuel.noeudsX.remove(noeudSelectionne.id);
+            blueprintActuel.noeudsY.remove(noeudSelectionne.id);
+            
+            noeudSelectionne = null;
+            invalidate();
+        }
+    }
+
+    public NoeudBase getNoeudSelectionne() {
+        return noeudSelectionne;
+    }
 // bas 1
+    
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -246,7 +303,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-// haut 3
+    // haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -256,9 +313,19 @@ public class CanvasBlueprint extends View {
         float y = yObj;
         float largeur = 260;
         int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
-        float hauteur = 60 + (maxPorts * 40) + 20; 
         
-        RectF rectFond = new RectF(x, y, x + largeur, y + hauteur);
+        boolean estEditable = noeud.aDesParametresEditables();
+        float espaceEdition = estEditable ? 50 : 0;
+        float hauteurBase = 60 + (maxPorts * 40) + 20;
+        float hauteurTotale = hauteurBase + espaceEdition;
+        
+        // Surlignage de sélection
+        if (noeud == noeudSelectionne) {
+            RectF rectSelection = new RectF(x - 4, y - 4, x + largeur + 4, y + hauteurTotale + 4);
+            canvas.drawRoundRect(rectSelection, 18, 18, paintSelection);
+        }
+        
+        RectF rectFond = new RectF(x, y, x + largeur, y + hauteurTotale);
         canvas.drawRoundRect(rectFond, 16, 16, paintNoeudBG);
         
         RectF rectTitre = new RectF(x, y, x + largeur, y + 45);
@@ -283,6 +350,14 @@ public class CanvasBlueprint extends View {
             canvas.drawCircle(x + largeur, portY, 8, paintPort);
             float textWidth = paintTextePort.measureText(p.nom);
             canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
+        }
+        
+        // Dessin de l'encart d'édition dédié
+        if (estEditable) {
+            float btnY = y + hauteurBase;
+            RectF rectBouton = new RectF(x + 10, btnY, x + largeur - 10, btnY + 40);
+            canvas.drawRoundRect(rectBouton, 8, 8, paintBoutonEdition);
+            canvas.drawText("📝 Configurer", x + largeur / 2f, btnY + 26, paintTexteBouton);
         }
     }
     
@@ -322,6 +397,29 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
+    
+    private NoeudBase trouverZoneEditionSousToucher(float sceneX, float sceneY) {
+        if (blueprintActuel == null) return null;
+        for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
+            NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            if (!noeud.aDesParametresEditables()) continue;
+            
+            Float nx = blueprintActuel.noeudsX.get(noeud.id);
+            Float ny = blueprintActuel.noeudsY.get(noeud.id);
+            
+            if (nx != null && ny != null) {
+                float largeur = 260;
+                int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
+                float hauteurBase = 60 + (maxPorts * 40) + 20;
+                float btnY = ny + hauteurBase;
+                
+                if (sceneX >= nx + 10 && sceneX <= nx + largeur - 10 && sceneY >= btnY && sceneY <= btnY + 40) {
+                    return noeud;
+                }
+            }
+        }
+        return null;
+    }
 
     private NoeudBase trouverNoeudSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
@@ -333,7 +431,7 @@ public class CanvasBlueprint extends View {
             if (nx != null && ny != null) {
                 float largeur = 260;
                 int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
-                float hauteur = 60 + (maxPorts * 40) + 20;
+                float hauteur = 60 + (maxPorts * 40) + 20 + (noeud.aDesParametresEditables() ? 50 : 0);
                 
                 if (sceneX >= nx && sceneX <= nx + largeur && sceneY >= ny && sceneY <= ny + hauteur) {
                     return noeud;
@@ -343,7 +441,6 @@ public class CanvasBlueprint extends View {
         return null;
     }
 
-    // --- NOUVELLE METHODE POUR LA SUPPRESSION DE LIENS ---
     private Blueprint.Lien trouverLienSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
         float seuilDistance = 40f; 
@@ -369,7 +466,6 @@ public class CanvasBlueprint extends View {
                     float cx2 = x2 - dist;
                     float cy2 = y2;
                     
-                    // On scanne la courbe en 10 points virtuels
                     for (float t = 0; t <= 1.0f; t += 0.1f) {
                         float u = 1.0f - t;
                         float tt = t * t;
@@ -391,7 +487,9 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
+// bas 3
 
+// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -422,10 +520,12 @@ public class CanvasBlueprint extends View {
                         return true; 
                     }
 
-                    noeudEnDeplacement = trouverNoeudSousToucher(sceneX, sceneY);
-                    if (noeudEnDeplacement != null) {
-                        decalageToucherX = sceneX - blueprintActuel.noeudsX.get(noeudEnDeplacement.id);
-                        decalageToucherY = sceneY - blueprintActuel.noeudsY.get(noeudEnDeplacement.id);
+                    if (trouverZoneEditionSousToucher(sceneX, sceneY) == null) {
+                        noeudEnDeplacement = trouverNoeudSousToucher(sceneX, sceneY);
+                        if (noeudEnDeplacement != null) {
+                            decalageToucherX = sceneX - blueprintActuel.noeudsX.get(noeudEnDeplacement.id);
+                            decalageToucherY = sceneY - blueprintActuel.noeudsY.get(noeudEnDeplacement.id);
+                        }
                     }
                 }
                 return true;
@@ -457,7 +557,6 @@ public class CanvasBlueprint extends View {
                 float dx = x - touchDownX;
                 float dy = y - touchDownY;
                 
-                // CORRECTION : Tolérance considérablement augmentée
                 boolean estUnClic = (upTime - lastDownTime < 600) && (Math.abs(dx) < 100) && (Math.abs(dy) < 100);
                 
                 if (portDepartDrag != null) {
@@ -488,28 +587,25 @@ public class CanvasBlueprint extends View {
                     noeudDepartDrag = null;
                     invalidate();
                     return true;
-                } else if (noeudEnDeplacement != null) {
-                    if (estUnClic) {
+                } else if (estUnClic && blueprintActuel != null) {
+                    float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
+                    float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
+                    
+                    NoeudBase noeudEditTouche = trouverZoneEditionSousToucher(sceneX, sceneY);
+                    if (noeudEditTouche != null) {
+                        noeudSelectionne = noeudEditTouche; 
                         if (sceneActive != null) {
-                            new EditeurNoeudDialog(getContext(), noeudEnDeplacement, sceneActive, () -> {
-                                invalidate();
-                            }).show();
+                            new EditeurNoeudDialog(getContext(), noeudEditTouche, sceneActive, () -> invalidate()).show();
                         } else {
                             System.err.println("ERREUR : sceneActive est null dans CanvasBlueprint !");
                         }
+                        invalidate();
+                        return true;
                     }
-                    noeudEnDeplacement = null;
-                    return true;
-                } else if (estUnClic && blueprintActuel != null) {
-                    // NOUVEAU : Tentative de suppression d'un lien au tap
-                    float sceneX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
-                    float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
-                    Blueprint.Lien lienTouche = trouverLienSousToucher(sceneX, sceneY);
                     
+                    Blueprint.Lien lienTouche = trouverLienSousToucher(sceneX, sceneY);
                     if (lienTouche != null) {
-                        blueprintActuel.liens.remove(lienTouche); // Supprime le lien visuel
-                        
-                        // Nettoie la connexion logique stockée dans le NoeudBase
+                        blueprintActuel.liens.remove(lienTouche);
                         Port pSortie = trouverPortParNom(lienTouche.noeudDepart.portsSortie, lienTouche.portSortieNom);
                         if (pSortie != null && pSortie.noeudDestination == lienTouche.noeudArrivee) {
                             pSortie.noeudDestination = null;
@@ -518,12 +614,21 @@ public class CanvasBlueprint extends View {
                         invalidate();
                         return true;
                     }
+                    
+                    NoeudBase noeudTouche = trouverNoeudSousToucher(sceneX, sceneY);
+                    noeudSelectionne = noeudTouche;
+                    invalidate();
                 }
                 
+                noeudEnDeplacement = null;
                 return true;
         }
         return super.onTouchEvent(event);
     }
 }
-// bas 3
-                
+// bas 4
+
+    
+
+
+    
