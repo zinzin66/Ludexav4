@@ -134,8 +134,11 @@ public class CanvasBlueprint extends View {
                         
                         NoeudBase nouveauNoeud = null;
                         
+                        // CORRECTION ICI : Ajout de l'instanciation pour NoeudEventStart
                         if ("NoeudActionDeplacer".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudActionDeplacer();
+                        } else if ("NoeudEventStart".equals(typeNoeud)) {
+                            nouveauNoeud = new NoeudEventStart();
                         }
                         
                         if (nouveauNoeud != null) {
@@ -201,6 +204,7 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
+
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -297,7 +301,8 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-    // haut 3
+
+// haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -480,7 +485,6 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-    
 // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -619,7 +623,4 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
-
-
-    
 
