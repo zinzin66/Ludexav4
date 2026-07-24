@@ -247,7 +247,8 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-// haut 3
+
+        // haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -363,7 +364,6 @@ public class CanvasBlueprint extends View {
                     
                     InfoPort portTouche = trouverPortSousToucher(sceneX, sceneY);
                     
-                    // CORRECTION ICI : Si on touche un port, on ignore le clic sur le corps du noeud
                     if (portTouche != null) {
                         if (!portTouche.isEntree) { 
                             portDepartDrag = portTouche.port;
@@ -372,7 +372,7 @@ public class CanvasBlueprint extends View {
                             dragCurrentY = sceneY;
                             invalidate(); 
                         }
-                        return true; // Sortie anticipée, évite d'activer le noeud pour la popup
+                        return true; 
                     }
 
                     noeudEnDeplacement = trouverNoeudSousToucher(sceneX, sceneY);
@@ -439,11 +439,15 @@ public class CanvasBlueprint extends View {
                     invalidate();
                     return true;
                 } else if (noeudEnDeplacement != null) {
-                    if (upTime - lastDownTime < 250 && Math.abs(dx) < 15 && Math.abs(dy) < 15) {
+                    // CORRECTION ICI : Tolérance augmentée à 400ms et 50 pixels de glissement
+                    if (upTime - lastDownTime < 400 && Math.abs(dx) < 50 && Math.abs(dy) < 50) {
                         if (sceneActive != null) {
                             new EditeurNoeudDialog(getContext(), noeudEnDeplacement, sceneActive, () -> {
                                 invalidate();
                             }).show();
+                        } else {
+                            // Si la popup ne s'ouvre toujours pas, c'est que la scène n'est pas attachée au canvas
+                            System.err.println("ERREUR : sceneActive est null dans CanvasBlueprint !");
                         }
                     }
                 }
@@ -455,4 +459,3 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 3
-
