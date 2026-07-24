@@ -13,6 +13,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // NOUVEAU : Initialisation du contexte pour permettre l'affichage des erreurs (Toasts) 
+        // depuis les classes de logique abstraites comme NoeudBase.
+        com.ludexa.moteur.NoeudBase.contexteApplication = this;
 
         Scene sceneActive = new Scene("SceneDepart");
         ObjetBase carre = new ObjetBase("Carré", 50f, 50f, 120f, 120f);
