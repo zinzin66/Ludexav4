@@ -22,18 +22,14 @@ public class NoeudActionDeplacer extends NoeudBase {
         this.positionY = positionY;
     }
 
-    // --- DÉBUT DU BLOC DE TEST TEMPORAIRE ---
     @Override
     public void executer() {
         if (cible != null) {
             cible.x = positionX;
             cible.y = positionY;
-            cible.largeur = 400;
-            cible.hauteur = 400;
         }
         propagerExecution("Suivant");
     }
-    // --- FIN DU BLOC DE TEST TEMPORAIRE ---
     
     @Override
     public List<String> getNomsParametres() {
