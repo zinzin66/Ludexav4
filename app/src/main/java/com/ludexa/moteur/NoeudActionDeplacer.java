@@ -7,8 +7,8 @@ import java.util.List;
 public class NoeudActionDeplacer extends NoeudBase {
 
     private ObjetBase cible;
-    private float positionX; // Renommé pour plus de clarté
-    private float positionY; // Renommé pour plus de clarté
+    private float deplacementX;
+    private float deplacementY;
 
     public NoeudActionDeplacer() {
         super(genererId(), "Déplacer Objet", "Action");
@@ -16,20 +16,18 @@ public class NoeudActionDeplacer extends NoeudBase {
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
-    public NoeudActionDeplacer(ObjetBase cible, float positionX, float positionY) {
+    public NoeudActionDeplacer(ObjetBase cible, float deplacementX, float deplacementY) {
         this(); 
         this.cible = cible;
-        this.positionX = positionX;
-        this.positionY = positionY;
+        this.deplacementX = deplacementX;
+        this.deplacementY = deplacementY;
     }
 
     @Override
     public void executer() {
         if (cible != null) {
-            // CORRECTION : Assignation directe (=) au lieu d'une addition (+=)
-            // L'objet se déplace désormais vers les coordonnées exactes
-            cible.x = positionX;
-            cible.y = positionY;
+            cible.x += deplacementX;
+            cible.y += deplacementY;
         }
         propagerExecution("Suivant");
     }
@@ -41,16 +39,16 @@ public class NoeudActionDeplacer extends NoeudBase {
 
     @Override
     public String getValeurParametre(String nom) {
-        if ("X".equals(nom)) return String.valueOf(positionX);
-        if ("Y".equals(nom)) return String.valueOf(positionY);
+        if ("X".equals(nom)) return String.valueOf(deplacementX);
+        if ("Y".equals(nom)) return String.valueOf(deplacementY);
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
         try {
-            if ("X".equals(nom)) positionX = Float.parseFloat(valeur);
-            if ("Y".equals(nom)) positionY = Float.parseFloat(valeur);
+            if ("X".equals(nom)) deplacementX = Float.parseFloat(valeur);
+            if ("Y".equals(nom)) deplacementY = Float.parseFloat(valeur);
         } catch (NumberFormatException e) {
         }
     }
