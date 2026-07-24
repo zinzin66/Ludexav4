@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -23,16 +22,18 @@ public class NoeudActionDeplacer extends NoeudBase {
         this.positionY = positionY;
     }
 
+    // --- DÉBUT DU BLOC DE TEST TEMPORAIRE ---
     @Override
     public void executer() {
         if (cible != null) {
-            // CORRECTION : Assignation directe (=) au lieu d'une addition (+=)
-            // L'objet se déplace désormais vers les coordonnées exactes
             cible.x = positionX;
             cible.y = positionY;
+            cible.largeur = 400;
+            cible.hauteur = 400;
         }
         propagerExecution("Suivant");
     }
+    // --- FIN DU BLOC DE TEST TEMPORAIRE ---
     
     @Override
     public List<String> getNomsParametres() {
@@ -70,4 +71,3 @@ public class NoeudActionDeplacer extends NoeudBase {
         return this.cible;
     }
 }
-// bas 1
