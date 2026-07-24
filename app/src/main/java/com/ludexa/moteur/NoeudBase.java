@@ -1,7 +1,7 @@
-// haut 1
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public abstract class NoeudBase {
@@ -44,14 +44,11 @@ public abstract class NoeudBase {
     }
 
     protected void propagerExecution(String nomPortSortie) {
-        // 1. Transmettre automatiquement les valeurs des ports de données sortants vers les ports entrants connectés
         for (Port pSortie : this.portsSortie) {
             if (pSortie.type.equals(Port.TYPE_DONNEE_SORTIE) && pSortie.portDestination != null) {
                 pSortie.portDestination.valeurSaisie = pSortie.valeurSaisie;
             }
         }
-
-        // 2. Propager l'exécution au nœud suivant
         Port port = trouverPort(this.portsSortie, nomPortSortie);
         if (port != null && port.noeudDestination != null) {
             port.noeudDestination.executer();
@@ -63,5 +60,15 @@ public abstract class NoeudBase {
     }
 
     public abstract void executer();
+
+    public abstract List<String> getNomsParametres();
+    public abstract String getValeurParametre(String nom);
+    public abstract void setValeurParametre(String nom, String valeur);
+    public abstract boolean requiertCibleObjet();
+    public abstract void setCibleObjet(ObjetBase objet);
+    public abstract ObjetBase getCibleObjet();
+    
+    public boolean aDesParametresEditables() {
+        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet();
+    }
 }
-// bas 1
