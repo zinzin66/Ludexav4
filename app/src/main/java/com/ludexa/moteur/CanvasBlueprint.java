@@ -201,7 +201,7 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
-    // haut 2
+// haut 2
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -481,7 +481,7 @@ public class CanvasBlueprint extends View {
     }
 // bas 3
     
- // haut 4
+// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -621,4 +621,5 @@ public class CanvasBlueprint extends View {
 // bas 4
 
 
+    
 
