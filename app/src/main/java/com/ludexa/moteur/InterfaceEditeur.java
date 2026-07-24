@@ -124,6 +124,9 @@ public class InterfaceEditeur extends Activity {
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
+            // --- CORRECTION : TRANSMISSION DE LA SCENE AVANT OUVERTURE ---
+            InterfaceBlueprint.sceneACharger = this.sceneActive;
+            // -----------------------------------------------------------
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
             startActivity(intent);
         });
@@ -136,17 +139,14 @@ public class InterfaceEditeur extends Activity {
         Button boutonPlay = new Button(this);
         boutonPlay.setText("Play");
         boutonPlay.setOnClickListener(v -> {
-            // Création d'un Blueprint à la volée avec les nœuds de la scène
             Blueprint blueprintActif = new Blueprint();
             if (sceneActive != null && sceneActive.noeudsLogique != null) {
                 blueprintActif.noeuds.addAll(sceneActive.noeudsLogique);
             }
             
-            // Lancement du moteur logique
             MoteurLogique moteur = new MoteurLogique(blueprintActif);
             moteur.executerDemarrage();
             
-            // Rafraîchissement de l'éditeur
             canvasEditeur.invalidate();
             if (menuInspecteur != null) {
                 menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
