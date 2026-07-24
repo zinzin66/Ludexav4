@@ -17,6 +17,9 @@ import java.io.BufferedReader;
 
 public class InterfaceBlueprint extends Activity {
 
+    // Variable statique pour recevoir la scène depuis l'éditeur sans utiliser la sérialisation complexe
+    public static Scene sceneACharger; 
+
     private Blueprint blueprintActif;
     private CanvasBlueprint canvasBlueprint;
 
@@ -99,17 +102,19 @@ public class InterfaceBlueprint extends Activity {
         // 1. Panneau de gauche (Nœuds)
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        // --- INJECTION DU TEST ---
         blueprintActif = new Blueprint();
         blueprintActif.ajouterNoeud(new NoeudEventStart(), 150f, 200f);
         blueprintActif.ajouterNoeud(new NoeudEventStart(), 500f, 350f);
         canvasBlueprint.setBlueprint(blueprintActif);
         
         // --- CORRECTION : AJOUT DE LA SCENE AU CANVAS ---
-        Scene sceneTest = new Scene("Scène de Test");
-        sceneTest.ajouterObjet(new ObjetBase("Joueur", 0, 0, 50, 50));
-        sceneTest.ajouterObjet(new ObjetBase("Ennemi", 100, 100, 50, 50));
-        canvasBlueprint.sceneActive = sceneTest;
+        // On récupère la vraie scène transmise par l'éditeur
+        if (sceneACharger != null) {
+            canvasBlueprint.sceneActive = sceneACharger;
+        } else {
+            // Sécurité : si on lance l'activité directement sans passer par l'éditeur
+            canvasBlueprint.sceneActive = new Scene("Scène Vide (Fallback)");
+        }
         // -------------------------------------
 
         // 2. Assemblage de la zone milieu
@@ -168,7 +173,6 @@ public class InterfaceBlueprint extends Activity {
         }
     }
 
-    // Fonction pour afficher la fenêtre modale contenant le code généré
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
         dialog.setTitle("Code Généré");
