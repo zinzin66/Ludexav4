@@ -17,6 +17,8 @@ public class MoteurLogique {
         // On parcourt la liste réelle des nœuds en mémoire
         for (NoeudBase noeud : blueprintActif.noeuds) {
             // Si on trouve un nœud de type "Au Démarrage", on lance son exécution
+            // L'exécution se fait ici, ce qui garantit la mise à jour des positions
+            // AVANT que le système de dessin (VueJeu) ne prenne le relais.
             if (noeud instanceof NoeudEventStart) {
                 noeud.executer();
             }
