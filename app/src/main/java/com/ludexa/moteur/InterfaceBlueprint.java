@@ -96,15 +96,14 @@ public class InterfaceBlueprint extends Activity {
 
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        // --- CORRECTION : AJOUT DE LA SCENE AU CANVAS ---
+        // --- AJOUT DE LA SCENE AU CANVAS ---
         if (sceneACharger != null) {
             canvasBlueprint.sceneActive = sceneACharger;
         } else {
             canvasBlueprint.sceneActive = new Scene("Scène Vide (Fallback)");
         }
 
-        // --- CORRECTION : CHARGEMENT AUTOMATIQUE SILENCIEUX ---
-        // Remplace la création par défaut des nœuds "Au Démarrage"
+        // --- CHARGEMENT AUTOMATIQUE SILENCIEUX ---
         chargerBlueprintLocal(true);
 
         zoneMilieu.addView(panneauNoeuds);
@@ -115,8 +114,7 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
-// haut 2
+
     private void sauvegarderBlueprintLocal() {
         try {
             File dir = new File(getFilesDir(), "logique");
@@ -159,7 +157,9 @@ public class InterfaceBlueprint extends Activity {
             }
             fis.close();
             
-            blueprintActif = Blueprint.fromJson(sb.toString());
+            // CORRECTION : Transmission de la scène active pour permettre la reconnexion des cibles
+            blueprintActif = Blueprint.fromJson(sb.toString(), canvasBlueprint.sceneActive);
+            
             canvasBlueprint.setBlueprint(blueprintActif);
             canvasBlueprint.invalidate();
             
@@ -216,8 +216,4 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 2
-
-
-
-
+// bas 1
