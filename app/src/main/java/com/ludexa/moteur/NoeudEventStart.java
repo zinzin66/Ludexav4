@@ -10,7 +10,7 @@ public class NoeudEventStart extends NoeudBase {
         super(genererId(), "Début", "Événement");
         
         // Un nœud de départ n'a généralement qu'un port de sortie d'exécution
-        this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
+        this.ajouterPort(new Port("SuivantFaux", Port.TYPE_EXECUTION_SORTIE));
     }
 
     @Override
