@@ -26,7 +26,6 @@ public class CanvasBlueprint extends View {
     private float lastTouchX, lastTouchY;
     private float niveauZoom = 1.0f;
     
-    // VARIABLES AJOUTÉES POUR LE SYSTEME DE CLICK ET DE SCENE
     public Scene sceneActive; 
     private long lastDownTime = 0;
     private float touchDownX = 0;
@@ -113,10 +112,6 @@ public class CanvasBlueprint extends View {
                         
                         NoeudBase nouveauNoeud = null;
                         
-                        // En attente d'une classe NoeudEventStart dans votre base
-                        /* if ("NoeudEventStart".equals(typeNoeud)) {
-                            nouveauNoeud = new NoeudEventStart();
-                        } else */ 
                         if ("NoeudActionDeplacer".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudActionDeplacer();
                         }
@@ -134,9 +129,7 @@ public class CanvasBlueprint extends View {
             }
         });
     }
-// bas 1
 
-// haut 2
     public void setBlueprint(Blueprint blueprint) {
         this.blueprintActuel = blueprint;
         invalidate();
@@ -156,7 +149,9 @@ public class CanvasBlueprint extends View {
         niveauZoom = 1.0f;
         invalidate();
     }
+// bas 1
 
+// haut 2
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -228,9 +223,7 @@ public class CanvasBlueprint extends View {
         }
         canvas.drawPath(path, paintLien);
     }
-// bas 2
 
-// haut 3
     private float[] getCoordonneesPort(NoeudBase noeud, Port port) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -253,7 +246,8 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
-
+// bas 2
+// haut 3
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -329,9 +323,7 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
-// bas 3
 
-// haut 4
     private NoeudBase trouverNoeudSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
@@ -361,7 +353,6 @@ public class CanvasBlueprint extends View {
             case MotionEvent.ACTION_DOWN:
                 lastTouchX = x;
                 lastTouchY = y;
-                // Enregistrement pour détecter le clic simple
                 lastDownTime = System.currentTimeMillis();
                 touchDownX = x;
                 touchDownY = y;
@@ -371,6 +362,8 @@ public class CanvasBlueprint extends View {
                     float sceneY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
                     
                     InfoPort portTouche = trouverPortSousToucher(sceneX, sceneY);
+                    
+                    // CORRECTION ICI : Si on touche un port, on ignore le clic sur le corps du noeud
                     if (portTouche != null) {
                         if (!portTouche.isEntree) { 
                             portDepartDrag = portTouche.port;
@@ -378,8 +371,8 @@ public class CanvasBlueprint extends View {
                             dragCurrentX = sceneX;
                             dragCurrentY = sceneY;
                             invalidate(); 
-                            return true;
                         }
+                        return true; // Sortie anticipée, évite d'activer le noeud pour la popup
                     }
 
                     noeudEnDeplacement = trouverNoeudSousToucher(sceneX, sceneY);
@@ -446,7 +439,6 @@ public class CanvasBlueprint extends View {
                     invalidate();
                     return true;
                 } else if (noeudEnDeplacement != null) {
-                    // C'est un Tap Simple (temps de maintien court et déplacement très faible)
                     if (upTime - lastDownTime < 250 && Math.abs(dx) < 15 && Math.abs(dy) < 15) {
                         if (sceneActive != null) {
                             new EditeurNoeudDialog(getContext(), noeudEnDeplacement, sceneActive, () -> {
@@ -462,6 +454,5 @@ public class CanvasBlueprint extends View {
         return super.onTouchEvent(event);
     }
 }
-// bas 4
-
+// bas 3
 
