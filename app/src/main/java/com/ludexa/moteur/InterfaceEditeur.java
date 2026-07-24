@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.Stack;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.Scanner;
 import com.google.gson.Gson;
 
 public class InterfaceEditeur extends Activity {
@@ -92,7 +92,6 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.addView(boutonRedo);
 
         sceneActive = new Scene("SceneDepart");
-        // CORRECTION : On ne crée plus d'objet "Carré" en dur par défaut ici
         listeScenes.add(sceneActive);
 
         canvasEditeur = new CanvasEditeur(this);
@@ -163,23 +162,39 @@ public class InterfaceEditeur extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
-// haut 2
+
     // --- METHODE CORRIGEE : Basculer vers le mode Jeu ---
     private void basculerVersJeu() {
         ObjetBase objetCible = null;
         
-        // CORRECTION : Plus de "else" qui génère un "Objet Test" en dur si la liste est vide.
         if (sceneActive != null && sceneActive.objets != null && !sceneActive.objets.isEmpty()) {
             objetCible = sceneActive.objets.get(0);
         }
 
-        // Récupération de la logique depuis la scène active
-        Blueprint blueprintActif = new Blueprint();
-        if (sceneActive != null && sceneActive.noeudsLogique != null) {
-            blueprintActif.noeuds.addAll(sceneActive.noeudsLogique);
+        // 1. Charger le vrai Blueprint sauvegardé via le fichier JSON
+        String jsonDuBlueprint = "";
+        try {
+            // Assurez-vous que le nom du fichier correspond à celui utilisé lors de la sauvegarde du Blueprint
+            File file = new File(getFilesDir(), "blueprint.json"); 
+            if (file.exists()) {
+                Scanner scanner = new Scanner(file).useDelimiter("\\A");
+                jsonDuBlueprint = scanner.hasNext() ? scanner.next() : "";
+                scanner.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
+        // Création du Blueprint via la méthode statique avec la scène active
+        Blueprint blueprintActif = Blueprint.fromJson(jsonDuBlueprint, sceneActive);
+
+        // 2. Appeler MoteurLogique.executerDemarrage() SUR ce Blueprint chargé
+        if (blueprintActif != null) {
+            MoteurLogique moteur = new MoteurLogique(blueprintActif);
+            moteur.executerDemarrage();
+        }
+
+        // 3. Basculer l'affichage vers VueJeu
         VueJeu vueJeu = new VueJeu(this, objetCible, blueprintActif);
         
         // Création du conteneur superposé
@@ -263,4 +278,3 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 2
