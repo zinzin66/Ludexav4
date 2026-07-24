@@ -46,7 +46,7 @@ public class InterfaceBlueprint extends Activity {
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasBlueprint.setLayoutParams(paramsCentre);
 
-        // --- Boutons Sauvegarde & Chargement (Tâche 9.2) ---
+        // --- Boutons Sauvegarde & Chargement ---
         Button boutonSauvegarder = new Button(this);
         boutonSauvegarder.setText("Sauvegarder");
         boutonSauvegarder.setOnClickListener(v -> sauvegarderBlueprintLocal());
@@ -85,6 +85,8 @@ public class InterfaceBlueprint extends Activity {
         // --- Boutons Nœuds & Code ---
         Button boutonSupprimerNode = new Button(this);
         boutonSupprimerNode.setText("Supprimer le node");
+        // CORRECTIF: Relier le bouton de suppression à la méthode du canvas
+        boutonSupprimerNode.setOnClickListener(v -> canvasBlueprint.supprimerNoeudSelectionne());
         bandeauHaut.addView(boutonSupprimerNode);
 
         Button boutonCode = new Button(this);
