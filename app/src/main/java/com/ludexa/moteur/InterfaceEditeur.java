@@ -3,6 +3,7 @@ package com.ludexa.moteur;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.*;
@@ -24,6 +25,10 @@ public class InterfaceEditeur extends Activity {
     public Stack<Commande> undoStack = new Stack<>();
     public Stack<Commande> redoStack = new Stack<>();
 
+    // --- NOUVEAU : Variables pour gérer l'affichage ---
+    private LinearLayout layoutPrincipal;
+    private boolean enModeJeu = false;
+
     public void ajouterCommande(Commande c) {
         undoStack.push(c);
         redoStack.clear();
@@ -33,7 +38,7 @@ public class InterfaceEditeur extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LinearLayout layoutPrincipal = new LinearLayout(this);
+        layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
         LinearLayout bandeauHaut = new LinearLayout(this);
@@ -124,9 +129,7 @@ public class InterfaceEditeur extends Activity {
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
-            // --- CORRECTION : TRANSMISSION DE LA SCENE AVANT OUVERTURE ---
             InterfaceBlueprint.sceneACharger = this.sceneActive;
-            // -----------------------------------------------------------
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
             startActivity(intent);
         });
@@ -136,24 +139,10 @@ public class InterfaceEditeur extends Activity {
         boutonBuild.setText("Build");
         bandeauHaut.addView(boutonBuild);
 
+        // --- CORRECTION : Le bouton Play appelle la nouvelle méthode ---
         Button boutonPlay = new Button(this);
         boutonPlay.setText("Play");
-        boutonPlay.setOnClickListener(v -> {
-            Blueprint blueprintActif = new Blueprint();
-            if (sceneActive != null && sceneActive.noeudsLogique != null) {
-                blueprintActif.noeuds.addAll(sceneActive.noeudsLogique);
-            }
-            
-            MoteurLogique moteur = new MoteurLogique(blueprintActif);
-            moteur.executerDemarrage();
-            
-            canvasEditeur.invalidate();
-            if (menuInspecteur != null) {
-                menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
-            }
-            
-            Toast.makeText(this, "Exécution logique terminée", Toast.LENGTH_SHORT).show();
-        });
+        boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
 
         LinearLayout zoneMilieu = new LinearLayout(this);
@@ -174,6 +163,75 @@ public class InterfaceEditeur extends Activity {
         layoutPrincipal.addView(zoneMilieu);
 
         setContentView(layoutPrincipal);
+    }
+// bas 1
+// haut 2
+    // --- NOUVELLE METHODE : Basculer vers le mode Jeu ---
+    private void basculerVersJeu() {
+        ObjetBase objetCible;
+        
+        if (sceneActive != null && sceneActive.objets != null && !sceneActive.objets.isEmpty()) {
+            objetCible = sceneActive.objets.get(0);
+        } else {
+            objetCible = new ObjetBase("Objet Test", 100f, 100f, 100f, 100f);
+        }
+
+        // Récupération de la logique depuis la scène active
+        Blueprint blueprintActif = new Blueprint();
+        if (sceneActive != null && sceneActive.noeudsLogique != null) {
+            blueprintActif.noeuds.addAll(sceneActive.noeudsLogique);
+        }
+
+        VueJeu vueJeu = new VueJeu(this, objetCible, blueprintActif);
+        
+        // Création du conteneur superposé
+        FrameLayout conteneurJeu = new FrameLayout(this);
+        conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+
+        // Création du bouton Stop
+        Button boutonStop = new Button(this);
+        boutonStop.setText("⏹ STOP");
+        boutonStop.setBackgroundColor(Color.RED);
+        boutonStop.setTextColor(Color.WHITE);
+        boutonStop.setOnClickListener(v -> revenirAEditeur());
+
+        FrameLayout.LayoutParams paramsStop = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT);
+        paramsStop.gravity = Gravity.TOP | Gravity.END;
+        paramsStop.setMargins(0, 30, 30, 0); 
+        
+        conteneurJeu.addView(boutonStop, paramsStop);
+
+        // Bascule de l'affichage
+        setContentView(conteneurJeu);
+        enModeJeu = true;
+    }
+    
+    // --- NOUVELLE METHODE : Revenir à l'éditeur ---
+    private void revenirAEditeur() {
+        if (enModeJeu) {
+            setContentView(layoutPrincipal);
+            enModeJeu = false;
+            
+            // On rafraîchit l'éditeur au retour au cas où
+            canvasEditeur.invalidate();
+            if (menuInspecteur != null) {
+                menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
+            }
+        }
+    }
+    
+    // --- GESTION DU BOUTON RETOUR PHYSIQUE ---
+    @Override
+    public void onBackPressed() {
+        if (enModeJeu) {
+            revenirAEditeur();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     public void creerScene(String nom) {
@@ -208,4 +266,7 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 1
+// bas 2
+
+
+
