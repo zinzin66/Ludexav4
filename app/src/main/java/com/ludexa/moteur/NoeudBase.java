@@ -61,11 +61,14 @@ public abstract class NoeudBase {
 
     public abstract void executer();
 
-    // --- NOUVELLES METHODES POUR L'EDITION DYNAMIQUE ---
     public abstract List<String> getNomsParametres();
     public abstract String getValeurParametre(String nom);
     public abstract void setValeurParametre(String nom, String valeur);
     public abstract boolean requiertCibleObjet();
     public abstract void setCibleObjet(ObjetBase objet);
     public abstract ObjetBase getCibleObjet();
+    
+    public boolean aDesParametresEditables() {
+        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet();
+    }
 }
