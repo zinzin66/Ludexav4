@@ -29,7 +29,6 @@ public class Blueprint {
         this.noeudsY.put(noeud.id, y);
     }
 
-    // NOUVEAU : Centralise la création d'un lien et le câblage mémoire (utile pour l'éditeur Blueprint)
     public void ajouterLien(NoeudBase depart, String portS, NoeudBase arrivee, String portE) {
         Lien l = new Lien(depart, portS, arrivee, portE);
         this.liens.add(l);
@@ -49,8 +48,6 @@ public class Blueprint {
             this.portEntreeNom = portE;
         }
     }
-
-    // --- PARTIE SAUVEGARDE JSON (GSON) ---
 
     public String toJson() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -121,15 +118,12 @@ public class Blueprint {
             NoeudBase dep = dictionnaireNoeuds.get(ldto.idDepart);
             NoeudBase arr = dictionnaireNoeuds.get(ldto.idArrivee);
             if (dep != null && arr != null) {
-                // Utilisation de la nouvelle méthode pour rétablir le lien et la connexion
                 bp.ajouterLien(dep, ldto.portDepart, arr, ldto.portArrivee);
             }
         }
 
         return bp;
     }
-
-    // --- CLASSES DTO INTERNES POUR GSON ---
 
     private static class BlueprintDTO {
         List<NoeudDTO> noeuds = new ArrayList<>();
@@ -157,3 +151,4 @@ public class Blueprint {
     }
 }
 // bas 1
+
