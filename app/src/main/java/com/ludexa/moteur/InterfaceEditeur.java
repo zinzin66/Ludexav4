@@ -92,7 +92,7 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.addView(boutonRedo);
 
         sceneActive = new Scene("SceneDepart");
-        sceneActive.ajouterObjet(new ObjetBase("Carré", 300f, 300f, 80f, 80f));
+        // CORRECTION : On ne crée plus d'objet "Carré" en dur par défaut ici
         listeScenes.add(sceneActive);
 
         canvasEditeur = new CanvasEditeur(this);
@@ -139,7 +139,6 @@ public class InterfaceEditeur extends Activity {
         boutonBuild.setText("Build");
         bandeauHaut.addView(boutonBuild);
 
-        // --- CORRECTION : Le bouton Play appelle la nouvelle méthode ---
         Button boutonPlay = new Button(this);
         boutonPlay.setText("Play");
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
@@ -165,108 +164,3 @@ public class InterfaceEditeur extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 1
-// haut 2
-    // --- NOUVELLE METHODE : Basculer vers le mode Jeu ---
-    private void basculerVersJeu() {
-        ObjetBase objetCible;
-        
-        if (sceneActive != null && sceneActive.objets != null && !sceneActive.objets.isEmpty()) {
-            objetCible = sceneActive.objets.get(0);
-        } else {
-            objetCible = new ObjetBase("Objet Test", 100f, 100f, 100f, 100f);
-        }
-
-        // Récupération de la logique depuis la scène active
-        Blueprint blueprintActif = new Blueprint();
-        if (sceneActive != null && sceneActive.noeudsLogique != null) {
-            blueprintActif.noeuds.addAll(sceneActive.noeudsLogique);
-        }
-
-        VueJeu vueJeu = new VueJeu(this, objetCible, blueprintActif);
-        
-        // Création du conteneur superposé
-        FrameLayout conteneurJeu = new FrameLayout(this);
-        conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
-
-        // Création du bouton Stop
-        Button boutonStop = new Button(this);
-        boutonStop.setText("⏹ STOP");
-        boutonStop.setBackgroundColor(Color.RED);
-        boutonStop.setTextColor(Color.WHITE);
-        boutonStop.setOnClickListener(v -> revenirAEditeur());
-
-        FrameLayout.LayoutParams paramsStop = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT);
-        paramsStop.gravity = Gravity.TOP | Gravity.END;
-        paramsStop.setMargins(0, 30, 30, 0); 
-        
-        conteneurJeu.addView(boutonStop, paramsStop);
-
-        // Bascule de l'affichage
-        setContentView(conteneurJeu);
-        enModeJeu = true;
-    }
-    
-    // --- NOUVELLE METHODE : Revenir à l'éditeur ---
-    private void revenirAEditeur() {
-        if (enModeJeu) {
-            setContentView(layoutPrincipal);
-            enModeJeu = false;
-            
-            // On rafraîchit l'éditeur au retour au cas où
-            canvasEditeur.invalidate();
-            if (menuInspecteur != null) {
-                menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
-            }
-        }
-    }
-    
-    // --- GESTION DU BOUTON RETOUR PHYSIQUE ---
-    @Override
-    public void onBackPressed() {
-        if (enModeJeu) {
-            revenirAEditeur();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    public void creerScene(String nom) {
-        Scene nouvelleScene = new Scene(nom);
-        listeScenes.add(nouvelleScene);
-        changerScene(nouvelleScene);
-    }
-
-    public void changerScene(Scene scene) {
-        this.sceneActive = scene;
-        canvasEditeur.setScene(scene);
-        canvasEditeur.deselectionner();
-        if (menuInspecteur != null) {
-            menuInspecteur.afficherObjet(null);
-        }
-        panneauRessources.rafraichirScenes();
-        canvasEditeur.invalidate();
-    }
-
-    private void sauvegarderProjet() {
-        try {
-            Gson gson = new Gson();
-            String json = gson.toJson(listeScenes);
-            File file = new File(getFilesDir(), "projet_sauvegarde.json");
-            FileWriter writer = new FileWriter(file);
-            writer.write(json);
-            writer.close();
-            Toast.makeText(this, "Projet sauvegardé dans : " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
-        }
-    }
-}
-// bas 2
-
-
-
