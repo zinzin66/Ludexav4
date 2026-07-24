@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -11,7 +12,14 @@ public class EcranDemarrage extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        NoeudBase.contexteApplication = this;   // ← ajoute cette ligne
+        
+        // Initialisation du contexte
+        NoeudBase.contexteApplication = this;
+
+        // TEST DE VÉRIFICATION : Si tu vois ce message au lancement, 
+        // le système de Toast est bien fonctionnel sur ta tablette.
+        Toast.makeText(this, "Test affichage OK : Système Toast actif", Toast.LENGTH_LONG).show();
+
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
         layoutPrincipal.setPadding(40, 40, 40, 40);
@@ -86,3 +94,4 @@ public class EcranDemarrage extends Activity {
         setContentView(layoutPrincipal);
     }
 }
+// bas 1
