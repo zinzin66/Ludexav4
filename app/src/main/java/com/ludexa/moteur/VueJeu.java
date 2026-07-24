@@ -38,6 +38,8 @@ public class VueJeu extends View {
         super.onAttachedToWindow();
         if (this.moteur != null) {
             this.moteur.executerDemarrage();
+            // CORRECTIF: Forcer le redessin de la vue pour refléter les nouvelles coordonnées X/Y
+            invalidate();
         }
     }
 
