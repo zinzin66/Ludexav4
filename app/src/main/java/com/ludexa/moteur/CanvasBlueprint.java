@@ -460,6 +460,3 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 3
-                        
-    
-             
