@@ -22,7 +22,6 @@ public class CanvasBlueprint extends View {
     private Paint paintPort;
     private Paint paintLien; 
     
-    // Nouveaux pinceaux pour la sélection et l'édition
     private Paint paintSelection;
     private Paint paintBoutonEdition;
     private Paint paintTexteBouton;
@@ -42,7 +41,6 @@ public class CanvasBlueprint extends View {
     private float decalageToucherX = 0;
     private float decalageToucherY = 0;
     
-    // Nouvel état : nœud sélectionné
     private NoeudBase noeudSelectionne = null;
 
     private Port portDepartDrag = null;
@@ -97,14 +95,12 @@ public class CanvasBlueprint extends View {
         paintLien.setStrokeWidth(6);
         paintLien.setAntiAlias(true);
         
-        // Initialisation pour la sélection
         paintSelection = new Paint();
-        paintSelection.setColor(Color.parseColor("#FFD700")); // Jaune
+        paintSelection.setColor(Color.parseColor("#FFD700")); 
         paintSelection.setStyle(Paint.Style.STROKE);
         paintSelection.setStrokeWidth(6);
         paintSelection.setAntiAlias(true);
 
-        // Initialisation pour le bouton d'édition intégré
         paintBoutonEdition = new Paint();
         paintBoutonEdition.setColor(Color.parseColor("#4A4A4A"));
         paintBoutonEdition.setStyle(Paint.Style.FILL);
@@ -177,7 +173,6 @@ public class CanvasBlueprint extends View {
         invalidate();
     }
     
-    // --- METHODE : À appeler depuis l'interface (Bandeau) ---
     public void supprimerNoeudSelectionne() {
         if (noeudSelectionne != null && blueprintActuel != null) {
             blueprintActuel.liens.removeIf(l -> 
@@ -206,8 +201,7 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
-    
-// haut 2
+    // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -319,7 +313,6 @@ public class CanvasBlueprint extends View {
         float hauteurBase = 60 + (maxPorts * 40) + 20;
         float hauteurTotale = hauteurBase + espaceEdition;
         
-        // Surlignage de sélection
         if (noeud == noeudSelectionne) {
             RectF rectSelection = new RectF(x - 4, y - 4, x + largeur + 4, y + hauteurTotale + 4);
             canvas.drawRoundRect(rectSelection, 18, 18, paintSelection);
@@ -352,7 +345,6 @@ public class CanvasBlueprint extends View {
             canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
         }
         
-        // Dessin de l'encart d'édition dédié
         if (estEditable) {
             float btnY = y + hauteurBase;
             RectF rectBouton = new RectF(x + 10, btnY, x + largeur - 10, btnY + 40);
@@ -488,8 +480,8 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-
-// haut 4
+    
+ // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -628,7 +620,5 @@ public class CanvasBlueprint extends View {
 }
 // bas 4
 
-    
 
 
-    
