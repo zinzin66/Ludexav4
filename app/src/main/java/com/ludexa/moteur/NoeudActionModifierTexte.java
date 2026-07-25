@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -58,7 +59,8 @@ public class NoeudActionModifierTexte extends NoeudBase {
                 resultatFinal.append(tokenCourant.toString());
             }
 
-            cibleActuelle.nom = resultatFinal.toString();
+            // Assignation exclusive au contenu texte, l'identifiant "nom" reste intact
+            cibleActuelle.contenuTexte = resultatFinal.toString();
         }
         propagerExecution("Suivant");
     }
@@ -141,3 +143,4 @@ public class NoeudActionModifierTexte extends NoeudBase {
         return this.cible;
     }
 }
+// bas 1
