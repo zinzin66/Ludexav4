@@ -59,9 +59,13 @@ public class PanneauNoeuds extends ScrollView {
         conteneurActions.setOrientation(LinearLayout.VERTICAL);
         conteneurActions.setPadding(20, 10, 10, 20);
         
-        // Ajout du vrai nœud Action
+        // Ajout du nœud Déplacer Objet
         TextView itemActionDeplacer = creerItemNoeud(context, "Déplacer Objet", "NoeudActionDeplacer");
         conteneurActions.addView(itemActionDeplacer);
+
+        // NOUVEAU : Ajout du nœud Modifier Variable
+        TextView itemActionModifierVariable = creerItemNoeud(context, "Modifier Variable", "NoeudActionModifierVariable");
+        conteneurActions.addView(itemActionModifierVariable);
         
         // Logique de l'accordéon (masquer/afficher)
         btnActions.setOnClickListener(v -> {
@@ -118,4 +122,4 @@ public class PanneauNoeuds extends ScrollView {
     }
 }
 // bas 1
-        
+
