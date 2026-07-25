@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -65,12 +66,14 @@ public class VueJeu extends View {
                     float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                     canvas.drawCircle(cx, cy, rayon, peintureObjet);
                 } else if ("texte".equals(objet.type)) {
-                    canvas.drawText(objet.nom, left, bottom, peintureTexte);
+                    // Rétrocompatibilité : affichage du nouveau champ, sinon fallback sur nom
+                    String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+                    canvas.drawText(texteAAfficher, left, bottom, peintureTexte);
                 } else {
                     canvas.drawRect(left, top, right, bottom, peintureObjet);
                 }
 
-                // Texte de debug affiché juste au-dessus de chaque objet
+                // Texte de debug affiché juste au-dessus de chaque objet (utilise toujours nom en debug)
                 canvas.drawText(
                         objet.nom + " (" + (int) objet.x + ", " + (int) objet.y + ")",
                         left, top - 10f, peintureDebug
@@ -79,3 +82,4 @@ public class VueJeu extends View {
         }
     }
 }
+// bas 1
