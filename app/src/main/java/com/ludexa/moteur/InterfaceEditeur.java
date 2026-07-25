@@ -21,6 +21,12 @@ public class InterfaceEditeur extends Activity {
     public List<Scene> listeScenes = new ArrayList<>();
     public List<Variable> variablesGlobales = new ArrayList<>(); 
     public Scene sceneActive;
+    
+    // VARIABLES DE SAUVEGARDE POUR L'ISOLEMENT DU PLAY
+    private List<Scene> listeScenesBackup;
+    private Scene sceneActiveBackup;
+    private List<Variable> variablesGlobalesBackup;
+
     private CanvasEditeur canvasEditeur;
     private PanneauRessources panneauRessources;
     private InspecteurProprietes menuInspecteur;
@@ -127,7 +133,8 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonDeplacerScene);
 // bas 1
-        // haut 2
+
+// haut 2
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
@@ -167,6 +174,32 @@ public class InterfaceEditeur extends Activity {
     }
 
     private void basculerVersJeu() {
+        // --- MISE EN PLACE DU BAC À SABLE (SANDBOX) ---
+        
+        // 1. Sauvegarde intégrale des références originales
+        listeScenesBackup = new ArrayList<>(listeScenes);
+        sceneActiveBackup = sceneActive;
+        variablesGlobalesBackup = new ArrayList<>(variablesGlobales);
+        
+        // 2. Création des clones pour toutes les scènes
+        listeScenes = new ArrayList<>();
+        for (Scene s : listeScenesBackup) {
+            Scene clone = s.clonerProfond();
+            listeScenes.add(clone);
+            
+            // On s'assure que la référence de la scène active pointe sur le bon clone
+            if (s == sceneActiveBackup) {
+                sceneActive = clone;
+            }
+        }
+        
+        // 3. Création des clones pour les variables globales
+        variablesGlobales = new ArrayList<>();
+        for (Variable v : variablesGlobalesBackup) {
+            variablesGlobales.add(v.clonerProfond());
+        }
+
+        // Le reste de la méthode utilise maintenant des données 100% clonées
         Blueprint blueprintActif = new Blueprint();
         File dossierLogique = new File(getFilesDir(), "logique");
         File fileBlueprint = new File(dossierLogique, "blueprint.json");
@@ -220,6 +253,26 @@ public class InterfaceEditeur extends Activity {
             setContentView(layoutPrincipal);
             enModeJeu = false;
             
+            // --- RESTAURATION DE L'ÉTAT D'ORIGINE ---
+            if (listeScenesBackup != null) {
+                listeScenes = listeScenesBackup;
+                listeScenesBackup = null;
+            }
+            if (sceneActiveBackup != null) {
+                sceneActive = sceneActiveBackup;
+                sceneActiveBackup = null;
+            }
+            if (variablesGlobalesBackup != null) {
+                variablesGlobales = variablesGlobalesBackup;
+                variablesGlobalesBackup = null;
+            }
+            
+            // Étape cruciale : on force le Canvas à cibler la scène originale tout juste restaurée
+            canvasEditeur.setScene(sceneActive);
+            
+            // On met également à jour l'affichage de la liste si nécessaire
+            panneauRessources.rafraichirScenes();
+
             canvasEditeur.invalidate();
             if (menuInspecteur != null) {
                 menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
@@ -285,6 +338,3 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
-
-
-    
