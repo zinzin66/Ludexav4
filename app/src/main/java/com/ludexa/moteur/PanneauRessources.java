@@ -13,6 +13,7 @@ public class PanneauRessources extends ScrollView {
     private LinearLayout conteneurScenes;
     private LinearLayout conteneurArborescence;
     private LinearLayout conteneurVariables;
+    private Variable variableSelectionnee;
 
     public PanneauRessources(Context context, CanvasEditeur canvas) {
         super(context);
@@ -299,7 +300,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
-// haut 3
+    // haut 3
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -311,16 +312,43 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
-        Button btnCreer = new Button(context);
-        btnCreer.setText("Créer une variable");
-        btnCreer.setOnClickListener(v -> afficherPopupCreerVariable(context));
-        contenu.addView(btnCreer);
-
         conteneurVariables = new LinearLayout(context);
         conteneurVariables.setOrientation(LinearLayout.VERTICAL);
-        conteneurVariables.setPadding(0, 10, 0, 0);
+        conteneurVariables.setPadding(0, 0, 0, 20);
         contenu.addView(conteneurVariables);
 
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnCreer = new Button(context);
+        btnCreer.setText("Créer");
+        btnCreer.setOnClickListener(v -> afficherPopupCreerVariable(context));
+
+        Button btnRenommer = new Button(context);
+        btnRenommer.setText("Renommer");
+        btnRenommer.setOnClickListener(v -> {
+            if (variableSelectionnee != null) {
+                afficherPopupRenommerVariable(context, variableSelectionnee);
+            } else {
+                Toast.makeText(context, "Veuillez d'abord sélectionner une variable", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        Button btnSupprimer = new Button(context);
+        btnSupprimer.setText("Supprimer");
+        btnSupprimer.setOnClickListener(v -> {
+            if (variableSelectionnee != null) {
+                afficherPopupSupprimerVariable(context, variableSelectionnee);
+            } else {
+                Toast.makeText(context, "Veuillez d'abord sélectionner une variable", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        zoneBoutons.addView(btnCreer);
+        zoneBoutons.addView(btnRenommer);
+        zoneBoutons.addView(btnSupprimer);
+
+        contenu.addView(zoneBoutons);
         rafraichirVariables();
 
         btnTitre.setOnClickListener(v -> {
@@ -358,43 +386,34 @@ public class PanneauRessources extends ScrollView {
 
     private void ajouterVueVariable(Variable var) {
         Context context = getContext();
-        LinearLayout itemVariable = new LinearLayout(context);
-        itemVariable.setOrientation(LinearLayout.VERTICAL);
-        itemVariable.setPadding(0, 10, 0, 30);
-
         TextView nomVariable = new TextView(context);
+        
         String labelType = var.type.equals("BOOLEEN") ? "Oui/Non" : (var.type.equals("CHIFFRE") ? "Chiffre" : "Texte");
         String labelScope = var.scope.equals("GLOBALE") ? "Globale" : "Locale";
         nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "]");
         
-        if (var.scope.equals("GLOBALE")) {
-            nomVariable.setTextColor(Color.parseColor("#ADD8E6")); 
+        if (var == variableSelectionnee) {
+            nomVariable.setTextColor(Color.YELLOW); 
         } else {
-            nomVariable.setTextColor(Color.parseColor("#90EE90"));
+            if (var.scope.equals("GLOBALE")) {
+                nomVariable.setTextColor(Color.parseColor("#ADD8E6")); 
+            } else {
+                nomVariable.setTextColor(Color.parseColor("#90EE90")); 
+            }
         }
-        nomVariable.setPadding(10, 0, 0, 10);
-        nomVariable.setTextSize(14f);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        Button btnRenommer = new Button(context);
-        btnRenommer.setText("Renommer");
-        btnRenommer.setOnClickListener(v -> afficherPopupRenommerVariable(context, var));
-
-        Button btnSupprimerVar = new Button(context);
-        btnSupprimerVar.setText("Supprimer");
-        btnSupprimerVar.setOnClickListener(v -> afficherPopupSupprimerVariable(context, var));
-
-        zoneBoutons.addView(btnRenommer);
-        zoneBoutons.addView(btnSupprimerVar);
-
-        itemVariable.addView(nomVariable);
-        itemVariable.addView(zoneBoutons);
         
-        conteneurVariables.addView(itemVariable);
-    }
+        nomVariable.setPadding(10, 15, 10, 15);
+        nomVariable.setTextSize(16f);
 
+        nomVariable.setOnClickListener(v -> {
+            variableSelectionnee = var;
+            rafraichirVariables();
+        });
+
+        conteneurVariables.addView(nomVariable);
+    }
+// bas 3
+    // haut 4
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -485,9 +504,7 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 3
 
-    // haut 4
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");
@@ -572,6 +589,11 @@ public class PanneauRessources extends ScrollView {
             } else {
                 editeur.sceneActive.variablesLocales.remove(var);
             }
+            
+            if (var == variableSelectionnee) {
+                variableSelectionnee = null;
+            }
+            
             rafraichirVariables();
             dialog.dismiss();
         });
@@ -587,7 +609,8 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-
+// bas 4
+    // haut 5
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
@@ -664,9 +687,7 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 4
 
-    // haut 5
     private void afficherPopupSupprimerScene(Context context, Scene scene) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Supprimer la scène");
@@ -821,6 +842,4 @@ public class PanneauRessources extends ScrollView {
     }
 }
 // bas 5
-
-    
 
