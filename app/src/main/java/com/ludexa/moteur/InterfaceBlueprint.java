@@ -177,20 +177,71 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
-
+// bas 1
+// haut 2
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
-        dialog.setTitle("Code Généré");
+        dialog.setTitle("Résumé du Blueprint");
 
         LinearLayout layoutDialog = new LinearLayout(this);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
         layoutDialog.setPadding(30, 30, 30, 30);
 
+        // --- Génération dynamique du texte du Blueprint ---
+        StringBuilder res = new StringBuilder();
+        res.append("=== RESUME DU BLUEPRINT ===\n\n");
+        
+        if (blueprintActif == null || blueprintActif.noeuds.isEmpty()) {
+            res.append("Le Blueprint est vide.\n");
+        } else {
+            res.append("--- NOEUDS ---\n");
+            for (NoeudBase noeud : blueprintActif.noeuds) {
+                String shortId = (noeud.id != null && noeud.id.length() >= 8) ? noeud.id.substring(0, 8) : noeud.id;
+                res.append("- [").append(noeud.nom).append("] (ID: ").append(shortId).append(")\n");
+                
+                if (noeud.requiertCibleObjet()) {
+                    String cible = (noeud.getCibleObjet() != null) ? noeud.getCibleObjet().nom : "Aucune";
+                    res.append("  Cible Objet : ").append(cible).append("\n");
+                }
+                
+                if (noeud.requiertCibleVariable()) {
+                    String cible = (noeud.getCibleVariable() != null) ? noeud.getCibleVariable().nom : "Aucune";
+                    res.append("  Cible Variable : ").append(cible).append("\n");
+                }
+                
+                if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
+                    for (String param : noeud.getNomsParametres()) {
+                        res.append("  Paramètre [").append(param).append("] : ").append(noeud.getValeurParametre(param)).append("\n");
+                    }
+                }
+            }
+            
+            res.append("\n--- CONNEXIONS ---\n");
+            if (blueprintActif.liens != null && !blueprintActif.liens.isEmpty()) {
+                for (Blueprint.Lien lien : blueprintActif.liens) {
+                    String nomDep = (lien.noeudDepart != null) ? lien.noeudDepart.nom : "Inconnu";
+                    String nomArr = (lien.noeudArrivee != null) ? lien.noeudArrivee.nom : "Inconnu";
+                    res.append(nomDep).append(" [").append(lien.portSortieNom).append("] -> ")
+                       .append(nomArr).append(" [").append(lien.portEntreeNom).append("]\n");
+                }
+            } else {
+                res.append("Aucune connexion.\n");
+            }
+        }
+
         TextView textViewCode = new TextView(this);
-        textViewCode.setText("// Exemple de code Java généré par les nœuds\npublic void executerLogique() {\n    System.out.println(\"Hello Blueprint\");\n}");
-        textViewCode.setTextSize(16f);
-        textViewCode.setPadding(0, 0, 0, 30);
-        layoutDialog.addView(textViewCode);
+        textViewCode.setText(res.toString());
+        textViewCode.setTextSize(14f); // Légèrement réduit pour améliorer la lisibilité globale
+
+        // Utilisation d'un ScrollView pour permettre la lecture des gros Blueprints
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setPadding(0, 0, 0, 30);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scrollView.setLayoutParams(scrollParams);
+        scrollView.addView(textViewCode);
+
+        layoutDialog.addView(scrollView);
 
         LinearLayout boutonsDialog = new LinearLayout(this);
         boutonsDialog.setOrientation(LinearLayout.HORIZONTAL);
@@ -201,7 +252,7 @@ public class InterfaceBlueprint extends Activity {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("Code LUDEXA", textViewCode.getText());
             clipboard.setPrimaryClip(clip);
-            Toast.makeText(this, "Code copié dans le presse-papier !", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Résumé copié dans le presse-papier !", Toast.LENGTH_SHORT).show();
         });
         boutonsDialog.addView(btnCopier);
 
@@ -216,4 +267,4 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 1
+// bas 2
