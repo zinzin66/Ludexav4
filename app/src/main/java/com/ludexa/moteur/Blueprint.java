@@ -1,5 +1,7 @@
+// haut 1
 package com.ludexa.moteur;
 
+import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -59,14 +61,12 @@ public class Blueprint {
             ndto.x = noeudsX.containsKey(n.id) ? noeudsX.get(n.id) : 0f;
             ndto.y = noeudsY.containsKey(n.id) ? noeudsY.get(n.id) : 0f;
 
-            // Sauvegarde des paramètres configurables (X, Y, etc.)
             if (n.aDesParametresEditables() && n.getNomsParametres() != null) {
                 for (String paramNom : n.getNomsParametres()) {
                     ndto.parametres.put(paramNom, n.getValeurParametre(paramNom));
                 }
             }
             
-            // Sauvegarde de l'identifiant de la cible (son nom)
             if (n.requiertCibleObjet() && n.getCibleObjet() != null) {
                 ndto.cibleNom = n.getCibleObjet().nom;
             }
@@ -94,15 +94,18 @@ public class Blueprint {
         return gson.toJson(dto);
     }
 
-    // Nouvelle méthode acceptant la Scene pour pouvoir lier les cibles sauvegardées
     public static Blueprint fromJson(String json, Scene scene) {
         Gson gson = new Gson();
         BlueprintDTO dto = gson.fromJson(json, BlueprintDTO.class);
         Blueprint bp = new Blueprint();
 
-        if (dto == null) return bp;
+        if (dto == null) {
+            if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, "ERREUR : JSON vide ou invalide", Toast.LENGTH_LONG).show();
+            return bp;
+        }
 
         Map<String, NoeudBase> dictionnaireNoeuds = new HashMap<>();
+        int noeudsReussis = 0;
 
         for (NoeudDTO ndto : dto.noeuds) {
             try {
@@ -110,14 +113,12 @@ public class Blueprint {
                 NoeudBase n = (NoeudBase) clazz.newInstance();
                 n.id = ndto.id;
 
-                // Restauration des paramètres dynamiques (comme X, Y)
                 if (ndto.parametres != null) {
                     for (Map.Entry<String, String> entry : ndto.parametres.entrySet()) {
                         n.setValeurParametre(entry.getKey(), entry.getValue());
                     }
                 }
                 
-                // Restauration de la cible en la cherchant dans la Scene
                 if (ndto.cibleNom != null && scene != null && scene.objets != null) {
                     for (ObjetBase obj : scene.objets) {
                         if (ndto.cibleNom.equals(obj.nom)) {
@@ -138,23 +139,33 @@ public class Blueprint {
 
                 bp.ajouterNoeud(n, ndto.x, ndto.y);
                 dictionnaireNoeuds.put(n.id, n);
+                noeudsReussis++;
             } catch (Exception e) {
+                if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, "Échec création du nœud : " + ndto.classeType, Toast.LENGTH_LONG).show();
                 e.printStackTrace();
             }
         }
 
+        int liensReussis = 0;
         for (LienDTO ldto : dto.liens) {
             NoeudBase dep = dictionnaireNoeuds.get(ldto.idDepart);
             NoeudBase arr = dictionnaireNoeuds.get(ldto.idArrivee);
             if (dep != null && arr != null) {
                 bp.ajouterLien(dep, ldto.portDepart, arr, ldto.portArrivee);
+                liensReussis++;
+            } else {
+                if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, "Lien ignoré : Nœud de départ ou d'arrivée manquant", Toast.LENGTH_LONG).show();
             }
+        }
+
+        // Bilan final affiché à l'écran
+        if (NoeudBase.contexteApplication != null) {
+            Toast.makeText(NoeudBase.contexteApplication, "Chargement terminé : " + noeudsReussis + " nœuds, " + liensReussis + " liens", Toast.LENGTH_LONG).show();
         }
 
         return bp;
     }
 
-    // Surcharge pour garder la rétrocompatibilité si la scène n'est pas fournie
     public static Blueprint fromJson(String json) {
         return fromJson(json, null);
     }
@@ -170,8 +181,6 @@ public class Blueprint {
         float x;
         float y;
         List<PortDTO> portsEntree = new ArrayList<>();
-        
-        // NOUVEAUX CHAMPS pour corriger le bug
         Map<String, String> parametres = new HashMap<>(); 
         String cibleNom; 
     }
@@ -188,3 +197,4 @@ public class Blueprint {
         String portArrivee;
     }
 }
+// bas 1
