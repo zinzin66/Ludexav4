@@ -36,5 +36,14 @@ public class ObjetBase {
             this.type = "carré";
         }
     }
+
+    // NOUVEAU : Méthode de clonage
+    public ObjetBase clonerProfond() {
+        ObjetBase copie = new ObjetBase(this.nom, this.x, this.y, this.largeur, this.hauteur);
+        copie.id = this.id; // IMPORTANT : Garder le même ID pour que le moteur retrouve ses références
+        copie.type = this.type;
+        copie.contenuTexte = this.contenuTexte;
+        return copie;
+    }
 }
 // bas 1
