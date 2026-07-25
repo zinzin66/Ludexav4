@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.UUID;
@@ -5,7 +6,7 @@ import java.util.UUID;
 public class Variable {
     public String id;
     public String nom;
-    public String scope; // "LOCALE" (liée à la scène) ou "GLOBALE" (liée au projet)
+    public String scope; // "LOCALE" ou "GLOBALE"
     public String type; // "CHIFFRE", "TEXTE", "BOOLEEN"
     public Object valeur;
 
@@ -15,7 +16,6 @@ public class Variable {
         this.scope = scope;
         this.type = type;
         
-        // Valeur par défaut cohérente selon le type
         if ("CHIFFRE".equals(type)) {
             this.valeur = 0f;
         } else if ("TEXTE".equals(type)) {
@@ -25,3 +25,4 @@ public class Variable {
         }
     }
 }
+// bas 1
