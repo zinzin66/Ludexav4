@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class NoeudBase {
-    // Variable ajoutée pour permettre l'affichage des Toasts à l'écran
     public static Context contexteApplication;
 
     public String id;
@@ -41,7 +40,6 @@ public abstract class NoeudBase {
             portSortie.noeudDestination = noeudArrivee;
             portSortie.portDestination = portEntree;
         } else {
-            // Affichage direct sur l'écran de la tablette en cas de désynchronisation
             if (contexteApplication != null) {
                 if (portSortie == null) {
                     Toast.makeText(contexteApplication, "ERREUR : port " + nomPortSortie + " introuvable sur " + this.nom, Toast.LENGTH_LONG).show();
@@ -81,12 +79,19 @@ public abstract class NoeudBase {
     public abstract List<String> getNomsParametres();
     public abstract String getValeurParametre(String nom);
     public abstract void setValeurParametre(String nom, String valeur);
+    
+    // Contrat Objet
     public abstract boolean requiertCibleObjet();
     public abstract void setCibleObjet(ObjetBase objet);
     public abstract ObjetBase getCibleObjet();
     
+    // NOUVEAU : Contrat Variable
+    public boolean requiertCibleVariable() { return false; }
+    public void setCibleVariable(Variable v) {}
+    public Variable getCibleVariable() { return null; }
+    
     public boolean aDesParametresEditables() {
-        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet();
+        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleVariable();
     }
 }
 // bas 1
