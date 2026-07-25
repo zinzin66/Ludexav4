@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.content.ClipData;
@@ -19,10 +18,7 @@ public class PanneauNoeuds extends ScrollView {
     }
 
     private void init(Context context) {
-        // Fond légèrement plus clair que le CanvasBlueprint pour détacher visuellement le menu
         setBackgroundColor(Color.parseColor("#2A2A2A")); 
-
-        // Fixer une largeur pour ce panneau gauche (300 pixels)
         setLayoutParams(new LinearLayout.LayoutParams(300, LinearLayout.LayoutParams.MATCH_PARENT));
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
@@ -36,11 +32,9 @@ public class PanneauNoeuds extends ScrollView {
         conteneurEvenements.setOrientation(LinearLayout.VERTICAL);
         conteneurEvenements.setPadding(20, 10, 10, 20);
         
-        // Ajout du vrai nœud Événement
         TextView itemEventStart = creerItemNoeud(context, "Au Démarrage", "NoeudEventStart");
         conteneurEvenements.addView(itemEventStart);
         
-        // Logique de l'accordéon (masquer/afficher)
         btnEvenements.setOnClickListener(v -> {
             if (conteneurEvenements.getVisibility() == View.VISIBLE) {
                 conteneurEvenements.setVisibility(View.GONE);
@@ -59,15 +53,16 @@ public class PanneauNoeuds extends ScrollView {
         conteneurActions.setOrientation(LinearLayout.VERTICAL);
         conteneurActions.setPadding(20, 10, 10, 20);
         
-        // Ajout du nœud Déplacer Objet
         TextView itemActionDeplacer = creerItemNoeud(context, "Déplacer Objet", "NoeudActionDeplacer");
         conteneurActions.addView(itemActionDeplacer);
 
-        // NOUVEAU : Ajout du nœud Modifier Variable
         TextView itemActionModifierVariable = creerItemNoeud(context, "Modifier Variable", "NoeudActionModifierVariable");
         conteneurActions.addView(itemActionModifierVariable);
         
-        // Logique de l'accordéon (masquer/afficher)
+        // NOUVEAU : Ajout du nœud Modifier Texte
+        TextView itemActionModifierTexte = creerItemNoeud(context, "Modifier Texte", "NoeudActionModifierTexte");
+        conteneurActions.addView(itemActionModifierTexte);
+        
         btnActions.setOnClickListener(v -> {
             if (conteneurActions.getVisibility() == View.VISIBLE) {
                 conteneurActions.setVisibility(View.GONE);
@@ -78,7 +73,6 @@ public class PanneauNoeuds extends ScrollView {
             }
         });
 
-        // Assemblage final du panneau
         layoutPrincipal.addView(btnEvenements);
         layoutPrincipal.addView(conteneurEvenements);
         layoutPrincipal.addView(btnActions);
@@ -87,9 +81,6 @@ public class PanneauNoeuds extends ScrollView {
         addView(layoutPrincipal);
     }
 
-    /**
-     * Crée un élément textuel stylisé, cliquable et glissable, représentant un nœud disponible.
-     */
     private TextView creerItemNoeud(Context context, String libelle, String typeClasse) {
         TextView item = new TextView(context);
         item.setText(libelle);
@@ -104,16 +95,13 @@ public class PanneauNoeuds extends ScrollView {
         params.setMargins(0, 0, 0, 15);
         item.setLayoutParams(params);
 
-        // Gestion du clic long pour enclencher le drag & drop
         item.setOnLongClickListener(v -> {
-            // On embarque le nom de la classe pour que le Canvas (cible du drop) sache quoi instancier
             ClipData data = ClipData.newPlainText("typeNoeud", typeClasse);
             View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
             v.startDragAndDrop(data, shadowBuilder, v, 0);
-            return true; // L'événement est consommé
+            return true;
         });
 
-        // Gestion du clic court pour guider l'utilisateur
         item.setOnClickListener(v -> {
             Toast.makeText(context, "Maintenez appuyé pour glisser ce nœud", Toast.LENGTH_SHORT).show();
         });
@@ -121,5 +109,3 @@ public class PanneauNoeuds extends ScrollView {
         return item;
     }
 }
-// bas 1
-
