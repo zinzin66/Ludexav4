@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 public class InterfaceEditeur extends Activity {
 
     public List<Scene> listeScenes = new ArrayList<>();
+    public List<Variable> variablesGlobales = new ArrayList<>();
     public Scene sceneActive;
     private CanvasEditeur canvasEditeur;
     private PanneauRessources panneauRessources;
@@ -28,7 +29,7 @@ public class InterfaceEditeur extends Activity {
     public Stack<Commande> redoStack = new Stack<>();
 
     private LinearLayout layoutPrincipal;
-    private boolean enModeJeu = false;
+    private boolean enModeJeu = false;cela 
 
     public void ajouterCommande(Commande c) {
         undoStack.push(c);
