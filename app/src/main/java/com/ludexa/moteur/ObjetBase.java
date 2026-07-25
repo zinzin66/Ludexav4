@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.UUID;
@@ -6,6 +7,7 @@ public class ObjetBase {
     public String id;
     public String type;
     public String nom;
+    public String contenuTexte;
     public float x;
     public float y;
     public float largeur;
@@ -14,6 +16,7 @@ public class ObjetBase {
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
         this.nom = nom;
+        this.contenuTexte = ""; // Initialisé vide par défaut
         this.x = x;
         this.y = y;
         this.largeur = largeur;
@@ -34,3 +37,4 @@ public class ObjetBase {
         }
     }
 }
+// bas 1
