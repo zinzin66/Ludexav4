@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -19,7 +18,7 @@ import com.google.gson.Gson;
 public class InterfaceEditeur extends Activity {
 
     public List<Scene> listeScenes = new ArrayList<>();
-    public List<Variable> variablesGlobales = new ArrayList<>();
+    public List<Variable> variablesGlobales = new ArrayList<>(); // NOUVEAU
     public Scene sceneActive;
     private CanvasEditeur canvasEditeur;
     private PanneauRessources panneauRessources;
@@ -29,7 +28,7 @@ public class InterfaceEditeur extends Activity {
     public Stack<Commande> redoStack = new Stack<>();
 
     private LinearLayout layoutPrincipal;
-    private boolean enModeJeu = false;cela 
+    private boolean enModeJeu = false;
 
     public void ajouterCommande(Commande c) {
         undoStack.push(c);
@@ -164,9 +163,7 @@ public class InterfaceEditeur extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
 
-// haut 2
     private void basculerVersJeu() {
         Blueprint blueprintActif = new Blueprint();
         File dossierLogique = new File(getFilesDir(), "logique");
@@ -191,7 +188,6 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        // On passe désormais la scène entière à la vue jeu
         VueJeu vueJeu = new VueJeu(this, sceneActive, blueprintActif);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
@@ -252,6 +248,7 @@ public class InterfaceEditeur extends Activity {
             menuInspecteur.afficherObjet(null);
         }
         panneauRessources.rafraichirScenes();
+        panneauRessources.rafraichirVariables(); // NOUVEAU : Rafraîchir les variables locales affichées
         canvasEditeur.invalidate();
     }
 
@@ -285,5 +282,3 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 2
-
