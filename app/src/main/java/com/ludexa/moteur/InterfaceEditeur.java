@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -162,19 +163,14 @@ public class InterfaceEditeur extends Activity {
 
         setContentView(layoutPrincipal);
     }
+// bas 1
 
+// haut 2
     private void basculerVersJeu() {
-        ObjetBase objetCible = null;
-        
-        if (sceneActive != null && sceneActive.objets != null && !sceneActive.objets.isEmpty()) {
-            objetCible = sceneActive.objets.get(0);
-        }
-
         Blueprint blueprintActif = new Blueprint();
         File dossierLogique = new File(getFilesDir(), "logique");
         File fileBlueprint = new File(dossierLogique, "blueprint.json");
 
-        // Vérification cruciale : on s'assure que le fichier a bien été créé par une sauvegarde préalable
         if (fileBlueprint.exists()) {
             try {
                 BufferedReader br = new BufferedReader(new FileReader(fileBlueprint));
@@ -194,7 +190,8 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        VueJeu vueJeu = new VueJeu(this, objetCible, blueprintActif);
+        // On passe désormais la scène entière à la vue jeu
+        VueJeu vueJeu = new VueJeu(this, sceneActive, blueprintActif);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
         conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
@@ -259,7 +256,6 @@ public class InterfaceEditeur extends Activity {
 
     private void sauvegarderProjet() {
         try {
-            // 1. Sauvegarde des scènes du projet
             Gson gson = new Gson();
             String jsonProjet = gson.toJson(listeScenes);
             File fileProjet = new File(getFilesDir(), "projet_sauvegarde.json");
@@ -267,10 +263,9 @@ public class InterfaceEditeur extends Activity {
             writerProjet.write(jsonProjet);
             writerProjet.close();
 
-            // 2. Sauvegarde spécifique du Blueprint dans le dossier "logique"
             File dossierLogique = new File(getFilesDir(), "logique");
             if (!dossierLogique.exists()) {
-                dossierLogique.mkdirs(); // Crée le dossier s'il n'existe pas
+                dossierLogique.mkdirs();
             }
             File fileBlueprint = new File(dossierLogique, "blueprint.json");
             Blueprint blueprintASauvegarder = new Blueprint();
@@ -289,3 +284,4 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
+// bas 2
