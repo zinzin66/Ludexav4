@@ -134,13 +134,14 @@ public class CanvasBlueprint extends View {
                         
                         NoeudBase nouveauNoeud = null;
                         
-                        // CORRECTION ICI : Ajout de l'instanciation pour NoeudActionModifierVariable
                         if ("NoeudActionDeplacer".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudActionDeplacer();
                         } else if ("NoeudEventStart".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudEventStart();
                         } else if ("NoeudActionModifierVariable".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudActionModifierVariable();
+                        } else if ("NoeudActionModifierTexte".equals(typeNoeud)) {
+                            nouveauNoeud = new NoeudActionModifierTexte();
                         }
                         
                         if (nouveauNoeud != null) {
@@ -206,6 +207,7 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
+    
 
 
 // haut 2
