@@ -1,4 +1,5 @@
-// haut 1
+
+// haut 1 nouveau 
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -14,6 +15,7 @@ public class PanneauRessources extends ScrollView {
     private LinearLayout conteneurArborescence;
     private LinearLayout conteneurVariables;
     private Variable variableSelectionnee;
+    private ObjetBase objetSelectionne;
 
     public PanneauRessources(Context context, CanvasEditeur canvas) {
         super(context);
@@ -67,7 +69,8 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-
+// bas 1
+// haut 2
     public void rafraichirArborescence() {
         if (conteneurArborescence == null) return;
         conteneurArborescence.removeAllViews();
@@ -79,9 +82,14 @@ public class PanneauRessources extends ScrollView {
                 
                 TextView txtObjet = new TextView(getContext());
                 txtObjet.setText("• " + obj.nom);
-                txtObjet.setTextColor(Color.WHITE);
+                txtObjet.setTextColor(obj == objetSelectionne ? Color.YELLOW : Color.WHITE);
                 txtObjet.setPadding(10, 10, 10, 10);
                 txtObjet.setTextSize(14f);
+                
+                txtObjet.setOnClickListener(v -> {
+                    objetSelectionne = obj;
+                    rafraichirArborescence();
+                });
                 
                 conteneurArborescence.addView(txtObjet);
             }
@@ -96,6 +104,24 @@ public class PanneauRessources extends ScrollView {
         }
     }
 
+    private String genererNomUnique(String prefixe, Scene scene) {
+        if (scene == null || scene.objets == null) return prefixe + "1";
+        int index = 1;
+        while (true) {
+            String testNom = prefixe + index;
+            boolean existe = false;
+            for (ObjetBase obj : scene.objets) {
+                if (obj.nom.equals(testNom)) {
+                    existe = true;
+                    break;
+                }
+            }
+            if (!existe) return testNom;
+            index++;
+        }
+    }
+// bas 2
+// haut 3
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -110,31 +136,37 @@ public class PanneauRessources extends ScrollView {
         Button btnAjouterCarre = new Button(context);
         btnAjouterCarre.setText("+ Ajouter un Carré");
         btnAjouterCarre.setOnClickListener(v -> {
-            ObjetBase nouveau = new ObjetBase("Carré", 150f, 150f, 80f, 80f);
-            ((InterfaceEditeur)getContext()).sceneActive.ajouterObjet(nouveau);
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
+            editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            Toast.makeText(context, "Carré ajouté à la scène", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
         });
 
         Button btnAjouterTexte = new Button(context);
         btnAjouterTexte.setText("+ Ajouter un Texte");
         btnAjouterTexte.setOnClickListener(v -> {
-            ObjetBase nouveau = new ObjetBase("Texte", 200f, 100f, 120f, 40f);
-            ((InterfaceEditeur)getContext()).sceneActive.ajouterObjet(nouveau);
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
+            editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            Toast.makeText(context, "Texte ajouté à la scène", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
         });
 
         Button btnAjouterRond = new Button(context);
         btnAjouterRond.setText("+ Ajouter un Rond");
         btnAjouterRond.setOnClickListener(v -> {
-            ObjetBase nouveau = new ObjetBase("Rond", 100f, 200f, 90f, 90f);
-            ((InterfaceEditeur)getContext()).sceneActive.ajouterObjet(nouveau);
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
+            editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            Toast.makeText(context, "Rond ajouté à la scène", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
         });
 
         contenu.addView(btnAjouterCarre);
@@ -155,8 +187,8 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 1
-// haut 2
+// bas 3
+// haut 4
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -243,7 +275,8 @@ public class PanneauRessources extends ScrollView {
             }
         }
     }
-
+// bas 4
+// haut 5
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -298,9 +331,7 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 2
 
-    // haut 3
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -365,7 +396,8 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-
+// bas 5
+// haut 6
     public void rafraichirVariables() {
         if (conteneurVariables == null) return;
         conteneurVariables.removeAllViews();
@@ -386,11 +418,16 @@ public class PanneauRessources extends ScrollView {
 
     private void ajouterVueVariable(Variable var) {
         Context context = getContext();
-        TextView nomVariable = new TextView(context);
         
+        LinearLayout conteneurLigne = new LinearLayout(context);
+        conteneurLigne.setOrientation(LinearLayout.VERTICAL);
+        conteneurLigne.setPadding(0, 5, 0, 15);
+        
+        TextView nomVariable = new TextView(context);
         String labelType = var.type.equals("BOOLEEN") ? "Oui/Non" : (var.type.equals("CHIFFRE") ? "Chiffre" : "Texte");
         String labelScope = var.scope.equals("GLOBALE") ? "Globale" : "Locale";
-        nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "]");
+        
+        nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "] = " + var.valeur);
         
         if (var == variableSelectionnee) {
             nomVariable.setTextColor(Color.YELLOW); 
@@ -402,7 +439,7 @@ public class PanneauRessources extends ScrollView {
             }
         }
         
-        nomVariable.setPadding(10, 15, 10, 15);
+        nomVariable.setPadding(10, 5, 10, 5);
         nomVariable.setTextSize(16f);
 
         nomVariable.setOnClickListener(v -> {
@@ -410,10 +447,19 @@ public class PanneauRessources extends ScrollView {
             rafraichirVariables();
         });
 
-        conteneurVariables.addView(nomVariable);
+        conteneurLigne.addView(nomVariable);
+
+        if (var == variableSelectionnee) {
+            Button btnModifierVal = new Button(context);
+            btnModifierVal.setText("Modifier la valeur");
+            btnModifierVal.setOnClickListener(v -> Toast.makeText(context, "Modif. valeur bientôt disponible", Toast.LENGTH_SHORT).show());
+            conteneurLigne.addView(btnModifierVal);
+        }
+
+        conteneurVariables.addView(conteneurLigne);
     }
-// bas 3
-    // haut 4
+// bas 6
+// haut 7
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -445,6 +491,10 @@ public class PanneauRessources extends ScrollView {
         adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(adapterType);
         layoutDialog.addView(spinnerType);
+
+        EditText champValeurInit = new EditText(context);
+        champValeurInit.setHint("Valeur initiale (optionnel)");
+        layoutDialog.addView(champValeurInit);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
@@ -483,6 +533,23 @@ public class PanneauRessources extends ScrollView {
             }
 
             Variable nouvelleVar = new Variable(nom, scopeSelect, typeSelect);
+            
+            String valInitTexte = champValeurInit.getText().toString().trim();
+            if (!valInitTexte.isEmpty()) {
+                if (typeSelect.equals("CHIFFRE")) {
+                    try {
+                        nouvelleVar.valeur = Float.parseFloat(valInitTexte);
+                    } catch (NumberFormatException e) {
+                        nouvelleVar.valeur = 0f;
+                    }
+                } else if (typeSelect.equals("TEXTE")) {
+                    nouvelleVar.valeur = valInitTexte;
+                } else if (typeSelect.equals("BOOLEEN")) {
+                    String cleanVal = valInitTexte.toLowerCase();
+                    nouvelleVar.valeur = (cleanVal.equals("oui") || cleanVal.equals("vrai") || cleanVal.equals("true"));
+                }
+            }
+
             if (scopeSelect.equals("GLOBALE")) {
                 editeur.variablesGlobales.add(nouvelleVar);
             } else {
@@ -504,7 +571,8 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-
+// bas 7
+// haut 8
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");
@@ -609,8 +677,8 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 4
-    // haut 5
+// bas 8
+// haut 9
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
@@ -736,41 +804,6 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 
-    private void afficherPopupCreer(Context context, String type) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Créer " + type);
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setHint("Entrez le nom...");
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        Button btnValider = new Button(context);
-        btnValider.setText("Valider");
-        btnValider.setOnClickListener(v -> {
-            String nom = champTexte.getText().toString();
-            Toast.makeText(context, "Création : " + nom, Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        Button btnAnnuler = new Button(context);
-        btnAnnuler.setText("Annuler");
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
     private void afficherPopupRenommer(Context context, String nomActuel) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer");
@@ -841,5 +874,4 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 }
-// bas 5
-
+// bas 9
