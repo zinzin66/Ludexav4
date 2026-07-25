@@ -2,8 +2,6 @@ package com.ludexa.moteur;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class NoeudActionModifierTexte extends NoeudBase {
 
@@ -19,25 +17,57 @@ public class NoeudActionModifierTexte extends NoeudBase {
     @Override
     public void executer() {
         if (cible != null && texteSaisi != null) {
-            String resultat = texteSaisi;
-            
-            Pattern pattern = Pattern.compile("\\{([^}]+)\\}");
-            Matcher matcher = pattern.matcher(resultat);
-            StringBuffer sb = new StringBuffer();
-            
-            while (matcher.find()) {
-                String nomVar = matcher.group(1);
-                Variable var = trouverVariable(nomVar);
-                String valeurRemplacement = (var != null && var.valeur != null) ? var.valeur.toString() : "{" + nomVar + "}";
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(valeurRemplacement));
+            String input = texteSaisi.trim();
+            StringBuilder resultatFinal = new StringBuilder();
+            boolean dansGuillemets = false;
+            StringBuilder tokenCourant = new StringBuilder();
+
+            // Mini-interpréteur pour syntaxe : "Texte" + Variable
+            for (int i = 0; i < input.length(); i++) {
+                char c = input.charAt(i);
+                
+                if (c == '"') {
+                    if (dansGuillemets) {
+                        // Fin d'une chaîne de texte littérale
+                        resultatFinal.append(tokenCourant.toString());
+                        tokenCourant.setLength(0);
+                        dansGuillemets = false;
+                    } else {
+                        // Début d'une chaîne de texte littérale
+                        dansGuillemets = true;
+                        tokenCourant.setLength(0);
+                    }
+                } else if (!dansGuillemets && c == '+') {
+                    // On rencontre un +, on évalue ce qu'il y avait avant si ce n'est pas vide
+                    String nomVar = tokenCourant.toString().trim();
+                    if (!nomVar.isEmpty()) {
+                        Variable v = trouverVariable(nomVar);
+                        resultatFinal.append(v != null ? v.valeur.toString() : "");
+                        tokenCourant.setLength(0);
+                    }
+                } else {
+                    // On accumule les caractères
+                    tokenCourant.append(c);
+                }
             }
-            matcher.appendTail(sb);
             
-            cible.nom = sb.toString();
+            // Évaluer le dernier bout de texte s'il reste une variable après le dernier +
+            if (!dansGuillemets) {
+                String nomVar = tokenCourant.toString().trim();
+                if (!nomVar.isEmpty()) {
+                    Variable v = trouverVariable(nomVar);
+                    resultatFinal.append(v != null ? v.valeur.toString() : "");
+                }
+            } else {
+                // Si l'utilisateur a oublié de fermer le guillemet, on ajoute quand même le texte
+                resultatFinal.append(tokenCourant.toString());
+            }
+
+            cible.nom = resultatFinal.toString();
         }
         propagerExecution("Suivant");
     }
-    
+
     @SuppressWarnings("unchecked")
     private Variable trouverVariable(String nomVar) {
         if (contexteApplication instanceof InterfaceEditeur) {
@@ -53,7 +83,6 @@ public class NoeudActionModifierTexte extends NoeudBase {
                 }
             }
         } else if (contexteApplication != null) {
-            // Lecture sécurisée pour VueJeu sans dépendance forte
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
                 Scene scene = (Scene) sceneField.get(contexteApplication);
@@ -69,9 +98,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
                         if (v.nom.equals(nomVar)) return v;
                     }
                 }
-            } catch (Exception e) {
-                // Ignore silencieusement si le contexte n'a pas ces champs
-            }
+            } catch (Exception e) {}
         }
         return null;
     }
@@ -80,17 +107,16 @@ public class NoeudActionModifierTexte extends NoeudBase {
     public boolean utiliseClavierTexte() { return true; }
 
     @Override
-    public List<String> getNomsParametres() { return Arrays.asList("Texte"); }
+    public List<String> getNomsParametres() { return Arrays.asList("Code/Texte"); }
 
     @Override
     public String getValeurParametre(String nom) {
-        if ("Texte".equals(nom)) return texteSaisi;
-        return "";
+        return texteSaisi;
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        if ("Texte".equals(nom)) texteSaisi = valeur;
+        texteSaisi = valeur;
     }
 
     @Override
