@@ -18,6 +18,7 @@ import com.google.gson.Gson;
 public class InterfaceEditeur extends Activity {
 
     public List<Scene> listeScenes = new ArrayList<>();
+    public List<Variable> variablesGlobales = new ArrayList<>(); // NOUVEAU
     public Scene sceneActive;
     private CanvasEditeur canvasEditeur;
     private PanneauRessources panneauRessources;
@@ -164,17 +165,10 @@ public class InterfaceEditeur extends Activity {
     }
 
     private void basculerVersJeu() {
-        ObjetBase objetCible = null;
-        
-        if (sceneActive != null && sceneActive.objets != null && !sceneActive.objets.isEmpty()) {
-            objetCible = sceneActive.objets.get(0);
-        }
-
         Blueprint blueprintActif = new Blueprint();
         File dossierLogique = new File(getFilesDir(), "logique");
         File fileBlueprint = new File(dossierLogique, "blueprint.json");
 
-        // Vérification cruciale : on s'assure que le fichier a bien été créé par une sauvegarde préalable
         if (fileBlueprint.exists()) {
             try {
                 BufferedReader br = new BufferedReader(new FileReader(fileBlueprint));
@@ -194,7 +188,7 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        VueJeu vueJeu = new VueJeu(this, objetCible, blueprintActif);
+        VueJeu vueJeu = new VueJeu(this, sceneActive, blueprintActif);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
         conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
@@ -254,12 +248,12 @@ public class InterfaceEditeur extends Activity {
             menuInspecteur.afficherObjet(null);
         }
         panneauRessources.rafraichirScenes();
+        panneauRessources.rafraichirVariables(); // NOUVEAU : Rafraîchir les variables locales affichées
         canvasEditeur.invalidate();
     }
 
     private void sauvegarderProjet() {
         try {
-            // 1. Sauvegarde des scènes du projet
             Gson gson = new Gson();
             String jsonProjet = gson.toJson(listeScenes);
             File fileProjet = new File(getFilesDir(), "projet_sauvegarde.json");
@@ -267,10 +261,9 @@ public class InterfaceEditeur extends Activity {
             writerProjet.write(jsonProjet);
             writerProjet.close();
 
-            // 2. Sauvegarde spécifique du Blueprint dans le dossier "logique"
             File dossierLogique = new File(getFilesDir(), "logique");
             if (!dossierLogique.exists()) {
-                dossierLogique.mkdirs(); // Crée le dossier s'il n'existe pas
+                dossierLogique.mkdirs();
             }
             File fileBlueprint = new File(dossierLogique, "blueprint.json");
             Blueprint blueprintASauvegarder = new Blueprint();

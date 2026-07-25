@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -9,36 +8,40 @@ import android.view.View;
 
 public class VueJeu extends View {
 
-    private ObjetBase objetAffiche;
-    private Paint peintureCarre;
+    private Scene sceneActive;
+    private Paint peintureObjet;
     private Paint peintureTexte;
-    private MoteurLogique moteur; // Le moteur logique qui va tourner en fond
+    private Paint peintureDebug;
+    private MoteurLogique moteur;
 
-    // Le constructeur demande maintenant le Blueprint à exécuter
-    public VueJeu(Context context, ObjetBase objet, Blueprint blueprintActif) {
+    public VueJeu(Context context, Scene scene, Blueprint blueprintActif) {
         super(context);
-        this.objetAffiche = objet;
+        this.sceneActive = scene;
 
-        peintureCarre = new Paint();
-        peintureCarre.setColor(Color.BLUE);
+        peintureObjet = new Paint();
+        peintureObjet.setColor(Color.BLUE);
+        peintureObjet.setAntiAlias(true);
 
         peintureTexte = new Paint();
-        peintureTexte.setColor(Color.BLACK);
-        peintureTexte.setTextSize(32f);
+        peintureTexte.setColor(Color.BLUE);
+        peintureTexte.setTextSize(40f);
+        peintureTexte.setAntiAlias(true);
 
-        // Instanciation du moteur logique
+        peintureDebug = new Paint();
+        peintureDebug.setColor(Color.BLACK);
+        peintureDebug.setTextSize(24f);
+        peintureDebug.setAntiAlias(true);
+
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
         }
     }
 
-    // Cette méthode d'Android s'exécute toute seule dès que la vue est affichée
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         if (this.moteur != null) {
             this.moteur.executerDemarrage();
-            // CORRECTIF: Forcer le redessin de la vue pour refléter les nouvelles coordonnées X/Y
             invalidate();
         }
     }
@@ -48,18 +51,31 @@ public class VueJeu extends View {
         super.onDraw(canvas);
         canvas.drawColor(Color.WHITE);
 
-        canvas.drawRect(
-                objetAffiche.x,
-                objetAffiche.y,
-                objetAffiche.x + objetAffiche.largeur,
-                objetAffiche.y + objetAffiche.hauteur,
-                peintureCarre
-        );
+        if (sceneActive != null && sceneActive.objets != null) {
+            for (ObjetBase objet : sceneActive.objets) {
+                float left = objet.x;
+                float top = objet.y;
+                float right = left + objet.largeur;
+                float bottom = top + objet.hauteur;
 
-        canvas.drawText(
-                objetAffiche.nom + " (" + (int) objetAffiche.x + ", " + (int) objetAffiche.y + ")",
-                20f, 60f, peintureTexte
-        );
+                // Dessin selon le type
+                if ("rond".equals(objet.type)) {
+                    float cx = left + objet.largeur / 2f;
+                    float cy = top + objet.hauteur / 2f;
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    canvas.drawCircle(cx, cy, rayon, peintureObjet);
+                } else if ("texte".equals(objet.type)) {
+                    canvas.drawText(objet.nom, left, bottom, peintureTexte);
+                } else {
+                    canvas.drawRect(left, top, right, bottom, peintureObjet);
+                }
+
+                // Texte de debug affiché juste au-dessus de chaque objet
+                canvas.drawText(
+                        objet.nom + " (" + (int) objet.x + ", " + (int) objet.y + ")",
+                        left, top - 10f, peintureDebug
+                );
+            }
+        }
     }
 }
-// bas 1

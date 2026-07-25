@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import java.util.UUID;
@@ -35,4 +34,3 @@ public class ObjetBase {
         }
     }
 }
-// bas 1
