@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -6,7 +5,8 @@ import java.util.List;
 
 public class NoeudActionModifierVariable extends NoeudBase {
 
-    private Variable cible;
+    private transient Variable cible;
+    private String nomCibleVariable;
     private String valeurSaisie = "";
 
     public NoeudActionModifierVariable() {
@@ -17,27 +17,26 @@ public class NoeudActionModifierVariable extends NoeudBase {
 
     @Override
     public void executer() {
-        if (cible != null) {
-            if ("CHIFFRE".equals(cible.type)) {
+        Variable cibleActuelle = getCibleVariable();
+        if (cibleActuelle != null) {
+            if ("CHIFFRE".equals(cibleActuelle.type)) {
                 try {
-                    cible.valeur = Float.parseFloat(valeurSaisie);
+                    cibleActuelle.valeur = Float.parseFloat(valeurSaisie);
                 } catch (NumberFormatException e) {
-                    cible.valeur = 0f;
+                    cibleActuelle.valeur = 0f;
                 }
-            } else if ("BOOLEEN".equals(cible.type)) {
+            } else if ("BOOLEEN".equals(cibleActuelle.type)) {
                 String valLower = valeurSaisie.toLowerCase().trim();
-                cible.valeur = valLower.equals("oui") || valLower.equals("vrai") || valLower.equals("true");
+                cibleActuelle.valeur = valLower.equals("oui") || valLower.equals("vrai") || valLower.equals("true");
             } else {
-                cible.valeur = valeurSaisie;
+                cibleActuelle.valeur = valeurSaisie;
             }
         }
         propagerExecution("Suivant");
     }
 
     @Override
-    public List<String> getNomsParametres() {
-        return Arrays.asList("Valeur");
-    }
+    public List<String> getNomsParametres() { return Arrays.asList("Valeur"); }
 
     @Override
     public String getValeurParametre(String nom) {
@@ -52,16 +51,52 @@ public class NoeudActionModifierVariable extends NoeudBase {
 
     @Override
     public boolean requiertCibleObjet() { return false; }
+    
     @Override
     public void setCibleObjet(ObjetBase objet) { }
+    
     @Override
     public ObjetBase getCibleObjet() { return null; }
 
     @Override
     public boolean requiertCibleVariable() { return true; }
+    
     @Override
-    public void setCibleVariable(Variable v) { this.cible = v; }
+    public void setCibleVariable(Variable v) { 
+        this.cible = v; 
+        this.nomCibleVariable = (v != null) ? v.nom : null;
+    }
+    
+    @SuppressWarnings("unchecked")
     @Override
-    public Variable getCibleVariable() { return this.cible; }
+    public Variable getCibleVariable() { 
+        if (cible == null && nomCibleVariable != null && contexteApplication != null) {
+            // Reconnexion dynamique
+            try {
+                if (contexteApplication instanceof InterfaceEditeur) {
+                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                    if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
+                        for (Variable v : editeur.sceneActive.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                    }
+                    if (cible == null && editeur.variablesGlobales != null) {
+                        for (Variable v : editeur.variablesGlobales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                    }
+                } else {
+                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                    Scene s = (Scene) sceneField.get(contexteApplication);
+                    if (s != null && s.variablesLocales != null) {
+                        for (Variable v : s.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                    }
+                    if (cible == null) {
+                        java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
+                        List<Variable> globales = (List<Variable>) varsField.get(contexteApplication);
+                        if (globales != null) {
+                            for (Variable v : globales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                        }
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return this.cible; 
+    }
 }
-// bas 1

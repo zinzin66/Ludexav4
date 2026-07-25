@@ -70,6 +70,11 @@ public class Blueprint {
             if (n.requiertCibleObjet() && n.getCibleObjet() != null) {
                 ndto.cibleNom = n.getCibleObjet().nom;
             }
+            
+            // NOUVEAU : Sauvegarde de la cible Variable
+            if (n.requiertCibleVariable() && n.getCibleVariable() != null) {
+                ndto.cibleVariableNom = n.getCibleVariable().nom;
+            }
 
             for (Port p : n.portsEntree) {
                 if (p.valeurSaisie != null && !p.valeurSaisie.isEmpty()) {
@@ -119,12 +124,51 @@ public class Blueprint {
                     }
                 }
                 
+                // Restauration de la cible Objet
                 if (ndto.cibleNom != null && scene != null && scene.objets != null) {
                     for (ObjetBase obj : scene.objets) {
                         if (ndto.cibleNom.equals(obj.nom)) {
                             n.setCibleObjet(obj);
                             break;
                         }
+                    }
+                }
+                
+                // NOUVEAU : Restauration de la cible Variable
+                if (ndto.cibleVariableNom != null) {
+                    Variable cibleTrouvee = null;
+                    
+                    // 1. Chercher d'abord dans les variables locales de la scène
+                    if (scene != null && scene.variablesLocales != null) {
+                        for (Variable v : scene.variablesLocales) {
+                            if (ndto.cibleVariableNom.equals(v.nom)) {
+                                cibleTrouvee = v;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 2. Si non trouvée, chercher dans les variables globales
+                    if (cibleTrouvee == null && NoeudBase.contexteApplication != null) {
+                        try {
+                            java.lang.reflect.Field field = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
+                            @SuppressWarnings("unchecked")
+                            List<Variable> globales = (List<Variable>) field.get(NoeudBase.contexteApplication);
+                            if (globales != null) {
+                                for (Variable v : globales) {
+                                    if (ndto.cibleVariableNom.equals(v.nom)) {
+                                        cibleTrouvee = v;
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            // Silencieux : le contexte ne possède peut-être pas de variablesGlobales
+                        }
+                    }
+                    
+                    if (cibleTrouvee != null) {
+                        n.setCibleVariable(cibleTrouvee);
                     }
                 }
 
@@ -158,11 +202,6 @@ public class Blueprint {
             }
         }
 
-        // Bilan final affiché à l'écran
-        if (NoeudBase.contexteApplication != null) {
-            Toast.makeText(NoeudBase.contexteApplication, "Chargement terminé : " + noeudsReussis + " nœuds, " + liensReussis + " liens", Toast.LENGTH_LONG).show();
-        }
-
         return bp;
     }
 
@@ -183,6 +222,7 @@ public class Blueprint {
         List<PortDTO> portsEntree = new ArrayList<>();
         Map<String, String> parametres = new HashMap<>(); 
         String cibleNom; 
+        String cibleVariableNom; // NOUVEAU : Champ pour sauver le nom de la variable
     }
 
     private static class PortDTO {

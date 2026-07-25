@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -80,18 +79,19 @@ public abstract class NoeudBase {
     public abstract String getValeurParametre(String nom);
     public abstract void setValeurParametre(String nom, String valeur);
     
-    // Contrat Objet
+    // Contrats existants
     public abstract boolean requiertCibleObjet();
     public abstract void setCibleObjet(ObjetBase objet);
     public abstract ObjetBase getCibleObjet();
     
-    // NOUVEAU : Contrat Variable
     public boolean requiertCibleVariable() { return false; }
     public void setCibleVariable(Variable v) {}
     public Variable getCibleVariable() { return null; }
+    
+    // NOUVEAU : Méthode pour déterminer le type de clavier à afficher
+    public boolean utiliseClavierTexte() { return false; }
     
     public boolean aDesParametresEditables() {
         return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleVariable();
     }
 }
-// bas 1
