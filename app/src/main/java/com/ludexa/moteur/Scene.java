@@ -24,5 +24,25 @@ public class Scene {
     public void ajouterNoeud(NoeudBase noeud) {
         this.noeudsLogique.add(noeud);
     }
+
+    // NOUVEAU : Méthode de clonage profond
+    public Scene clonerProfond() {
+        Scene copie = new Scene(this.nom);
+        
+        // Clonage des objets
+        for (ObjetBase obj : this.objets) {
+            copie.ajouterObjet(obj.clonerProfond());
+        }
+        
+        // Clonage des variables locales
+        for (Variable var : this.variablesLocales) {
+            copie.variablesLocales.add(var.clonerProfond());
+        }
+        
+        // Copie des références des noeuds (le Blueprint reste partagé et non altéré par l'exécution)
+        copie.noeudsLogique.addAll(this.noeudsLogique);
+        
+        return copie;
+    }
 }
 // bas 1
