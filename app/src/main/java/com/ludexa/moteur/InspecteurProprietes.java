@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -23,10 +24,21 @@ public class InspecteurProprietes extends LinearLayout {
     private EditText champY;
     private Button boutonSupprimer;
 
+    // Nouveaux contrôles UI anticipés (visuels)
+    private TextView valeurType;
+    private EditText champLargeur, champHauteur, champRotation, champAlpha, champZOrder;
+    private CheckBox cbVisible, cbVerrouille;
+    private Button btnCouleur;
+    
+    // Contrôles spécifiques au Texte
+    private LinearLayout blocTexte;
+    private EditText champContenu, champTaille;
+    private Button btnCouleurTexte, btnPolice;
+
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
     private ObjetBase objetCourant;
-    private boolean miseAJourEnCours = false; // évite les boucles TextWatcher pendant qu'on remplit les champs
+    private boolean miseAJourEnCours = false;
 
     public InspecteurProprietes(Context context, Scene scene, CanvasEditeur canvas) {
         super(context);
@@ -34,7 +46,8 @@ public class InspecteurProprietes extends LinearLayout {
         this.canvasEditeur = canvas;
         initialiserInterface(context);
     }
-
+// bas 1
+// haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
         this.setBackgroundColor(0xFFE0E0E0);
@@ -73,10 +86,15 @@ public class InspecteurProprietes extends LinearLayout {
         texteInfo.setPadding(0, 0, 0, 30);
         contenuInspecteur.addView(texteInfo);
 
-        // ---- Bloc des propriétés (caché tant qu'aucun objet n'est sélectionné) ----
         blocProprietes = new LinearLayout(context);
         blocProprietes.setOrientation(LinearLayout.VERTICAL);
         blocProprietes.setVisibility(View.GONE);
+
+        valeurType = new TextView(context);
+        valeurType.setPadding(0, 0, 0, 15);
+        valeurType.setTextColor(0xFF555555);
+        valeurType.setTextSize(14f);
+        blocProprietes.addView(valeurType);
 
         TextView labelNom = new TextView(context);
         labelNom.setText("Nom");
@@ -84,19 +102,114 @@ public class InspecteurProprietes extends LinearLayout {
         champNom = new EditText(context);
         blocProprietes.addView(champNom);
 
-        TextView labelX = new TextView(context);
-        labelX.setText("X");
-        blocProprietes.addView(labelX);
+        LinearLayout layoutPos = new LinearLayout(context);
+        layoutPos.setOrientation(LinearLayout.HORIZONTAL);
+        
         champX = new EditText(context);
+        champX.setHint("X");
         champX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        blocProprietes.addView(champX);
-
-        TextView labelY = new TextView(context);
-        labelY.setText("Y");
-        blocProprietes.addView(labelY);
+        champX.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
         champY = new EditText(context);
+        champY.setHint("Y");
         champY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        blocProprietes.addView(champY);
+        champY.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        layoutPos.addView(champX);
+        layoutPos.addView(champY);
+        blocProprietes.addView(layoutPos);
+// bas 2
+
+   // haut 3
+        View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
+
+        LinearLayout layoutDim = new LinearLayout(context);
+        layoutDim.setOrientation(LinearLayout.HORIZONTAL);
+        
+        champLargeur = new EditText(context);
+        champLargeur.setHint("Largeur");
+        champLargeur.setFocusable(false);
+        champLargeur.setOnClickListener(toastListener);
+        champLargeur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        champHauteur = new EditText(context);
+        champHauteur.setHint("Hauteur");
+        champHauteur.setFocusable(false);
+        champHauteur.setOnClickListener(toastListener);
+        champHauteur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        layoutDim.addView(champLargeur);
+        layoutDim.addView(champHauteur);
+        blocProprietes.addView(layoutDim);
+
+        champRotation = new EditText(context);
+        champRotation.setHint("Rotation (°)");
+        champRotation.setFocusable(false);
+        champRotation.setOnClickListener(toastListener);
+        blocProprietes.addView(champRotation);
+
+        btnCouleur = new Button(context);
+        btnCouleur.setText("Couleur : Sélecteur");
+        btnCouleur.setOnClickListener(toastListener);
+        blocProprietes.addView(btnCouleur);
+
+        champAlpha = new EditText(context);
+        champAlpha.setHint("Transparence (0-1)");
+        champAlpha.setFocusable(false);
+        champAlpha.setOnClickListener(toastListener);
+        blocProprietes.addView(champAlpha);
+
+        cbVisible = new CheckBox(context);
+        cbVisible.setText("Visible");
+        cbVisible.setOnClickListener(toastListener);
+        blocProprietes.addView(cbVisible);
+
+        cbVerrouille = new CheckBox(context);
+        cbVerrouille.setText("Verrouillé (empêche l'édition)");
+        cbVerrouille.setOnClickListener(toastListener);
+        blocProprietes.addView(cbVerrouille);
+
+        champZOrder = new EditText(context);
+        champZOrder.setHint("Calque (Z-Order)");
+        champZOrder.setFocusable(false);
+        champZOrder.setOnClickListener(toastListener);
+        blocProprietes.addView(champZOrder);
+// bas 3
+
+   // haut 4
+        blocTexte = new LinearLayout(context);
+        blocTexte.setOrientation(LinearLayout.VERTICAL);
+        blocTexte.setPadding(0, 15, 0, 0);
+
+        TextView sepTexte = new TextView(context);
+        sepTexte.setText("--- Propriétés Spécifiques Texte ---");
+        sepTexte.setTextColor(0xFF888888);
+        sepTexte.setPadding(0, 10, 0, 10);
+        blocTexte.addView(sepTexte);
+
+        champContenu = new EditText(context);
+        champContenu.setHint("Contenu du texte");
+        champContenu.setFocusable(false);
+        champContenu.setOnClickListener(toastListener);
+        blocTexte.addView(champContenu);
+
+        champTaille = new EditText(context);
+        champTaille.setHint("Taille de police");
+        champTaille.setFocusable(false);
+        champTaille.setOnClickListener(toastListener);
+        blocTexte.addView(champTaille);
+
+        btnCouleurTexte = new Button(context);
+        btnCouleurTexte.setText("Couleur du texte");
+        btnCouleurTexte.setOnClickListener(toastListener);
+        blocTexte.addView(btnCouleurTexte);
+
+        btnPolice = new Button(context);
+        btnPolice.setText("Police : Sélecteur");
+        btnPolice.setOnClickListener(toastListener);
+        blocTexte.addView(btnPolice);
+
+        blocProprietes.addView(blocTexte);
 
         contenuInspecteur.addView(blocProprietes);
 
@@ -121,11 +234,19 @@ public class InspecteurProprietes extends LinearLayout {
                     .setNegativeButton("Annuler", null)
                     .show();
         });
+        
+        LinearLayout.LayoutParams paramsBtn = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        paramsBtn.setMargins(0, 30, 0, 0);
+        boutonSupprimer.setLayoutParams(paramsBtn);
+        
         contenuInspecteur.addView(boutonSupprimer);
 
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
+// bas 4
 
+    // haut 5
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
                 scrollInspecteur.setVisibility(View.GONE);
@@ -140,7 +261,6 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 
-        // ---- Synchronisation champs -> objet en temps réel ----
         champNom.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) objetCourant.nom = texte;
         }));
@@ -162,7 +282,6 @@ public class InspecteurProprietes extends LinearLayout {
         }));
     }
 
-    // Affiche les propriétés de l'objet donné, ou revient au message d'info si null
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
         miseAJourEnCours = true;
@@ -170,12 +289,31 @@ public class InspecteurProprietes extends LinearLayout {
         if (objet == null) {
             texteInfo.setVisibility(View.VISIBLE);
             blocProprietes.setVisibility(View.GONE);
+            boutonSupprimer.setVisibility(View.GONE);
         } else {
             texteInfo.setVisibility(View.GONE);
             blocProprietes.setVisibility(View.VISIBLE);
+            boutonSupprimer.setVisibility(View.VISIBLE);
+            
+            // Propriétés fonctionnelles
             champNom.setText(objet.nom);
             champX.setText(String.valueOf((int) objet.x));
             champY.setText(String.valueOf((int) objet.y));
+            
+            // Remplissage UI visuelle
+            String nomType = objet.type != null ? objet.type.substring(0, 1).toUpperCase() + objet.type.substring(1) : "Inconnu";
+            valeurType.setText("Type : " + nomType);
+            champLargeur.setText(String.valueOf((int) objet.largeur));
+            champHauteur.setText(String.valueOf((int) objet.hauteur));
+            cbVisible.setChecked(true);
+            
+            // Affichage conditionnel pour le Texte
+            if ("texte".equals(objet.type)) {
+                blocTexte.setVisibility(View.VISIBLE);
+                champContenu.setText(objet.contenuTexte);
+            } else {
+                blocTexte.setVisibility(View.GONE);
+            }
         }
 
         miseAJourEnCours = false;
@@ -198,3 +336,5 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
+// bas 5
+
