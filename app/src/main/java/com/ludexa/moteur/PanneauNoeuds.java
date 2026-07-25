@@ -9,6 +9,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.List;
+import java.util.Map;
 
 public class PanneauNoeuds extends ScrollView {
 
@@ -24,59 +26,37 @@ public class PanneauNoeuds extends ScrollView {
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
-        // ---- Section Événements ----
-        Button btnEvenements = new Button(context);
-        btnEvenements.setText("Événements ▼");
+        Map<String, List<RegistreNoeuds.InfoNoeud>> categories = RegistreNoeuds.getNoeudsParCategorie();
         
-        LinearLayout conteneurEvenements = new LinearLayout(context);
-        conteneurEvenements.setOrientation(LinearLayout.VERTICAL);
-        conteneurEvenements.setPadding(20, 10, 10, 20);
-        
-        TextView itemEventStart = creerItemNoeud(context, "Au Démarrage", "NoeudEventStart");
-        conteneurEvenements.addView(itemEventStart);
-        
-        btnEvenements.setOnClickListener(v -> {
-            if (conteneurEvenements.getVisibility() == View.VISIBLE) {
-                conteneurEvenements.setVisibility(View.GONE);
-                btnEvenements.setText("Événements ▶");
-            } else {
-                conteneurEvenements.setVisibility(View.VISIBLE);
-                btnEvenements.setText("Événements ▼");
+        for (Map.Entry<String, List<RegistreNoeuds.InfoNoeud>> entry : categories.entrySet()) {
+            String nomCat = entry.getKey();
+            List<RegistreNoeuds.InfoNoeud> noeuds = entry.getValue();
+            
+            Button btnCat = new Button(context);
+            btnCat.setText(nomCat + " ▼");
+            
+            LinearLayout conteneurCat = new LinearLayout(context);
+            conteneurCat.setOrientation(LinearLayout.VERTICAL);
+            conteneurCat.setPadding(20, 10, 10, 20);
+            
+            for (RegistreNoeuds.InfoNoeud info : noeuds) {
+                TextView item = creerItemNoeud(context, info.libelle, info.classeType);
+                conteneurCat.addView(item);
             }
-        });
-
-        // ---- Section Actions ----
-        Button btnActions = new Button(context);
-        btnActions.setText("Actions ▼");
-        
-        LinearLayout conteneurActions = new LinearLayout(context);
-        conteneurActions.setOrientation(LinearLayout.VERTICAL);
-        conteneurActions.setPadding(20, 10, 10, 20);
-        
-        TextView itemActionDeplacer = creerItemNoeud(context, "Déplacer Objet", "NoeudActionDeplacer");
-        conteneurActions.addView(itemActionDeplacer);
-
-        TextView itemActionModifierVariable = creerItemNoeud(context, "Modifier Variable", "NoeudActionModifierVariable");
-        conteneurActions.addView(itemActionModifierVariable);
-        
-        // NOUVEAU : Ajout du nœud Modifier Texte
-        TextView itemActionModifierTexte = creerItemNoeud(context, "Modifier Texte", "NoeudActionModifierTexte");
-        conteneurActions.addView(itemActionModifierTexte);
-        
-        btnActions.setOnClickListener(v -> {
-            if (conteneurActions.getVisibility() == View.VISIBLE) {
-                conteneurActions.setVisibility(View.GONE);
-                btnActions.setText("Actions ▶");
-            } else {
-                conteneurActions.setVisibility(View.VISIBLE);
-                btnActions.setText("Actions ▼");
-            }
-        });
-
-        layoutPrincipal.addView(btnEvenements);
-        layoutPrincipal.addView(conteneurEvenements);
-        layoutPrincipal.addView(btnActions);
-        layoutPrincipal.addView(conteneurActions);
+            
+            btnCat.setOnClickListener(v -> {
+                if (conteneurCat.getVisibility() == View.VISIBLE) {
+                    conteneurCat.setVisibility(View.GONE);
+                    btnCat.setText(nomCat + " ▶");
+                } else {
+                    conteneurCat.setVisibility(View.VISIBLE);
+                    btnCat.setText(nomCat + " ▼");
+                }
+            });
+            
+            layoutPrincipal.addView(btnCat);
+            layoutPrincipal.addView(conteneurCat);
+        }
 
         addView(layoutPrincipal);
     }
