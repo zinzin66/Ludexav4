@@ -94,8 +94,7 @@ public class EditeurNoeudDialog extends Dialog {
                     if (touche.equals("DEL")) btn.setBackgroundColor(Color.parseColor("#5c2323")); // Rouge sombre
                     
                     btn.setOnClickListener(v -> {
-                        int start = Math.max(champSaisie.getSelectionStart(), 0);
-                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                        int start = Math.max(champSaisie.getSelectionStart(), 0);                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
                         
                         if (touche.equals("DEL")) {
                             if (start > 0 && start == end) {
@@ -119,7 +118,7 @@ public class EditeurNoeudDialog extends Dialog {
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
 // bas 1
-        
+           
 // haut 2
         LinearLayout zoneDroite = new LinearLayout(context);
         zoneDroite.setOrientation(LinearLayout.VERTICAL);
@@ -130,21 +129,35 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout listeDroite = new LinearLayout(context);
         listeDroite.setOrientation(LinearLayout.VERTICAL);
 
+        // Affichage dynamique de la cible actuelle (Objet OU Variable)
+        TextView txtCibleActuelle = new TextView(context);
+        txtCibleActuelle.setTextColor(Color.parseColor("#44AAFF"));
+        txtCibleActuelle.setPadding(20, 20, 20, 20);
+        txtCibleActuelle.setTextSize(16);
+        
+        if (noeud.requiertCibleObjet()) {
+            ObjetBase cible = noeud.getCibleObjet();
+            txtCibleActuelle.setText("Cible Actuelle : " + (cible != null ? cible.nom : "Aucune"));
+        } else if (noeud.requiertCibleVariable()) {
+            Variable cibleVar = noeud.getCibleVariable();
+            txtCibleActuelle.setText("Cible Actuelle : " + (cibleVar != null ? cibleVar.nom : "Aucune"));
+        } else {
+            txtCibleActuelle.setText("Cible Actuelle : Aucune");
+            txtCibleActuelle.setVisibility(View.GONE); // On cache si le nœud n'a pas de cible
+        }
+        
+        if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable()) {
+            listeDroite.addView(txtCibleActuelle);
+        }
+
         // Section : ITEMS (Objets de la scène)
         TextView titreItems = new TextView(context);
-        titreItems.setText("Items (Cible)");
+        titreItems.setText("Items (Cible Objet)");
         titreItems.setTextColor(Color.WHITE);
         titreItems.setGravity(Gravity.CENTER);
         titreItems.setBackgroundColor(Color.parseColor("#1a435c")); // Bleu sombre
         titreItems.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreItems);
-
-        TextView txtCibleActuelle = new TextView(context);
-        txtCibleActuelle.setTextColor(Color.parseColor("#44AAFF"));
-        ObjetBase cibleActuelle = noeud.getCibleObjet();
-        txtCibleActuelle.setText("Cible Actuelle: " + (cibleActuelle != null ? cibleActuelle.nom : "Aucune"));
-        txtCibleActuelle.setPadding(20, 10, 20, 20);
-        listeDroite.addView(txtCibleActuelle);
 
         if (scene != null && scene.objets != null) {
             for (ObjetBase obj : scene.objets) {
@@ -153,14 +166,16 @@ public class EditeurNoeudDialog extends Dialog {
                 btnObj.setTextColor(Color.LTGRAY);
                 btnObj.setBackgroundColor(Color.parseColor("#222222"));
                 btnObj.setOnClickListener(v -> {
-                    noeud.setCibleObjet(obj);
-                    txtCibleActuelle.setText("Cible Actuelle: " + obj.nom);
+                    if (noeud.requiertCibleObjet()) {
+                        noeud.setCibleObjet(obj);
+                        txtCibleActuelle.setText("Cible Actuelle : " + obj.nom);
+                    }
                 });
                 listeDroite.addView(btnObj);
             }
         }
 
-        // Section : VARIABLES (Pour insertion dans le code)
+        // Section : VARIABLES (Cible Variable OU Insertion Texte)
         TextView titreVars = new TextView(context);
         titreVars.setText("Variables");
         titreVars.setTextColor(Color.WHITE);
@@ -178,9 +193,13 @@ public class EditeurNoeudDialog extends Dialog {
                     btnVar.setTextColor(Color.WHITE);
                     btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); // Vert sombre
                     btnVar.setOnClickListener(v -> {
+                        // Si le nœud cible une variable (comme Modifier Variable)
                         if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
                             noeud.setCibleVariable(var);
-                        } else {
+                            txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
+                        } 
+                        // Sinon, c'est pour insérer du texte (comme Modifier Texte)
+                        else {
                             insererTexte(champSaisie, var.nom);
                         }
                     });
@@ -198,6 +217,7 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setOnClickListener(v -> {
                     if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
                         noeud.setCibleVariable(var);
+                        txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
                     } else {
                         insererTexte(champSaisie, var.nom);
                     }
@@ -263,3 +283,4 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 2
+
