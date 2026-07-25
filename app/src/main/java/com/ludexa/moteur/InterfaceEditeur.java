@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -18,7 +19,7 @@ import com.google.gson.Gson;
 public class InterfaceEditeur extends Activity {
 
     public List<Scene> listeScenes = new ArrayList<>();
-    public List<Variable> variablesGlobales = new ArrayList<>(); // NOUVEAU
+    public List<Variable> variablesGlobales = new ArrayList<>(); 
     public Scene sceneActive;
     private CanvasEditeur canvasEditeur;
     private PanneauRessources panneauRessources;
@@ -125,7 +126,8 @@ public class InterfaceEditeur extends Activity {
             boutonDeplacerScene.setText(nouveauMode ? "Mode: Déplacement" : "Déplacer Scène");
         });
         bandeauHaut.addView(boutonDeplacerScene);
-
+// bas 1
+        // haut 2
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
@@ -248,7 +250,7 @@ public class InterfaceEditeur extends Activity {
             menuInspecteur.afficherObjet(null);
         }
         panneauRessources.rafraichirScenes();
-        panneauRessources.rafraichirVariables(); // NOUVEAU : Rafraîchir les variables locales affichées
+        panneauRessources.rafraichirVariables(); 
         canvasEditeur.invalidate();
     }
 
@@ -282,3 +284,7 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
+// bas 2
+
+
+    
