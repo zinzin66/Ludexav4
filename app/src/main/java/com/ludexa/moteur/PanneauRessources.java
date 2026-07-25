@@ -12,7 +12,6 @@ public class PanneauRessources extends ScrollView {
     private CanvasEditeur canvasEditeur;
     private LinearLayout conteneurScenes;
     private LinearLayout conteneurArborescence;
-    private LinearLayout conteneurProprietes;
     private LinearLayout conteneurVariables;
     private Variable variableSelectionnee;
     private ObjetBase objetSelectionne;
@@ -33,7 +32,6 @@ public class PanneauRessources extends ScrollView {
         layoutPrincipal.addView(creerSectionScenes(context));
         layoutPrincipal.addView(creerSectionObjets(context));
         layoutPrincipal.addView(creerSectionArborescence(context));
-        layoutPrincipal.addView(creerSectionProprietes(context)); 
         layoutPrincipal.addView(creerSectionAssets(context));
         layoutPrincipal.addView(creerSectionVariables(context));
 
@@ -70,8 +68,7 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 1
-// haut 2
+
     public void rafraichirArborescence() {
         if (conteneurArborescence == null) return;
         conteneurArborescence.removeAllViews();
@@ -90,7 +87,6 @@ public class PanneauRessources extends ScrollView {
                 txtObjet.setOnClickListener(v -> {
                     objetSelectionne = obj;
                     rafraichirArborescence();
-                    afficherProprietesObjet(obj);
                 });
                 
                 conteneurArborescence.addView(txtObjet);
@@ -122,8 +118,7 @@ public class PanneauRessources extends ScrollView {
             index++;
         }
     }
-// bas 2
-// haut 3
+
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -189,172 +184,8 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 3
-// haut 4
-    private View creerSectionProprietes(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
-
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Propriétés de l'objet ▶");
-
-        conteneurProprietes = new LinearLayout(context);
-        conteneurProprietes.setOrientation(LinearLayout.VERTICAL);
-        conteneurProprietes.setPadding(20, 10, 10, 20);
-        conteneurProprietes.setBackgroundColor(Color.parseColor("#444444"));
-        conteneurProprietes.setVisibility(View.GONE); 
-        
-        conteneurProprietes.setTag(btnTitre);
-
-        btnTitre.setOnClickListener(v -> {
-            if (conteneurProprietes.getVisibility() == View.VISIBLE) {
-                conteneurProprietes.setVisibility(View.GONE);
-                btnTitre.setText("Propriétés de l'objet ▶");
-            } else {
-                conteneurProprietes.setVisibility(View.VISIBLE);
-                btnTitre.setText("Propriétés de l'objet ▼");
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(conteneurProprietes);
-        return section;
-    }
-
-    private void replierEtNettoyerProprietes() {
-        if (conteneurProprietes != null) {
-            conteneurProprietes.removeAllViews();
-            conteneurProprietes.setVisibility(View.GONE);
-            if (conteneurProprietes.getTag() instanceof Button) {
-                ((Button) conteneurProprietes.getTag()).setText("Propriétés de l'objet ▶");
-            }
-        }
-    }
-
-    private void afficherProprietesObjet(ObjetBase obj) {
-        conteneurProprietes.removeAllViews();
-        Context context = getContext();
-        
-        conteneurProprietes.setVisibility(View.VISIBLE);
-        if (conteneurProprietes.getTag() instanceof Button) {
-            ((Button) conteneurProprietes.getTag()).setText("Propriétés de l'objet ▼");
-        }
-
-        TextView titre = new TextView(context);
-        titre.setText("Objet sélectionné : " + obj.nom);
-        titre.setTextColor(Color.WHITE);
-        titre.setTextSize(16f);
-        titre.setPadding(0, 0, 0, 10);
-        conteneurProprietes.addView(titre);
-
-        TextView txtType = new TextView(context);
-        String typeAffiche = obj.type != null ? obj.type.substring(0, 1).toUpperCase() + obj.type.substring(1) : "Inconnu";
-        txtType.setText("Type : " + typeAffiche);
-        txtType.setTextColor(Color.LTGRAY);
-        txtType.setPadding(0, 0, 0, 10);
-        conteneurProprietes.addView(txtType);
-
-        LinearLayout layoutDim = new LinearLayout(context);
-        layoutDim.setOrientation(LinearLayout.HORIZONTAL);
-        EditText editLargeur = new EditText(context);
-        editLargeur.setText(String.valueOf(obj.largeur));
-        editLargeur.setHint("Largeur");
-        editLargeur.setTextColor(Color.WHITE);
-        editLargeur.setHintTextColor(Color.GRAY);
-        EditText editHauteur = new EditText(context);
-        editHauteur.setText(String.valueOf(obj.hauteur));
-        editHauteur.setHint("Hauteur");
-        editHauteur.setTextColor(Color.WHITE);
-        editHauteur.setHintTextColor(Color.GRAY);
-        layoutDim.addView(editLargeur);
-        layoutDim.addView(editHauteur);
-        conteneurProprietes.addView(layoutDim);
-
-        EditText editRotation = new EditText(context);
-        editRotation.setHint("Rotation (angle °)");
-        editRotation.setTextColor(Color.WHITE);
-        editRotation.setHintTextColor(Color.GRAY);
-        conteneurProprietes.addView(editRotation);
-
-        Button btnCouleur = new Button(context);
-        btnCouleur.setText("Couleur : Sélecteur");
-        conteneurProprietes.addView(btnCouleur);
-
-        EditText editAlpha = new EditText(context);
-        editAlpha.setHint("Transparence (Alpha 0-1)");
-        editAlpha.setTextColor(Color.WHITE);
-        editAlpha.setHintTextColor(Color.GRAY);
-        conteneurProprietes.addView(editAlpha);
-
-        CheckBox cbVisible = new CheckBox(context);
-        cbVisible.setText("Visible");
-        cbVisible.setTextColor(Color.WHITE);
-        cbVisible.setChecked(true);
-        conteneurProprietes.addView(cbVisible);
-
-        CheckBox cbVerrouille = new CheckBox(context);
-        cbVerrouille.setText("Verrouillé (empêche le déplacement)");
-        cbVerrouille.setTextColor(Color.WHITE);
-        conteneurProprietes.addView(cbVerrouille);
-
-        EditText editZOrder = new EditText(context);
-        editZOrder.setHint("Calque (1er plan ↔ Arrière)");
-        editZOrder.setTextColor(Color.WHITE);
-        editZOrder.setHintTextColor(Color.GRAY);
-        conteneurProprietes.addView(editZOrder);
-
-        if ("texte".equals(obj.type)) {
-            TextView txtSep = new TextView(context);
-            txtSep.setText("--- Propriétés du Texte ---");
-            txtSep.setTextColor(Color.LTGRAY);
-            txtSep.setPadding(0, 10, 0, 5);
-            conteneurProprietes.addView(txtSep);
-
-            EditText editContenu = new EditText(context);
-            editContenu.setHint("Contenu texte");
-            editContenu.setText(obj.contenuTexte);
-            editContenu.setTextColor(Color.WHITE);
-            editContenu.setHintTextColor(Color.GRAY);
-            conteneurProprietes.addView(editContenu);
-
-            EditText editTaille = new EditText(context);
-            editTaille.setHint("Taille de police");
-            editTaille.setTextColor(Color.WHITE);
-            editTaille.setHintTextColor(Color.GRAY);
-            conteneurProprietes.addView(editTaille);
-
-            Button btnCouleurTexte = new Button(context);
-            btnCouleurTexte.setText("Couleur du texte");
-            conteneurProprietes.addView(btnCouleurTexte);
-
-            Button btnPolice = new Button(context);
-            btnPolice.setText("Police : Sélecteur");
-            conteneurProprietes.addView(btnPolice);
-        }
-
-        View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
-        
-        for (int i = 0; i < conteneurProprietes.getChildCount(); i++) {
-            View child = conteneurProprietes.getChildAt(i);
-            if (child instanceof EditText) {
-                child.setFocusable(false);
-                child.setClickable(true);
-                child.setOnClickListener(toastListener);
-            } else if (child instanceof Button || child instanceof CheckBox) {
-                child.setOnClickListener(toastListener);
-            } else if (child instanceof LinearLayout) {
-                LinearLayout ll = (LinearLayout) child;
-                for (int j = 0; j < ll.getChildCount(); j++) {
-                    View subChild = ll.getChildAt(j);
-                    subChild.setFocusable(false);
-                    subChild.setClickable(true);
-                    subChild.setOnClickListener(toastListener);
-                }
-            }
-        }
-    }
-// bas 4
-    // haut 5
+// bas 1
+// haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -435,15 +266,13 @@ public class PanneauRessources extends ScrollView {
                 nomScene.setOnClickListener(v -> {
                     editeur.changerScene(s);
                     rafraichirArborescence();
-                    replierEtNettoyerProprietes();
                 });
 
                 conteneurScenes.addView(nomScene);
             }
         }
     }
-// bas 5
-  // haut 6
+
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -563,8 +392,7 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 6
-  // haut 7
+
     public void rafraichirVariables() {
         if (conteneurVariables == null) return;
         conteneurVariables.removeAllViews();
@@ -625,7 +453,8 @@ public class PanneauRessources extends ScrollView {
 
         conteneurVariables.addView(conteneurLigne);
     }
-
+// bas 2
+   // haut 3
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -737,9 +566,7 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 7
 
-// haut 8
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");
@@ -882,9 +709,7 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 8
 
-// haut 9
     private void afficherPopupRenommerScene(Context context, Scene scene) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la scène");
@@ -955,7 +780,6 @@ public class PanneauRessources extends ScrollView {
                     rafraichirScenes();
                 }
                 rafraichirArborescence();
-                replierEtNettoyerProprietes();
                 Toast.makeText(context, "Scène supprimée", Toast.LENGTH_SHORT).show();
             }
             dialog.dismiss();
@@ -1043,4 +867,5 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 }
-// bas 9
+// bas 3
+                                   
