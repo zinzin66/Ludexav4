@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ public class Scene {
     public String nom;
     public List<ObjetBase> objets;
     public List<NoeudBase> noeudsLogique;
-    public List<Variable> variablesLocales; // NOUVEAU: Stockage des variables locales
+    public List<Variable> variablesLocales;
 
     public Scene(String nom) {
         this.nom = nom;
@@ -24,3 +25,4 @@ public class Scene {
         this.noeudsLogique.add(noeud);
     }
 }
+// bas 1

@@ -134,11 +134,13 @@ public class CanvasBlueprint extends View {
                         
                         NoeudBase nouveauNoeud = null;
                         
-                        // CORRECTION ICI : Ajout de l'instanciation pour NoeudEventStart
+                        // CORRECTION ICI : Ajout de l'instanciation pour NoeudActionModifierVariable
                         if ("NoeudActionDeplacer".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudActionDeplacer();
                         } else if ("NoeudEventStart".equals(typeNoeud)) {
                             nouveauNoeud = new NoeudEventStart();
+                        } else if ("NoeudActionModifierVariable".equals(typeNoeud)) {
+                            nouveauNoeud = new NoeudActionModifierVariable();
                         }
                         
                         if (nouveauNoeud != null) {
@@ -204,6 +206,7 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
+
 
 // haut 2
     @Override
@@ -485,7 +488,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-// haut 4
+              // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -623,4 +626,7 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
+
+
+
 
