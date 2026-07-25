@@ -41,9 +41,17 @@ public class EditeurNoeudDialog extends Dialog {
         EditText champSaisie = new EditText(context);
         champSaisie.setTextColor(Color.WHITE);
         champSaisie.setTextSize(24);
-        champSaisie.setInputType(InputType.TYPE_NULL);
-        champSaisie.setShowSoftInputOnFocus(false);
         champSaisie.setGravity(Gravity.CENTER);
+
+        // GESTION DU CLAVIER NATIF
+        boolean isTextMode = noeud.utiliseClavierTexte();
+        if (isTextMode) {
+            champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            champSaisie.setShowSoftInputOnFocus(true);
+        } else {
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            champSaisie.setShowSoftInputOnFocus(false);
+        }
 
         for (String param : params) {
             Button btnParam = new Button(context);
@@ -56,22 +64,24 @@ public class EditeurNoeudDialog extends Dialog {
             if (champActif == null) champActif = param; 
         }
 
-        Button btnToggleClavier = new Button(context);
-        btnToggleClavier.setText("ABC/123");
-        btnToggleClavier.setBackgroundColor(Color.parseColor("#555555"));
-        btnToggleClavier.setTextColor(Color.WHITE);
-        btnToggleClavier.setOnClickListener(v -> {
-            clavierTexteActif = !clavierTexteActif;
-            if (clavierTexteActif) {
-                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT);
-                champSaisie.setShowSoftInputOnFocus(true);
-                champSaisie.requestFocus();
-            } else {
-                champSaisie.setInputType(InputType.TYPE_NULL);
-                champSaisie.setShowSoftInputOnFocus(false);
-            }
-        });
-        barreParams.addView(btnToggleClavier);
+        if (!isTextMode) {
+            Button btnToggleClavier = new Button(context);
+            btnToggleClavier.setText("ABC/123");
+            btnToggleClavier.setBackgroundColor(Color.parseColor("#555555"));
+            btnToggleClavier.setTextColor(Color.WHITE);
+            btnToggleClavier.setOnClickListener(v -> {
+                clavierTexteActif = !clavierTexteActif;
+                if (clavierTexteActif) {
+                    champSaisie.setInputType(InputType.TYPE_CLASS_TEXT);
+                    champSaisie.setShowSoftInputOnFocus(true);
+                    champSaisie.requestFocus();
+                } else {
+                    champSaisie.setInputType(InputType.TYPE_NULL);
+                    champSaisie.setShowSoftInputOnFocus(false);
+                }
+            });
+            barreParams.addView(btnToggleClavier);
+        }
         
         if (champActif != null) {
             champSaisie.setText(noeud.getValeurParametre(champActif));
@@ -80,41 +90,44 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
 
-        String[][] touches = {
-            {"7", "8", "9"},
-            {"4", "5", "6"},
-            {"1", "2", "3"},
-            {"-", "0", "."}, 
-            {"", "DEL", ""}
-        };
+        // AFFICHAGE CONDITIONNEL DU PAVÉ NUMÉRIQUE
+        if (!isTextMode) {
+            String[][] touches = {
+                {"7", "8", "9"},
+                {"4", "5", "6"},
+                {"1", "2", "3"},
+                {"-", "0", "."}, 
+                {"", "DEL", ""}
+            };
 
-        for (String[] ligne : touches) {
-            LinearLayout rowLayout = new LinearLayout(context);
-            rowLayout.setOrientation(LinearLayout.HORIZONTAL);
-            rowLayout.setGravity(Gravity.CENTER);
-            for (String touche : ligne) {
-                Button btn = new Button(context);
-                btn.setText(touche);
-                if (touche.isEmpty()) {
-                    btn.setVisibility(android.view.View.INVISIBLE);
-                } else {
-                    btn.setOnClickListener(v -> {
-                        if (champActif == null) return;
-                        String courant = champSaisie.getText().toString();
-                        
-                        if (touche.equals("DEL")) {
-                            if (courant.length() > 0) {
-                                champSaisie.setText(courant.substring(0, courant.length() - 1));
+            for (String[] ligne : touches) {
+                LinearLayout rowLayout = new LinearLayout(context);
+                rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+                rowLayout.setGravity(Gravity.CENTER);
+                for (String touche : ligne) {
+                    Button btn = new Button(context);
+                    btn.setText(touche);
+                    if (touche.isEmpty()) {
+                        btn.setVisibility(android.view.View.INVISIBLE);
+                    } else {
+                        btn.setOnClickListener(v -> {
+                            if (champActif == null) return;
+                            String courant = champSaisie.getText().toString();
+                            
+                            if (touche.equals("DEL")) {
+                                if (courant.length() > 0) {
+                                    champSaisie.setText(courant.substring(0, courant.length() - 1));
+                                }
+                            } else {
+                                champSaisie.setText(courant + touche);
                             }
-                        } else {
-                            champSaisie.setText(courant + touche);
-                        }
-                        noeud.setValeurParametre(champActif, champSaisie.getText().toString());
-                    });
+                            noeud.setValeurParametre(champActif, champSaisie.getText().toString());
+                        });
+                    }
+                    rowLayout.addView(btn);
                 }
-                rowLayout.addView(btn);
+                zoneGauche.addView(rowLayout);
             }
-            zoneGauche.addView(rowLayout);
         }
 
         Button btnValider = new Button(context);
@@ -130,107 +143,4 @@ public class EditeurNoeudDialog extends Dialog {
         });
         zoneGauche.addView(btnValider);
 // bas 1
-  // haut 2
-        LinearLayout zoneDroite = new LinearLayout(context);
-        zoneDroite.setOrientation(LinearLayout.VERTICAL);
-        zoneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
-        zoneDroite.setBackgroundColor(Color.parseColor("#1E1E1E"));
-        zoneDroite.setPadding(20, 20, 20, 20);
-
-        if (noeud.requiertCibleObjet()) {
-            TextView titreDroite = new TextView(context);
-            titreDroite.setText("Objets de la Scène");
-            titreDroite.setTextColor(Color.LTGRAY);
-            titreDroite.setTextSize(18);
-            zoneDroite.addView(titreDroite);
-
-            TextView txtCibleActuelle = new TextView(context);
-            txtCibleActuelle.setTextColor(Color.parseColor("#44AAFF"));
-            ObjetBase cible = noeud.getCibleObjet();
-            txtCibleActuelle.setText("Cible : " + (cible != null ? cible.nom : "Aucune"));
-            txtCibleActuelle.setPadding(0, 10, 0, 20);
-            zoneDroite.addView(txtCibleActuelle);
-
-            ScrollView scrollObjets = new ScrollView(context);
-            LinearLayout listeObjets = new LinearLayout(context);
-            listeObjets.setOrientation(LinearLayout.VERTICAL);
-
-            if (scene != null && scene.objets != null) {
-                for (ObjetBase obj : scene.objets) {
-                    Button btnObj = new Button(context);
-                    btnObj.setText(obj.nom);
-                    btnObj.setOnClickListener(v -> {
-                        noeud.setCibleObjet(obj);
-                        txtCibleActuelle.setText("Cible : " + obj.nom);
-                    });
-                    listeObjets.addView(btnObj);
-                }
-            }
-            scrollObjets.addView(listeObjets);
-            zoneDroite.addView(scrollObjets);
-        }
-
-        if (noeud.requiertCibleVariable()) {
-            TextView titreVar = new TextView(context);
-            titreVar.setText("Variables");
-            titreVar.setTextColor(Color.LTGRAY);
-            titreVar.setTextSize(18);
-            if (noeud.requiertCibleObjet()) titreVar.setPadding(0, 30, 0, 0);
-            zoneDroite.addView(titreVar);
-
-            TextView txtCibleActuelleVar = new TextView(context);
-            txtCibleActuelleVar.setTextColor(Color.parseColor("#44AAFF"));
-            Variable cibleVar = noeud.getCibleVariable();
-            txtCibleActuelleVar.setText("Cible : " + (cibleVar != null ? cibleVar.nom : "Aucune"));
-            txtCibleActuelleVar.setPadding(0, 10, 0, 20);
-            zoneDroite.addView(txtCibleActuelleVar);
-
-            ScrollView scrollVar = new ScrollView(context);
-            LinearLayout listeVar = new LinearLayout(context);
-            listeVar.setOrientation(LinearLayout.VERTICAL);
-
-            if (context instanceof InterfaceEditeur) {
-                List<Variable> globales = ((InterfaceEditeur) context).variablesGlobales;
-                if (globales != null) {
-                    for (Variable var : globales) {
-                        Button btnVar = new Button(context);
-                        btnVar.setText(var.nom);
-                        btnVar.setBackgroundColor(Color.parseColor("#ADD8E6"));
-                        btnVar.setOnClickListener(v -> {
-                            noeud.setCibleVariable(var);
-                            txtCibleActuelleVar.setText("Cible : " + var.nom);
-                        });
-                        listeVar.addView(btnVar);
-                    }
-                }
-            }
-
-            if (scene != null && scene.variablesLocales != null) {
-                for (Variable var : scene.variablesLocales) {
-                    Button btnVar = new Button(context);
-                    btnVar.setText(var.nom);
-                    btnVar.setBackgroundColor(Color.parseColor("#90EE90"));
-                    btnVar.setOnClickListener(v -> {
-                        noeud.setCibleVariable(var);
-                        txtCibleActuelleVar.setText("Cible : " + var.nom);
-                    });
-                    listeVar.addView(btnVar);
-                }
-            }
-            scrollVar.addView(listeVar);
-            zoneDroite.addView(scrollVar);
-        }
-
-        if (!noeud.requiertCibleObjet() && !noeud.requiertCibleVariable()) {
-            TextView info = new TextView(context);
-            info.setText("Ce nœud n'utilise pas de cible.");
-            info.setTextColor(Color.DKGRAY);
-            zoneDroite.addView(info);
-        }
-
-        root.addView(zoneGauche);
-        root.addView(zoneDroite);
-        setContentView(root);
-    }
-}
-// bas 2
+    
