@@ -131,7 +131,9 @@ public class CanvasEditeur extends View {
                     float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                     canvas.drawCircle(cx, cy, rayon, paintObjet);
                 } else if ("texte".equals(objet.type)) {
-                    canvas.drawText(objet.nom, left, bottom, paintTexte);
+                    // Rétrocompatibilité : affichage du nouveau champ, sinon fallback sur nom
+                    String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+                    canvas.drawText(texteAAfficher, left, bottom, paintTexte);
                 } else {
                     canvas.drawRect(left, top, right, bottom, paintObjet);
                 }
