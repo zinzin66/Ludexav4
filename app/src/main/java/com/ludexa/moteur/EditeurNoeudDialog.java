@@ -1,4 +1,5 @@
-// haut 1
+
+        // haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -6,6 +7,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.View; // <-- L'import qui manquait est ici !
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -117,6 +119,7 @@ public class EditeurNoeudDialog extends Dialog {
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
 // bas 1
+        
 // haut 2
         LinearLayout zoneDroite = new LinearLayout(context);
         zoneDroite.setOrientation(LinearLayout.VERTICAL);
