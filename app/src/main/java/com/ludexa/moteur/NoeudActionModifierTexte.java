@@ -5,7 +5,8 @@ import java.util.List;
 
 public class NoeudActionModifierTexte extends NoeudBase {
 
-    private ObjetBase cible;
+    private transient ObjetBase cible;
+    private String nomCibleObjet;
     private String texteSaisi = "";
 
     public NoeudActionModifierTexte() {
@@ -16,54 +17,48 @@ public class NoeudActionModifierTexte extends NoeudBase {
 
     @Override
     public void executer() {
-        if (cible != null && texteSaisi != null) {
+        ObjetBase cibleActuelle = getCibleObjet();
+        if (cibleActuelle != null && texteSaisi != null) {
             String input = texteSaisi.trim();
             StringBuilder resultatFinal = new StringBuilder();
             boolean dansGuillemets = false;
             StringBuilder tokenCourant = new StringBuilder();
 
-            // Mini-interpréteur pour syntaxe : "Texte" + Variable
             for (int i = 0; i < input.length(); i++) {
                 char c = input.charAt(i);
                 
                 if (c == '"') {
                     if (dansGuillemets) {
-                        // Fin d'une chaîne de texte littérale
                         resultatFinal.append(tokenCourant.toString());
                         tokenCourant.setLength(0);
                         dansGuillemets = false;
                     } else {
-                        // Début d'une chaîne de texte littérale
                         dansGuillemets = true;
                         tokenCourant.setLength(0);
                     }
                 } else if (!dansGuillemets && c == '+') {
-                    // On rencontre un +, on évalue ce qu'il y avait avant si ce n'est pas vide
                     String nomVar = tokenCourant.toString().trim();
                     if (!nomVar.isEmpty()) {
                         Variable v = trouverVariable(nomVar);
-                        resultatFinal.append(v != null ? v.valeur.toString() : "");
-                        tokenCourant.setLength(0);
+                        resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                     }
+                    tokenCourant.setLength(0); // Correction du bug d'espacement
                 } else {
-                    // On accumule les caractères
                     tokenCourant.append(c);
                 }
             }
             
-            // Évaluer le dernier bout de texte s'il reste une variable après le dernier +
             if (!dansGuillemets) {
                 String nomVar = tokenCourant.toString().trim();
                 if (!nomVar.isEmpty()) {
                     Variable v = trouverVariable(nomVar);
-                    resultatFinal.append(v != null ? v.valeur.toString() : "");
+                    resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                 }
             } else {
-                // Si l'utilisateur a oublié de fermer le guillemet, on ajoute quand même le texte
                 resultatFinal.append(tokenCourant.toString());
             }
 
-            cible.nom = resultatFinal.toString();
+            cibleActuelle.nom = resultatFinal.toString();
         }
         propagerExecution("Suivant");
     }
@@ -110,21 +105,39 @@ public class NoeudActionModifierTexte extends NoeudBase {
     public List<String> getNomsParametres() { return Arrays.asList("Code/Texte"); }
 
     @Override
-    public String getValeurParametre(String nom) {
-        return texteSaisi;
-    }
+    public String getValeurParametre(String nom) { return texteSaisi; }
 
     @Override
-    public void setValeurParametre(String nom, String valeur) {
-        texteSaisi = valeur;
-    }
+    public void setValeurParametre(String nom, String valeur) { texteSaisi = valeur; }
 
     @Override
     public boolean requiertCibleObjet() { return true; }
     
     @Override
-    public void setCibleObjet(ObjetBase objet) { this.cible = objet; }
+    public void setCibleObjet(ObjetBase objet) { 
+        this.cible = objet;
+        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+    }
     
     @Override
-    public ObjetBase getCibleObjet() { return this.cible; }
+    public ObjetBase getCibleObjet() {
+        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
+            // Reconnexion dynamique
+            try {
+                if (contexteApplication instanceof InterfaceEditeur) {
+                    Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
+                    if (s != null && s.objets != null) {
+                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
+                    }
+                } else {
+                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                    Scene s = (Scene) sceneField.get(contexteApplication);
+                    if (s != null && s.objets != null) {
+                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return this.cible;
+    }
 }
