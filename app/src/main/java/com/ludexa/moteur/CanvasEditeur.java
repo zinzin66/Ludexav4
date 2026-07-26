@@ -60,8 +60,8 @@ public class CanvasEditeur extends View {
         paintObjet.setAntiAlias(true);
 
         paintTexte = new Paint();
-        paintTexte.setTextSize(40f);
         paintTexte.setAntiAlias(true);
+        // La taille est désormais calculée dynamiquement dans onDraw
 
         paintSelection = new Paint();
         paintSelection.setColor(Color.parseColor("#CC8844"));
@@ -160,7 +160,17 @@ public class CanvasEditeur extends View {
                     } else if ("texte".equals(objet.type)) {
                         paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                         String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                        canvas.drawText(texteAAfficher, left, bottom, paintTexte);
+                        
+                        // Redimensionnement dynamique du texte
+                        paintTexte.setTextSize(objet.hauteur * 0.8f);
+                        paintTexte.setTextScaleX(1.0f); // Réinitialisation de l'échelle X
+                        float largeurTexte = paintTexte.measureText(texteAAfficher);
+                        if (largeurTexte > 0) {
+                            paintTexte.setTextScaleX(objet.largeur / largeurTexte);
+                        }
+                        
+                        canvas.drawText(texteAAfficher, left, bottom - (objet.hauteur * 0.1f), paintTexte);
+                        paintTexte.setTextScaleX(1.0f); // Nettoyage
                     } else {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                         canvas.drawRect(left, top, right, bottom, paintObjet);
@@ -185,7 +195,8 @@ public class CanvasEditeur extends View {
         }
         canvas.restore();
     }
-
+// bas 2
+    // haut 3
     private float[] ecranVersScene(float xEcran, float yEcran) {
         float centreX = getWidth() / 2f;
         float centreY = getHeight() / 2f;
@@ -215,9 +226,7 @@ public class CanvasEditeur extends View {
         float ry = (float) (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
         return new float[]{cx + rx, cy + ry};
     }
-// bas 2
 
-// haut 3
     private ObjetBase trouverObjetSousToucher(float xEcran, float yEcran) {
         if (sceneActive == null) return null;
         float[] scenePos = ecranVersScene(xEcran, yEcran);
@@ -393,4 +402,5 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
+
 
