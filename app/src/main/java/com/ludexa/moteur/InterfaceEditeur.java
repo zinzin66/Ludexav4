@@ -116,7 +116,8 @@ public class InterfaceEditeur extends Activity {
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasEditeur.setLayoutParams(paramsCentre);
 // bas 1
-// haut 2
+
+        // haut 2
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("[-]");
         boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
@@ -145,9 +146,10 @@ public class InterfaceEditeur extends Activity {
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
             InterfaceBlueprint.sceneACharger = this.sceneActive;
-            
-            // NOUVEAU : Transmission des variables globales
             InterfaceBlueprint.variablesGlobalesACharger = this.variablesGlobales; 
+            
+            // NOUVEAU : Transmission de la liste des scènes
+            InterfaceBlueprint.listeScenesACharger = this.listeScenes; 
             
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
             startActivity(intent);
@@ -349,5 +351,5 @@ public class InterfaceEditeur extends Activity {
 }
 // bas 2
 
-
+          
     
