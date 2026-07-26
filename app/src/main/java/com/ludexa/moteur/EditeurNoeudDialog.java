@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast; // <-- Ajout pour le bouton "Depuis un objet"
+import android.widget.Toast; 
 import java.util.List;
 
 public class EditeurNoeudDialog extends Dialog {
@@ -103,9 +103,7 @@ public class EditeurNoeudDialog extends Dialog {
             });
             barreParams.addView(btnDepuisObjet);
         }
-// bas 1
 
-        // haut 2
         zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
 
@@ -165,9 +163,8 @@ public class EditeurNoeudDialog extends Dialog {
             conteneurClavier.addView(rowLayout);
         }
         zoneGauche.addView(conteneurClavier);
-// bas 2
-
-       // haut 3
+// bas 1
+// haut 2
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -235,24 +232,35 @@ public class EditeurNoeudDialog extends Dialog {
         titreVars.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreVars);
 
-        if (context instanceof InterfaceEditeur) {
-            List<Variable> globales = ((InterfaceEditeur) context).variablesGlobales;
-            if (globales != null) {
-                for (Variable var : globales) {
-                    Button btnVar = new Button(context);
-                    btnVar.setText(var.nom + " (Globale)");
-                    btnVar.setTextColor(Color.WHITE);
-                    btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
-                    btnVar.setOnClickListener(v -> {
-                        if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
-                            noeud.setCibleVariable(var);
-                            txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
-                        } else {
-                            insererTexte(champSaisie, var.nom);
-                        }
-                    });
-                    listeDroite.addView(btnVar);
-                }
+        // CORRECTION : Découplage du ciblage strict (instanceof InterfaceEditeur) 
+        // Utilisation de la réflexion via le contexteApplication statique.
+        List<Variable> variablesGlobalesRecuperees = null;
+        if (NoeudBase.contexteApplication != null) {
+            try {
+                java.lang.reflect.Field varsField = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
+                @SuppressWarnings("unchecked")
+                List<Variable> globales = (List<Variable>) varsField.get(NoeudBase.contexteApplication);
+                variablesGlobalesRecuperees = globales;
+            } catch (Exception e) {
+                // Silencieux : le contexte actuel ne possède pas de champ 'variablesGlobales'
+            }
+        }
+
+        if (variablesGlobalesRecuperees != null) {
+            for (Variable var : variablesGlobalesRecuperees) {
+                Button btnVar = new Button(context);
+                btnVar.setText(var.nom + " (Globale)");
+                btnVar.setTextColor(Color.WHITE);
+                btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
+                btnVar.setOnClickListener(v -> {
+                    if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
+                        noeud.setCibleVariable(var);
+                        txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
+                    } else {
+                        insererTexte(champSaisie, var.nom);
+                    }
+                });
+                listeDroite.addView(btnVar);
             }
         }
 
@@ -331,5 +339,6 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), texteAInserer, 0, texteAInserer.length());
     }
 }
-// bas 3
+// bas 2
 
+    
