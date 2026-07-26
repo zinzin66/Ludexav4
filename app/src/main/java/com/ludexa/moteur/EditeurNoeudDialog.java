@@ -50,6 +50,8 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        
+        // C'est cette ligne qui gère l'ouverture du clavier selon le noeud
         champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
 
         List<String> params = noeud.getNomsParametres();

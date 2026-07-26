@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -99,4 +100,11 @@ public class NoeudActionModifierVariable extends NoeudBase {
         }
         return this.cible; 
     }
+
+    // --- CORRECTION : Autorise l'ouverture du clavier pour ce noeud ---
+    @Override
+    public boolean utiliseClavierTexte() {
+        return true;
+    }
 }
+// bas 1
