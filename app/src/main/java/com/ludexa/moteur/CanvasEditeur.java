@@ -61,12 +61,12 @@ public class CanvasEditeur extends View {
         paintTexte.setAntiAlias(true);
 
         paintSelection = new Paint();
-        paintSelection.setColor(Color.YELLOW);
+        paintSelection.setColor(Color.parseColor("#CC8844"));
         paintSelection.setStyle(Paint.Style.STROKE);
         paintSelection.setStrokeWidth(6);
         
         paintPoignee = new Paint();
-        paintPoignee.setColor(Color.YELLOW);
+        paintPoignee.setColor(Color.parseColor("#E53935"));
         paintPoignee.setStyle(Paint.Style.FILL);
         paintPoignee.setAntiAlias(true);
     }
@@ -103,6 +103,7 @@ public class CanvasEditeur extends View {
         invalidate();
     }
 // bas 1
+
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -199,7 +200,7 @@ public class CanvasEditeur extends View {
         return new float[]{cx + rx, cy + ry};
     }
 // bas 2
-// haut 3
+    // haut 3
     private ObjetBase trouverObjetSousToucher(float xEcran, float yEcran) {
         if (sceneActive == null) return null;
         float[] scenePos = ecranVersScene(xEcran, yEcran);
@@ -367,5 +368,5 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
-                
-    
+
+
