@@ -168,8 +168,7 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.addView(conteneurClavier);
 // bas 1
         
-
-    // haut 2
+// haut 2
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -254,7 +253,8 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setTextColor(Color.WHITE);
                 btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
                 btnVar.setOnClickListener(v -> {
-                    if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
+                    // CORRECTION : On retire le check clavier. Si ça cible une variable, ça définit la cible.
+                    if (noeud.requiertCibleVariable()) {
                         noeud.setCibleVariable(var);
                         txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
                     } else {
@@ -272,7 +272,8 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setTextColor(Color.WHITE);
                 btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
                 btnVar.setOnClickListener(v -> {
-                    if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
+                    // CORRECTION : On retire le check clavier ici aussi.
+                    if (noeud.requiertCibleVariable()) {
                         noeud.setCibleVariable(var);
                         txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
                     } else {
@@ -373,3 +374,4 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 2
+            
