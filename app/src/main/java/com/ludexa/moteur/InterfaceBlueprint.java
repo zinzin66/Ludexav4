@@ -15,10 +15,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
+import java.util.List; // NOUVEL IMPORT
 
 public class InterfaceBlueprint extends Activity {
 
     public static Scene sceneACharger; 
+    public static List<Variable> variablesGlobalesACharger; // NOUVEAU
+    public List<Variable> variablesGlobales; // NOUVEAU
 
     private Blueprint blueprintActif;
     private CanvasBlueprint canvasBlueprint;
@@ -33,6 +36,8 @@ public class InterfaceBlueprint extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         NoeudBase.contexteApplication = this;
+        
+        this.variablesGlobales = variablesGlobalesACharger; // NOUVEAU
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -123,6 +128,7 @@ public class InterfaceBlueprint extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 1
+    
 
 // haut 2
     private void sauvegarderBlueprintLocal() {
