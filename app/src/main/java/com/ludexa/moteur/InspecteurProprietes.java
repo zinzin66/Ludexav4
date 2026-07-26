@@ -116,6 +116,10 @@ public class InspecteurProprietes extends LinearLayout {
         
         blocProprietes.addView(layoutNom);
 
+        TextView labelPos = new TextView(context);
+        labelPos.setText("Position X / Y");
+        blocProprietes.addView(labelPos);
+
         LinearLayout layoutPos = new LinearLayout(context);
         layoutPos.setOrientation(LinearLayout.HORIZONTAL);
         
@@ -134,6 +138,10 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(layoutPos);
 
         View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
+
+        TextView labelDim = new TextView(context);
+        labelDim.setText("Largeur / Hauteur");
+        blocProprietes.addView(labelDim);
 
         LinearLayout layoutDim = new LinearLayout(context);
         layoutDim.setOrientation(LinearLayout.HORIZONTAL);
@@ -187,8 +195,7 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setOnClickListener(toastListener);
         blocProprietes.addView(champZOrder);
 // bas 1
-
-// haut 2
+        // haut 2
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
         blocTexte.setPadding(0, 15, 0, 0);
@@ -381,6 +388,7 @@ public class InspecteurProprietes extends LinearLayout {
             valeurType.setText("Type : " + nomType);
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
+            champRotation.setText(String.valueOf((int) objet.rotation));
             cbVisible.setChecked(true);
             
             if ("texte".equals(objet.type)) {
@@ -412,6 +420,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 2
-                
-        
+
+
     
