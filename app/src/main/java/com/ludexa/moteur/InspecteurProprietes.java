@@ -159,13 +159,13 @@ public class InspecteurProprietes extends LinearLayout {
         layoutDim.addView(champLargeur);
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
-
+// bas 1
+  // haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         blocProprietes.addView(champRotation);
-// bas 1
-// haut 2
+
         btnCouleur = new Button(context);
         btnCouleur.setText("Couleur : Sélecteur");
         blocProprietes.addView(btnCouleur);
@@ -184,6 +184,11 @@ public class InspecteurProprietes extends LinearLayout {
         cbVerrouille.setText("Verrouillé (empêche l'édition)");
         cbVerrouille.setOnClickListener(toastListener);
         blocProprietes.addView(cbVerrouille);
+
+        // Ajout du label manquant pour le Z-Order
+        TextView labelZOrder = new TextView(context);
+        labelZOrder.setText("Calque (Z-Order)");
+        blocProprietes.addView(labelZOrder);
 
         champZOrder = new EditText(context);
         champZOrder.setHint("Calque (Z-Order)");
@@ -279,8 +284,7 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 2
-
-// haut 3
+     // haut 3
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
                 scrollInspecteur.setVisibility(View.GONE);
@@ -454,6 +458,3 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 3
-
-        
-    
