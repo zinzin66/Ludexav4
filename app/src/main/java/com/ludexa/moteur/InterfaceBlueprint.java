@@ -15,13 +15,16 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
-import java.util.List; // NOUVEL IMPORT
+import java.util.List; 
 
 public class InterfaceBlueprint extends Activity {
 
     public static Scene sceneACharger; 
-    public static List<Variable> variablesGlobalesACharger; // NOUVEAU
-    public List<Variable> variablesGlobales; // NOUVEAU
+    public static List<Variable> variablesGlobalesACharger; 
+    public static List<Scene> listeScenesACharger; // NOUVEAU : Réception de la liste des scènes
+
+    public List<Variable> variablesGlobales; 
+    public List<Scene> listeScenes; // NOUVEAU : Champ public pour la réflexion
 
     private Blueprint blueprintActif;
     private CanvasBlueprint canvasBlueprint;
@@ -37,7 +40,8 @@ public class InterfaceBlueprint extends Activity {
         super.onCreate(savedInstanceState);
         NoeudBase.contexteApplication = this;
         
-        this.variablesGlobales = variablesGlobalesACharger; // NOUVEAU
+        this.variablesGlobales = variablesGlobalesACharger; 
+        this.listeScenes = listeScenesACharger; // NOUVEAU : Assignation
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -128,6 +132,7 @@ public class InterfaceBlueprint extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 1
+    
     
 
 // haut 2
