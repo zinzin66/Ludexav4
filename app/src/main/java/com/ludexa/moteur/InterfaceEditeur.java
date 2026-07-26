@@ -43,8 +43,15 @@ public class InterfaceEditeur extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        NoeudBase.contexteApplication = this;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        NoeudBase.contexteApplication = this;
 
         layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -108,7 +115,8 @@ public class InterfaceEditeur extends Activity {
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasEditeur.setLayoutParams(paramsCentre);
-
+// bas 1
+// haut 2
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("[-]");
         boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
@@ -132,9 +140,7 @@ public class InterfaceEditeur extends Activity {
             boutonDeplacerScene.setText(nouveauMode ? "Mode: Déplacement" : "Déplacer Scène");
         });
         bandeauHaut.addView(boutonDeplacerScene);
-// bas 1
 
-// haut 2
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
@@ -338,3 +344,5 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
+    
