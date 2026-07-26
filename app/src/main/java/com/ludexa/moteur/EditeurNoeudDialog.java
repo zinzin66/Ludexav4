@@ -103,7 +103,7 @@ public class EditeurNoeudDialog extends Dialog {
 
         zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
-
+// CLAVIER CODE
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
