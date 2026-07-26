@@ -5,6 +5,8 @@ import android.graphics.Color;
 import java.util.UUID;
 
 public class ObjetBase {
+    private static int compteurZOrderGlobal = 0; // Compteur pour ordre de création
+
     public String id;
     public String type;
     public String nom;
@@ -15,10 +17,9 @@ public class ObjetBase {
     public float hauteur;
     public float rotation;
 
-    // Nouveaux champs ajoutés
-    public int couleur = Color.BLUE; // Couleur par défaut (Bleu, format ARGB)
-    public int zOrder = 0;           // Calque par défaut
-    public boolean visible = true;   // Visible par défaut
+    public int couleur = Color.BLUE; 
+    public int zOrder;           
+    public boolean visible = true;   
 
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
@@ -29,6 +30,9 @@ public class ObjetBase {
         this.largeur = largeur;
         this.hauteur = hauteur;
         this.rotation = 0f; 
+        
+        // Z-Order par défaut = ordre de création automatique
+        this.zOrder = compteurZOrderGlobal++;
         
         if (nom != null) {
             String nomMinuscule = nom.toLowerCase();
@@ -51,9 +55,8 @@ public class ObjetBase {
         copie.contenuTexte = this.contenuTexte;
         copie.rotation = this.rotation; 
         
-        // Inclusion des nouveaux champs dans le clonage
         copie.couleur = this.couleur;
-        copie.zOrder = this.zOrder;
+        copie.zOrder = this.zOrder; // On conserve le zOrder lors d'un clone
         copie.visible = this.visible;
         
         return copie;
