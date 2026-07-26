@@ -9,6 +9,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -24,13 +25,12 @@ public class EditeurNoeudDialog extends Dialog {
     public EditeurNoeudDialog(Context context, NoeudBase noeud, Scene scene, Runnable onValidate) {
         super(context);
         
-        // --- CORRECTION CLAVIER ---
-        if (getWindow() != null) {
+        // --- CORRECTION CLAVIER : Déblocage de la fenêtre ---
+        if (noeud.utiliseClavierTexte() && getWindow() != null) {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
                                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
         }
-        // --------------------------
-
+        
         setTitle("Edit Value - " + noeud.nom);
 
         // Layout Principal : Horizontal
@@ -61,6 +61,17 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setPadding(15, 15, 15, 15);
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
+
+        // --- CORRECTION CLAVIER : Appel explicite ---
+        if (noeud.utiliseClavierTexte()) {
+            champSaisie.setOnClickListener(v -> {
+                champSaisie.requestFocus();
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.showSoftInput(champSaisie, InputMethodManager.SHOW_IMPLICIT);
+                }
+            });
+        }
 
         List<String> params = noeud.getNomsParametres();
         if (params != null && !params.isEmpty()) {
@@ -167,6 +178,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
         zoneGauche.addView(conteneurClavier);
 // bas 1
+        
         
 // haut 2
         // =========================================================
