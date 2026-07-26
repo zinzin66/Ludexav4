@@ -7,6 +7,8 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 
 public class InspecteurProprietes extends LinearLayout {
@@ -20,6 +22,7 @@ public class InspecteurProprietes extends LinearLayout {
     private TextView texteInfo;
     private LinearLayout blocProprietes;
     private EditText champNom;
+    private Button btnValiderNom;
     private EditText champX;
     private EditText champY;
     private Button boutonSupprimer;
@@ -96,8 +99,22 @@ public class InspecteurProprietes extends LinearLayout {
         TextView labelNom = new TextView(context);
         labelNom.setText("Nom");
         blocProprietes.addView(labelNom);
+
+        // NOUVEAU : Un layout horizontal pour aligner le champ Nom et le bouton OK
+        LinearLayout layoutNom = new LinearLayout(context);
+        layoutNom.setOrientation(LinearLayout.HORIZONTAL);
+        
         champNom = new EditText(context);
-        blocProprietes.addView(champNom);
+        champNom.setSingleLine(true); // Force sur une seule ligne
+        champNom.setImeOptions(EditorInfo.IME_ACTION_DONE); // Affiche le bouton valider sur le clavier
+        champNom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        layoutNom.addView(champNom);
+        
+        btnValiderNom = new Button(context);
+        btnValiderNom.setText("OK");
+        layoutNom.addView(btnValiderNom);
+        
+        blocProprietes.addView(layoutNom);
 
         LinearLayout layoutPos = new LinearLayout(context);
         layoutPos.setOrientation(LinearLayout.HORIZONTAL);
@@ -170,7 +187,7 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setOnClickListener(toastListener);
         blocProprietes.addView(champZOrder);
 // bas 1
-      
+
 // haut 2
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -185,7 +202,30 @@ public class InspecteurProprietes extends LinearLayout {
         champContenu = new EditText(context);
         champContenu.setHint("Contenu du texte");
         champContenu.setFocusable(false);
-        champContenu.setOnClickListener(toastListener);
+        champContenu.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Modifier le texte");
+            
+            final EditText input = new EditText(context);
+            input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            input.setSingleLine(false);
+            input.setLines(5);
+            input.setGravity(Gravity.TOP | Gravity.START);
+            input.setText(objetCourant.contenuTexte);
+            
+            builder.setView(input);
+            builder.setPositiveButton("Valider", (dialog, which) -> {
+                String nouveauTexte = input.getText().toString();
+                objetCourant.contenuTexte = nouveauTexte;
+                miseAJourEnCours = true;
+                champContenu.setText(nouveauTexte);
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            });
+            builder.setNegativeButton("Annuler", null);
+            builder.show();
+        });
         blocTexte.addView(champContenu);
 
         champTaille = new EditText(context);
@@ -253,9 +293,21 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 
-        champNom.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) objetCourant.nom = texte;
-        }));
+        // NOUVEAU : Validation propre avec le bouton OK et le clavier
+        champNom.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                verifierEtConfirmerRenommage(context);
+                cacherClavier(context, v);
+                return true;
+            }
+            return false;
+        });
+
+        btnValiderNom.setOnClickListener(v -> {
+            verifierEtConfirmerRenommage(context);
+            cacherClavier(context, champNom);
+        });
+
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try {
@@ -272,6 +324,40 @@ public class InspecteurProprietes extends LinearLayout {
                 } catch (NumberFormatException ignored) {}
             }
         }));
+    }
+
+    private void cacherClavier(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    private void verifierEtConfirmerRenommage(Context context) {
+        if (objetCourant == null) return;
+        String nouveauNom = champNom.getText().toString();
+        String ancienNom = objetCourant.nom;
+        
+        if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
+            new AlertDialog.Builder(context)
+                    .setTitle("Confirmation")
+                    .setMessage("Renommer " + ancienNom + " en " + nouveauNom + " ?")
+                    .setPositiveButton("Oui", (dialog, which) -> {
+                        objetCourant.nom = nouveauNom;
+                        canvasEditeur.invalidate();
+                    })
+                    .setNegativeButton("Non", (dialog, which) -> {
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                    })
+                    .setOnCancelListener(dialog -> {
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                    })
+                    .show();
+        }
     }
 
     public void afficherObjet(ObjetBase objet) {
@@ -326,4 +412,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 2
-
+                
+        
+    

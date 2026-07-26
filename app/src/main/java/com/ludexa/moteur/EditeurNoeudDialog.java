@@ -38,12 +38,11 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.2f));
         zoneGauche.setPadding(20, 20, 20, 20);
 
-        // NOUVEAU : Barre des paramètres (X, Y, etc.)
         LinearLayout barreParams = new LinearLayout(context);
         barreParams.setOrientation(LinearLayout.HORIZONTAL);
         barreParams.setPadding(0, 0, 0, 15);
 
-        // Champ de saisie principal (multiligne)
+        // Champ de saisie principal
         EditText champSaisie = new EditText(context);
         champSaisie.setTextColor(Color.WHITE);
         champSaisie.setBackgroundColor(Color.parseColor("#2A2A2A"));
@@ -81,9 +80,9 @@ public class EditeurNoeudDialog extends Dialog {
                         View child = barreParams.getChildAt(i);
                         if (child instanceof Button && params.contains(((Button)child).getText().toString())) {
                             if (((Button)child).getText().toString().equals(champActif)) {
-                                child.setBackgroundColor(Color.parseColor("#4CAF50")); // Vert = Actif
+                                child.setBackgroundColor(Color.parseColor("#4CAF50"));
                             } else {
-                                child.setBackgroundColor(Color.parseColor("#555555")); // Gris = Inactif
+                                child.setBackgroundColor(Color.parseColor("#555555"));
                             }
                         }
                     }
@@ -96,14 +95,15 @@ public class EditeurNoeudDialog extends Dialog {
             btnDepuisObjet.setTextColor(Color.parseColor("#FFD700")); 
             btnDepuisObjet.setBackgroundColor(Color.parseColor("#333333"));
             btnDepuisObjet.setOnClickListener(v -> {
-                Toast.makeText(context, "À venir : Lier " + champActif + " à une propriété (ex: Objet.X)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "À venir : Lier " + champActif + " à une propriété", Toast.LENGTH_SHORT).show();
             });
             barreParams.addView(btnDepuisObjet);
         }
 
         zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
-// CLAVIER CODE
+
+        // CLAVIER CODE
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -159,8 +159,44 @@ public class EditeurNoeudDialog extends Dialog {
             conteneurClavier.addView(rowLayout);
         }
         zoneGauche.addView(conteneurClavier);
+
+        // CONTENEUR BOOLEEN
+        LinearLayout conteneurBooleen = new LinearLayout(context);
+        conteneurBooleen.setOrientation(LinearLayout.HORIZONTAL);
+        conteneurBooleen.setGravity(Gravity.CENTER);
+        conteneurBooleen.setPadding(0, 20, 0, 0);
+        conteneurBooleen.setVisibility(View.GONE);
+
+        Button btnVrai = new Button(context);
+        btnVrai.setText("Vrai (true)");
+        btnVrai.setBackgroundColor(Color.parseColor("#4CAF50"));
+        btnVrai.setTextColor(Color.WHITE);
+        LinearLayout.LayoutParams paramVrai = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        paramVrai.setMargins(10, 10, 10, 10);
+        btnVrai.setLayoutParams(paramVrai);
+        btnVrai.setOnClickListener(v -> {
+            champSaisie.setText("true");
+            if (champActif != null) noeud.setValeurParametre(champActif, "true");
+        });
+
+        Button btnFaux = new Button(context);
+        btnFaux.setText("Faux (false)");
+        btnFaux.setBackgroundColor(Color.parseColor("#F44336"));
+        btnFaux.setTextColor(Color.WHITE);
+        LinearLayout.LayoutParams paramFaux = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        paramFaux.setMargins(10, 10, 10, 10);
+        btnFaux.setLayoutParams(paramFaux);
+        btnFaux.setOnClickListener(v -> {
+            champSaisie.setText("false");
+            if (champActif != null) noeud.setValeurParametre(champActif, "false");
+        });
+
+        conteneurBooleen.addView(btnVrai);
+        conteneurBooleen.addView(btnFaux);
+        zoneGauche.addView(conteneurBooleen);
 // bas 1
-        // haut 2
+
+    // haut 2
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -234,8 +270,7 @@ public class EditeurNoeudDialog extends Dialog {
                 @SuppressWarnings("unchecked")
                 List<Variable> globales = (List<Variable>) varsField.get(NoeudBase.contexteApplication);
                 variablesGlobalesRecuperees = globales;
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         }
 
         if (variablesGlobalesRecuperees != null) {
@@ -248,6 +283,7 @@ public class EditeurNoeudDialog extends Dialog {
                     if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
                         noeud.setCibleVariable(var);
                         txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
+                        majInterfacePourVariable(var, noeud, champSaisie, conteneurClavier, conteneurBooleen);
                     } else {
                         insererTexte(champSaisie, var.nom);
                     }
@@ -266,6 +302,7 @@ public class EditeurNoeudDialog extends Dialog {
                     if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
                         noeud.setCibleVariable(var);
                         txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
+                        majInterfacePourVariable(var, noeud, champSaisie, conteneurClavier, conteneurBooleen);
                     } else {
                         insererTexte(champSaisie, var.nom);
                     }
@@ -274,7 +311,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        // --- NOUVEAU : Section SCÈNES ---
+        // Section SCÈNES
         TextView titreScenes = new TextView(context);
         titreScenes.setText("Scènes");
         titreScenes.setTextColor(Color.WHITE);
@@ -290,8 +327,7 @@ public class EditeurNoeudDialog extends Dialog {
                 @SuppressWarnings("unchecked")
                 List<Scene> scenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
                 scenesRecuperees = scenes;
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         }
 
         if (scenesRecuperees != null) {
@@ -300,9 +336,7 @@ public class EditeurNoeudDialog extends Dialog {
                 btnScene.setText(s.nom + " (Scène)");
                 btnScene.setTextColor(Color.WHITE);
                 btnScene.setBackgroundColor(Color.parseColor("#6a1b9a")); 
-                btnScene.setOnClickListener(v -> {
-                    insererTexte(champSaisie, s.nom);
-                });
+                btnScene.setOnClickListener(v -> insererTexte(champSaisie, s.nom));
                 listeDroite.addView(btnScene);
             }
         }
@@ -345,7 +379,6 @@ public class EditeurNoeudDialog extends Dialog {
         
         bottomBar.addView(btnSave);
 
-        // Assemblage Final
         root.addView(zoneGauche);
         root.addView(zoneDroite);
 
@@ -354,7 +387,44 @@ public class EditeurNoeudDialog extends Dialog {
         grandLayout.addView(root, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         grandLayout.addView(bottomBar);
 
+        // Initialisation du bon clavier à l'ouverture
+        if (noeud instanceof NoeudActionModifierVariable) {
+            majInterfacePourVariable(noeud.getCibleVariable(), noeud, champSaisie, conteneurClavier, conteneurBooleen);
+        } else if (!noeud.utiliseClavierTexte()) {
+            champSaisie.setInputType(InputType.TYPE_NULL);
+        }
+
         setContentView(grandLayout);
+    }
+
+    private void majInterfacePourVariable(Variable var, NoeudBase noeud, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
+        if (!(noeud instanceof NoeudActionModifierVariable)) return; 
+        
+        if (var == null) {
+            champSaisie.setShowSoftInputOnFocus(false);
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            conteneurClavier.setVisibility(View.VISIBLE);
+            conteneurBooleen.setVisibility(View.GONE);
+            return;
+        }
+
+        if ("CHIFFRE".equals(var.type)) {
+            champSaisie.setShowSoftInputOnFocus(false);
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            conteneurClavier.setVisibility(View.VISIBLE);
+            conteneurBooleen.setVisibility(View.GONE);
+        } else if ("TEXTE".equals(var.type)) {
+            champSaisie.setShowSoftInputOnFocus(true);
+            champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            conteneurClavier.setVisibility(View.GONE);
+            conteneurBooleen.setVisibility(View.GONE);
+            champSaisie.requestFocus();
+        } else if ("BOOLEEN".equals(var.type)) {
+            champSaisie.setShowSoftInputOnFocus(false);
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            conteneurClavier.setVisibility(View.GONE);
+            conteneurBooleen.setVisibility(View.VISIBLE);
+        }
     }
 
     private void insererTexte(EditText champSaisie, String texteAInserer) {
@@ -364,6 +434,3 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 2
-                        
-
-    
