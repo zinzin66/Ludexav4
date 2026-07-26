@@ -1,3 +1,4 @@
+
 // haut 1
 package com.ludexa.moteur;
 
@@ -23,8 +24,15 @@ public class InterfaceBlueprint extends Activity {
     private CanvasBlueprint canvasBlueprint;
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        NoeudBase.contexteApplication = this;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        NoeudBase.contexteApplication = this;
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -114,7 +122,9 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
+// bas 1
 
+// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
             File dir = new File(getFilesDir(), "logique");
@@ -177,8 +187,7 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
-// bas 1
-// haut 2
+
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
         dialog.setTitle("Résumé du Blueprint");
@@ -231,9 +240,8 @@ public class InterfaceBlueprint extends Activity {
 
         TextView textViewCode = new TextView(this);
         textViewCode.setText(res.toString());
-        textViewCode.setTextSize(14f); // Légèrement réduit pour améliorer la lisibilité globale
+        textViewCode.setTextSize(14f); 
 
-        // Utilisation d'un ScrollView pour permettre la lecture des gros Blueprints
         ScrollView scrollView = new ScrollView(this);
         scrollView.setPadding(0, 0, 0, 30);
         LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
