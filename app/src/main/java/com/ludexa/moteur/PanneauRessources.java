@@ -6,6 +6,15 @@ import android.content.Context;
 import android.graphics.Color;
 import android.view.View;
 import android.widget.*;
+import android.net.Uri;
+import android.provider.OpenableColumns;
+import android.database.Cursor;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 public class PanneauRessources extends ScrollView {
 
@@ -16,6 +25,12 @@ public class PanneauRessources extends ScrollView {
     private Variable variableSelectionnee;
     private ObjetBase objetSelectionne;
 
+    // Nouvelles variables pour les Assets
+    private File rootAssetsDir;
+    private File currentAssetsDir;
+    private LinearLayout conteneurListeAssets;
+    private TextView txtCheminActuel;
+
     public PanneauRessources(Context context, CanvasEditeur canvas) {
         super(context);
         this.canvasEditeur = canvas;
@@ -25,6 +40,13 @@ public class PanneauRessources extends ScrollView {
     private void init(Context context) {
         setBackgroundColor(Color.parseColor("#333333"));
         setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
+
+        // Initialisation des dossiers Assets
+        rootAssetsDir = new File(context.getFilesDir(), "assets/images");
+        if (!rootAssetsDir.exists()) {
+            rootAssetsDir.mkdirs();
+        }
+        currentAssetsDir = rootAssetsDir;
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -185,6 +207,7 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 1
+
 // haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -284,34 +307,53 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
-        LinearLayout itemAsset = new LinearLayout(context);
-        itemAsset.setOrientation(LinearLayout.VERTICAL);
-        itemAsset.setPadding(0, 10, 0, 30);
+        // Header Navigation
+        LinearLayout headerNav = new LinearLayout(context);
+        headerNav.setOrientation(LinearLayout.HORIZONTAL);
+        headerNav.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        
+        Button btnRetour = new Button(context);
+        btnRetour.setText("<-");
+        btnRetour.setOnClickListener(v -> {
+            if (currentAssetsDir != null && !currentAssetsDir.equals(rootAssetsDir)) {
+                currentAssetsDir = currentAssetsDir.getParentFile();
+                rafraichirAssets();
+            }
+        });
+        
+        txtCheminActuel = new TextView(context);
+        txtCheminActuel.setTextColor(Color.WHITE);
+        txtCheminActuel.setPadding(10, 0, 0, 0);
+        
+        headerNav.addView(btnRetour);
+        headerNav.addView(txtCheminActuel);
 
-        TextView nomAsset = new TextView(context);
-        nomAsset.setText("Sprite_Joueur");
-        nomAsset.setTextColor(Color.WHITE);
-        nomAsset.setPadding(10, 0, 0, 10);
-        nomAsset.setTextSize(16f);
-
+        // Zone Boutons
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
 
-        Button btnRenommer = new Button(context);
-        btnRenommer.setText("Renommer");
-        btnRenommer.setOnClickListener(v -> afficherPopupRenommer(context, "Sprite_Joueur"));
+        Button btnImport = new Button(context);
+        btnImport.setText("Importer image");
+        btnImport.setOnClickListener(v -> {
+            ((InterfaceEditeur)context).lancerImportImage();
+        });
 
-        Button btnSupprimer = new Button(context);
-        btnSupprimer.setText("Supprimer");
-        btnSupprimer.setOnClickListener(v -> afficherPopupConfirmation(context, "Supprimer l'asset 'Sprite_Joueur' ?"));
+        Button btnNouveauDossier = new Button(context);
+        btnNouveauDossier.setText("Nouveau dossier");
+        btnNouveauDossier.setOnClickListener(v -> afficherPopupNouveauDossier(context));
 
-        zoneBoutons.addView(btnRenommer);
-        zoneBoutons.addView(btnSupprimer);
+        zoneBoutons.addView(btnImport);
+        zoneBoutons.addView(btnNouveauDossier);
 
-        itemAsset.addView(nomAsset);
-        itemAsset.addView(zoneBoutons);
+        conteneurListeAssets = new LinearLayout(context);
+        conteneurListeAssets.setOrientation(LinearLayout.VERTICAL);
+        conteneurListeAssets.setPadding(0, 10, 0, 0);
 
-        contenu.addView(itemAsset);
+        contenu.addView(headerNav);
+        contenu.addView(zoneBoutons);
+        contenu.addView(conteneurListeAssets);
+
+        rafraichirAssets();
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -320,6 +362,7 @@ public class PanneauRessources extends ScrollView {
             } else {
                 contenu.setVisibility(View.VISIBLE);
                 btnTitre.setText("Assets ▼");
+                rafraichirAssets();
             }
         });
 
@@ -328,6 +371,172 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
+    public void rafraichirAssets() {
+        if (conteneurListeAssets == null || currentAssetsDir == null) return;
+        conteneurListeAssets.removeAllViews();
+        
+        String cheminAffich = currentAssetsDir.getAbsolutePath().replace(rootAssetsDir.getAbsolutePath(), "Images");
+        if(cheminAffich.isEmpty()) cheminAffich = "Images";
+        if(txtCheminActuel != null) txtCheminActuel.setText(cheminAffich);
+        
+        File[] fichiers = currentAssetsDir.listFiles();
+        if (fichiers != null) {
+            java.util.Arrays.sort(fichiers, (f1, f2) -> {
+                if (f1.isDirectory() && !f2.isDirectory()) return -1;
+                if (!f1.isDirectory() && f2.isDirectory()) return 1;
+                return f1.getName().compareToIgnoreCase(f2.getName());
+            });
+            
+            for (File f : fichiers) {
+                ajouterVueAsset(f);
+            }
+        }
+    }
+
+    private void ajouterVueAsset(File f) {
+        Context context = getContext();
+        LinearLayout itemLayout = new LinearLayout(context);
+        itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+        itemLayout.setPadding(0, 15, 0, 15);
+        itemLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        
+        if (f.isDirectory()) {
+            TextView icone = new TextView(context);
+            icone.setText("📁");
+            icone.setTextSize(20f);
+            icone.setTextColor(Color.YELLOW);
+            
+            TextView nom = new TextView(context);
+            nom.setText(f.getName());
+            nom.setTextColor(Color.WHITE);
+            nom.setPadding(15, 0, 15, 0);
+            nom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            
+            itemLayout.setOnClickListener(v -> {
+                currentAssetsDir = f;
+                rafraichirAssets();
+            });
+            
+            Button btnSupprimer = new Button(context);
+            btnSupprimer.setText("X");
+            btnSupprimer.setOnClickListener(v -> afficherPopupSupprimerAsset(context, f));
+            
+            itemLayout.addView(icone);
+            itemLayout.addView(nom);
+            itemLayout.addView(btnSupprimer);
+            
+        } else {
+            ImageView miniature = new ImageView(context);
+            miniature.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
+            try {
+                Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath());
+                miniature.setImageBitmap(bmp);
+            } catch (Exception e) {
+                // Ignore, on garde l'image vide si erreur
+            }
+            miniature.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            
+            TextView nom = new TextView(context);
+            nom.setText(f.getName());
+            nom.setTextColor(Color.WHITE);
+            nom.setPadding(15, 0, 15, 0);
+            nom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            
+            Button btnRenommer = new Button(context);
+            btnRenommer.setText("R");
+            btnRenommer.setOnClickListener(v -> afficherPopupRenommerAsset(context, f));
+            
+            Button btnSupprimer = new Button(context);
+            btnSupprimer.setText("X");
+            btnSupprimer.setOnClickListener(v -> afficherPopupSupprimerAsset(context, f));
+            
+            itemLayout.addView(miniature);
+            itemLayout.addView(nom);
+            itemLayout.addView(btnRenommer);
+            itemLayout.addView(btnSupprimer);
+        }
+        
+        conteneurListeAssets.addView(itemLayout);
+    }
+
+    public void traiterImportImage(Uri uri) {
+        Context context = getContext();
+        String nomOriginal = getFileNameFromUri(context, uri);
+        if (nomOriginal == null) nomOriginal = "image_importee.png";
+        
+        String nomBase = nomOriginal;
+        String extension = "";
+        int dotIdx = nomOriginal.lastIndexOf('.');
+        if (dotIdx > 0) {
+            nomBase = nomOriginal.substring(0, dotIdx);
+            extension = nomOriginal.substring(dotIdx);
+        }
+        
+        File fichierCible = genererNomFichierUnique(currentAssetsDir, nomBase, extension);
+        
+        try (InputStream in = context.getContentResolver().openInputStream(uri);
+             OutputStream out = new FileOutputStream(fichierCible)) {
+            byte[] buffer = new byte[1024];
+            int lu;
+            while ((lu = in.read(buffer)) != -1) {
+                out.write(buffer, 0, lu);
+            }
+            Toast.makeText(context, "Image importée", Toast.LENGTH_SHORT).show();
+            rafraichirAssets();
+        } catch (Exception e) {
+            Toast.makeText(context, "Erreur d'import", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+    
+    private String getFileNameFromUri(Context context, Uri uri) {
+        String result = null;
+        if (uri.getScheme() != null && uri.getScheme().equals("content")) {
+            try (Cursor cursor = context.getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if(idx >= 0) {
+                        result = cursor.getString(idx);
+                    }
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result != null ? result.lastIndexOf('/') : -1;
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+    
+    private File genererNomFichierUnique(File dossier, String base, String extension) {
+        File f = new File(dossier, base + extension);
+        if (!f.exists()) return f;
+        
+        int index = 1;
+        while (true) {
+            f = new File(dossier, base + "_" + index + extension);
+            if (!f.exists()) return f;
+            index++;
+        }
+    }
+    
+    private void supprimerRecursif(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            File[] files = fileOrDirectory.listFiles();
+            if(files != null) {
+                for (File child : files) {
+                    supprimerRecursif(child);
+                }
+            }
+        }
+        fileOrDirectory.delete();
+    }
+// bas 2
+
+// haut 3
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -453,8 +662,7 @@ public class PanneauRessources extends ScrollView {
 
         conteneurVariables.addView(conteneurLigne);
     }
-// bas 2
-   // haut 3
+
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -797,26 +1005,34 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 
-    private void afficherPopupRenommer(Context context, String nomActuel) {
+    private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer");
+        dialog.setTitle("Nouveau dossier");
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
         layoutDialog.setPadding(40, 40, 40, 40);
 
         EditText champTexte = new EditText(context);
-        champTexte.setText(nomActuel);
+        champTexte.setHint("Nom du dossier");
         layoutDialog.addView(champTexte);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
 
         Button btnValider = new Button(context);
-        btnValider.setText("Valider");
+        btnValider.setText("Créer");
         btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString();
-            Toast.makeText(context, "Renommé en : " + nouveauNom, Toast.LENGTH_SHORT).show();
+            String nom = champTexte.getText().toString().trim();
+            if (!nom.isEmpty()) {
+                File nouveauDossier = new File(currentAssetsDir, nom);
+                if (!nouveauDossier.exists()) {
+                    nouveauDossier.mkdirs();
+                    rafraichirAssets();
+                } else {
+                    Toast.makeText(context, "Dossier déjà existant", Toast.LENGTH_SHORT).show();
+                }
+            }
             dialog.dismiss();
         });
 
@@ -832,16 +1048,17 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 
-    private void afficherPopupConfirmation(Context context, String message) {
+    private void afficherPopupSupprimerAsset(Context context, File f) {
         Dialog dialog = new Dialog(context);
-        dialog.setTitle("Confirmation");
+        dialog.setTitle("Confirmer");
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
         layoutDialog.setPadding(40, 40, 40, 40);
 
         TextView txtMessage = new TextView(context);
-        txtMessage.setText(message);
+        String msg = f.isDirectory() ? "Supprimer le dossier (et tout son contenu) ?" : "Supprimer cette image ?";
+        txtMessage.setText(msg);
         txtMessage.setPadding(0, 0, 0, 20);
         layoutDialog.addView(txtMessage);
 
@@ -851,7 +1068,8 @@ public class PanneauRessources extends ScrollView {
         Button btnOui = new Button(context);
         btnOui.setText("Oui");
         btnOui.setOnClickListener(v -> {
-            Toast.makeText(context, "Action confirmée", Toast.LENGTH_SHORT).show();
+            supprimerRecursif(f);
+            rafraichirAssets();
             dialog.dismiss();
         });
 
@@ -868,4 +1086,3 @@ public class PanneauRessources extends ScrollView {
     }
 }
 // bas 3
-                                   
