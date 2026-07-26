@@ -97,6 +97,7 @@ public class InspecteurProprietes extends LinearLayout {
         labelNom.setText("Nom");
         blocProprietes.addView(labelNom);
         champNom = new EditText(context);
+        // Retrait du TextWatcher immédiat en bas du script pour le remplacer par une validation
         blocProprietes.addView(champNom);
 
         LinearLayout layoutPos = new LinearLayout(context);
@@ -170,8 +171,8 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setOnClickListener(toastListener);
         blocProprietes.addView(champZOrder);
 // bas 1
-      
-// haut 2
+
+        // haut 2
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
         blocTexte.setPadding(0, 15, 0, 0);
@@ -185,7 +186,31 @@ public class InspecteurProprietes extends LinearLayout {
         champContenu = new EditText(context);
         champContenu.setHint("Contenu du texte");
         champContenu.setFocusable(false);
-        champContenu.setOnClickListener(toastListener);
+        // MODIFICATION 1 : Saisie multi-ligne avec popup
+        champContenu.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Modifier le texte");
+            
+            final EditText input = new EditText(context);
+            input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            input.setSingleLine(false);
+            input.setLines(5);
+            input.setGravity(Gravity.TOP | Gravity.START);
+            input.setText(objetCourant.contenuTexte);
+            
+            builder.setView(input);
+            builder.setPositiveButton("Valider", (dialog, which) -> {
+                String nouveauTexte = input.getText().toString();
+                objetCourant.contenuTexte = nouveauTexte;
+                miseAJourEnCours = true;
+                champContenu.setText(nouveauTexte);
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            });
+            builder.setNegativeButton("Annuler", null);
+            builder.show();
+        });
         blocTexte.addView(champContenu);
 
         champTaille = new EditText(context);
@@ -253,9 +278,17 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 
-        champNom.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) objetCourant.nom = texte;
-        }));
+        // MODIFICATION 2 : Popup de confirmation pour le renommage via gestion du focus / clavier
+        champNom.setOnEditorActionListener((v, actionId, event) -> {
+            verifierEtConfirmerRenommage(context);
+            return false;
+        });
+        champNom.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                verifierEtConfirmerRenommage(context);
+            }
+        });
+
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try {
@@ -272,6 +305,33 @@ public class InspecteurProprietes extends LinearLayout {
                 } catch (NumberFormatException ignored) {}
             }
         }));
+    }
+
+    private void verifierEtConfirmerRenommage(Context context) {
+        if (objetCourant == null) return;
+        String nouveauNom = champNom.getText().toString();
+        String ancienNom = objetCourant.nom;
+        
+        if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
+            new AlertDialog.Builder(context)
+                    .setTitle("Confirmation")
+                    .setMessage("Renommer " + ancienNom + " en " + nouveauNom + " ?")
+                    .setPositiveButton("Oui", (dialog, which) -> {
+                        objetCourant.nom = nouveauNom;
+                        canvasEditeur.invalidate();
+                    })
+                    .setNegativeButton("Non", (dialog, which) -> {
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                    })
+                    .setOnCancelListener(dialog -> {
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                    })
+                    .show();
+        }
     }
 
     public void afficherObjet(ObjetBase objet) {
@@ -326,4 +386,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 2
+                             
 
+    
