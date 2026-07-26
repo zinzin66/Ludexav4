@@ -1,5 +1,4 @@
-
-        // haut 1
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -7,13 +6,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.text.InputType;
 import android.view.Gravity;
-import android.view.View; // <-- L'import qui manquait est ici !
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast; // <-- Ajout pour le bouton "Depuis un objet"
 import java.util.List;
 
 public class EditeurNoeudDialog extends Dialog {
@@ -27,7 +27,7 @@ public class EditeurNoeudDialog extends Dialog {
         // Layout Principal : Horizontal
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
-        root.setBackgroundColor(Color.parseColor("#1E1E1E")); // Fond sombre type IDE
+        root.setBackgroundColor(Color.parseColor("#1E1E1E")); 
         root.setLayoutParams(new ViewGroup.LayoutParams(1200, 800));
 
         // =========================================================
@@ -38,6 +38,11 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.2f));
         zoneGauche.setPadding(20, 20, 20, 20);
 
+        // NOUVEAU : Barre des paramètres (X, Y, etc.)
+        LinearLayout barreParams = new LinearLayout(context);
+        barreParams.setOrientation(LinearLayout.HORIZONTAL);
+        barreParams.setPadding(0, 0, 0, 15);
+
         // Champ de saisie principal (multiligne)
         EditText champSaisie = new EditText(context);
         champSaisie.setTextColor(Color.WHITE);
@@ -46,19 +51,65 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        
+        champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
+
         List<String> params = noeud.getNomsParametres();
         if (params != null && !params.isEmpty()) {
             champActif = params.get(0);
             champSaisie.setText(noeud.getValeurParametre(champActif));
-        }
 
-        // Configuration du clavier logiciel (désactivé par défaut au profit du clavier custom)
-        champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
-        
+            for (String paramName : params) {
+                Button btnParam = new Button(context);
+                btnParam.setText(paramName);
+                btnParam.setTextColor(Color.WHITE);
+                btnParam.setBackgroundColor(champActif.equals(paramName) ? Color.parseColor("#4CAF50") : Color.parseColor("#555555"));
+                
+                LinearLayout.LayoutParams btnParamsLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                btnParamsLayout.setMargins(0, 0, 15, 0);
+                btnParam.setLayoutParams(btnParamsLayout);
+
+                btnParam.setOnClickListener(v -> {
+                    // 1. Sauvegarder la valeur actuelle dans l'ancien paramètre
+                    if (champActif != null) {
+                        noeud.setValeurParametre(champActif, champSaisie.getText().toString());
+                    }
+                    
+                    // 2. Changer de paramètre actif
+                    champActif = paramName;
+                    champSaisie.setText(noeud.getValeurParametre(champActif));
+                    
+                    // 3. Mettre à jour l'apparence des boutons
+                    for (int i = 0; i < barreParams.getChildCount(); i++) {
+                        View child = barreParams.getChildAt(i);
+                        if (child instanceof Button && params.contains(((Button)child).getText().toString())) {
+                            if (((Button)child).getText().toString().equals(champActif)) {
+                                child.setBackgroundColor(Color.parseColor("#4CAF50")); // Vert = Actif
+                            } else {
+                                child.setBackgroundColor(Color.parseColor("#555555")); // Gris = Inactif
+                            }
+                        }
+                    }
+                });
+                barreParams.addView(btnParam);
+            }
+
+            // Bouton "Depuis un objet" (Placeholder - Architecture)
+            Button btnDepuisObjet = new Button(context);
+            btnDepuisObjet.setText("Depuis un objet...");
+            btnDepuisObjet.setTextColor(Color.parseColor("#FFD700")); 
+            btnDepuisObjet.setBackgroundColor(Color.parseColor("#333333"));
+            btnDepuisObjet.setOnClickListener(v -> {
+                Toast.makeText(context, "À venir : Lier " + champActif + " à une propriété (ex: Objet.X)", Toast.LENGTH_SHORT).show();
+            });
+            barreParams.addView(btnDepuisObjet);
+        }
+// bas 1
+
+        // haut 2
+        zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
 
-        // Clavier customisé type "Code" (inspiré de la maquette)
+        // Clavier customisé type "Code" 
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -91,10 +142,11 @@ public class EditeurNoeudDialog extends Dialog {
                 if (touche.isEmpty()) {
                     btn.setVisibility(android.view.View.INVISIBLE);
                 } else {
-                    if (touche.equals("DEL")) btn.setBackgroundColor(Color.parseColor("#5c2323")); // Rouge sombre
+                    if (touche.equals("DEL")) btn.setBackgroundColor(Color.parseColor("#5c2323")); 
                     
                     btn.setOnClickListener(v -> {
-                        int start = Math.max(champSaisie.getSelectionStart(), 0);                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                        int start = Math.max(champSaisie.getSelectionStart(), 0);
+                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
                         
                         if (touche.equals("DEL")) {
                             if (start > 0 && start == end) {
@@ -113,13 +165,12 @@ public class EditeurNoeudDialog extends Dialog {
             conteneurClavier.addView(rowLayout);
         }
         zoneGauche.addView(conteneurClavier);
+// bas 2
 
+       // haut 3
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
-// bas 1
-           
-// haut 2
         LinearLayout zoneDroite = new LinearLayout(context);
         zoneDroite.setOrientation(LinearLayout.VERTICAL);
         zoneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.8f));
@@ -143,19 +194,19 @@ public class EditeurNoeudDialog extends Dialog {
             txtCibleActuelle.setText("Cible Actuelle : " + (cibleVar != null ? cibleVar.nom : "Aucune"));
         } else {
             txtCibleActuelle.setText("Cible Actuelle : Aucune");
-            txtCibleActuelle.setVisibility(View.GONE); // On cache si le nœud n'a pas de cible
+            txtCibleActuelle.setVisibility(View.GONE); 
         }
         
         if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable()) {
             listeDroite.addView(txtCibleActuelle);
         }
 
-        // Section : ITEMS (Objets de la scène)
+        // Section : ITEMS
         TextView titreItems = new TextView(context);
         titreItems.setText("Items (Cible Objet)");
         titreItems.setTextColor(Color.WHITE);
         titreItems.setGravity(Gravity.CENTER);
-        titreItems.setBackgroundColor(Color.parseColor("#1a435c")); // Bleu sombre
+        titreItems.setBackgroundColor(Color.parseColor("#1a435c")); 
         titreItems.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreItems);
 
@@ -175,7 +226,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        // Section : VARIABLES (Cible Variable OU Insertion Texte)
+        // Section : VARIABLES
         TextView titreVars = new TextView(context);
         titreVars.setText("Variables");
         titreVars.setTextColor(Color.WHITE);
@@ -191,15 +242,12 @@ public class EditeurNoeudDialog extends Dialog {
                     Button btnVar = new Button(context);
                     btnVar.setText(var.nom + " (Globale)");
                     btnVar.setTextColor(Color.WHITE);
-                    btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); // Vert sombre
+                    btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
                     btnVar.setOnClickListener(v -> {
-                        // Si le nœud cible une variable (comme Modifier Variable)
                         if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
                             noeud.setCibleVariable(var);
                             txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
-                        } 
-                        // Sinon, c'est pour insérer du texte (comme Modifier Texte)
-                        else {
+                        } else {
                             insererTexte(champSaisie, var.nom);
                         }
                     });
@@ -249,6 +297,7 @@ public class EditeurNoeudDialog extends Dialog {
         btnSave.setBackgroundColor(Color.parseColor("#4CAF50"));
         btnSave.setTextColor(Color.WHITE);
         btnSave.setOnClickListener(v -> {
+            // S'assurer de sauvegarder le paramètre actuellement affiché
             if (champActif != null) {
                 noeud.setValeurParametre(champActif, champSaisie.getText().toString());
             }
@@ -282,5 +331,5 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), texteAInserer, 0, texteAInserer.length());
     }
 }
-// bas 2
+// bas 3
 
