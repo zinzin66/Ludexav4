@@ -7,6 +7,8 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 
 public class InspecteurProprietes extends LinearLayout {
@@ -20,6 +22,7 @@ public class InspecteurProprietes extends LinearLayout {
     private TextView texteInfo;
     private LinearLayout blocProprietes;
     private EditText champNom;
+    private Button btnValiderNom;
     private EditText champX;
     private EditText champY;
     private Button boutonSupprimer;
@@ -96,9 +99,22 @@ public class InspecteurProprietes extends LinearLayout {
         TextView labelNom = new TextView(context);
         labelNom.setText("Nom");
         blocProprietes.addView(labelNom);
+
+        // NOUVEAU : Un layout horizontal pour aligner le champ Nom et le bouton OK
+        LinearLayout layoutNom = new LinearLayout(context);
+        layoutNom.setOrientation(LinearLayout.HORIZONTAL);
+        
         champNom = new EditText(context);
-        // Retrait du TextWatcher immédiat en bas du script pour le remplacer par une validation
-        blocProprietes.addView(champNom);
+        champNom.setSingleLine(true); // Force sur une seule ligne
+        champNom.setImeOptions(EditorInfo.IME_ACTION_DONE); // Affiche le bouton valider sur le clavier
+        champNom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        layoutNom.addView(champNom);
+        
+        btnValiderNom = new Button(context);
+        btnValiderNom.setText("OK");
+        layoutNom.addView(btnValiderNom);
+        
+        blocProprietes.addView(layoutNom);
 
         LinearLayout layoutPos = new LinearLayout(context);
         layoutPos.setOrientation(LinearLayout.HORIZONTAL);
@@ -172,7 +188,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(champZOrder);
 // bas 1
 
-        // haut 2
+// haut 2
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
         blocTexte.setPadding(0, 15, 0, 0);
@@ -186,7 +202,6 @@ public class InspecteurProprietes extends LinearLayout {
         champContenu = new EditText(context);
         champContenu.setHint("Contenu du texte");
         champContenu.setFocusable(false);
-        // MODIFICATION 1 : Saisie multi-ligne avec popup
         champContenu.setOnClickListener(v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -278,15 +293,19 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 
-        // MODIFICATION 2 : Popup de confirmation pour le renommage via gestion du focus / clavier
+        // NOUVEAU : Validation propre avec le bouton OK et le clavier
         champNom.setOnEditorActionListener((v, actionId, event) -> {
-            verifierEtConfirmerRenommage(context);
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                verifierEtConfirmerRenommage(context);
+                cacherClavier(context, v);
+                return true;
+            }
             return false;
         });
-        champNom.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                verifierEtConfirmerRenommage(context);
-            }
+
+        btnValiderNom.setOnClickListener(v -> {
+            verifierEtConfirmerRenommage(context);
+            cacherClavier(context, champNom);
         });
 
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
@@ -305,6 +324,13 @@ public class InspecteurProprietes extends LinearLayout {
                 } catch (NumberFormatException ignored) {}
             }
         }));
+    }
+
+    private void cacherClavier(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 
     private void verifierEtConfirmerRenommage(Context context) {
@@ -386,6 +412,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 2
-                             
-
+                
+        
     
