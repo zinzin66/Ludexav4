@@ -51,6 +51,8 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        
+        // C'est cette ligne qui gère l'ouverture du clavier selon le noeud
         champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
 
         List<String> params = noeud.getNomsParametres();
@@ -69,16 +71,12 @@ public class EditeurNoeudDialog extends Dialog {
                 btnParam.setLayoutParams(btnParamsLayout);
 
                 btnParam.setOnClickListener(v -> {
-                    // 1. Sauvegarder la valeur actuelle dans l'ancien paramètre
                     if (champActif != null) {
                         noeud.setValeurParametre(champActif, champSaisie.getText().toString());
                     }
-                    
-                    // 2. Changer de paramètre actif
                     champActif = paramName;
                     champSaisie.setText(noeud.getValeurParametre(champActif));
                     
-                    // 3. Mettre à jour l'apparence des boutons
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
                         if (child instanceof Button && params.contains(((Button)child).getText().toString())) {
@@ -93,7 +91,6 @@ public class EditeurNoeudDialog extends Dialog {
                 barreParams.addView(btnParam);
             }
 
-            // Bouton "Depuis un objet" (Placeholder - Architecture)
             Button btnDepuisObjet = new Button(context);
             btnDepuisObjet.setText("Depuis un objet...");
             btnDepuisObjet.setTextColor(Color.parseColor("#FFD700")); 
@@ -107,7 +104,6 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
 
-        // Clavier customisé type "Code" 
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -164,7 +160,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
         zoneGauche.addView(conteneurClavier);
 // bas 1
-// haut 2
+        // haut 2
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -177,7 +173,6 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout listeDroite = new LinearLayout(context);
         listeDroite.setOrientation(LinearLayout.VERTICAL);
 
-        // Affichage dynamique de la cible actuelle (Objet OU Variable)
         TextView txtCibleActuelle = new TextView(context);
         txtCibleActuelle.setTextColor(Color.parseColor("#44AAFF"));
         txtCibleActuelle.setPadding(20, 20, 20, 20);
@@ -232,8 +227,6 @@ public class EditeurNoeudDialog extends Dialog {
         titreVars.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreVars);
 
-        // CORRECTION : Découplage du ciblage strict (instanceof InterfaceEditeur) 
-        // Utilisation de la réflexion via le contexteApplication statique.
         List<Variable> variablesGlobalesRecuperees = null;
         if (NoeudBase.contexteApplication != null) {
             try {
@@ -242,7 +235,6 @@ public class EditeurNoeudDialog extends Dialog {
                 List<Variable> globales = (List<Variable>) varsField.get(NoeudBase.contexteApplication);
                 variablesGlobalesRecuperees = globales;
             } catch (Exception e) {
-                // Silencieux : le contexte actuel ne possède pas de champ 'variablesGlobales'
             }
         }
 
@@ -282,6 +274,39 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
+        // --- NOUVEAU : Section SCÈNES ---
+        TextView titreScenes = new TextView(context);
+        titreScenes.setText("Scènes");
+        titreScenes.setTextColor(Color.WHITE);
+        titreScenes.setGravity(Gravity.CENTER);
+        titreScenes.setBackgroundColor(Color.parseColor("#1a435c")); 
+        titreScenes.setPadding(10, 15, 10, 15);
+        listeDroite.addView(titreScenes);
+
+        List<Scene> scenesRecuperees = null;
+        if (NoeudBase.contexteApplication != null) {
+            try {
+                java.lang.reflect.Field scenesField = NoeudBase.contexteApplication.getClass().getField("listeScenes");
+                @SuppressWarnings("unchecked")
+                List<Scene> scenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
+                scenesRecuperees = scenes;
+            } catch (Exception e) {
+            }
+        }
+
+        if (scenesRecuperees != null) {
+            for (Scene s : scenesRecuperees) {
+                Button btnScene = new Button(context);
+                btnScene.setText(s.nom + " (Scène)");
+                btnScene.setTextColor(Color.WHITE);
+                btnScene.setBackgroundColor(Color.parseColor("#6a1b9a")); 
+                btnScene.setOnClickListener(v -> {
+                    insererTexte(champSaisie, s.nom);
+                });
+                listeDroite.addView(btnScene);
+            }
+        }
+
         scrollDroite.addView(listeDroite);
         zoneDroite.addView(scrollDroite);
 
@@ -305,7 +330,6 @@ public class EditeurNoeudDialog extends Dialog {
         btnSave.setBackgroundColor(Color.parseColor("#4CAF50"));
         btnSave.setTextColor(Color.WHITE);
         btnSave.setOnClickListener(v -> {
-            // S'assurer de sauvegarder le paramètre actuellement affiché
             if (champActif != null) {
                 noeud.setValeurParametre(champActif, champSaisie.getText().toString());
             }
@@ -340,5 +364,6 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 2
+                        
 
     
