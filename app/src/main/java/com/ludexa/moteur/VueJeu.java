@@ -30,7 +30,7 @@ public class VueJeu extends View {
 
         peintureTexte = new Paint();
         peintureTexte.setColor(Color.BLUE);
-        peintureTexte.setTextSize(40f);
+        // La taille n'est plus figée ici, elle sera définie dynamiquement dans onDraw
         peintureTexte.setAntiAlias(true);
 
         peintureDebug = new Paint();
@@ -73,9 +73,14 @@ public class VueJeu extends View {
                     continue; // Ignorer cet objet
                 }
 
-                // 3. Couleur
+                // 3. Application des propriétés dynamiques (Couleur et Taille)
                 peintureObjet.setColor(objet.couleur);
                 peintureTexte.setColor(objet.couleur);
+                
+                if ("texte".equals(objet.type)) {
+                    // On attribue la hauteur de l'objet comme taille de la police
+                    peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
+                }
 
                 float left = objet.x;
                 float top = objet.y;
