@@ -8,6 +8,11 @@ import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 public class CanvasEditeur extends View {
     private Paint paintGrille, paintCamera, paintObjet, paintSelection, paintTexte, paintPoignee;
     private float cameraX = 0, cameraY = 0;
@@ -52,13 +57,11 @@ public class CanvasEditeur extends View {
         paintCamera.setStrokeWidth(5);
 
         paintObjet = new Paint();
-        paintObjet.setColor(Color.BLUE);
         paintObjet.setAntiAlias(true);
 
         paintTexte = new Paint();
-        paintTexte.setColor(Color.BLUE);
-        paintTexte.setTextSize(40f);
         paintTexte.setAntiAlias(true);
+        // La taille est désormais calculée dynamiquement dans onDraw
 
         paintSelection = new Paint();
         paintSelection.setColor(Color.parseColor("#CC8844"));
@@ -127,7 +130,15 @@ public class CanvasEditeur extends View {
         canvas.drawRect(200 + cameraX, 200 + cameraY, 600 + cameraX, 500 + cameraY, paintCamera);
 
         if (sceneActive != null) {
-            for (ObjetBase objet : sceneActive.objets) {
+            List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
+            Collections.sort(objetsTries, new Comparator<ObjetBase>() {
+                @Override
+                public int compare(ObjetBase o1, ObjetBase o2) {
+                    return Integer.compare(o1.zOrder, o2.zOrder);
+                }
+            });
+
+            for (ObjetBase objet : objetsTries) {
                 float left = objet.x + cameraX;
                 float top = objet.y + cameraY;
                 float right = left + objet.largeur;
@@ -141,14 +152,29 @@ public class CanvasEditeur extends View {
                     canvas.rotate(objet.rotation, cx, cy);
                 }
 
-                if ("rond".equals(objet.type)) {
-                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
-                    canvas.drawCircle(cx, cy, rayon, paintObjet);
-                } else if ("texte".equals(objet.type)) {
-                    String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                    canvas.drawText(texteAAfficher, left, bottom, paintTexte);
-                } else {
-                    canvas.drawRect(left, top, right, bottom, paintObjet);
+                if (objet.visible) {
+                    if ("rond".equals(objet.type)) {
+                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                        canvas.drawCircle(cx, cy, rayon, paintObjet);
+                    } else if ("texte".equals(objet.type)) {
+                        paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+                        
+                        // Redimensionnement dynamique du texte
+                        paintTexte.setTextSize(objet.hauteur * 0.8f);
+                        paintTexte.setTextScaleX(1.0f); // Réinitialisation de l'échelle X
+                        float largeurTexte = paintTexte.measureText(texteAAfficher);
+                        if (largeurTexte > 0) {
+                            paintTexte.setTextScaleX(objet.largeur / largeurTexte);
+                        }
+                        
+                        canvas.drawText(texteAAfficher, left, bottom - (objet.hauteur * 0.1f), paintTexte);
+                        paintTexte.setTextScaleX(1.0f); // Nettoyage
+                    } else {
+                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        canvas.drawRect(left, top, right, bottom, paintObjet);
+                    }
                 }
 
                 if (objet == objetSelectionne) {
@@ -169,7 +195,8 @@ public class CanvasEditeur extends View {
         }
         canvas.restore();
     }
-
+// bas 2
+    // haut 3
     private float[] ecranVersScene(float xEcran, float yEcran) {
         float centreX = getWidth() / 2f;
         float centreY = getHeight() / 2f;
@@ -199,15 +226,22 @@ public class CanvasEditeur extends View {
         float ry = (float) (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
         return new float[]{cx + rx, cy + ry};
     }
-// bas 2
-    // haut 3
+
     private ObjetBase trouverObjetSousToucher(float xEcran, float yEcran) {
         if (sceneActive == null) return null;
         float[] scenePos = ecranVersScene(xEcran, yEcran);
         float sx = scenePos[0], sy = scenePos[1];
 
-        for (int i = sceneActive.objets.size() - 1; i >= 0; i--) {
-            ObjetBase objet = sceneActive.objets.get(i);
+        List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
+        Collections.sort(objetsTries, new Comparator<ObjetBase>() {
+            @Override
+            public int compare(ObjetBase o1, ObjetBase o2) {
+                return Integer.compare(o1.zOrder, o2.zOrder);
+            }
+        });
+
+        for (int i = objetsTries.size() - 1; i >= 0; i--) {
+            ObjetBase objet = objetsTries.get(i);
             float[] localPos = sceneVersLocal(sx, sy, objet);
             float lx = localPos[0], ly = localPos[1];
             

@@ -3,6 +3,7 @@ package com.ludexa.moteur;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -100,13 +101,12 @@ public class InspecteurProprietes extends LinearLayout {
         labelNom.setText("Nom");
         blocProprietes.addView(labelNom);
 
-        // NOUVEAU : Un layout horizontal pour aligner le champ Nom et le bouton OK
         LinearLayout layoutNom = new LinearLayout(context);
         layoutNom.setOrientation(LinearLayout.HORIZONTAL);
         
         champNom = new EditText(context);
-        champNom.setSingleLine(true); // Force sur une seule ligne
-        champNom.setImeOptions(EditorInfo.IME_ACTION_DONE); // Affiche le bouton valider sur le clavier
+        champNom.setSingleLine(true);
+        champNom.setImeOptions(EditorInfo.IME_ACTION_DONE); 
         champNom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         layoutNom.addView(champNom);
         
@@ -148,29 +148,26 @@ public class InspecteurProprietes extends LinearLayout {
         
         champLargeur = new EditText(context);
         champLargeur.setHint("Largeur");
-        champLargeur.setFocusable(false);
-        champLargeur.setOnClickListener(toastListener);
+        champLargeur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         champLargeur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         
         champHauteur = new EditText(context);
         champHauteur.setHint("Hauteur");
-        champHauteur.setFocusable(false);
-        champHauteur.setOnClickListener(toastListener);
+        champHauteur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         champHauteur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         
         layoutDim.addView(champLargeur);
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
-
+// bas 1
+  // haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
-        champRotation.setFocusable(false);
-        champRotation.setOnClickListener(toastListener);
+        champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         blocProprietes.addView(champRotation);
 
         btnCouleur = new Button(context);
         btnCouleur.setText("Couleur : Sélecteur");
-        btnCouleur.setOnClickListener(toastListener);
         blocProprietes.addView(btnCouleur);
 
         champAlpha = new EditText(context);
@@ -181,7 +178,6 @@ public class InspecteurProprietes extends LinearLayout {
 
         cbVisible = new CheckBox(context);
         cbVisible.setText("Visible");
-        cbVisible.setOnClickListener(toastListener);
         blocProprietes.addView(cbVisible);
 
         cbVerrouille = new CheckBox(context);
@@ -189,13 +185,16 @@ public class InspecteurProprietes extends LinearLayout {
         cbVerrouille.setOnClickListener(toastListener);
         blocProprietes.addView(cbVerrouille);
 
+        // Ajout du label manquant pour le Z-Order
+        TextView labelZOrder = new TextView(context);
+        labelZOrder.setText("Calque (Z-Order)");
+        blocProprietes.addView(labelZOrder);
+
         champZOrder = new EditText(context);
         champZOrder.setHint("Calque (Z-Order)");
-        champZOrder.setFocusable(false);
-        champZOrder.setOnClickListener(toastListener);
+        champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         blocProprietes.addView(champZOrder);
-// bas 1
-        // haut 2
+
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
         blocTexte.setPadding(0, 15, 0, 0);
@@ -243,7 +242,6 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnCouleurTexte = new Button(context);
         btnCouleurTexte.setText("Couleur du texte");
-        btnCouleurTexte.setOnClickListener(toastListener);
         blocTexte.addView(btnCouleurTexte);
 
         btnPolice = new Button(context);
@@ -285,7 +283,8 @@ public class InspecteurProprietes extends LinearLayout {
 
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
-
+// bas 2
+     // haut 3
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
                 scrollInspecteur.setVisibility(View.GONE);
@@ -300,7 +299,6 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 
-        // NOUVEAU : Validation propre avec le bouton OK et le clavier
         champNom.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 verifierEtConfirmerRenommage(context);
@@ -317,20 +315,58 @@ public class InspecteurProprietes extends LinearLayout {
 
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
-                try {
-                    objetCourant.x = Float.parseFloat(texte);
-                    canvasEditeur.invalidate();
-                } catch (NumberFormatException ignored) {}
+                try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
             }
         }));
         champY.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
-                try {
-                    objetCourant.y = Float.parseFloat(texte);
-                    canvasEditeur.invalidate();
-                } catch (NumberFormatException ignored) {}
+                try { objetCourant.y = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
             }
         }));
+        champLargeur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.largeur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champHauteur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champZOrder.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.zOrder = Integer.parseInt(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        cbVisible.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.visible = isChecked;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        View.OnClickListener selecteurCouleurListener = v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Sélectionner une couleur");
+            String[] couleursNoms = {"Bleu (Défaut)", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+            int[] couleursValeurs = {Color.BLUE, Color.RED, Color.GREEN, Color.BLACK, Color.WHITE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
+            
+            builder.setItems(couleursNoms, (dialog, which) -> {
+                objetCourant.couleur = couleursValeurs[which];
+                canvasEditeur.invalidate();
+            });
+            builder.show();
+        };
+
+        btnCouleur.setOnClickListener(selecteurCouleurListener);
+        btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
     }
 
     private void cacherClavier(Context context, View view) {
@@ -386,10 +422,12 @@ public class InspecteurProprietes extends LinearLayout {
             
             String nomType = objet.type != null ? objet.type.substring(0, 1).toUpperCase() + objet.type.substring(1) : "Inconnu";
             valeurType.setText("Type : " + nomType);
+            
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
             champRotation.setText(String.valueOf((int) objet.rotation));
-            cbVisible.setChecked(true);
+            champZOrder.setText(String.valueOf(objet.zOrder));
+            cbVisible.setChecked(objet.visible);
             
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
@@ -419,7 +457,4 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 2
-
-
-    
+// bas 3

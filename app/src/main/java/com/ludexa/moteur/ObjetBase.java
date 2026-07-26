@@ -1,9 +1,12 @@
 // haut 1
 package com.ludexa.moteur;
 
+import android.graphics.Color;
 import java.util.UUID;
 
 public class ObjetBase {
+    private static int compteurZOrderGlobal = 0; // Compteur pour ordre de création
+
     public String id;
     public String type;
     public String nom;
@@ -14,6 +17,10 @@ public class ObjetBase {
     public float hauteur;
     public float rotation;
 
+    public int couleur = Color.BLUE; 
+    public int zOrder;           
+    public boolean visible = true;   
+
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
         this.nom = nom;
@@ -23,6 +30,9 @@ public class ObjetBase {
         this.largeur = largeur;
         this.hauteur = hauteur;
         this.rotation = 0f; 
+        
+        // Z-Order par défaut = ordre de création automatique
+        this.zOrder = compteurZOrderGlobal++;
         
         if (nom != null) {
             String nomMinuscule = nom.toLowerCase();
@@ -44,6 +54,11 @@ public class ObjetBase {
         copie.type = this.type;
         copie.contenuTexte = this.contenuTexte;
         copie.rotation = this.rotation; 
+        
+        copie.couleur = this.couleur;
+        copie.zOrder = this.zOrder; // On conserve le zOrder lors d'un clone
+        copie.visible = this.visible;
+        
         return copie;
     }
 }
