@@ -145,6 +145,10 @@ public class InterfaceEditeur extends Activity {
         boutonBasculeBlueprint.setText("Node Editor");
         boutonBasculeBlueprint.setOnClickListener(v -> {
             InterfaceBlueprint.sceneACharger = this.sceneActive;
+            
+            // NOUVEAU : Transmission des variables globales
+            InterfaceBlueprint.variablesGlobalesACharger = this.variablesGlobales; 
+            
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
             startActivity(intent);
         });
@@ -344,5 +348,6 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
 
     
