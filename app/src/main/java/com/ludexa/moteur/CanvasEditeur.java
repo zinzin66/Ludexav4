@@ -4,6 +4,7 @@ package com.ludexa.moteur;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,7 +28,8 @@ public class CanvasEditeur extends View {
 
     private int currentMode = 0; 
     private float dragStartX, dragStartY;
-    private float initX, initY, initW, initH, initRot;
+    private float initX, initY, initW, initH, initRot, initScaleX, initScaleY;
+    private Matrix initMatrix;
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -61,12 +63,10 @@ public class CanvasEditeur extends View {
 
         paintTexte = new Paint();
         paintTexte.setAntiAlias(true);
-        // La taille est désormais calculée dynamiquement dans onDraw
 
         paintSelection = new Paint();
         paintSelection.setColor(Color.parseColor("#CC8844"));
         paintSelection.setStyle(Paint.Style.STROKE);
-        paintSelection.setStrokeWidth(6);
         
         paintPoignee = new Paint();
         paintPoignee.setColor(Color.parseColor("#E53935"));
@@ -91,23 +91,98 @@ public class CanvasEditeur extends View {
         return isPanMode;
     }
 
-    public void zoomPlus() {
-        niveauZoom *= 1.25f;
-        invalidate();
-    }
-
-    public void zoomMoins() {
-        niveauZoom /= 1.25f;
-        invalidate();
-    }
-
-    public void zoomReset() {
-        niveauZoom = 1.0f;
-        invalidate();
-    }
+    public void zoomPlus() { niveauZoom *= 1.25f; invalidate(); }
+    public void zoomMoins() { niveauZoom /= 1.25f; invalidate(); }
+    public void zoomReset() { niveauZoom = 1.0f; invalidate(); }
 // bas 1
 
 // haut 2
+    // --- UTILITAIRES DE HIÉRARCHIE MATRICIELLE ---
+
+    public static class TransformAbsolue {
+        public float x, y, rotation, scaleX, scaleY;
+    }
+
+    public ObjetBase getObjetById(String id) {
+        if (sceneActive == null || id == null) return null;
+        for (ObjetBase o : sceneActive.objets) {
+            if (o.id.equals(id)) return o;
+        }
+        return null;
+    }
+
+    public Matrix getAbsoluteMatrix(ObjetBase obj) {
+        Matrix m = new Matrix();
+        List<ObjetBase> chaine = new ArrayList<>();
+        ObjetBase cur = obj;
+        while (cur != null) {
+            chaine.add(cur);
+            cur = getObjetById(cur.parentId);
+        }
+        
+        for (int i = chaine.size() - 1; i >= 0; i--) {
+            ObjetBase o = chaine.get(i);
+            Matrix local = new Matrix();
+            local.postTranslate(-o.largeur / 2f, -o.hauteur / 2f);
+            local.postScale(o.scaleX, o.scaleY);
+            local.postRotate(o.rotation);
+            local.postTranslate(o.x + o.largeur / 2f, o.y + o.hauteur / 2f);
+            m.preConcat(local); 
+        }
+        return m;
+    }
+
+    public Matrix getParentMatrix(ObjetBase obj) {
+        if (obj.parentId != null) {
+            ObjetBase parent = getObjetById(obj.parentId);
+            if (parent != null) {
+                return getAbsoluteMatrix(parent);
+            }
+        }
+        return new Matrix(); // Identité
+    }
+
+    public float getAbsoluteRotation(ObjetBase obj) {
+        float rot = 0;
+        ObjetBase cur = obj;
+        while (cur != null) {
+            rot += cur.rotation;
+            cur = getObjetById(cur.parentId);
+        }
+        return rot;
+    }
+
+    // Méthode réutilisable demandée
+    public TransformAbsolue getCalculTransformationAbsolue(ObjetBase obj) {
+        TransformAbsolue t = new TransformAbsolue();
+        t.rotation = getAbsoluteRotation(obj);
+        
+        float sx = 1f, sy = 1f;
+        ObjetBase cur = obj;
+        while(cur != null) {
+            sx *= cur.scaleX; sy *= cur.scaleY;
+            cur = getObjetById(cur.parentId);
+        }
+        t.scaleX = sx; t.scaleY = sy;
+        
+        float[] center = {obj.largeur / 2f, obj.hauteur / 2f};
+        getAbsoluteMatrix(obj).mapPoints(center);
+        t.x = center[0];
+        t.y = center[1];
+        return t;
+    }
+
+    public float[] worldToLocal(ObjetBase obj, float worldX, float worldY) {
+        Matrix m = getAbsoluteMatrix(obj);
+        Matrix inv = new Matrix();
+        m.invert(inv);
+        float[] pts = {worldX, worldY};
+        inv.mapPoints(pts);
+        return pts;
+    }
+// bas 2
+
+// haut 3
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -139,92 +214,69 @@ public class CanvasEditeur extends View {
             });
 
             for (ObjetBase objet : objetsTries) {
-                float left = objet.x + cameraX;
-                float top = objet.y + cameraY;
-                float right = left + objet.largeur;
-                float bottom = top + objet.hauteur;
+                if (!objet.visible) continue;
+
+                Matrix absMatrix = getAbsoluteMatrix(objet);
                 
-                float cx = left + objet.largeur / 2f;
-                float cy = top + objet.hauteur / 2f;
-
                 canvas.save();
-                if (objet.rotation != 0) {
-                    canvas.rotate(objet.rotation, cx, cy);
-                }
+                canvas.translate(cameraX, cameraY);
+                canvas.concat(absMatrix);
 
-                if (objet.visible) {
-                    if ("rond".equals(objet.type)) {
-                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                        float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
-                        canvas.drawCircle(cx, cy, rayon, paintObjet);
-                    } else if ("texte".equals(objet.type)) {
-                        paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                        String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                        
-                        // Redimensionnement dynamique du texte
-                        paintTexte.setTextSize(objet.hauteur * 0.8f);
-                        paintTexte.setTextScaleX(1.0f); // Réinitialisation de l'échelle X
-                        float largeurTexte = paintTexte.measureText(texteAAfficher);
-                        if (largeurTexte > 0) {
-                            paintTexte.setTextScaleX(objet.largeur / largeurTexte);
-                        }
-                        
-                        canvas.drawText(texteAAfficher, left, bottom - (objet.hauteur * 0.1f), paintTexte);
-                        paintTexte.setTextScaleX(1.0f); // Nettoyage
-                    } else {
-                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                        canvas.drawRect(left, top, right, bottom, paintObjet);
-                    }
+                if ("rond".equals(objet.type)) {
+                    paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
+                } else if ("texte".equals(objet.type)) {
+                    paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                    String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+                    paintTexte.setTextSize(objet.hauteur * 0.8f);
+                    paintTexte.setTextScaleX(1.0f);
+                    float tw = paintTexte.measureText(txt);
+                    if (tw > 0) paintTexte.setTextScaleX(objet.largeur / tw);
+                    // Rendu dans l'espace local
+                    canvas.drawText(txt, 0, objet.hauteur - (objet.hauteur * 0.1f), paintTexte);
+                    paintTexte.setTextScaleX(1.0f);
+                } else {
+                    paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                 }
 
                 if (objet == objetSelectionne) {
-                    canvas.drawRect(left - 4, top - 4, right + 4, bottom + 4, paintSelection);
+                    float scaleFactor = Math.max(Math.abs(objet.scaleX), Math.abs(objet.scaleY));
+                    if (scaleFactor < 0.01f) scaleFactor = 0.01f;
+
+                    paintSelection.setStrokeWidth(6f / scaleFactor);
+                    float l = -4f / scaleFactor;
+                    float t = -4f / scaleFactor;
+                    float r = objet.largeur + 4f / scaleFactor;
+                    float b = objet.hauteur + 4f / scaleFactor;
                     
-                    float hs = 12f;
-                    canvas.drawRect(left - 4 - hs, top - 4 - hs, left - 4 + hs, top - 4 + hs, paintPoignee); 
-                    canvas.drawRect(right + 4 - hs, top - 4 - hs, right + 4 + hs, top - 4 + hs, paintPoignee); 
-                    canvas.drawRect(left - 4 - hs, bottom + 4 - hs, left - 4 + hs, bottom + 4 + hs, paintPoignee); 
-                    canvas.drawRect(right + 4 - hs, bottom + 4 - hs, right + 4 + hs, bottom + 4 + hs, paintPoignee); 
+                    canvas.drawRect(l, t, r, b, paintSelection);
                     
-                    float rotY = top - 4 - 50f;
-                    canvas.drawLine(cx, top - 4, cx, rotY, paintSelection);
-                    canvas.drawCircle(cx, rotY, 15f, paintPoignee);
+                    float hs = 12f / scaleFactor;
+                    canvas.drawRect(l - hs, t - hs, l + hs, t + hs, paintPoignee); 
+                    canvas.drawRect(r - hs, t - hs, r + hs, t + hs, paintPoignee); 
+                    canvas.drawRect(l - hs, b - hs, l + hs, b + hs, paintPoignee); 
+                    canvas.drawRect(r - hs, b - hs, r + hs, b + hs, paintPoignee); 
+                    
+                    float cx = objet.largeur / 2f;
+                    float rotY = t - (50f / scaleFactor);
+                    canvas.drawLine(cx, t, cx, rotY, paintSelection);
+                    canvas.drawCircle(cx, rotY, 15f / scaleFactor, paintPoignee);
                 }
                 canvas.restore();
             }
         }
         canvas.restore();
     }
-// bas 2
-    // haut 3
+// bas 3
+
+// haut 4
     private float[] ecranVersScene(float xEcran, float yEcran) {
-        float centreX = getWidth() / 2f;
-        float centreY = getHeight() / 2f;
-        float xZoom = centreX + (xEcran - centreX) / niveauZoom;
-        float yZoom = centreY + (yEcran - centreY) / niveauZoom;
+        float cx = getWidth() / 2f, cy = getHeight() / 2f;
+        float xZoom = cx + (xEcran - cx) / niveauZoom;
+        float yZoom = cy + (yEcran - cy) / niveauZoom;
         return new float[]{xZoom - cameraX, yZoom - cameraY};
-    }
-
-    private float[] sceneVersLocal(float sx, float sy, ObjetBase objet) {
-        float cx = objet.x + objet.largeur / 2f;
-        float cy = objet.y + objet.hauteur / 2f;
-        double angleRad = Math.toRadians(-objet.rotation);
-        float dx = sx - cx;
-        float dy = sy - cy;
-        float rx = (float) (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
-        float ry = (float) (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
-        return new float[]{cx + rx, cy + ry};
-    }
-
-    private float[] getPointInScene(float objX, float objY, float objW, float objH, float rot, float localX, float localY) {
-        float cx = objX + objW / 2f;
-        float cy = objY + objH / 2f;
-        double angleRad = Math.toRadians(rot);
-        float dx = localX - cx;
-        float dy = localY - cy;
-        float rx = (float) (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
-        float ry = (float) (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
-        return new float[]{cx + rx, cy + ry};
     }
 
     private ObjetBase trouverObjetSousToucher(float xEcran, float yEcran) {
@@ -234,19 +286,14 @@ public class CanvasEditeur extends View {
 
         List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
         Collections.sort(objetsTries, new Comparator<ObjetBase>() {
-            @Override
-            public int compare(ObjetBase o1, ObjetBase o2) {
-                return Integer.compare(o1.zOrder, o2.zOrder);
-            }
+            @Override public int compare(ObjetBase o1, ObjetBase o2) { return Integer.compare(o1.zOrder, o2.zOrder); }
         });
 
         for (int i = objetsTries.size() - 1; i >= 0; i--) {
             ObjetBase objet = objetsTries.get(i);
-            float[] localPos = sceneVersLocal(sx, sy, objet);
+            float[] localPos = worldToLocal(objet, sx, sy);
             float lx = localPos[0], ly = localPos[1];
-            
-            if (lx >= objet.x && lx <= objet.x + objet.largeur
-                    && ly >= objet.y && ly <= objet.y + objet.hauteur) {
+            if (lx >= 0 && lx <= objet.largeur && ly >= 0 && ly <= objet.hauteur) {
                 return objet;
             }
         }
@@ -258,26 +305,23 @@ public class CanvasEditeur extends View {
         float sx = scenePos[0], sy = scenePos[1];
         
         if (objetSelectionne != null) {
-            float[] localPos = sceneVersLocal(sx, sy, objetSelectionne);
-            float lx = localPos[0], ly = localPos[1];
+            float[] pts = worldToLocal(objetSelectionne, sx, sy);
+            float lx = pts[0], ly = pts[1];
             
-            float left = objetSelectionne.x;
-            float top = objetSelectionne.y;
-            float right = left + objetSelectionne.largeur;
-            float bottom = top + objetSelectionne.hauteur;
+            float scale = Math.max(Math.abs(objetSelectionne.scaleX), Math.abs(objetSelectionne.scaleY));
+            if (scale < 0.01f) scale = 0.01f;
+            float hit = (60f / niveauZoom) / scale;
             
-            float hit = 60f / niveauZoom;
-            
-            float midX = left + objetSelectionne.largeur / 2f;
-            float rotY = top - 4 - 50f;
+            float midX = objetSelectionne.largeur / 2f;
+            float rotY = -50f / Math.abs(objetSelectionne.scaleY);
             if (Math.hypot(lx - midX, ly - rotY) < hit) return 8; 
             
-            if (Math.abs(lx - left) < hit && Math.abs(ly - top) < hit) return 4; 
-            if (Math.abs(lx - right) < hit && Math.abs(ly - top) < hit) return 5; 
-            if (Math.abs(lx - left) < hit && Math.abs(ly - bottom) < hit) return 6; 
-            if (Math.abs(lx - right) < hit && Math.abs(ly - bottom) < hit) return 7; 
+            if (Math.abs(lx) < hit && Math.abs(ly) < hit) return 4; 
+            if (Math.abs(lx - objetSelectionne.largeur) < hit && Math.abs(ly) < hit) return 5; 
+            if (Math.abs(lx) < hit && Math.abs(ly - objetSelectionne.hauteur) < hit) return 6; 
+            if (Math.abs(lx - objetSelectionne.largeur) < hit && Math.abs(ly - objetSelectionne.hauteur) < hit) return 7; 
             
-            if (lx >= left && lx <= right && ly >= top && ly <= bottom) return 2; 
+            if (lx >= 0 && lx <= objetSelectionne.largeur && ly >= 0 && ly <= objetSelectionne.hauteur) return 2; 
         }
         
         ObjetBase obj = trouverObjetSousToucher(xEcran, yEcran);
@@ -285,7 +329,6 @@ public class CanvasEditeur extends View {
             objetSelectionne = obj;
             return 2; 
         }
-        
         objetSelectionne = null;
         return 0; 
     }
@@ -302,22 +345,17 @@ public class CanvasEditeur extends View {
                 } else {
                     currentMode = getTouchTarget(x, y);
                     if (objetSelectionne != null) {
-                        initX = objetSelectionne.x;
-                        initY = objetSelectionne.y;
-                        initW = objetSelectionne.largeur;
-                        initH = objetSelectionne.hauteur;
+                        initX = objetSelectionne.x; initY = objetSelectionne.y;
+                        initW = objetSelectionne.largeur; initH = objetSelectionne.hauteur;
                         initRot = objetSelectionne.rotation;
-                        
-                        dragStartX = objetSelectionne.x;
-                        dragStartY = objetSelectionne.y;
+                        initScaleX = objetSelectionne.scaleX; initScaleY = objetSelectionne.scaleY;
+                        initMatrix = getAbsoluteMatrix(objetSelectionne);
+                        dragStartX = objetSelectionne.x; dragStartY = objetSelectionne.y;
                     }
-                    if (inspecteurLie != null) {
-                        inspecteurLie.afficherObjet(objetSelectionne);
-                    }
+                    if (inspecteurLie != null) inspecteurLie.afficherObjet(objetSelectionne);
                     invalidate();
                 }
-                lastTouchX = x;
-                lastTouchY = y;
+                lastTouchX = x; lastTouchY = y;
                 return true;
 
             case MotionEvent.ACTION_MOVE:
@@ -328,58 +366,66 @@ public class CanvasEditeur extends View {
                     cameraX += (x - lastTouchX) / niveauZoom;
                     cameraY += (y - lastTouchY) / niveauZoom;
                 } else if (currentMode == 2 && objetSelectionne != null) { 
-                    objetSelectionne.x += (x - lastTouchX) / niveauZoom;
-                    objetSelectionne.y += (y - lastTouchY) / niveauZoom;
+                    Matrix invParent = new Matrix();
+                    getParentMatrix(objetSelectionne).invert(invParent);
+                    
+                    float[] curTouchP = {sx, sy};
+                    float[] lastTouchP = {ecranVersScene(lastTouchX, lastTouchY)[0], ecranVersScene(lastTouchX, lastTouchY)[1]};
+                    
+                    invParent.mapPoints(curTouchP); invParent.mapPoints(lastTouchP);
+                    objetSelectionne.x += (curTouchP[0] - lastTouchP[0]);
+                    objetSelectionne.y += (curTouchP[1] - lastTouchP[1]);
                 } else if (currentMode >= 4 && currentMode <= 7 && objetSelectionne != null) { 
+                    Matrix invInit = new Matrix();
+                    initMatrix.invert(invInit);
+                    float[] ptsInit = {sx, sy};
+                    invInit.mapPoints(ptsInit);
+                    float lx = ptsInit[0], ly = ptsInit[1];
                     
-                    float[] localTouch = sceneVersLocal(sx, sy, objetSelectionne);
-                    float lx = localTouch[0], ly = localTouch[1];
+                    float newSx = initScaleX, newSy = initScaleY;
+                    if (currentMode == 4) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * ((initH - ly) / initH); }
+                    else if (currentMode == 5) { newSx = initScaleX * (lx / initW); newSy = initScaleY * ((initH - ly) / initH); }
+                    else if (currentMode == 6) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * (ly / initH); }
+                    else if (currentMode == 7) { newSx = initScaleX * (lx / initW); newSy = initScaleY * (ly / initH); }
                     
-                    float anchorLocX = 0, anchorLocY = 0;
-                    float newX = initX, newY = initY, newW = initW, newH = initH;
+                    if (Math.abs(newSx) < 0.05f) newSx = 0.05f * Math.signum(newSx);
+                    if (Math.abs(newSy) < 0.05f) newSy = 0.05f * Math.signum(newSy);
                     
-                    if (currentMode == 4) { 
-                        anchorLocX = initX + initW; anchorLocY = initY + initH;
-                        newX = lx; newY = ly;
-                        newW = anchorLocX - lx; newH = anchorLocY - ly;
-                    } else if (currentMode == 5) { 
-                        anchorLocX = initX; anchorLocY = initY + initH;
-                        newY = ly;
-                        newW = lx - initX; newH = anchorLocY - ly;
-                    } else if (currentMode == 6) { 
-                        anchorLocX = initX + initW; anchorLocY = initY;
-                        newX = lx;
-                        newW = anchorLocX - lx; newH = ly - initY;
-                    } else if (currentMode == 7) { 
-                        anchorLocX = initX; anchorLocY = initY;
-                        newW = lx - initX; newH = ly - initY;
-                    }
+                    objetSelectionne.scaleX = newSx; objetSelectionne.scaleY = newSy;
                     
-                    if (newW < 20) { newX += (newW - 20) * (currentMode==4||currentMode==6 ? 1 : 0); newW = 20; }
-                    if (newH < 20) { newY += (newH - 20) * (currentMode==4||currentMode==5 ? 1 : 0); newH = 20; }
+                    float ancLocX = (currentMode == 4 || currentMode == 6) ? initW : 0;
+                    float ancLocY = (currentMode == 4 || currentMode == 5) ? initH : 0;
                     
-                    float[] oldAnchor = getPointInScene(initX, initY, initW, initH, initRot, anchorLocX, anchorLocY);
-                    float[] newAnchor = getPointInScene(newX, newY, newW, newH, initRot, anchorLocX, anchorLocY);
+                    float[] initAnchorWorld = {ancLocX, ancLocY};
+                    initMatrix.mapPoints(initAnchorWorld);
                     
-                    objetSelectionne.x = newX + (oldAnchor[0] - newAnchor[0]);
-                    objetSelectionne.y = newY + (oldAnchor[1] - newAnchor[1]);
-                    objetSelectionne.largeur = newW;
-                    objetSelectionne.hauteur = newH;
+                    Matrix newMat = getAbsoluteMatrix(objetSelectionne);
+                    float[] newAnchorWorld = {ancLocX, ancLocY};
+                    newMat.mapPoints(newAnchorWorld);
+                    
+                    Matrix parentMat = getParentMatrix(objetSelectionne);
+                    Matrix invParent = new Matrix();
+                    parentMat.invert(invParent);
+                    
+                    float[] initAncParent = {initAnchorWorld[0], initAnchorWorld[1]};
+                    float[] newAncParent = {newAnchorWorld[0], newAnchorWorld[1]};
+                    invParent.mapPoints(initAncParent); invParent.mapPoints(newAncParent);
+                    
+                    objetSelectionne.x += (initAncParent[0] - newAncParent[0]);
+                    objetSelectionne.y += (initAncParent[1] - newAncParent[1]);
                     
                 } else if (currentMode == 8 && objetSelectionne != null) { 
-                    float cx = objetSelectionne.x + objetSelectionne.largeur / 2f;
-                    float cy = objetSelectionne.y + objetSelectionne.hauteur / 2f;
-                    double angle = Math.toDegrees(Math.atan2(sy - cy, sx - cx));
-                    objetSelectionne.rotation = (float) (angle + 90);
+                    float[] centerWorld = {objetSelectionne.largeur / 2f, objetSelectionne.hauteur / 2f};
+                    getAbsoluteMatrix(objetSelectionne).mapPoints(centerWorld);
+                    
+                    double angleWorld = Math.toDegrees(Math.atan2(sy - centerWorld[1], sx - centerWorld[0]));
+                    float parentRot = getAbsoluteRotation(getObjetById(objetSelectionne.parentId));
+                    objetSelectionne.rotation = (float) (angleWorld + 90) - parentRot;
                 }
                 
-                lastTouchX = x;
-                lastTouchY = y;
-                
+                lastTouchX = x; lastTouchY = y;
                 if (currentMode != 0) {
-                    if (inspecteurLie != null && objetSelectionne != null) {
-                        inspecteurLie.afficherObjet(objetSelectionne);
-                    }
+                    if (inspecteurLie != null && objetSelectionne != null) inspecteurLie.afficherObjet(objetSelectionne);
                     invalidate();
                 }
                 return true;
@@ -388,19 +434,13 @@ public class CanvasEditeur extends View {
                 if (currentMode == 2 && objetSelectionne != null) {
                     if (dragStartX != objetSelectionne.x || dragStartY != objetSelectionne.y) {
                         if (editeurLie != null) {
-                            editeurLie.ajouterCommande(new CommandeDeplacement(
-                                    objetSelectionne, dragStartX, dragStartY,
-                                    objetSelectionne.x, objetSelectionne.y
-                            ));
+                            editeurLie.ajouterCommande(new CommandeDeplacement(objetSelectionne, dragStartX, dragStartY, objetSelectionne.x, objetSelectionne.y));
                         }
                     }
                 }
-                currentMode = 0;
-                return true;
+                currentMode = 0; return true;
         }
         return super.onTouchEvent(event);
     }
 }
-// bas 3
-
-
+// bas 4
