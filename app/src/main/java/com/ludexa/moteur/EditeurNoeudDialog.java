@@ -8,6 +8,7 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -22,6 +23,14 @@ public class EditeurNoeudDialog extends Dialog {
 
     public EditeurNoeudDialog(Context context, NoeudBase noeud, Scene scene, Runnable onValidate) {
         super(context);
+        
+        // --- CORRECTION CLAVIER ---
+        if (getWindow() != null) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
+                                   WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        }
+        // --------------------------
+
         setTitle("Edit Value - " + noeud.nom);
 
         // Layout Principal : Horizontal
@@ -158,6 +167,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
         zoneGauche.addView(conteneurClavier);
 // bas 1
+        
 
     // haut 2
         // =========================================================
