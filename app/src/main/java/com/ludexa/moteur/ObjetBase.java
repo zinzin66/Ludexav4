@@ -20,6 +20,8 @@ public class ObjetBase {
     public int couleur = Color.BLUE; 
     public int zOrder;           
     public boolean visible = true;   
+    
+    public String parentId; // null par défaut = pas de parent
 
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
@@ -47,6 +49,10 @@ public class ObjetBase {
             this.type = "carré";
         }
     }
+    
+    public void detacherParent() {
+        this.parentId = null;
+    }
 
     public ObjetBase clonerProfond() {
         ObjetBase copie = new ObjetBase(this.nom, this.x, this.y, this.largeur, this.hauteur);
@@ -58,6 +64,7 @@ public class ObjetBase {
         copie.couleur = this.couleur;
         copie.zOrder = this.zOrder; // On conserve le zOrder lors d'un clone
         copie.visible = this.visible;
+        copie.parentId = this.parentId; // Conservation du parentId lors d'un clone
         
         return copie;
     }
