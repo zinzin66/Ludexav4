@@ -536,7 +536,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
-// haut 3
+// haut 3 - partie 1
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -879,7 +879,8 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-
+// bas 3 - partie 1
+// haut 3 - partie 2
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
@@ -1048,6 +1049,49 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 
+    private void afficherPopupRenommerAsset(Context context, File f) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setText(f.getName());
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString().trim();
+            if (!nouveauNom.isEmpty()) {
+                File newFile = new File(f.getParentFile(), nouveauNom);
+                if (!newFile.exists()) {
+                    f.renameTo(newFile);
+                    rafraichirAssets();
+                } else {
+                    Toast.makeText(context, "Un fichier avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
+                }
+            }
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
     private void afficherPopupSupprimerAsset(Context context, File f) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Confirmer");
@@ -1085,4 +1129,6 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 }
-// bas 3
+// bas 3 - partie 2
+
+    
