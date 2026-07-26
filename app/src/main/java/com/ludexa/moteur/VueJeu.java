@@ -4,6 +4,7 @@ package com.ludexa.moteur;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.view.View;
 
@@ -30,7 +31,6 @@ public class VueJeu extends View {
 
         peintureTexte = new Paint();
         peintureTexte.setColor(Color.BLUE);
-        // La taille n'est plus figée ici, elle sera définie dynamiquement dans onDraw
         peintureTexte.setAntiAlias(true);
 
         peintureDebug = new Paint();
@@ -50,6 +50,37 @@ public class VueJeu extends View {
             this.moteur.executerDemarrage();
             invalidate();
         }
+    }
+
+    // --- UTILITAIRES DE HIÉRARCHIE MATRICIELLE ---
+    private ObjetBase getObjetById(String id) {
+        if (sceneActive == null || id == null) return null;
+        for (ObjetBase o : sceneActive.objets) {
+            if (o.id.equals(id)) return o;
+        }
+        return null;
+    }
+
+    private Matrix getAbsoluteMatrix(ObjetBase obj) {
+        Matrix m = new Matrix();
+        List<ObjetBase> chaine = new ArrayList<>();
+        ObjetBase cur = obj;
+        while (cur != null) {
+            chaine.add(cur);
+            cur = getObjetById(cur.parentId);
+        }
+        
+        for (int i = chaine.size() - 1; i >= 0; i--) {
+            ObjetBase o = chaine.get(i);
+            Matrix local = new Matrix();
+            // L'ordre respecte scrupuleusement celui de CanvasEditeur
+            local.postTranslate(-o.largeur / 2f, -o.hauteur / 2f);
+            local.postScale(o.scaleX, o.scaleY);
+            local.postRotate(o.rotation);
+            local.postTranslate(o.x + o.largeur / 2f, o.y + o.hauteur / 2f);
+            m.preConcat(local); 
+        }
+        return m;
     }
 
     @Override
@@ -78,48 +109,41 @@ public class VueJeu extends View {
                 peintureTexte.setColor(objet.couleur);
                 
                 if ("texte".equals(objet.type)) {
-                    // On attribue la hauteur de l'objet comme taille de la police
                     peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
                 }
 
-                float left = objet.x;
-                float top = objet.y;
-                float right = left + objet.largeur;
-                float bottom = top + objet.hauteur;
+                // Récupération de la matrice absolue en remontant la chaîne des parents
+                Matrix absMatrix = getAbsoluteMatrix(objet);
 
-                float cx = left + objet.largeur / 2f;
-                float cy = top + objet.hauteur / 2f;
-
-                // 4. Rotation
+                // 4. Transformation hiérarchique
                 canvas.save();
-                canvas.translate(cx, cy);
-                canvas.rotate(objet.rotation);
+                canvas.concat(absMatrix);
 
-                // Coordonnées relatives au centre pour le dessin
-                float relLeft = -objet.largeur / 2f;
-                float relTop = -objet.hauteur / 2f;
-                float relRight = objet.largeur / 2f;
-                float relBottom = objet.hauteur / 2f;
-
-                // Dessin selon le type (avec coordonnées relatives)
+                // Dessin selon le type (en coordonnées locales exactes comme CanvasEditeur)
                 if ("rond".equals(objet.type)) {
                     float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
-                    canvas.drawCircle(0, 0, rayon, peintureObjet);
+                    canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
                 } else if ("texte".equals(objet.type)) {
-                    // Rétrocompatibilité : affichage du nouveau champ, sinon fallback sur nom
                     String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                    canvas.drawText(texteAAfficher, relLeft, relBottom, peintureTexte);
+                    // Mise à l'échelle spécifique au texte pour reproduire l'éditeur
+                    peintureTexte.setTextScaleX(1.0f);
+                    float tw = peintureTexte.measureText(texteAAfficher);
+                    if (tw > 0) peintureTexte.setTextScaleX(objet.largeur / tw);
+                    canvas.drawText(texteAAfficher, 0, objet.hauteur - (objet.hauteur * 0.1f), peintureTexte);
+                    peintureTexte.setTextScaleX(1.0f);
                 } else {
-                    canvas.drawRect(relLeft, relTop, relRight, relBottom, peintureObjet);
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
                 }
 
-                // Fin de la zone sous rotation
+                // Fin de la zone sous rotation/échelle/translation
                 canvas.restore();
 
-                // 5. Texte de debug affiché juste au-dessus de l'objet, HORS du bloc de rotation
+                // 5. Texte de debug affiché juste au-dessus de l'objet, HORS du bloc de transformation
+                float[] posAbsolue = {0, 0};
+                absMatrix.mapPoints(posAbsolue);
                 canvas.drawText(
                         objet.nom + " (" + (int) objet.x + ", " + (int) objet.y + ")",
-                        left, top - 10f, peintureDebug
+                        posAbsolue[0], posAbsolue[1] - 10f, peintureDebug
                 );
             }
         }

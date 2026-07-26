@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InspecteurProprietes extends LinearLayout {
 
@@ -32,6 +34,7 @@ public class InspecteurProprietes extends LinearLayout {
     private EditText champLargeur, champHauteur, champRotation, champAlpha, champZOrder;
     private CheckBox cbVisible, cbVerrouille;
     private Button btnCouleur;
+    private Button btnParent;
     
     private LinearLayout blocTexte;
     private EditText champContenu, champTaille;
@@ -160,7 +163,8 @@ public class InspecteurProprietes extends LinearLayout {
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
 // bas 1
-  // haut 2
+
+   // haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
@@ -185,7 +189,6 @@ public class InspecteurProprietes extends LinearLayout {
         cbVerrouille.setOnClickListener(toastListener);
         blocProprietes.addView(cbVerrouille);
 
-        // Ajout du label manquant pour le Z-Order
         TextView labelZOrder = new TextView(context);
         labelZOrder.setText("Calque (Z-Order)");
         blocProprietes.addView(labelZOrder);
@@ -194,6 +197,45 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setHint("Calque (Z-Order)");
         champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         blocProprietes.addView(champZOrder);
+
+        TextView labelParent = new TextView(context);
+        labelParent.setText("Objet Parent");
+        blocProprietes.addView(labelParent);
+
+        btnParent = new Button(context);
+        btnParent.setText("Parent : Aucun");
+        blocProprietes.addView(btnParent);
+
+        btnParent.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            
+            List<String> noms = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            
+            noms.add("Aucun");
+            ids.add(null);
+            
+            for (ObjetBase o : sceneActive.objets) {
+                if (o != objetCourant) {
+                    noms.add(o.nom != null ? o.nom : "Objet sans nom");
+                    ids.add(o.id);
+                }
+            }
+            
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner un parent")
+                .setItems(noms.toArray(new String[0]), (dialog, which) -> {
+                    String idChoisi = ids.get(which);
+                    if (ObjetBase.verifierBoucleParent(objetCourant.id, idChoisi, sceneActive.objets)) {
+                        objetCourant.parentId = idChoisi;
+                        canvasEditeur.invalidate();
+                        afficherObjet(objetCourant);
+                    } else {
+                        Toast.makeText(context, "Erreur : Boucle hiérarchique détectée", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
+        });
 
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -233,7 +275,9 @@ public class InspecteurProprietes extends LinearLayout {
             builder.show();
         });
         blocTexte.addView(champContenu);
+// bas 2
 
+ // haut 3
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
@@ -283,8 +327,7 @@ public class InspecteurProprietes extends LinearLayout {
 
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
-// bas 2
-     // haut 3
+
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
                 scrollInspecteur.setVisibility(View.GONE);
@@ -368,7 +411,8 @@ public class InspecteurProprietes extends LinearLayout {
         btnCouleur.setOnClickListener(selecteurCouleurListener);
         btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
     }
-
+// bas 3
+  // haut 4
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -429,6 +473,17 @@ public class InspecteurProprietes extends LinearLayout {
             champZOrder.setText(String.valueOf(objet.zOrder));
             cbVisible.setChecked(objet.visible);
             
+            String nomParent = "Aucun";
+            if (objet.parentId != null) {
+                for (ObjetBase o : sceneActive.objets) {
+                    if (o.id.equals(objet.parentId)) {
+                        nomParent = o.nom != null ? o.nom : "Objet sans nom";
+                        break;
+                    }
+                }
+            }
+            btnParent.setText("Parent : " + nomParent);
+            
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
                 champContenu.setText(objet.contenuTexte);
@@ -457,4 +512,5 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 3
+// bas 4
+

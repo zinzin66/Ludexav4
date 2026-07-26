@@ -3,9 +3,10 @@ package com.ludexa.moteur;
 
 import android.graphics.Color;
 import java.util.UUID;
+import java.util.List;
 
 public class ObjetBase {
-    private static int compteurZOrderGlobal = 0; // Compteur pour ordre de création
+    private static int compteurZOrderGlobal = 0;
 
     public String id;
     public String type;
@@ -16,10 +17,16 @@ public class ObjetBase {
     public float largeur;
     public float hauteur;
     public float rotation;
+    
+    // Nouveaux champs pour l'échelle relative au parent
+    public float scaleX = 1f;
+    public float scaleY = 1f;
 
     public int couleur = Color.BLUE; 
     public int zOrder;           
     public boolean visible = true;   
+    
+    public String parentId; // null = pas de parent
 
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
@@ -30,8 +37,9 @@ public class ObjetBase {
         this.largeur = largeur;
         this.hauteur = hauteur;
         this.rotation = 0f; 
+        this.scaleX = 1f;
+        this.scaleY = 1f;
         
-        // Z-Order par défaut = ordre de création automatique
         this.zOrder = compteurZOrderGlobal++;
         
         if (nom != null) {
@@ -47,6 +55,10 @@ public class ObjetBase {
             this.type = "carré";
         }
     }
+    
+    public void detacherParent() {
+        this.parentId = null;
+    }
 
     public ObjetBase clonerProfond() {
         ObjetBase copie = new ObjetBase(this.nom, this.x, this.y, this.largeur, this.hauteur);
@@ -54,12 +66,41 @@ public class ObjetBase {
         copie.type = this.type;
         copie.contenuTexte = this.contenuTexte;
         copie.rotation = this.rotation; 
+        copie.scaleX = this.scaleX;
+        copie.scaleY = this.scaleY;
         
         copie.couleur = this.couleur;
-        copie.zOrder = this.zOrder; // On conserve le zOrder lors d'un clone
+        copie.zOrder = this.zOrder;
         copie.visible = this.visible;
+        copie.parentId = this.parentId; 
         
         return copie;
+    }
+    
+    // --- SÉCURITÉ ANTI-BOUCLE ---
+    // À appeler par InspecteurProprietes avant de valider un nouveau parent
+    public static boolean verifierBoucleParent(String enfantId, String parentPotentielId, List<ObjetBase> sceneObjets) {
+        if (parentPotentielId == null) return true; // Détacher un parent est toujours sûr
+        if (enfantId.equals(parentPotentielId)) return false; // Ne peut pas être son propre parent
+        
+        String curParentId = parentPotentielId;
+        while (curParentId != null) {
+            if (curParentId.equals(enfantId)) return false; // Boucle circulaire détectée
+            
+            ObjetBase parent = null;
+            for (ObjetBase o : sceneObjets) {
+                if (o.id.equals(curParentId)) { 
+                    parent = o; 
+                    break; 
+                }
+            }
+            if (parent != null) {
+                curParentId = parent.parentId; // Remonter la chaîne
+            } else {
+                break; // Parent introuvable, fin de la chaîne
+            }
+        }
+        return true;
     }
 }
 // bas 1
