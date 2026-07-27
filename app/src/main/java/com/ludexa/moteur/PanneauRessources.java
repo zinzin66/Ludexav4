@@ -213,7 +213,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 1
 
-    // haut 2
+// haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -397,6 +397,8 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 2
+
+
 // haut 3
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
@@ -555,6 +557,7 @@ public class PanneauRessources extends ScrollView {
         fileOrDirectory.delete();
     }
 // bas 3
+
 // haut 4
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -655,13 +658,353 @@ public class PanneauRessources extends ScrollView {
         conteneurVariables.addView(conteneurLigne);
     }
 
-    private void afficherPopupCreerScene(Context context) { /* Même logique qu'avant */ }
-    private void afficherPopupRenommerScene(Context context, Scene scene) { /* Même logique qu'avant */ }
-    private void afficherPopupSupprimerScene(Context context, Scene scene) { /* Même logique qu'avant */ }
-    private void afficherPopupCreerVariable(Context context) { /* Même logique qu'avant */ }
-    private void afficherPopupRenommerVariable(Context context, Variable var) { /* Même logique qu'avant */ }
-    private void afficherPopupSupprimerVariable(Context context, Variable var) { /* Même logique qu'avant */ }
+    private void afficherPopupCreerScene(Context context) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Créer une scène");
 
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setHint("Entrez le nom...");
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nom = champTexte.getText().toString();
+            if(!nom.isEmpty()) {
+                ((InterfaceEditeur)context).creerScene(nom);
+                Toast.makeText(context, "Scène créée : " + nom, Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommerScene(Context context, Scene scene) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer la scène");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setText(scene.nom);
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString();
+            if(!nouveauNom.isEmpty()) {
+                scene.nom = nouveauNom;
+                rafraichirScenes();
+                Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupSupprimerScene(Context context, Scene scene) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Supprimer la scène");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText("Voulez-vous vraiment supprimer la scène '" + scene.nom + "' ?");
+        txtMessage.setPadding(0, 0, 0, 20);
+        layoutDialog.addView(txtMessage);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnOui = new Button(context);
+        btnOui.setText("Oui");
+        btnOui.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            
+            if (editeur.listeScenes.size() <= 1) {
+                Toast.makeText(context, "Impossible de supprimer la seule scène du projet.", Toast.LENGTH_SHORT).show();
+            } else {
+                editeur.listeScenes.remove(scene);
+                if (editeur.sceneActive == scene) {
+                    editeur.changerScene(editeur.listeScenes.get(0));
+                } else {
+                    rafraichirScenes();
+                }
+                rafraichirArborescence();
+                Toast.makeText(context, "Scène supprimée", Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        });
+
+        Button btnNon = new Button(context);
+        btnNon.setText("Non");
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+// bas 4
+
+
+// haut 5
+    private void afficherPopupCreerVariable(Context context) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Créer une variable");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setHint("Nom de la variable");
+        layoutDialog.addView(champTexte);
+
+        TextView txtScope = new TextView(context);
+        txtScope.setText("Portée (Scope) :");
+        layoutDialog.addView(txtScope);
+        
+        Spinner spinnerScope = new Spinner(context);
+        ArrayAdapter<String> adapterScope = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Locale", "Globale"});
+        adapterScope.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerScope.setAdapter(adapterScope);
+        layoutDialog.addView(spinnerScope);
+
+        TextView txtType = new TextView(context);
+        txtType.setText("Type :");
+        layoutDialog.addView(txtType);
+
+        Spinner spinnerType = new Spinner(context);
+        ArrayAdapter<String> adapterType = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Texte", "Oui/Non"});
+        adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerType.setAdapter(adapterType);
+        layoutDialog.addView(spinnerType);
+
+        EditText champValeurInit = new EditText(context);
+        champValeurInit.setHint("Valeur initiale (optionnel)");
+        layoutDialog.addView(champValeurInit);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nom = champTexte.getText().toString().trim();
+            if(nom.isEmpty()) {
+                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String scopeSelect = spinnerScope.getSelectedItem().toString().equals("Globale") ? "GLOBALE" : "LOCALE";
+            String typeSelectText = spinnerType.getSelectedItem().toString();
+            String typeSelect = "CHIFFRE";
+            if (typeSelectText.equals("Texte")) typeSelect = "TEXTE";
+            if (typeSelectText.equals("Oui/Non")) typeSelect = "BOOLEEN";
+
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            
+            if (scopeSelect.equals("GLOBALE")) {
+                for (Variable vExistant : editeur.variablesGlobales) {
+                    if (vExistant.nom.equals(nom)) {
+                        Toast.makeText(context, "Une variable globale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            } else {
+                for (Variable vExistant : editeur.sceneActive.variablesLocales) {
+                    if (vExistant.nom.equals(nom)) {
+                        Toast.makeText(context, "Une variable locale avec ce nom existe déjà dans cette scène", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            }
+
+            Variable nouvelleVar = new Variable(nom, scopeSelect, typeSelect);
+            
+            String valInitTexte = champValeurInit.getText().toString().trim();
+            if (!valInitTexte.isEmpty()) {
+                if (typeSelect.equals("CHIFFRE")) {
+                    try {
+                        nouvelleVar.valeur = Float.parseFloat(valInitTexte);
+                    } catch (NumberFormatException e) {
+                        nouvelleVar.valeur = 0f;
+                    }
+                } else if (typeSelect.equals("TEXTE")) {
+                    nouvelleVar.valeur = valInitTexte;
+                } else if (typeSelect.equals("BOOLEEN")) {
+                    String cleanVal = valInitTexte.toLowerCase();
+                    nouvelleVar.valeur = (cleanVal.equals("oui") || cleanVal.equals("vrai") || cleanVal.equals("true"));
+                }
+            }
+
+            if (scopeSelect.equals("GLOBALE")) {
+                editeur.variablesGlobales.add(nouvelleVar);
+            } else {
+                editeur.sceneActive.variablesLocales.add(nouvelleVar);
+            }
+
+            rafraichirVariables();
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommerVariable(Context context, Variable var) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer la variable");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setText(var.nom);
+        layoutDialog.addView(champTexte);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnValider = new Button(context);
+        btnValider.setText("Valider");
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString().trim();
+            if(nouveauNom.isEmpty()) {
+                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            
+            if (var.scope.equals("GLOBALE")) {
+                for (Variable vExistant : editeur.variablesGlobales) {
+                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) {
+                        Toast.makeText(context, "Une variable globale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            } else {
+                for (Variable vExistant : editeur.sceneActive.variablesLocales) {
+                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) {
+                        Toast.makeText(context, "Une variable locale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            }
+
+            var.nom = nouveauNom;
+            rafraichirVariables();
+            dialog.dismiss();
+        });
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupSupprimerVariable(Context context, Variable var) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Supprimer la variable");
+
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(40, 40, 40, 40);
+
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText("Voulez-vous vraiment supprimer la variable '" + var.nom + "' ?");
+        txtMessage.setPadding(0, 0, 0, 20);
+        layoutDialog.addView(txtMessage);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnOui = new Button(context);
+        btnOui.setText("Oui");
+        btnOui.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            if (var.scope.equals("GLOBALE")) {
+                editeur.variablesGlobales.remove(var);
+            } else {
+                editeur.sceneActive.variablesLocales.remove(var);
+            }
+            
+            if (var == variableSelectionnee) {
+                variableSelectionnee = null;
+            }
+            
+            rafraichirVariables();
+            dialog.dismiss();
+        });
+
+        Button btnNon = new Button(context);
+        btnNon.setText("Non");
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+// bas 5
+
+// haut 6
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Nouveau dossier");
@@ -838,14 +1181,13 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 }
-// bas 4
-
-
-
-    
+// bas 6
 
 
     
+    
 
+    
+    
 
-
+    
