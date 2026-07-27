@@ -1,4 +1,3 @@
-
 // haut 1
 package com.ludexa.moteur;
 
@@ -41,7 +40,7 @@ public class InspecteurProprietes extends LinearLayout {
     private EditText champContenu, champTaille;
     private Button btnCouleurTexte, btnPolice;
 
-    // Nouveaux composants pour l'image
+    // Composants pour l'image
     private LinearLayout blocImage;
     private Button btnChargerImage, btnSupprimerImage;
     private CheckBox cbFondColore;
@@ -169,6 +168,7 @@ public class InspecteurProprietes extends LinearLayout {
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
 // bas 1
+
 // haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
@@ -282,7 +282,8 @@ public class InspecteurProprietes extends LinearLayout {
         blocTexte.addView(champContenu);
 // bas 2
 
-// haut 3
+
+      // haut 3
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
@@ -300,7 +301,7 @@ public class InspecteurProprietes extends LinearLayout {
         
         blocProprietes.addView(blocTexte);
 
-        // --- NOUVEAU BLOC IMAGE ---
+        // --- BLOC IMAGE ---
         blocImage = new LinearLayout(context);
         blocImage.setOrientation(LinearLayout.VERTICAL);
         blocImage.setPadding(0, 15, 0, 0);
@@ -388,7 +389,11 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
-            List<String> images = listerImagesAssets(context, "images");
+            
+            // Correction : Lecture depuis le vrai dossier local de l'application
+            java.io.File dossierImages = new java.io.File(context.getFilesDir(), "assets/images");
+            List<String> images = listerImagesLocales(dossierImages, "assets/images/");
+            
             if (images.isEmpty()) {
                 Toast.makeText(context, "Aucune image trouvée dans assets/images/", Toast.LENGTH_SHORT).show();
                 return;
@@ -416,7 +421,9 @@ public class InspecteurProprietes extends LinearLayout {
                 canvasEditeur.invalidate();
             }
         });
+// bas 3
 
+// haut 4
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -472,9 +479,7 @@ public class InspecteurProprietes extends LinearLayout {
         btnCouleur.setOnClickListener(selecteurCouleurListener);
         btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
     }
-// bas 3
 
-// haut 4
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -568,27 +573,25 @@ public class InspecteurProprietes extends LinearLayout {
         miseAJourEnCours = false;
     }
 
-    private List<String> listerImagesAssets(Context context, String path) {
-        List<String> images = new ArrayList<>();
-        try {
-            String[] files = context.getAssets().list(path);
-            if (files != null) {
-                for (String file : files) {
-                    String fullPath = path.isEmpty() ? file : path + "/" + file;
-                    if (fullPath.contains(".")) {
-                        String lower = fullPath.toLowerCase();
-                        if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp")) {
-                            images.add(fullPath);
-                        }
+    // Correction : Parcours récursif du dossier interne
+    private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
+        List<String> resultats = new ArrayList<>();
+        if (dir != null && dir.exists() && dir.isDirectory()) {
+            java.io.File[] fichiers = dir.listFiles();
+            if (fichiers != null) {
+                for (java.io.File f : fichiers) {
+                    if (f.isDirectory()) {
+                        resultats.addAll(listerImagesLocales(f, cheminBase + f.getName() + "/"));
                     } else {
-                        images.addAll(listerImagesAssets(context, fullPath));
+                        String nom = f.getName().toLowerCase();
+                        if (nom.endsWith(".png") || nom.endsWith(".jpg") || nom.endsWith(".jpeg") || nom.endsWith(".webp")) {
+                            resultats.add(cheminBase + f.getName());
+                        }
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return images;
+        return resultats;
     }
 
     private TextWatcher creerWatcherSimple(java.util.function.Consumer<String> action) {
@@ -610,6 +613,5 @@ public class InspecteurProprietes extends LinearLayout {
 }
 // bas 4
 
-  
-      
-  
+        
+    
