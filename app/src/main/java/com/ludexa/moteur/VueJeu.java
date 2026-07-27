@@ -21,7 +21,6 @@ public class VueJeu extends View {
     private Paint peintureDebug;
     private MoteurLogique moteur;
     
-    // Cache pour les images décodées identique à l'éditeur
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
     public VueJeu(Context context, Scene scene, Blueprint blueprintActif) {
@@ -89,18 +88,30 @@ public class VueJeu extends View {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
             if (bmp == null) {
                 try {
-                    java.io.InputStream is = getContext().getAssets().open(objet.cheminImage);
-                    bmp = android.graphics.BitmapFactory.decodeStream(is);
-                    if (bmp != null) {
-                        cacheImages.put(objet.cheminImage, bmp);
+                    // Lecture avec le même correctif que le CanvasEditeur
+                    java.io.File imgFile = new java.io.File(getContext().getFilesDir(), objet.cheminImage);
+                    if (imgFile.exists()) {
+                        bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                        if (bmp != null) {
+                            cacheImages.put(objet.cheminImage, bmp);
+                        }
                     }
-                    is.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             if (bmp != null) {
-                canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), peintureObjet);
+                if ("rond".equals(objet.type)) {
+                    canvas.save();
+                    android.graphics.Path path = new android.graphics.Path();
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    path.addCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, android.graphics.Path.Direction.CW);
+                    canvas.clipPath(path);
+                    canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), peintureObjet);
+                    canvas.restore();
+                } else {
+                    canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), peintureObjet);
+                }
             }
         }
     }
