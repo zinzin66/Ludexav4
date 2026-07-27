@@ -37,6 +37,9 @@ public class InterfaceEditeur extends Activity {
     private LinearLayout layoutPrincipal;
     private boolean enModeJeu = false;
 
+    // Code de requête pour l'import d'image
+    public static final int REQUEST_CODE_IMPORT_IMAGE = 1001;
+
     public void ajouterCommande(Commande c) {
         undoStack.push(c);
         redoStack.clear();
@@ -115,9 +118,7 @@ public class InterfaceEditeur extends Activity {
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasEditeur.setLayoutParams(paramsCentre);
-// bas 1
 
-        // haut 2
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("[-]");
         boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
@@ -148,7 +149,6 @@ public class InterfaceEditeur extends Activity {
             InterfaceBlueprint.sceneACharger = this.sceneActive;
             InterfaceBlueprint.variablesGlobalesACharger = this.variablesGlobales; 
             
-            // NOUVEAU : Transmission de la liste des scènes
             InterfaceBlueprint.listeScenesACharger = this.listeScenes; 
             
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
@@ -185,33 +185,45 @@ public class InterfaceEditeur extends Activity {
         setContentView(layoutPrincipal);
     }
 
+    public void lancerImportImage() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        startActivityForResult(intent, REQUEST_CODE_IMPORT_IMAGE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_IMPORT_IMAGE && resultCode == Activity.RESULT_OK) {
+            if (data != null && data.getData() != null) {
+                if (panneauRessources != null) {
+                    panneauRessources.traiterImportImage(data.getData());
+                }
+            }
+        }
+    }
+
     private void basculerVersJeu() {
-        // --- MISE EN PLACE DU BAC À SABLE (SANDBOX) ---
-        
-        // 1. Sauvegarde intégrale des références originales
         listeScenesBackup = new ArrayList<>(listeScenes);
         sceneActiveBackup = sceneActive;
         variablesGlobalesBackup = new ArrayList<>(variablesGlobales);
         
-        // 2. Création des clones pour toutes les scènes
         listeScenes = new ArrayList<>();
         for (Scene s : listeScenesBackup) {
             Scene clone = s.clonerProfond();
             listeScenes.add(clone);
             
-            // On s'assure que la référence de la scène active pointe sur le bon clone
             if (s == sceneActiveBackup) {
                 sceneActive = clone;
             }
         }
         
-        // 3. Création des clones pour les variables globales
         variablesGlobales = new ArrayList<>();
         for (Variable v : variablesGlobalesBackup) {
             variablesGlobales.add(v.clonerProfond());
         }
 
-        // Le reste de la méthode utilise maintenant des données 100% clonées
         Blueprint blueprintActif = new Blueprint();
         File dossierLogique = new File(getFilesDir(), "logique");
         File fileBlueprint = new File(dossierLogique, "blueprint.json");
@@ -265,7 +277,6 @@ public class InterfaceEditeur extends Activity {
             setContentView(layoutPrincipal);
             enModeJeu = false;
             
-            // --- RESTAURATION DE L'ÉTAT D'ORIGINE ---
             if (listeScenesBackup != null) {
                 listeScenes = listeScenesBackup;
                 listeScenesBackup = null;
@@ -279,10 +290,7 @@ public class InterfaceEditeur extends Activity {
                 variablesGlobalesBackup = null;
             }
             
-            // Étape cruciale : on force le Canvas à cibler la scène originale tout juste restaurée
             canvasEditeur.setScene(sceneActive);
-            
-            // On met également à jour l'affichage de la liste si nécessaire
             panneauRessources.rafraichirScenes();
 
             canvasEditeur.invalidate();
@@ -349,7 +357,5 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 2
-
-          
-    
+// bas 1
+            
