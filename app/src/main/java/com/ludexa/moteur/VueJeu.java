@@ -20,6 +20,9 @@ public class VueJeu extends View {
     private Paint peintureTexte;
     private Paint peintureDebug;
     private MoteurLogique moteur;
+    
+    // Cache pour les images décodées identique à l'éditeur
+    private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
     public VueJeu(Context context, Scene scene, Blueprint blueprintActif) {
         super(context);
@@ -52,7 +55,6 @@ public class VueJeu extends View {
         }
     }
 
-    // --- UTILITAIRES DE HIÉRARCHIE MATRICIELLE ---
     private ObjetBase getObjetById(String id) {
         if (sceneActive == null || id == null) return null;
         for (ObjetBase o : sceneActive.objets) {
@@ -73,7 +75,6 @@ public class VueJeu extends View {
         for (int i = chaine.size() - 1; i >= 0; i--) {
             ObjetBase o = chaine.get(i);
             Matrix local = new Matrix();
-            // L'ordre respecte scrupuleusement celui de CanvasEditeur
             local.postTranslate(-o.largeur / 2f, -o.hauteur / 2f);
             local.postScale(o.scaleX, o.scaleY);
             local.postRotate(o.rotation);
@@ -83,13 +84,33 @@ public class VueJeu extends View {
         return m;
     }
 
+    private void dessinerImage(Canvas canvas, ObjetBase objet) {
+        if (objet.cheminImage != null) {
+            android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
+            if (bmp == null) {
+                try {
+                    java.io.InputStream is = getContext().getAssets().open(objet.cheminImage);
+                    bmp = android.graphics.BitmapFactory.decodeStream(is);
+                    if (bmp != null) {
+                        cacheImages.put(objet.cheminImage, bmp);
+                    }
+                    is.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (bmp != null) {
+                canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), peintureObjet);
+            }
+        }
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.WHITE);
 
         if (sceneActive != null && sceneActive.objets != null) {
-            // 1. Tri par zOrder (sur une copie de la liste)
             List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
             Collections.sort(objetsTries, new Comparator<ObjetBase>() {
                 @Override
@@ -99,12 +120,10 @@ public class VueJeu extends View {
             });
 
             for (ObjetBase objet : objetsTries) {
-                // 2. Filtre visible
                 if (!objet.visible) {
-                    continue; // Ignorer cet objet
+                    continue; 
                 }
 
-                // 3. Application des propriétés dynamiques (Couleur et Taille)
                 peintureObjet.setColor(objet.couleur);
                 peintureTexte.setColor(objet.couleur);
                 
@@ -112,33 +131,33 @@ public class VueJeu extends View {
                     peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
                 }
 
-                // Récupération de la matrice absolue en remontant la chaîne des parents
                 Matrix absMatrix = getAbsoluteMatrix(objet);
 
-                // 4. Transformation hiérarchique
                 canvas.save();
                 canvas.concat(absMatrix);
 
-                // Dessin selon le type (en coordonnées locales exactes comme CanvasEditeur)
                 if ("rond".equals(objet.type)) {
-                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
-                    canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
+                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                        float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                        canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
+                    }
+                    dessinerImage(canvas, objet);
                 } else if ("texte".equals(objet.type)) {
                     String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                    // Mise à l'échelle spécifique au texte pour reproduire l'éditeur
                     peintureTexte.setTextScaleX(1.0f);
                     float tw = peintureTexte.measureText(texteAAfficher);
                     if (tw > 0) peintureTexte.setTextScaleX(objet.largeur / tw);
                     canvas.drawText(texteAAfficher, 0, objet.hauteur - (objet.hauteur * 0.1f), peintureTexte);
                     peintureTexte.setTextScaleX(1.0f);
                 } else {
-                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
+                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                        canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
+                    }
+                    dessinerImage(canvas, objet);
                 }
 
-                // Fin de la zone sous rotation/échelle/translation
                 canvas.restore();
 
-                // 5. Texte de debug affiché juste au-dessus de l'objet, HORS du bloc de transformation
                 float[] posAbsolue = {0, 0};
                 absMatrix.mapPoints(posAbsolue);
                 canvas.drawText(
