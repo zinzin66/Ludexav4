@@ -32,6 +32,8 @@ public class InspecteurProprietes extends LinearLayout {
 
     private TextView valeurType;
     private EditText champLargeur, champHauteur, champRotation, champAlpha, champZOrder;
+    // FIX 2: Ajout des champs d'Echelle pour refléter le redimensionnement dynamique
+    private EditText champScaleX, champScaleY;
     private CheckBox cbVisible, cbVerrouille;
     private Button btnCouleur;
     private Button btnParent;
@@ -39,6 +41,11 @@ public class InspecteurProprietes extends LinearLayout {
     private LinearLayout blocTexte;
     private EditText champContenu, champTaille;
     private Button btnCouleurTexte, btnPolice;
+
+    // Composants pour l'image
+    private LinearLayout blocImage;
+    private Button btnChargerImage, btnSupprimerImage;
+    private CheckBox cbFondColore;
 
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
@@ -143,7 +150,7 @@ public class InspecteurProprietes extends LinearLayout {
         View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
 
         TextView labelDim = new TextView(context);
-        labelDim.setText("Largeur / Hauteur");
+        labelDim.setText("Largeur / Hauteur Base");
         blocProprietes.addView(labelDim);
 
         LinearLayout layoutDim = new LinearLayout(context);
@@ -162,9 +169,31 @@ public class InspecteurProprietes extends LinearLayout {
         layoutDim.addView(champLargeur);
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
+        
+        // FIX 2: Ajout section Echelle
+        TextView labelScale = new TextView(context);
+        labelScale.setText("Echelle X / Y (Scale)");
+        blocProprietes.addView(labelScale);
+
+        LinearLayout layoutScale = new LinearLayout(context);
+        layoutScale.setOrientation(LinearLayout.HORIZONTAL);
+        
+        champScaleX = new EditText(context);
+        champScaleX.setHint("Scale X");
+        champScaleX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        champScaleX.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        champScaleY = new EditText(context);
+        champScaleY.setHint("Scale Y");
+        champScaleY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        champScaleY.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        layoutScale.addView(champScaleX);
+        layoutScale.addView(champScaleY);
+        blocProprietes.addView(layoutScale);
 // bas 1
 
-   // haut 2
+        // haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
@@ -277,7 +306,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocTexte.addView(champContenu);
 // bas 2
 
- // haut 3
+        // haut 3
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
@@ -292,8 +321,34 @@ public class InspecteurProprietes extends LinearLayout {
         btnPolice.setText("Police : Sélecteur");
         btnPolice.setOnClickListener(toastListener);
         blocTexte.addView(btnPolice);
-
+        
         blocProprietes.addView(blocTexte);
+
+        // --- BLOC IMAGE ---
+        blocImage = new LinearLayout(context);
+        blocImage.setOrientation(LinearLayout.VERTICAL);
+        blocImage.setPadding(0, 15, 0, 0);
+
+        TextView sepImage = new TextView(context);
+        sepImage.setText("--- Propriétés Image ---");
+        sepImage.setTextColor(0xFF888888);
+        sepImage.setPadding(0, 10, 0, 10);
+        blocImage.addView(sepImage);
+
+        btnChargerImage = new Button(context);
+        btnChargerImage.setText("Charger une image (Assets)");
+        blocImage.addView(btnChargerImage);
+
+        btnSupprimerImage = new Button(context);
+        btnSupprimerImage.setText("Supprimer l'image");
+        blocImage.addView(btnSupprimerImage);
+
+        cbFondColore = new CheckBox(context);
+        cbFondColore.setText("Afficher le fond coloré");
+        blocImage.addView(cbFondColore);
+
+        blocProprietes.addView(blocImage);
+
         contenuInspecteur.addView(blocProprietes);
 
         boutonSupprimer = new Button(context);
@@ -324,7 +379,6 @@ public class InspecteurProprietes extends LinearLayout {
         boutonSupprimer.setLayoutParams(paramsBtn);
         
         contenuInspecteur.addView(boutonSupprimer);
-
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 
@@ -356,6 +410,41 @@ public class InspecteurProprietes extends LinearLayout {
             cacherClavier(context, champNom);
         });
 
+        btnChargerImage.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            
+            java.io.File dossierImages = new java.io.File(context.getFilesDir(), "assets/images");
+            List<String> images = listerImagesLocales(dossierImages, "assets/images/");
+            
+            if (images.isEmpty()) {
+                Toast.makeText(context, "Aucune image trouvée dans assets/images/", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner une image")
+                .setItems(images.toArray(new String[0]), (dialog, which) -> {
+                    objetCourant.cheminImage = images.get(which);
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                })
+                .show();
+        });
+
+        btnSupprimerImage.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.cheminImage = null;
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        cbFondColore.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.afficherFondColore = isChecked;
+                canvasEditeur.invalidate();
+            }
+        });
+// bas 3
+        // haut 4
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -376,6 +465,19 @@ public class InspecteurProprietes extends LinearLayout {
                 try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
             }
         }));
+        
+        // FIX 2: Watchers Echelle
+        champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
         champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -411,8 +513,7 @@ public class InspecteurProprietes extends LinearLayout {
         btnCouleur.setOnClickListener(selecteurCouleurListener);
         btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
     }
-// bas 3
-  // haut 4
+
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -469,6 +570,11 @@ public class InspecteurProprietes extends LinearLayout {
             
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
+            
+            // FIX 2: Mise à jour visuelle des valeurs d'échelle
+            champScaleX.setText(String.valueOf(objet.scaleX));
+            champScaleY.setText(String.valueOf(objet.scaleY));
+            
             champRotation.setText(String.valueOf((int) objet.rotation));
             champZOrder.setText(String.valueOf(objet.zOrder));
             cbVisible.setChecked(objet.visible);
@@ -487,12 +593,43 @@ public class InspecteurProprietes extends LinearLayout {
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
                 champContenu.setText(objet.contenuTexte);
+                blocImage.setVisibility(View.GONE);
             } else {
                 blocTexte.setVisibility(View.GONE);
+                blocImage.setVisibility(View.VISIBLE);
+                
+                if (objet.cheminImage != null) {
+                    btnSupprimerImage.setVisibility(View.VISIBLE);
+                    cbFondColore.setVisibility(View.VISIBLE);
+                    cbFondColore.setChecked(objet.afficherFondColore);
+                } else {
+                    btnSupprimerImage.setVisibility(View.GONE);
+                    cbFondColore.setVisibility(View.GONE);
+                }
             }
         }
 
         miseAJourEnCours = false;
+    }
+
+    private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
+        List<String> resultats = new ArrayList<>();
+        if (dir != null && dir.exists() && dir.isDirectory()) {
+            java.io.File[] fichiers = dir.listFiles();
+            if (fichiers != null) {
+                for (java.io.File f : fichiers) {
+                    if (f.isDirectory()) {
+                        resultats.addAll(listerImagesLocales(f, cheminBase + f.getName() + "/"));
+                    } else {
+                        String nom = f.getName().toLowerCase();
+                        if (nom.endsWith(".png") || nom.endsWith(".jpg") || nom.endsWith(".jpeg") || nom.endsWith(".webp")) {
+                            resultats.add(cheminBase + f.getName());
+                        }
+                    }
+                }
+            }
+        }
+        return resultats;
     }
 
     private TextWatcher creerWatcherSimple(java.util.function.Consumer<String> action) {
@@ -514,3 +651,12 @@ public class InspecteurProprietes extends LinearLayout {
 }
 // bas 4
 
+
+
+
+        
+
+
+        
+
+    

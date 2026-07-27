@@ -108,6 +108,8 @@ public class PanneauRessources extends ScrollView {
                 
                 txtObjet.setOnClickListener(v -> {
                     objetSelectionne = obj;
+                    // FIX 1: Notification au CanvasEditeur de la sélection
+                    canvasEditeur.setObjetSelectionne(obj);
                     rafraichirArborescence();
                 });
                 
@@ -208,7 +210,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 1
 
-// haut 2
+   // haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -536,7 +538,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
-// haut 3 - partie 1
+    // haut 3 - partie 1
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -880,7 +882,8 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 3 - partie 1
-// haut 3 - partie 2
+
+    // haut 3 - partie 2
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
@@ -1130,5 +1133,12 @@ public class PanneauRessources extends ScrollView {
     }
 }
 // bas 3 - partie 2
+
+
+
+    
+
+
+    
 
     

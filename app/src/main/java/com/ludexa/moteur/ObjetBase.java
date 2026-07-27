@@ -18,7 +18,6 @@ public class ObjetBase {
     public float hauteur;
     public float rotation;
     
-    // Nouveaux champs pour l'échelle relative au parent
     public float scaleX = 1f;
     public float scaleY = 1f;
 
@@ -26,7 +25,11 @@ public class ObjetBase {
     public int zOrder;           
     public boolean visible = true;   
     
-    public String parentId; // null = pas de parent
+    public String parentId; 
+    
+    // Nouveaux champs pour l'image
+    public String cheminImage = null;
+    public boolean afficherFondColore = true;
 
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
@@ -74,18 +77,20 @@ public class ObjetBase {
         copie.visible = this.visible;
         copie.parentId = this.parentId; 
         
+        // Copie des nouvelles propriétés d'image
+        copie.cheminImage = this.cheminImage;
+        copie.afficherFondColore = this.afficherFondColore;
+        
         return copie;
     }
     
-    // --- SÉCURITÉ ANTI-BOUCLE ---
-    // À appeler par InspecteurProprietes avant de valider un nouveau parent
     public static boolean verifierBoucleParent(String enfantId, String parentPotentielId, List<ObjetBase> sceneObjets) {
-        if (parentPotentielId == null) return true; // Détacher un parent est toujours sûr
-        if (enfantId.equals(parentPotentielId)) return false; // Ne peut pas être son propre parent
+        if (parentPotentielId == null) return true; 
+        if (enfantId.equals(parentPotentielId)) return false; 
         
         String curParentId = parentPotentielId;
         while (curParentId != null) {
-            if (curParentId.equals(enfantId)) return false; // Boucle circulaire détectée
+            if (curParentId.equals(enfantId)) return false; 
             
             ObjetBase parent = null;
             for (ObjetBase o : sceneObjets) {
@@ -95,9 +100,9 @@ public class ObjetBase {
                 }
             }
             if (parent != null) {
-                curParentId = parent.parentId; // Remonter la chaîne
+                curParentId = parent.parentId; 
             } else {
-                break; // Parent introuvable, fin de la chaîne
+                break; 
             }
         }
         return true;

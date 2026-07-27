@@ -1,3 +1,4 @@
+    
 // haut 1
 package com.ludexa.moteur;
 
@@ -30,6 +31,8 @@ public class CanvasEditeur extends View {
     private float dragStartX, dragStartY;
     private float initX, initY, initW, initH, initRot, initScaleX, initScaleY;
     private Matrix initMatrix;
+    
+    private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -46,6 +49,19 @@ public class CanvasEditeur extends View {
 
     public void deselectionner() {
         this.objetSelectionne = null;
+    }
+
+    public ObjetBase getObjetSelectionne() {
+        return objetSelectionne;
+    }
+
+    // FIX 1: Ajout méthode pour synchroniser et notifier explicitement un changement de sélection depuis la liste
+    public void setObjetSelectionne(ObjetBase obj) {
+        this.objetSelectionne = obj;
+        if (inspecteurLie != null) {
+            inspecteurLie.afficherObjet(obj);
+        }
+        invalidate();
     }
 
     private void init() {
@@ -79,10 +95,6 @@ public class CanvasEditeur extends View {
         invalidate();
     }
 
-    public ObjetBase getObjetSelectionne() {
-        return objetSelectionne;
-    }
-
     public void setPanMode(boolean enabled) {
         this.isPanMode = enabled;
     }
@@ -95,10 +107,7 @@ public class CanvasEditeur extends View {
     public void zoomMoins() { niveauZoom /= 1.25f; invalidate(); }
     public void zoomReset() { niveauZoom = 1.0f; invalidate(); }
 // bas 1
-
 // haut 2
-    // --- UTILITAIRES DE HIÉRARCHIE MATRICIELLE ---
-
     public static class TransformAbsolue {
         public float x, y, rotation, scaleX, scaleY;
     }
@@ -139,7 +148,7 @@ public class CanvasEditeur extends View {
                 return getAbsoluteMatrix(parent);
             }
         }
-        return new Matrix(); // Identité
+        return new Matrix();
     }
 
     public float getAbsoluteRotation(ObjetBase obj) {
@@ -152,7 +161,6 @@ public class CanvasEditeur extends View {
         return rot;
     }
 
-    // Méthode réutilisable demandée
     public TransformAbsolue getCalculTransformationAbsolue(ObjetBase obj) {
         TransformAbsolue t = new TransformAbsolue();
         t.rotation = getAbsoluteRotation(obj);
@@ -223,9 +231,12 @@ public class CanvasEditeur extends View {
                 canvas.concat(absMatrix);
 
                 if ("rond".equals(objet.type)) {
-                    paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
-                    canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
+                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                        canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
+                    }
+                    dessinerImage(canvas, objet);
                 } else if ("texte".equals(objet.type)) {
                     paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                     String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
@@ -233,19 +244,22 @@ public class CanvasEditeur extends View {
                     paintTexte.setTextScaleX(1.0f);
                     float tw = paintTexte.measureText(txt);
                     if (tw > 0) paintTexte.setTextScaleX(objet.largeur / tw);
-                    // Rendu dans l'espace local
                     canvas.drawText(txt, 0, objet.hauteur - (objet.hauteur * 0.1f), paintTexte);
                     paintTexte.setTextScaleX(1.0f);
                 } else {
-                    paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    }
+                    dessinerImage(canvas, objet);
                 }
 
                 if (objet == objetSelectionne) {
                     float scaleFactor = Math.max(Math.abs(objet.scaleX), Math.abs(objet.scaleY));
                     if (scaleFactor < 0.01f) scaleFactor = 0.01f;
 
-                    paintSelection.setStrokeWidth(6f / scaleFactor);
+                    // BONUS : Épaisseur du trait passée de 6f à 2f
+                    paintSelection.setStrokeWidth(2f / scaleFactor);
                     float l = -4f / scaleFactor;
                     float t = -4f / scaleFactor;
                     float r = objet.largeur + 4f / scaleFactor;
@@ -272,6 +286,38 @@ public class CanvasEditeur extends View {
 // bas 3
 
 // haut 4
+    private void dessinerImage(Canvas canvas, ObjetBase objet) {
+        if (objet.cheminImage != null) {
+            android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
+            if (bmp == null) {
+                try {
+                    java.io.File imgFile = new java.io.File(getContext().getFilesDir(), objet.cheminImage);
+                    if (imgFile.exists()) {
+                        bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                        if (bmp != null) {
+                            cacheImages.put(objet.cheminImage, bmp);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (bmp != null) {
+                if ("rond".equals(objet.type)) {
+                    canvas.save();
+                    android.graphics.Path path = new android.graphics.Path();
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    path.addCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, android.graphics.Path.Direction.CW);
+                    canvas.clipPath(path);
+                    canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), paintObjet);
+                    canvas.restore();
+                } else {
+                    canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), paintObjet);
+                }
+            }
+        }
+    }
+
     private float[] ecranVersScene(float xEcran, float yEcran) {
         float cx = getWidth() / 2f, cy = getHeight() / 2f;
         float xZoom = cx + (xEcran - cx) / niveauZoom;
@@ -310,7 +356,8 @@ public class CanvasEditeur extends View {
             
             float scale = Math.max(Math.abs(objetSelectionne.scaleX), Math.abs(objetSelectionne.scaleY));
             if (scale < 0.01f) scale = 0.01f;
-            float hit = (60f / niveauZoom) / scale;
+            // FIX 3: Réduction de la zone de hit (60f -> 30f) pour laisser plus de place au "déplacement"
+            float hit = (30f / niveauZoom) / scale;
             
             float midX = objetSelectionne.largeur / 2f;
             float rotY = -50f / Math.abs(objetSelectionne.scaleY);
@@ -444,3 +491,9 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 4
+
+    
+
+    
+
+
