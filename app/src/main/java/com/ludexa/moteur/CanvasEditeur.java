@@ -1,3 +1,4 @@
+    
 // haut 1
 package com.ludexa.moteur;
 
@@ -50,6 +51,19 @@ public class CanvasEditeur extends View {
         this.objetSelectionne = null;
     }
 
+    public ObjetBase getObjetSelectionne() {
+        return objetSelectionne;
+    }
+
+    // FIX 1: Ajout méthode pour synchroniser et notifier explicitement un changement de sélection depuis la liste
+    public void setObjetSelectionne(ObjetBase obj) {
+        this.objetSelectionne = obj;
+        if (inspecteurLie != null) {
+            inspecteurLie.afficherObjet(obj);
+        }
+        invalidate();
+    }
+
     private void init() {
         paintGrille = new Paint();
         paintGrille.setColor(Color.LTGRAY);
@@ -81,10 +95,6 @@ public class CanvasEditeur extends View {
         invalidate();
     }
 
-    public ObjetBase getObjetSelectionne() {
-        return objetSelectionne;
-    }
-
     public void setPanMode(boolean enabled) {
         this.isPanMode = enabled;
     }
@@ -97,7 +107,6 @@ public class CanvasEditeur extends View {
     public void zoomMoins() { niveauZoom /= 1.25f; invalidate(); }
     public void zoomReset() { niveauZoom = 1.0f; invalidate(); }
 // bas 1
-
 // haut 2
     public static class TransformAbsolue {
         public float x, y, rotation, scaleX, scaleY;
@@ -249,7 +258,8 @@ public class CanvasEditeur extends View {
                     float scaleFactor = Math.max(Math.abs(objet.scaleX), Math.abs(objet.scaleY));
                     if (scaleFactor < 0.01f) scaleFactor = 0.01f;
 
-                    paintSelection.setStrokeWidth(6f / scaleFactor);
+                    // BONUS : Épaisseur du trait passée de 6f à 2f
+                    paintSelection.setStrokeWidth(2f / scaleFactor);
                     float l = -4f / scaleFactor;
                     float t = -4f / scaleFactor;
                     float r = objet.largeur + 4f / scaleFactor;
@@ -281,7 +291,6 @@ public class CanvasEditeur extends View {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
             if (bmp == null) {
                 try {
-                    // Correction : Lecture du bon chemin interne au lieu de l'APK
                     java.io.File imgFile = new java.io.File(getContext().getFilesDir(), objet.cheminImage);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
@@ -294,7 +303,6 @@ public class CanvasEditeur extends View {
                 }
             }
             if (bmp != null) {
-                // Correction : Découpage (clipping) de l'image si c'est un rond
                 if ("rond".equals(objet.type)) {
                     canvas.save();
                     android.graphics.Path path = new android.graphics.Path();
@@ -348,7 +356,8 @@ public class CanvasEditeur extends View {
             
             float scale = Math.max(Math.abs(objetSelectionne.scaleX), Math.abs(objetSelectionne.scaleY));
             if (scale < 0.01f) scale = 0.01f;
-            float hit = (60f / niveauZoom) / scale;
+            // FIX 3: Réduction de la zone de hit (60f -> 30f) pour laisser plus de place au "déplacement"
+            float hit = (30f / niveauZoom) / scale;
             
             float midX = objetSelectionne.largeur / 2f;
             float rotY = -50f / Math.abs(objetSelectionne.scaleY);
@@ -484,4 +493,7 @@ public class CanvasEditeur extends View {
 // bas 4
 
     
+
     
+
+
