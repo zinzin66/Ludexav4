@@ -31,7 +31,6 @@ public class CanvasEditeur extends View {
     private float initX, initY, initW, initH, initRot, initScaleX, initScaleY;
     private Matrix initMatrix;
     
-    // Cache pour les images décodées
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
     public CanvasEditeur(Context context) {
@@ -282,18 +281,31 @@ public class CanvasEditeur extends View {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
             if (bmp == null) {
                 try {
-                    java.io.InputStream is = getContext().getAssets().open(objet.cheminImage);
-                    bmp = android.graphics.BitmapFactory.decodeStream(is);
-                    if (bmp != null) {
-                        cacheImages.put(objet.cheminImage, bmp);
+                    // Correction : Lecture du bon chemin interne au lieu de l'APK
+                    java.io.File imgFile = new java.io.File(getContext().getFilesDir(), objet.cheminImage);
+                    if (imgFile.exists()) {
+                        bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                        if (bmp != null) {
+                            cacheImages.put(objet.cheminImage, bmp);
+                        }
                     }
-                    is.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             if (bmp != null) {
-                canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), paintObjet);
+                // Correction : Découpage (clipping) de l'image si c'est un rond
+                if ("rond".equals(objet.type)) {
+                    canvas.save();
+                    android.graphics.Path path = new android.graphics.Path();
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    path.addCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, android.graphics.Path.Direction.CW);
+                    canvas.clipPath(path);
+                    canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), paintObjet);
+                    canvas.restore();
+                } else {
+                    canvas.drawBitmap(bmp, null, new android.graphics.RectF(0, 0, objet.largeur, objet.hauteur), paintObjet);
+                }
             }
         }
     }
