@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.ClipData;
@@ -26,6 +27,7 @@ public class PanneauNoeuds extends ScrollView {
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
+        // Appel de la méthode existante dans ton RegistreNoeuds
         Map<String, List<RegistreNoeuds.InfoNoeud>> categories = RegistreNoeuds.getNoeudsParCategorie();
         
         for (Map.Entry<String, List<RegistreNoeuds.InfoNoeud>> entry : categories.entrySet()) {
@@ -40,6 +42,7 @@ public class PanneauNoeuds extends ScrollView {
             conteneurCat.setPadding(20, 10, 10, 20);
             
             for (RegistreNoeuds.InfoNoeud info : noeuds) {
+                // info.classeType est transmis au Drag & Drop pour CanvasBlueprint
                 TextView item = creerItemNoeud(context, info.libelle, info.classeType);
                 conteneurCat.addView(item);
             }
@@ -89,3 +92,6 @@ public class PanneauNoeuds extends ScrollView {
         return item;
     }
 }
+// bas 1
+
+
