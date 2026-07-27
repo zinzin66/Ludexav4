@@ -192,7 +192,6 @@ public class InspecteurProprietes extends LinearLayout {
         layoutScale.addView(champScaleY);
         blocProprietes.addView(layoutScale);
 // bas 1
-
         // haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
@@ -305,7 +304,6 @@ public class InspecteurProprietes extends LinearLayout {
         });
         blocTexte.addView(champContenu);
 // bas 2
-
         // haut 3
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
@@ -413,11 +411,12 @@ public class InspecteurProprietes extends LinearLayout {
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
             
-            java.io.File dossierImages = new java.io.File(context.getFilesDir(), "assets/images");
-            List<String> images = listerImagesLocales(dossierImages, "assets/images/");
+            // Correction ici : l'inspecteur pointe désormais vers assets_ludexa/Images
+            java.io.File dossierImages = new java.io.File(context.getFilesDir(), "assets_ludexa/Images");
+            List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
             
             if (images.isEmpty()) {
-                Toast.makeText(context, "Aucune image trouvée dans assets/images/", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Aucune image trouvée dans les assets", Toast.LENGTH_SHORT).show();
                 return;
             }
             new AlertDialog.Builder(context)
@@ -444,7 +443,8 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 // bas 3
-        // haut 4
+
+       // haut 4
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -653,10 +653,7 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-
         
 
-
-        
 
     

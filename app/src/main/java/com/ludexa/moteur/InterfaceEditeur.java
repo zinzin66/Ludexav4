@@ -37,8 +37,8 @@ public class InterfaceEditeur extends Activity {
     private LinearLayout layoutPrincipal;
     private boolean enModeJeu = false;
 
-    // Code de requête pour l'import d'image
-    public static final int REQUEST_CODE_IMPORT_IMAGE = 1001;
+    // Code de requête pour l'import d'asset
+    public static final int REQUEST_CODE_IMPORT_ASSET = 1001;
 
     public void ajouterCommande(Commande c) {
         undoStack.push(c);
@@ -184,21 +184,24 @@ public class InterfaceEditeur extends Activity {
 
         setContentView(layoutPrincipal);
     }
+// bas 1
 
-    public void lancerImportImage() {
+
+// haut 2
+    public void lancerImportAsset(String mimeType) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("image/*");
-        startActivityForResult(intent, REQUEST_CODE_IMPORT_IMAGE);
+        intent.setType(mimeType);
+        startActivityForResult(intent, REQUEST_CODE_IMPORT_ASSET);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_IMPORT_IMAGE && resultCode == Activity.RESULT_OK) {
+        if (requestCode == REQUEST_CODE_IMPORT_ASSET && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getData() != null) {
                 if (panneauRessources != null) {
-                    panneauRessources.traiterImportImage(data.getData());
+                    panneauRessources.traiterImportAsset(data.getData());
                 }
             }
         }
@@ -357,5 +360,6 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 1
-            
+// bas 2
+
+
