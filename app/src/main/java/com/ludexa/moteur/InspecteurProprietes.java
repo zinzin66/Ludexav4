@@ -32,6 +32,8 @@ public class InspecteurProprietes extends LinearLayout {
 
     private TextView valeurType;
     private EditText champLargeur, champHauteur, champRotation, champAlpha, champZOrder;
+    // FIX 2: Ajout des champs d'Echelle pour refléter le redimensionnement dynamique
+    private EditText champScaleX, champScaleY;
     private CheckBox cbVisible, cbVerrouille;
     private Button btnCouleur;
     private Button btnParent;
@@ -148,7 +150,7 @@ public class InspecteurProprietes extends LinearLayout {
         View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
 
         TextView labelDim = new TextView(context);
-        labelDim.setText("Largeur / Hauteur");
+        labelDim.setText("Largeur / Hauteur Base");
         blocProprietes.addView(labelDim);
 
         LinearLayout layoutDim = new LinearLayout(context);
@@ -167,9 +169,31 @@ public class InspecteurProprietes extends LinearLayout {
         layoutDim.addView(champLargeur);
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
+        
+        // FIX 2: Ajout section Echelle
+        TextView labelScale = new TextView(context);
+        labelScale.setText("Echelle X / Y (Scale)");
+        blocProprietes.addView(labelScale);
+
+        LinearLayout layoutScale = new LinearLayout(context);
+        layoutScale.setOrientation(LinearLayout.HORIZONTAL);
+        
+        champScaleX = new EditText(context);
+        champScaleX.setHint("Scale X");
+        champScaleX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        champScaleX.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        champScaleY = new EditText(context);
+        champScaleY.setHint("Scale Y");
+        champScaleY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        champScaleY.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        
+        layoutScale.addView(champScaleX);
+        layoutScale.addView(champScaleY);
+        blocProprietes.addView(layoutScale);
 // bas 1
 
-// haut 2
+        // haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
@@ -282,8 +306,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocTexte.addView(champContenu);
 // bas 2
 
-
-      // haut 3
+        // haut 3
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
@@ -390,7 +413,6 @@ public class InspecteurProprietes extends LinearLayout {
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
             
-            // Correction : Lecture depuis le vrai dossier local de l'application
             java.io.File dossierImages = new java.io.File(context.getFilesDir(), "assets/images");
             List<String> images = listerImagesLocales(dossierImages, "assets/images/");
             
@@ -422,8 +444,7 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 // bas 3
-
-// haut 4
+        // haut 4
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -444,6 +465,19 @@ public class InspecteurProprietes extends LinearLayout {
                 try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
             }
         }));
+        
+        // FIX 2: Watchers Echelle
+        champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
         champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -536,6 +570,11 @@ public class InspecteurProprietes extends LinearLayout {
             
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
+            
+            // FIX 2: Mise à jour visuelle des valeurs d'échelle
+            champScaleX.setText(String.valueOf(objet.scaleX));
+            champScaleY.setText(String.valueOf(objet.scaleY));
+            
             champRotation.setText(String.valueOf((int) objet.rotation));
             champZOrder.setText(String.valueOf(objet.zOrder));
             cbVisible.setChecked(objet.visible);
@@ -573,7 +612,6 @@ public class InspecteurProprietes extends LinearLayout {
         miseAJourEnCours = false;
     }
 
-    // Correction : Parcours récursif du dossier interne
     private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
         List<String> resultats = new ArrayList<>();
         if (dir != null && dir.exists() && dir.isDirectory()) {
@@ -613,5 +651,12 @@ public class InspecteurProprietes extends LinearLayout {
 }
 // bas 4
 
+
+
+
         
+
+
+        
+
     
