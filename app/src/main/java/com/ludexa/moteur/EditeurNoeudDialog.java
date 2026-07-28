@@ -54,6 +54,27 @@ public class EditeurNoeudDialog extends Dialog {
         // C'est cette ligne qui gère l'ouverture du clavier selon le noeud
         champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
 
+        // NOUVEAU : Détection pour NoeudActionModifierCouleur (remplace le clavier par un clic popup)
+        if (noeud instanceof NoeudActionModifierCouleur) {
+            champSaisie.setFocusable(false);
+            champSaisie.setClickable(true);
+        }
+        champSaisie.setOnClickListener(v -> {
+            if (noeud instanceof NoeudActionModifierCouleur && "Couleur".equals(champActif)) {
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+                builder.setTitle("Choisir une couleur");
+                String[] couleurs = {"Bleu", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+                builder.setItems(couleurs, (dialog, which) -> {
+                    String choix = couleurs[which];
+                    champSaisie.setText(choix);
+                    if (champActif != null) {
+                        noeud.setValeurParametre(champActif, choix);
+                    }
+                });
+                builder.show();
+            }
+        });
+
         List<String> params = noeud.getNomsParametres();
         if (params != null && !params.isEmpty()) {
             champActif = params.get(0);
@@ -85,6 +106,11 @@ public class EditeurNoeudDialog extends Dialog {
                                 child.setBackgroundColor(Color.parseColor("#555555"));
                             }
                         }
+                    }
+                    
+                    // NOUVEAU : Auto-ouvrir la popup si on clique sur l'onglet du paramètre couleur
+                    if (noeud instanceof NoeudActionModifierCouleur && "Couleur".equals(champActif)) {
+                        champSaisie.performClick();
                     }
                 });
                 barreParams.addView(btnParam);
@@ -196,7 +222,7 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.addView(conteneurBooleen);
 // bas 1
 
-    // haut 2
+// haut 2
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -390,6 +416,11 @@ public class EditeurNoeudDialog extends Dialog {
         // Initialisation du bon clavier à l'ouverture
         if (noeud instanceof NoeudActionModifierVariable) {
             majInterfacePourVariable(noeud.getCibleVariable(), noeud, champSaisie, conteneurClavier, conteneurBooleen);
+        } else if (noeud instanceof NoeudActionModifierCouleur) {
+            // NOUVEAU : Cache le clavier de code pour le noeud de couleur
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            conteneurClavier.setVisibility(View.GONE);
+            conteneurBooleen.setVisibility(View.GONE);
         } else if (!noeud.utiliseClavierTexte()) {
             champSaisie.setInputType(InputType.TYPE_NULL);
         }
@@ -434,3 +465,6 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 2
+
+
+    
