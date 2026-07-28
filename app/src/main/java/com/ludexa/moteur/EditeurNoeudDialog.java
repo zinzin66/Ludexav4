@@ -275,6 +275,33 @@ public class EditeurNoeudDialog extends Dialog {
             listeDroite.addView(txtCibleActuelle);
         }
 
+        // --- RESTAURATION : Section ITEMS (Cible Objet) ---
+        TextView titreItems = new TextView(context);
+        titreItems.setText("Items (Cible Objet)");
+        titreItems.setTextColor(Color.WHITE);
+        titreItems.setGravity(Gravity.CENTER);
+        titreItems.setBackgroundColor(Color.parseColor("#1a435c")); 
+        titreItems.setPadding(10, 15, 10, 15);
+        listeDroite.addView(titreItems);
+
+        if (scene != null && scene.objets != null) {
+            for (ObjetBase obj : scene.objets) {
+                Button btnObj = new Button(context);
+                btnObj.setText(obj.nom);
+                btnObj.setTextColor(Color.LTGRAY);
+                btnObj.setBackgroundColor(Color.parseColor("#222222"));
+                btnObj.setOnClickListener(v -> {
+                    if (noeud.requiertCibleObjet()) {
+                        noeud.setCibleObjet(obj);
+                        txtCibleActuelle.setText("Cible : " + obj.nom);
+                        mettreAJourResumeExpression(noeud, txtResumeExpression); // Mise à jour du résumé
+                    }
+                });
+                listeDroite.addView(btnObj);
+            }
+        }
+
+        // Section : VARIABLES
         TextView titreVars = new TextView(context);
         titreVars.setText("Variables");
         titreVars.setTextColor(Color.WHITE);
@@ -285,10 +312,9 @@ public class EditeurNoeudDialog extends Dialog {
 
         View.OnClickListener varClickListener = v -> {
             Variable var = (Variable) v.getTag();
-            // CORRECTION : On lie bien la variable au lieu d'insérer du texte
             if (noeud.requiertCibleVariable()) {
                 noeud.setCibleVariable(var);
-                txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
+                txtCibleActuelle.setText("Cible : " + var.nom);
                 appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
                 mettreAJourResumeExpression(noeud, txtResumeExpression);
             } else {
@@ -307,6 +333,40 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setTag(var);
                 btnVar.setOnClickListener(varClickListener);
                 listeDroite.addView(btnVar);
+            }
+        }
+
+        // --- RESTAURATION : Section SCÈNES ---
+        TextView titreScenes = new TextView(context);
+        titreScenes.setText("Scènes");
+        titreScenes.setTextColor(Color.WHITE);
+        titreScenes.setGravity(Gravity.CENTER);
+        titreScenes.setBackgroundColor(Color.parseColor("#1a435c")); 
+        titreScenes.setPadding(10, 15, 10, 15);
+        listeDroite.addView(titreScenes);
+
+        List<Scene> scenesRecuperees = null;
+        if (NoeudBase.contexteApplication != null) {
+            try {
+                java.lang.reflect.Field scenesField = NoeudBase.contexteApplication.getClass().getField("listeScenes");
+                @SuppressWarnings("unchecked")
+                List<Scene> scenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
+                scenesRecuperees = scenes;
+            } catch (Exception e) {}
+        }
+
+        if (scenesRecuperees != null) {
+            for (Scene s : scenesRecuperees) {
+                Button btnScene = new Button(context);
+                btnScene.setText(s.nom + " (Scène)");
+                btnScene.setTextColor(Color.WHITE);
+                btnScene.setBackgroundColor(Color.parseColor("#6a1b9a")); 
+                btnScene.setOnClickListener(v -> {
+                    int start = Math.max(champSaisie.getSelectionStart(), 0);
+                    int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                    champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), s.nom, 0, s.nom.length());
+                });
+                listeDroite.addView(btnScene);
             }
         }
 
@@ -362,6 +422,14 @@ public class EditeurNoeudDialog extends Dialog {
                 val = noeud.getValeurParametre(noeud.getNomsParametres().get(0));
             }
             txtResume.setText("Action : " + varName + " = " + (val != null ? val : ""));
+        } else if (noeud.requiertCibleObjet()) { // CORRECTION : Support des objets dans le résumé
+            txtResume.setVisibility(View.VISIBLE);
+            String objName = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
+            String val = "";
+            if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
+                val = noeud.getValeurParametre(noeud.getNomsParametres().get(0));
+            }
+            txtResume.setText("Action Objet : " + objName + (val.isEmpty() ? "" : " -> " + val));
         } else {
             txtResume.setVisibility(View.GONE);
         }
@@ -383,7 +451,6 @@ public class EditeurNoeudDialog extends Dialog {
             champSaisie.setFocusableInTouchMode(true);
             champSaisie.setClickable(true);
             
-            // CORRECTION : On vérifie juste si le noeud gère une variable
             if (noeud.requiertCibleVariable() && noeud.getCibleVariable() != null) {
                 majInterfacePourVariable(noeud.getCibleVariable(), champSaisie, conteneurClavier, conteneurBooleen);
             } else if (!noeud.utiliseClavierTexte()) {
@@ -396,7 +463,7 @@ public class EditeurNoeudDialog extends Dialog {
                 champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
                 if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
                 if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-                champSaisie.requestFocus(); // CORRECTION : Force la tablette à ouvrir son clavier !
+                champSaisie.requestFocus();
             }
         }
     }
@@ -425,7 +492,6 @@ public class EditeurNoeudDialog extends Dialog {
 }
 // bas 3
 
-        
 
 
     
