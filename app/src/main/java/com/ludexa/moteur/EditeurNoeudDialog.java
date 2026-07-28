@@ -30,6 +30,17 @@ public class EditeurNoeudDialog extends Dialog {
         root.setBackgroundColor(Color.parseColor("#1E1E1E")); 
         root.setLayoutParams(new ViewGroup.LayoutParams(1200, 800));
 
+        // Déclaration avancée des conteneurs pour y avoir accès dans les listeners
+        final LinearLayout conteneurClavier = new LinearLayout(context);
+        conteneurClavier.setOrientation(LinearLayout.VERTICAL);
+        conteneurClavier.setPadding(0, 20, 0, 0);
+
+        final LinearLayout conteneurBooleen = new LinearLayout(context);
+        conteneurBooleen.setOrientation(LinearLayout.HORIZONTAL);
+        conteneurBooleen.setGravity(Gravity.CENTER);
+        conteneurBooleen.setPadding(0, 20, 0, 0);
+        conteneurBooleen.setVisibility(View.GONE);
+
         // =========================================================
         // PANNEAU GAUCHE : Zone de texte et Clavier Code
         // =========================================================
@@ -51,33 +62,33 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setPadding(15, 15, 15, 15);
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         
-        // C'est cette ligne qui gère l'ouverture du clavier selon le noeud
-        champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
-
-        // NOUVEAU : Détection pour NoeudActionModifierCouleur (remplace le clavier par un clic popup)
-        if (noeud instanceof NoeudActionModifierCouleur) {
-            champSaisie.setFocusable(false);
-            champSaisie.setClickable(true);
-        }
-        champSaisie.setOnClickListener(v -> {
-            if (noeud instanceof NoeudActionModifierCouleur && "Couleur".equals(champActif)) {
-                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
-                builder.setTitle("Choisir une couleur");
-                String[] couleurs = {"Bleu", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
-                builder.setItems(couleurs, (dialog, which) -> {
-                    String choix = couleurs[which];
-                    champSaisie.setText(choix);
-                    if (champActif != null) {
-                        noeud.setValeurParametre(champActif, choix);
-                    }
-                });
-                builder.show();
-            }
-        });
-
         List<String> params = noeud.getNomsParametres();
         if (params != null && !params.isEmpty()) {
             champActif = params.get(0);
+        }
+
+        // Action générique sur le clic (switch selon le type d'éditeur)
+        champSaisie.setOnClickListener(v -> {
+            if (champActif != null) {
+                String typeEditeur = noeud.getTypeEditeurParametre(champActif);
+                switch (typeEditeur) {
+                    case NoeudBase.TYPE_COULEUR:
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+                        builder.setTitle("Choisir une couleur");
+                        String[] couleurs = {"Bleu", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+                        builder.setItems(couleurs, (dialog, which) -> {
+                            String choix = couleurs[which];
+                            champSaisie.setText(choix);
+                            noeud.setValeurParametre(champActif, choix);
+                        });
+                        builder.show();
+                        break;
+                    // Futurs types (choix liste custom, sons, assets, etc.)
+                }
+            }
+        });
+
+        if (params != null && !params.isEmpty()) {
             champSaisie.setText(noeud.getValeurParametre(champActif));
 
             for (String paramName : params) {
@@ -108,8 +119,12 @@ public class EditeurNoeudDialog extends Dialog {
                         }
                     }
                     
-                    // NOUVEAU : Auto-ouvrir la popup si on clique sur l'onglet du paramètre couleur
-                    if (noeud instanceof NoeudActionModifierCouleur && "Couleur".equals(champActif)) {
+                    // On adapte l'interface au type du nouveau paramètre cliqué
+                    appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
+
+                    // Auto-ouvrir la popup si le paramètre requiert une interaction directe
+                    String type = noeud.getTypeEditeurParametre(champActif);
+                    if (NoeudBase.TYPE_COULEUR.equals(type)) {
                         champSaisie.performClick();
                     }
                 });
@@ -139,10 +154,6 @@ public class EditeurNoeudDialog extends Dialog {
             {">", "<", "=", "!"},
             {"||", "&&", "", ""}
         };
-
-        LinearLayout conteneurClavier = new LinearLayout(context);
-        conteneurClavier.setOrientation(LinearLayout.VERTICAL);
-        conteneurClavier.setPadding(0, 20, 0, 0);
 
         for (String[] ligne : touchesCode) {
             LinearLayout rowLayout = new LinearLayout(context);
@@ -187,12 +198,6 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.addView(conteneurClavier);
 
         // CONTENEUR BOOLEEN
-        LinearLayout conteneurBooleen = new LinearLayout(context);
-        conteneurBooleen.setOrientation(LinearLayout.HORIZONTAL);
-        conteneurBooleen.setGravity(Gravity.CENTER);
-        conteneurBooleen.setPadding(0, 20, 0, 0);
-        conteneurBooleen.setVisibility(View.GONE);
-
         Button btnVrai = new Button(context);
         btnVrai.setText("Vrai (true)");
         btnVrai.setBackgroundColor(Color.parseColor("#4CAF50"));
@@ -221,7 +226,6 @@ public class EditeurNoeudDialog extends Dialog {
         conteneurBooleen.addView(btnFaux);
         zoneGauche.addView(conteneurBooleen);
 // bas 1
-
 // haut 2
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
@@ -413,19 +417,44 @@ public class EditeurNoeudDialog extends Dialog {
         grandLayout.addView(root, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         grandLayout.addView(bottomBar);
 
-        // Initialisation du bon clavier à l'ouverture
-        if (noeud instanceof NoeudActionModifierVariable) {
-            majInterfacePourVariable(noeud.getCibleVariable(), noeud, champSaisie, conteneurClavier, conteneurBooleen);
-        } else if (noeud instanceof NoeudActionModifierCouleur) {
-            // NOUVEAU : Cache le clavier de code pour le noeud de couleur
-            champSaisie.setInputType(InputType.TYPE_NULL);
-            conteneurClavier.setVisibility(View.GONE);
-            conteneurBooleen.setVisibility(View.GONE);
-        } else if (!noeud.utiliseClavierTexte()) {
-            champSaisie.setInputType(InputType.TYPE_NULL);
-        }
-
         setContentView(grandLayout);
+
+        // Initialisation de l'état de l'interface en fonction du premier paramètre actif
+        appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
+    }
+
+    // NOUVEAU : Méthode générique pour appliquer le bon comportement graphique selon le type de l'éditeur du paramètre courant
+    private void appliquerTypeEditeur(NoeudBase noeud, String nomParam, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
+        String type = (nomParam != null) ? noeud.getTypeEditeurParametre(nomParam) : NoeudBase.TYPE_TEXTE_LIBRE;
+
+        if (NoeudBase.TYPE_COULEUR.equals(type)) {
+            champSaisie.setFocusable(false);
+            champSaisie.setFocusableInTouchMode(false);
+            champSaisie.setClickable(true);
+            champSaisie.setShowSoftInputOnFocus(false);
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+        } else {
+            // Comportement normal par défaut (texte, code...)
+            champSaisie.setFocusable(true);
+            champSaisie.setFocusableInTouchMode(true);
+            champSaisie.setClickable(true);
+            champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
+            
+            // On conserve l'override existant pour les cibles de type Variable
+            if (noeud instanceof NoeudActionModifierVariable) {
+                majInterfacePourVariable(noeud.getCibleVariable(), noeud, champSaisie, conteneurClavier, conteneurBooleen);
+            } else if (!noeud.utiliseClavierTexte()) {
+                champSaisie.setInputType(InputType.TYPE_NULL);
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
+                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+            } else {
+                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+            }
+        }
     }
 
     private void majInterfacePourVariable(Variable var, NoeudBase noeud, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
@@ -465,6 +494,7 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 2
+
 
 
     
