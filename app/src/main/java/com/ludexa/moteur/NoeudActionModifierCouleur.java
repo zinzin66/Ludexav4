@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.graphics.Color;
@@ -38,7 +37,16 @@ public class NoeudActionModifierCouleur extends NoeudBase {
     }
 
     @Override
-    public boolean utiliseClavierTexte() { return false; } // false car c'est un choix prédéfini de couleurs
+    public boolean utiliseClavierTexte() { return false; } 
+
+    // NOUVEAU : On déclare le type spécifique pour le paramètre
+    @Override
+    public String getTypeEditeurParametre(String nom) {
+        if ("Couleur".equals(nom)) {
+            return NoeudBase.TYPE_COULEUR;
+        }
+        return super.getTypeEditeurParametre(nom);
+    }
 
     @Override
     public List<String> getNomsParametres() { return Arrays.asList("Couleur"); }
@@ -80,5 +88,3 @@ public class NoeudActionModifierCouleur extends NoeudBase {
         return this.cible;
     }
 }
-// bas 1
-
