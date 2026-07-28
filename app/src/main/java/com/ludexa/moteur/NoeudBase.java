@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -102,7 +103,15 @@ public abstract class NoeudBase {
         return TYPE_TEXTE_LIBRE; // Valeur par défaut
     }
     
+    // NOUVEAU : Fournit les options pour un type TYPE_CHOIX_LISTE
+    public List<String> getOptionsChoixListe(String nomParametre) {
+        return new ArrayList<>();
+    }
+    
     public boolean aDesParametresEditables() {
         return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleVariable();
     }
 }
+// bas 1
+
+
