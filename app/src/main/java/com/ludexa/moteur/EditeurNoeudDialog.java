@@ -83,7 +83,19 @@ public class EditeurNoeudDialog extends Dialog {
                         });
                         builder.show();
                         break;
-                    // Futurs types (choix liste custom, sons, assets, etc.)
+                    case NoeudBase.TYPE_CHOIX_LISTE:
+                        android.app.AlertDialog.Builder builderListe = new android.app.AlertDialog.Builder(context);
+                        builderListe.setTitle("Choisir une option");
+                        List<String> optionsListe = noeud.getOptionsChoixListe(champActif);
+                        String[] optionsArray = optionsListe.toArray(new String[0]);
+                        builderListe.setItems(optionsArray, (dialog, which) -> {
+                            String choix = optionsArray[which];
+                            champSaisie.setText(choix);
+                            noeud.setValeurParametre(champActif, choix);
+                        });
+                        builderListe.show();
+                        break;
+                    // Futurs types (sons, assets, etc.)
                 }
             }
         });
@@ -124,7 +136,7 @@ public class EditeurNoeudDialog extends Dialog {
 
                     // Auto-ouvrir la popup si le paramètre requiert une interaction directe
                     String type = noeud.getTypeEditeurParametre(champActif);
-                    if (NoeudBase.TYPE_COULEUR.equals(type)) {
+                    if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type)) {
                         champSaisie.performClick();
                     }
                 });
@@ -226,6 +238,7 @@ public class EditeurNoeudDialog extends Dialog {
         conteneurBooleen.addView(btnFaux);
         zoneGauche.addView(conteneurBooleen);
 // bas 1
+
 // haut 2
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
@@ -427,7 +440,7 @@ public class EditeurNoeudDialog extends Dialog {
     private void appliquerTypeEditeur(NoeudBase noeud, String nomParam, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
         String type = (nomParam != null) ? noeud.getTypeEditeurParametre(nomParam) : NoeudBase.TYPE_TEXTE_LIBRE;
 
-        if (NoeudBase.TYPE_COULEUR.equals(type)) {
+        if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type)) {
             champSaisie.setFocusable(false);
             champSaisie.setFocusableInTouchMode(false);
             champSaisie.setClickable(true);
@@ -494,7 +507,5 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 2
-
-
 
     
