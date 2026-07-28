@@ -9,6 +9,12 @@ import java.util.UUID;
 public abstract class NoeudBase {
     public static Context contexteApplication;
 
+    // NOUVEAU : Constantes définissant les types d'éditeurs possibles
+    public static final String TYPE_TEXTE_LIBRE = "TYPE_TEXTE_LIBRE";
+    public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
+    public static final String TYPE_COULEUR = "TYPE_COULEUR";
+    public static final String TYPE_CHOIX_LISTE = "TYPE_CHOIX_LISTE";
+
     public String id;
     public String nom;
     public String categorie;
@@ -90,6 +96,11 @@ public abstract class NoeudBase {
     
     // NOUVEAU : Méthode pour déterminer le type de clavier à afficher
     public boolean utiliseClavierTexte() { return false; }
+
+    // NOUVEAU : Déclaration générique du type d'éditeur pour un paramètre
+    public String getTypeEditeurParametre(String nomParametre) {
+        return TYPE_TEXTE_LIBRE; // Valeur par défaut
+    }
     
     public boolean aDesParametresEditables() {
         return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleVariable();
