@@ -59,7 +59,8 @@ public class EditeurNoeudDialog extends Dialog {
         txtResumeExpression.setTextColor(Color.parseColor("#44AAFF"));
         txtResumeExpression.setTextSize(18);
         txtResumeExpression.setPadding(15, 0, 15, 10);
-        txtResumeExpression.setFakeBoldText(true);
+        // CORRECTION ICI : passage par getPaint() pour le texte en gras
+        txtResumeExpression.getPaint().setFakeBoldText(true);
         zoneGauche.addView(txtResumeExpression);
 
         EditText champSaisie = new EditText(context);
@@ -117,6 +118,9 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
+        
+
+        
 
 
      // haut 2
