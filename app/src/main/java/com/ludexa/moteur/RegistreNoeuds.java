@@ -28,6 +28,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Actions", "NoeudActionModifierTexte"));
         // Ligne ajoutée pour le nouveau nœud de couleur
         REGISTRE.add(new InfoNoeud("Modifier Couleur", "Actions", "NoeudActionModifierCouleur"));
+        // NOUVEAU : Enregistrement du noeud conditionnel
+        REGISTRE.add(new InfoNoeud("Condition", "Logique", "NoeudConditionComparaison"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
@@ -42,3 +44,5 @@ public class RegistreNoeuds {
     }
 }
 // bas 1
+
+
