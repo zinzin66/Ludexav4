@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ public class CanvasEditeur extends View {
     private float dragStartX, dragStartY;
     private float initX, initY, initW, initH, initRot, initScaleX, initScaleY;
     private Matrix initMatrix;
+    
+    private ScaleGestureDetector scaleGestureDetector;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
@@ -87,6 +90,8 @@ public class CanvasEditeur extends View {
         paintPoignee.setColor(Color.parseColor("#E53935"));
         paintPoignee.setStyle(Paint.Style.FILL);
         paintPoignee.setAntiAlias(true);
+        
+        scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
     }
 
     public void setScene(Scene scene) {
@@ -187,7 +192,7 @@ public class CanvasEditeur extends View {
         return pts;
     }
 // bas 1
-// haut 2
+    // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -375,6 +380,9 @@ public class CanvasEditeur extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        // Traitement du Pinch-to-zoom AVANT le switch
+        scaleGestureDetector.onTouchEvent(event);
+
         float x = event.getX();
         float y = event.getY();
 
@@ -384,6 +392,12 @@ public class CanvasEditeur extends View {
                     currentMode = 1;
                 } else {
                     currentMode = getTouchTarget(x, y);
+                    
+                    // Pan direct sur zone vide
+                    if (currentMode == 0) {
+                        currentMode = 1;
+                    }
+                    
                     if (objetSelectionne != null) {
                         initX = objetSelectionne.x; initY = objetSelectionne.y;
                         initW = objetSelectionne.largeur; initH = objetSelectionne.hauteur;
@@ -399,6 +413,13 @@ public class CanvasEditeur extends View {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
+                // Ignore le traitement de pan/déplacement si un pincement est en cours
+                if (scaleGestureDetector.isInProgress()) {
+                    lastTouchX = x;
+                    lastTouchY = y;
+                    return true;
+                }
+
                 float[] scenePos = ecranVersScene(x, y);
                 float sx = scenePos[0], sy = scenePos[1];
                 
@@ -482,8 +503,18 @@ public class CanvasEditeur extends View {
         }
         return super.onTouchEvent(event);
     }
+
+    // Listener interne pour la gestion du zoom à deux doigts
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            niveauZoom *= detector.getScaleFactor();
+            // Limitation raisonnable du zoom entre 0.2f et 5.0f
+            niveauZoom = Math.max(0.2f, Math.min(niveauZoom, 5.0f));
+            invalidate();
+            return true;
+        }
+    }
 }
 // bas 2
 
-
-    
