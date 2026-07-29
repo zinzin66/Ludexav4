@@ -20,6 +20,7 @@ public class VueJeu extends View {
     private Paint peintureObjet;
     private Paint peintureTexte;
     private Paint peintureDebug;
+    private Paint peintureFondBlanc;
     private MoteurLogique moteur;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
@@ -49,6 +50,9 @@ public class VueJeu extends View {
         peintureDebug.setColor(Color.BLACK);
         peintureDebug.setTextSize(24f);
         peintureDebug.setAntiAlias(true);
+        
+        peintureFondBlanc = new Paint();
+        peintureFondBlanc.setColor(Color.WHITE);
 
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
@@ -148,7 +152,16 @@ public class VueJeu extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawColor(Color.WHITE);
+        
+        float echelle = Math.min((float) getWidth() / ConfigurationJeu.LARGEUR_JEU, (float) getHeight() / ConfigurationJeu.HAUTEUR_JEU);
+        float decalageX = (getWidth() - ConfigurationJeu.LARGEUR_JEU * echelle) / 2f;
+        float decalageY = (getHeight() - ConfigurationJeu.HAUTEUR_JEU * echelle) / 2f;
+        
+        canvas.drawColor(Color.BLACK);
+        canvas.translate(decalageX, decalageY);
+        canvas.scale(echelle, echelle);
+        
+        canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
         if (sceneActive != null && sceneActive.objets != null) {
             List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
