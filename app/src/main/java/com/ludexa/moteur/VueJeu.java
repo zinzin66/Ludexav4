@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -69,6 +70,17 @@ public class VueJeu extends View {
         super.onDetachedFromWindow();
         // Arrêt propre de la boucle de rendu pour ne pas tourner en arrière-plan
         removeCallbacks(boucleDeRendu);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // Détection du relâchement du doigt
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            if (this.moteur != null) {
+                this.moteur.executerEvenement(NoeudEventFinClic.class);
+            }
+        }
+        return true;
     }
 
     private ObjetBase getObjetById(String id) {
