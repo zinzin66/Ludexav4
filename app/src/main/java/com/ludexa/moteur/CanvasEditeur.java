@@ -1,4 +1,3 @@
-    
 // haut 1
 package com.ludexa.moteur;
 
@@ -106,8 +105,7 @@ public class CanvasEditeur extends View {
     public void zoomPlus() { niveauZoom *= 1.25f; invalidate(); }
     public void zoomMoins() { niveauZoom /= 1.25f; invalidate(); }
     public void zoomReset() { niveauZoom = 1.0f; invalidate(); }
-// bas 1
-// haut 2
+
     public static class TransformAbsolue {
         public float x, y, rotation, scaleX, scaleY;
     }
@@ -188,9 +186,8 @@ public class CanvasEditeur extends View {
         inv.mapPoints(pts);
         return pts;
     }
-// bas 2
-
-// haut 3
+// bas 1
+// haut 2
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -210,7 +207,7 @@ public class CanvasEditeur extends View {
             canvas.drawLine(-limiteMax, i, limiteMax, i, paintGrille);
         }
 
-        canvas.drawRect(200 + cameraX, 200 + cameraY, 600 + cameraX, 500 + cameraY, paintCamera);
+        canvas.drawRect(0 + cameraX, 0 + cameraY, ConfigurationJeu.LARGEUR_JEU + cameraX, ConfigurationJeu.HAUTEUR_JEU + cameraY, paintCamera);
 
         if (sceneActive != null) {
             List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
@@ -258,7 +255,6 @@ public class CanvasEditeur extends View {
                     float scaleFactor = Math.max(Math.abs(objet.scaleX), Math.abs(objet.scaleY));
                     if (scaleFactor < 0.01f) scaleFactor = 0.01f;
 
-                    // BONUS : Épaisseur du trait passée de 6f à 2f
                     paintSelection.setStrokeWidth(2f / scaleFactor);
                     float l = -4f / scaleFactor;
                     float t = -4f / scaleFactor;
@@ -283,9 +279,7 @@ public class CanvasEditeur extends View {
         }
         canvas.restore();
     }
-// bas 3
 
-// haut 4
     private void dessinerImage(Canvas canvas, ObjetBase objet) {
         if (objet.cheminImage != null) {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
@@ -356,7 +350,6 @@ public class CanvasEditeur extends View {
             
             float scale = Math.max(Math.abs(objetSelectionne.scaleX), Math.abs(objetSelectionne.scaleY));
             if (scale < 0.01f) scale = 0.01f;
-            // FIX 3: Réduction de la zone de hit (60f -> 30f) pour laisser plus de place au "déplacement"
             float hit = (30f / niveauZoom) / scale;
             
             float midX = objetSelectionne.largeur / 2f;
@@ -490,10 +483,7 @@ public class CanvasEditeur extends View {
         return super.onTouchEvent(event);
     }
 }
-// bas 4
+// bas 2
+
 
     
-
-    
-
-
