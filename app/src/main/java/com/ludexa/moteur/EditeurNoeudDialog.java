@@ -118,12 +118,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
-        
-
-        
-
-
-     // haut 2
+        // haut 2
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
             champSaisie.setText(valInit != null ? valInit : "");
@@ -249,7 +244,8 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 2
 
 
-// haut 3
+
+    // haut 3
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -404,9 +400,15 @@ public class EditeurNoeudDialog extends Dialog {
         mettreAJourResumeExpression(noeud, txtResumeExpression);
     }
 
-    // NOUVEAU : Méthode de mise à jour du résumé
+    // NOUVEAU : Méthode de mise à jour du résumé (Modifiée sans dépendance de classe stricte)
     private void mettreAJourResumeExpression(NoeudBase noeud, TextView txtResume) {
-        if (noeud.nom.equals("Condition") || noeud.getClass().getSimpleName().equals("NoeudConditionComparaison")) {
+        boolean estComparaisonGenerique = false;
+        if (noeud.requiertCibleVariable() && noeud.getNomsParametres() != null) {
+            estComparaisonGenerique = noeud.getNomsParametres().contains("Opérateur") 
+                                   && noeud.getNomsParametres().contains("Valeur de comparaison");
+        }
+
+        if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
             txtResume.setVisibility(View.VISIBLE);
             String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
             String op = noeud.getValeurParametre("Opérateur");
@@ -422,7 +424,7 @@ public class EditeurNoeudDialog extends Dialog {
                 val = noeud.getValeurParametre(noeud.getNomsParametres().get(0));
             }
             txtResume.setText("Action : " + varName + " = " + (val != null ? val : ""));
-        } else if (noeud.requiertCibleObjet()) { // CORRECTION : Support des objets dans le résumé
+        } else if (noeud.requiertCibleObjet()) {
             txtResume.setVisibility(View.VISIBLE);
             String objName = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
             String val = "";
@@ -491,6 +493,7 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 3
+
 
 
 
