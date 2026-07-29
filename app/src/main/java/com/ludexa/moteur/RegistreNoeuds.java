@@ -35,6 +35,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fin de Clic", "Événements", "NoeudEventFinClic"));
         REGISTRE.add(new InfoNoeud("Toast", "Actions", "NoeudActionToast"));
         REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Actions", "NoeudActionAjouterVariable"));
+        REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Visibilité", "NoeudActionVisibilite"));
+    }
     }
 
     // Décommenter et déplacer la ligne dans le bloc static{} ci-dessus une fois le fichier NoeudXxx.java créé et testé.
