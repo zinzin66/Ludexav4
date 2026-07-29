@@ -38,7 +38,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Visibilité", "Actions", "NoeudActionVisibilite"));
         REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Actions", "NoeudActionNombreAleatoire"));
         
-    }
+    
     }
 
     // Décommenter et déplacer la ligne dans le bloc static{} ci-dessus une fois le fichier NoeudXxx.java créé et testé.
