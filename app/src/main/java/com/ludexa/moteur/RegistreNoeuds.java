@@ -36,6 +36,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Toast", "Actions", "NoeudActionToast"));
         REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Actions", "NoeudActionAjouterVariable"));
         REGISTRE.add(new InfoNoeud("Visibilité", "Actions", "NoeudActionVisibilite"));
+        REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Actions", "NoeudActionNombreAleatoire"));
+        
     }
     }
 
