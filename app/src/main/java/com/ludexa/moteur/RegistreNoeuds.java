@@ -33,6 +33,7 @@ public class RegistreNoeuds {
         // NOUVEAU : Enregistrement du noeud Timer dans la catégorie "Actions"
         REGISTRE.add(new InfoNoeud("Timer", "Actions", "NoeudActionTimer"));
         REGISTRE.add(new InfoNoeud("Fin de Clic", "Événements", "NoeudEventFinClic"));
+        REGISTRE.add(new InfoNoeud("Toast", "Actions", "NoeudActionToast"));
     }
 
     // Décommenter et déplacer la ligne dans le bloc static{} ci-dessus une fois le fichier NoeudXxx.java créé et testé.
