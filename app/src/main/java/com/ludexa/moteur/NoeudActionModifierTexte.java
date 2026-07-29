@@ -43,7 +43,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
                         Variable v = trouverVariable(nomVar);
                         resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                     }
-                    tokenCourant.setLength(0); // Correction du bug d'espacement
+                    tokenCourant.setLength(0);
                 } else {
                     tokenCourant.append(c);
                 }
@@ -59,7 +59,6 @@ public class NoeudActionModifierTexte extends NoeudBase {
                 resultatFinal.append(tokenCourant.toString());
             }
 
-            // Assignation exclusive au contenu texte, l'identifiant "nom" reste intact
             cibleActuelle.contenuTexte = resultatFinal.toString();
         }
         propagerExecution("Suivant");
@@ -104,13 +103,19 @@ public class NoeudActionModifierTexte extends NoeudBase {
     public boolean utiliseClavierTexte() { return true; }
 
     @Override
-    public List<String> getNomsParametres() { return Arrays.asList("Code/Texte"); }
+    public List<String> getNomsParametres() { return Arrays.asList("Nouveau texte"); }
 
     @Override
-    public String getValeurParametre(String nom) { return texteSaisi; }
+    public String getValeurParametre(String nom) { 
+        if ("Nouveau texte".equals(nom)) return texteSaisi;
+        return texteSaisi; 
+    }
 
     @Override
-    public void setValeurParametre(String nom, String valeur) { texteSaisi = valeur; }
+    public void setValeurParametre(String nom, String valeur) { 
+        if ("Nouveau texte".equals(nom)) texteSaisi = valeur; 
+        else texteSaisi = valeur;
+    }
 
     @Override
     public boolean requiertCibleObjet() { return true; }
@@ -124,7 +129,6 @@ public class NoeudActionModifierTexte extends NoeudBase {
     @Override
     public ObjetBase getCibleObjet() {
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            // Reconnexion dynamique
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
@@ -144,3 +148,4 @@ public class NoeudActionModifierTexte extends NoeudBase {
     }
 }
 // bas 1
+                    

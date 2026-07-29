@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
@@ -25,6 +26,13 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Déplacer Objet", "Actions", "NoeudActionDeplacer"));
         REGISTRE.add(new InfoNoeud("Modifier Variable", "Actions", "NoeudActionModifierVariable"));
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Actions", "NoeudActionModifierTexte"));
+        // Ligne ajoutée pour le nouveau nœud de couleur
+        REGISTRE.add(new InfoNoeud("Modifier Couleur", "Actions", "NoeudActionModifierCouleur"));
+        // NOUVEAU : Enregistrement du noeud conditionnel
+        REGISTRE.add(new InfoNoeud("Condition", "Logique", "NoeudConditionComparaison"));
+        
+        // NOUVEAU : Enregistrement du noeud Timer dans la catégorie "Actions"
+        REGISTRE.add(new InfoNoeud("Timer", "Actions", "NoeudActionTimer"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
@@ -38,3 +46,4 @@ public class RegistreNoeuds {
         return map;
     }
 }
+// bas 1

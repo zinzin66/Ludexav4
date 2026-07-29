@@ -23,6 +23,15 @@ public class VueJeu extends View {
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
+    // Boucle de rendu continue synchronisée sur le rafraîchissement de l'écran
+    private final Runnable boucleDeRendu = new Runnable() {
+        @Override
+        public void run() {
+            invalidate(); // Demande un redessin
+            postOnAnimation(this); // Relance à la prochaine frame
+        }
+    };
+
     public VueJeu(Context context, Scene scene, Blueprint blueprintActif) {
         super(context);
         this.sceneActive = scene;
@@ -50,8 +59,16 @@ public class VueJeu extends View {
         super.onAttachedToWindow();
         if (this.moteur != null) {
             this.moteur.executerDemarrage();
-            invalidate();
         }
+        // Démarrage de la boucle de rendu
+        postOnAnimation(boucleDeRendu);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // Arrêt propre de la boucle de rendu pour ne pas tourner en arrière-plan
+        removeCallbacks(boucleDeRendu);
     }
 
     private ObjetBase getObjetById(String id) {

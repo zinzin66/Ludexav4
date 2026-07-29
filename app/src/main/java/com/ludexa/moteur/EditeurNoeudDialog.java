@@ -4,7 +4,9 @@ package com.ludexa.moteur;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,11 +26,20 @@ public class EditeurNoeudDialog extends Dialog {
         super(context);
         setTitle("Edit Value - " + noeud.nom);
 
-        // Layout Principal : Horizontal
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
         root.setBackgroundColor(Color.parseColor("#1E1E1E")); 
         root.setLayoutParams(new ViewGroup.LayoutParams(1200, 800));
+
+        final LinearLayout conteneurClavier = new LinearLayout(context);
+        conteneurClavier.setOrientation(LinearLayout.VERTICAL);
+        conteneurClavier.setPadding(0, 20, 0, 0);
+
+        final LinearLayout conteneurBooleen = new LinearLayout(context);
+        conteneurBooleen.setOrientation(LinearLayout.HORIZONTAL);
+        conteneurBooleen.setGravity(Gravity.CENTER);
+        conteneurBooleen.setPadding(0, 20, 0, 0);
+        conteneurBooleen.setVisibility(View.GONE);
 
         // =========================================================
         // PANNEAU GAUCHE : Zone de texte et Clavier Code
@@ -41,8 +52,17 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout barreParams = new LinearLayout(context);
         barreParams.setOrientation(LinearLayout.HORIZONTAL);
         barreParams.setPadding(0, 0, 0, 15);
+        zoneGauche.addView(barreParams);
 
-        // Champ de saisie principal
+        // NOUVEAU : Résumé de l'expression en cours
+        final TextView txtResumeExpression = new TextView(context);
+        txtResumeExpression.setTextColor(Color.parseColor("#44AAFF"));
+        txtResumeExpression.setTextSize(18);
+        txtResumeExpression.setPadding(15, 0, 15, 10);
+        // CORRECTION ICI : passage par getPaint() pour le texte en gras
+        txtResumeExpression.getPaint().setFakeBoldText(true);
+        zoneGauche.addView(txtResumeExpression);
+
         EditText champSaisie = new EditText(context);
         champSaisie.setTextColor(Color.WHITE);
         champSaisie.setBackgroundColor(Color.parseColor("#2A2A2A"));
@@ -51,13 +71,57 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setPadding(15, 15, 15, 15);
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         
-        // C'est cette ligne qui gère l'ouverture du clavier selon le noeud
-        champSaisie.setShowSoftInputOnFocus(noeud.utiliseClavierTexte());
-
         List<String> params = noeud.getNomsParametres();
         if (params != null && !params.isEmpty()) {
             champActif = params.get(0);
-            champSaisie.setText(noeud.getValeurParametre(champActif));
+        }
+
+        // NOUVEAU : TextWatcher pour mise à jour dynamique du nœud et du résumé
+        champSaisie.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (champActif != null) {
+                    noeud.setValeurParametre(champActif, s.toString());
+                    mettreAJourResumeExpression(noeud, txtResumeExpression);
+                }
+            }
+        });
+
+        champSaisie.setOnClickListener(v -> {
+            if (champActif != null) {
+                String typeEditeur = noeud.getTypeEditeurParametre(champActif);
+                switch (typeEditeur) {
+                    case NoeudBase.TYPE_COULEUR:
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+                        builder.setTitle("Choisir une couleur");
+                        String[] couleurs = {"Bleu", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+                        builder.setItems(couleurs, (dialog, which) -> {
+                            champSaisie.setText(couleurs[which]);
+                        });
+                        builder.show();
+                        break;
+                    case NoeudBase.TYPE_CHOIX_LISTE:
+                        android.app.AlertDialog.Builder builderListe = new android.app.AlertDialog.Builder(context);
+                        builderListe.setTitle("Choisir une option");
+                        List<String> optionsListe = noeud.getOptionsChoixListe(champActif);
+                        String[] optionsArray = optionsListe.toArray(new String[0]);
+                        builderListe.setItems(optionsArray, (dialog, which) -> {
+                            champSaisie.setText(optionsArray[which]);
+                        });
+                        builderListe.show();
+                        break;
+                }
+            }
+        });
+// bas 1
+        // haut 2
+        if (params != null && !params.isEmpty()) {
+            String valInit = noeud.getValeurParametre(champActif);
+            champSaisie.setText(valInit != null ? valInit : "");
 
             for (String paramName : params) {
                 Button btnParam = new Button(context);
@@ -70,11 +134,9 @@ public class EditeurNoeudDialog extends Dialog {
                 btnParam.setLayoutParams(btnParamsLayout);
 
                 btnParam.setOnClickListener(v -> {
-                    if (champActif != null) {
-                        noeud.setValeurParametre(champActif, champSaisie.getText().toString());
-                    }
                     champActif = paramName;
-                    champSaisie.setText(noeud.getValeurParametre(champActif));
+                    String val = noeud.getValeurParametre(champActif);
+                    champSaisie.setText(val != null ? val : "");
                     
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
@@ -86,24 +148,26 @@ public class EditeurNoeudDialog extends Dialog {
                             }
                         }
                     }
+                    
+                    appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
+                    String type = noeud.getTypeEditeurParametre(champActif);
+                    if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type)) {
+                        champSaisie.performClick();
+                    }
                 });
                 barreParams.addView(btnParam);
             }
 
             Button btnDepuisObjet = new Button(context);
-            btnDepuisObjet.setText("Depuis un objet...");
+            btnDepuisObjet.setText("Depuis objet...");
             btnDepuisObjet.setTextColor(Color.parseColor("#FFD700")); 
             btnDepuisObjet.setBackgroundColor(Color.parseColor("#333333"));
-            btnDepuisObjet.setOnClickListener(v -> {
-                Toast.makeText(context, "À venir : Lier " + champActif + " à une propriété", Toast.LENGTH_SHORT).show();
-            });
+            btnDepuisObjet.setOnClickListener(v -> Toast.makeText(context, "À venir...", Toast.LENGTH_SHORT).show());
             barreParams.addView(btnDepuisObjet);
         }
 
-        zoneGauche.addView(barreParams);
         zoneGauche.addView(champSaisie);
 
-        // CLAVIER CODE
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -113,10 +177,6 @@ public class EditeurNoeudDialog extends Dialog {
             {">", "<", "=", "!"},
             {"||", "&&", "", ""}
         };
-
-        LinearLayout conteneurClavier = new LinearLayout(context);
-        conteneurClavier.setOrientation(LinearLayout.VERTICAL);
-        conteneurClavier.setPadding(0, 20, 0, 0);
 
         for (String[] ligne : touchesCode) {
             LinearLayout rowLayout = new LinearLayout(context);
@@ -160,13 +220,6 @@ public class EditeurNoeudDialog extends Dialog {
         }
         zoneGauche.addView(conteneurClavier);
 
-        // CONTENEUR BOOLEEN
-        LinearLayout conteneurBooleen = new LinearLayout(context);
-        conteneurBooleen.setOrientation(LinearLayout.HORIZONTAL);
-        conteneurBooleen.setGravity(Gravity.CENTER);
-        conteneurBooleen.setPadding(0, 20, 0, 0);
-        conteneurBooleen.setVisibility(View.GONE);
-
         Button btnVrai = new Button(context);
         btnVrai.setText("Vrai (true)");
         btnVrai.setBackgroundColor(Color.parseColor("#4CAF50"));
@@ -174,10 +227,7 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout.LayoutParams paramVrai = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramVrai.setMargins(10, 10, 10, 10);
         btnVrai.setLayoutParams(paramVrai);
-        btnVrai.setOnClickListener(v -> {
-            champSaisie.setText("true");
-            if (champActif != null) noeud.setValeurParametre(champActif, "true");
-        });
+        btnVrai.setOnClickListener(v -> champSaisie.setText("true"));
 
         Button btnFaux = new Button(context);
         btnFaux.setText("Faux (false)");
@@ -186,17 +236,16 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout.LayoutParams paramFaux = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramFaux.setMargins(10, 10, 10, 10);
         btnFaux.setLayoutParams(paramFaux);
-        btnFaux.setOnClickListener(v -> {
-            champSaisie.setText("false");
-            if (champActif != null) noeud.setValeurParametre(champActif, "false");
-        });
+        btnFaux.setOnClickListener(v -> champSaisie.setText("false"));
 
         conteneurBooleen.addView(btnVrai);
         conteneurBooleen.addView(btnFaux);
         zoneGauche.addView(conteneurBooleen);
-// bas 1
+// bas 2
 
-    // haut 2
+
+
+    // haut 3
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -209,27 +258,20 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout listeDroite = new LinearLayout(context);
         listeDroite.setOrientation(LinearLayout.VERTICAL);
 
-        TextView txtCibleActuelle = new TextView(context);
+        final TextView txtCibleActuelle = new TextView(context);
         txtCibleActuelle.setTextColor(Color.parseColor("#44AAFF"));
         txtCibleActuelle.setPadding(20, 20, 20, 20);
         txtCibleActuelle.setTextSize(16);
         
         if (noeud.requiertCibleObjet()) {
-            ObjetBase cible = noeud.getCibleObjet();
-            txtCibleActuelle.setText("Cible Actuelle : " + (cible != null ? cible.nom : "Aucune"));
+            txtCibleActuelle.setText("Cible : " + (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : "Aucune"));
+            listeDroite.addView(txtCibleActuelle);
         } else if (noeud.requiertCibleVariable()) {
-            Variable cibleVar = noeud.getCibleVariable();
-            txtCibleActuelle.setText("Cible Actuelle : " + (cibleVar != null ? cibleVar.nom : "Aucune"));
-        } else {
-            txtCibleActuelle.setText("Cible Actuelle : Aucune");
-            txtCibleActuelle.setVisibility(View.GONE); 
-        }
-        
-        if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable()) {
+            txtCibleActuelle.setText("Cible : " + (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : "Aucune"));
             listeDroite.addView(txtCibleActuelle);
         }
 
-        // Section : ITEMS
+        // --- RESTAURATION : Section ITEMS (Cible Objet) ---
         TextView titreItems = new TextView(context);
         titreItems.setText("Items (Cible Objet)");
         titreItems.setTextColor(Color.WHITE);
@@ -247,7 +289,8 @@ public class EditeurNoeudDialog extends Dialog {
                 btnObj.setOnClickListener(v -> {
                     if (noeud.requiertCibleObjet()) {
                         noeud.setCibleObjet(obj);
-                        txtCibleActuelle.setText("Cible Actuelle : " + obj.nom);
+                        txtCibleActuelle.setText("Cible : " + obj.nom);
+                        mettreAJourResumeExpression(noeud, txtResumeExpression); // Mise à jour du résumé
                     }
                 });
                 listeDroite.addView(btnObj);
@@ -263,34 +306,19 @@ public class EditeurNoeudDialog extends Dialog {
         titreVars.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreVars);
 
-        List<Variable> variablesGlobalesRecuperees = null;
-        if (NoeudBase.contexteApplication != null) {
-            try {
-                java.lang.reflect.Field varsField = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
-                @SuppressWarnings("unchecked")
-                List<Variable> globales = (List<Variable>) varsField.get(NoeudBase.contexteApplication);
-                variablesGlobalesRecuperees = globales;
-            } catch (Exception e) {}
-        }
-
-        if (variablesGlobalesRecuperees != null) {
-            for (Variable var : variablesGlobalesRecuperees) {
-                Button btnVar = new Button(context);
-                btnVar.setText(var.nom + " (Globale)");
-                btnVar.setTextColor(Color.WHITE);
-                btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
-                btnVar.setOnClickListener(v -> {
-                    if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
-                        noeud.setCibleVariable(var);
-                        txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
-                        majInterfacePourVariable(var, noeud, champSaisie, conteneurClavier, conteneurBooleen);
-                    } else {
-                        insererTexte(champSaisie, var.nom);
-                    }
-                });
-                listeDroite.addView(btnVar);
+        View.OnClickListener varClickListener = v -> {
+            Variable var = (Variable) v.getTag();
+            if (noeud.requiertCibleVariable()) {
+                noeud.setCibleVariable(var);
+                txtCibleActuelle.setText("Cible : " + var.nom);
+                appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
+                mettreAJourResumeExpression(noeud, txtResumeExpression);
+            } else {
+                int start = Math.max(champSaisie.getSelectionStart(), 0);
+                int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), var.nom, 0, var.nom.length());
             }
-        }
+        };
 
         if (scene != null && scene.variablesLocales != null) {
             for (Variable var : scene.variablesLocales) {
@@ -298,20 +326,13 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setText(var.nom + " (Locale)");
                 btnVar.setTextColor(Color.WHITE);
                 btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
-                btnVar.setOnClickListener(v -> {
-                    if (noeud.requiertCibleVariable() && !noeud.utiliseClavierTexte()) {
-                        noeud.setCibleVariable(var);
-                        txtCibleActuelle.setText("Cible Actuelle : " + var.nom);
-                        majInterfacePourVariable(var, noeud, champSaisie, conteneurClavier, conteneurBooleen);
-                    } else {
-                        insererTexte(champSaisie, var.nom);
-                    }
-                });
+                btnVar.setTag(var);
+                btnVar.setOnClickListener(varClickListener);
                 listeDroite.addView(btnVar);
             }
         }
 
-        // Section SCÈNES
+        // --- RESTAURATION : Section SCÈNES ---
         TextView titreScenes = new TextView(context);
         titreScenes.setText("Scènes");
         titreScenes.setTextColor(Color.WHITE);
@@ -336,7 +357,11 @@ public class EditeurNoeudDialog extends Dialog {
                 btnScene.setText(s.nom + " (Scène)");
                 btnScene.setTextColor(Color.WHITE);
                 btnScene.setBackgroundColor(Color.parseColor("#6a1b9a")); 
-                btnScene.setOnClickListener(v -> insererTexte(champSaisie, s.nom));
+                btnScene.setOnClickListener(v -> {
+                    int start = Math.max(champSaisie.getSelectionStart(), 0);
+                    int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                    champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), s.nom, 0, s.nom.length());
+                });
                 listeDroite.addView(btnScene);
             }
         }
@@ -344,9 +369,6 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroite.addView(listeDroite);
         zoneDroite.addView(scrollDroite);
 
-        // =========================================================
-        // BANDEAU INFERIEUR : Boutons Save / Cancel
-        // =========================================================
         LinearLayout bottomBar = new LinearLayout(context);
         bottomBar.setOrientation(LinearLayout.HORIZONTAL);
         bottomBar.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
@@ -354,30 +376,14 @@ public class EditeurNoeudDialog extends Dialog {
         bottomBar.setPadding(20, 20, 20, 20);
 
         Button btnCancel = new Button(context);
-        btnCancel.setText("Cancel");
+        btnCancel.setText("Fermer");
         btnCancel.setBackgroundColor(Color.parseColor("#444444"));
         btnCancel.setTextColor(Color.WHITE);
-        btnCancel.setOnClickListener(v -> dismiss());
-
-        Button btnSave = new Button(context);
-        btnSave.setText("Save");
-        btnSave.setBackgroundColor(Color.parseColor("#4CAF50"));
-        btnSave.setTextColor(Color.WHITE);
-        btnSave.setOnClickListener(v -> {
-            if (champActif != null) {
-                noeud.setValeurParametre(champActif, champSaisie.getText().toString());
-            }
+        btnCancel.setOnClickListener(v -> {
             if (onValidate != null) onValidate.run();
             dismiss();
         });
-
         bottomBar.addView(btnCancel);
-        
-        View spacer = new View(context);
-        spacer.setLayoutParams(new LinearLayout.LayoutParams(20, 1));
-        bottomBar.addView(spacer);
-        
-        bottomBar.addView(btnSave);
 
         root.addView(zoneGauche);
         root.addView(zoneDroite);
@@ -387,50 +393,108 @@ public class EditeurNoeudDialog extends Dialog {
         grandLayout.addView(root, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
         grandLayout.addView(bottomBar);
 
-        // Initialisation du bon clavier à l'ouverture
-        if (noeud instanceof NoeudActionModifierVariable) {
-            majInterfacePourVariable(noeud.getCibleVariable(), noeud, champSaisie, conteneurClavier, conteneurBooleen);
-        } else if (!noeud.utiliseClavierTexte()) {
-            champSaisie.setInputType(InputType.TYPE_NULL);
-        }
-
         setContentView(grandLayout);
+
+        // Appels initiaux
+        appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
+        mettreAJourResumeExpression(noeud, txtResumeExpression);
     }
 
-    private void majInterfacePourVariable(Variable var, NoeudBase noeud, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
-        if (!(noeud instanceof NoeudActionModifierVariable)) return; 
-        
-        if (var == null) {
-            champSaisie.setShowSoftInputOnFocus(false);
-            champSaisie.setInputType(InputType.TYPE_NULL);
-            conteneurClavier.setVisibility(View.VISIBLE);
-            conteneurBooleen.setVisibility(View.GONE);
-            return;
+    // NOUVEAU : Méthode de mise à jour du résumé (Modifiée sans dépendance de classe stricte)
+    private void mettreAJourResumeExpression(NoeudBase noeud, TextView txtResume) {
+        boolean estComparaisonGenerique = false;
+        if (noeud.requiertCibleVariable() && noeud.getNomsParametres() != null) {
+            estComparaisonGenerique = noeud.getNomsParametres().contains("Opérateur") 
+                                   && noeud.getNomsParametres().contains("Valeur de comparaison");
         }
 
+        if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
+            txtResume.setVisibility(View.VISIBLE);
+            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
+            String op = noeud.getValeurParametre("Opérateur");
+            if (op == null || op.isEmpty()) op = "=";
+            String val = noeud.getValeurParametre("Valeur de comparaison");
+            if (val == null) val = "";
+            txtResume.setText("Expression : " + varName + " " + op + " " + val);
+        } else if (noeud.requiertCibleVariable()) {
+            txtResume.setVisibility(View.VISIBLE);
+            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
+            String val = "";
+            if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
+                val = noeud.getValeurParametre(noeud.getNomsParametres().get(0));
+            }
+            txtResume.setText("Action : " + varName + " = " + (val != null ? val : ""));
+        } else if (noeud.requiertCibleObjet()) {
+            txtResume.setVisibility(View.VISIBLE);
+            String objName = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
+            String val = "";
+            if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
+                val = noeud.getValeurParametre(noeud.getNomsParametres().get(0));
+            }
+            txtResume.setText("Action Objet : " + objName + (val.isEmpty() ? "" : " -> " + val));
+        } else {
+            txtResume.setVisibility(View.GONE);
+        }
+    }
+
+    private void appliquerTypeEditeur(NoeudBase noeud, String nomParam, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
+        String type = (nomParam != null) ? noeud.getTypeEditeurParametre(nomParam) : NoeudBase.TYPE_TEXTE_LIBRE;
+
+        if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type)) {
+            champSaisie.setFocusable(false);
+            champSaisie.setFocusableInTouchMode(false);
+            champSaisie.setClickable(true);
+            champSaisie.setShowSoftInputOnFocus(false);
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+        } else {
+            champSaisie.setFocusable(true);
+            champSaisie.setFocusableInTouchMode(true);
+            champSaisie.setClickable(true);
+            
+            if (noeud.requiertCibleVariable() && noeud.getCibleVariable() != null) {
+                majInterfacePourVariable(noeud.getCibleVariable(), champSaisie, conteneurClavier, conteneurBooleen);
+            } else if (!noeud.utiliseClavierTexte()) {
+                champSaisie.setShowSoftInputOnFocus(false);
+                champSaisie.setInputType(InputType.TYPE_NULL);
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
+                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+            } else {
+                champSaisie.setShowSoftInputOnFocus(true);
+                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+                champSaisie.requestFocus();
+            }
+        }
+    }
+
+    private void majInterfacePourVariable(Variable var, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
+        if (var == null) return;
+        
         if ("CHIFFRE".equals(var.type)) {
             champSaisie.setShowSoftInputOnFocus(false);
             champSaisie.setInputType(InputType.TYPE_NULL);
-            conteneurClavier.setVisibility(View.VISIBLE);
-            conteneurBooleen.setVisibility(View.GONE);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
         } else if ("TEXTE".equals(var.type)) {
             champSaisie.setShowSoftInputOnFocus(true);
             champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-            conteneurClavier.setVisibility(View.GONE);
-            conteneurBooleen.setVisibility(View.GONE);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
             champSaisie.requestFocus();
         } else if ("BOOLEEN".equals(var.type)) {
             champSaisie.setShowSoftInputOnFocus(false);
             champSaisie.setInputType(InputType.TYPE_NULL);
-            conteneurClavier.setVisibility(View.GONE);
-            conteneurBooleen.setVisibility(View.VISIBLE);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.VISIBLE);
         }
     }
-
-    private void insererTexte(EditText champSaisie, String texteAInserer) {
-        int start = Math.max(champSaisie.getSelectionStart(), 0);
-        int end = Math.max(champSaisie.getSelectionEnd(), 0);
-        champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), texteAInserer, 0, texteAInserer.length());
-    }
 }
-// bas 2
+// bas 3
+
+
+
+
+    
