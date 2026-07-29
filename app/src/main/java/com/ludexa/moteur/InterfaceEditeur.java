@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Gravity;
 import android.widget.*;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ import java.io.FileReader;
 import com.google.gson.Gson;
 
 public class InterfaceEditeur extends Activity {
+
+    public static final List<Handler> handlersActifs = new ArrayList<>();
 
     public List<Scene> listeScenes = new ArrayList<>();
     public List<Variable> variablesGlobales = new ArrayList<>(); 
@@ -186,7 +189,6 @@ public class InterfaceEditeur extends Activity {
     }
 // bas 1
 
-
 // haut 2
     public void lancerImportAsset(String mimeType) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -276,6 +278,11 @@ public class InterfaceEditeur extends Activity {
     }
     
     private void revenirAEditeur() {
+        for (Handler handler : handlersActifs) {
+            handler.removeCallbacksAndMessages(null);
+        }
+        handlersActifs.clear();
+
         if (enModeJeu) {
             setContentView(layoutPrincipal);
             enModeJeu = false;
@@ -361,5 +368,6 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
 
 
