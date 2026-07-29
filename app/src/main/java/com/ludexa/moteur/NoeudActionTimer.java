@@ -36,7 +36,9 @@ public class NoeudActionTimer extends NoeudBase {
         long delaiMs = (long) (delai * 1000f);
 
         // 3. Planification de l'exécution retardée sur le thread principal de l'UI
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        InterfaceEditeur.handlersActifs.add(handler);
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 propagerExecution("Après délai");
