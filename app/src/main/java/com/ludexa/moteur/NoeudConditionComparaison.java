@@ -101,20 +101,20 @@ public class NoeudConditionComparaison extends NoeudBase {
 
     @Override
     public List<String> getNomsParametres() {
-        return Arrays.asList("Opérateur", "Valeur de comparaison");
+        return Arrays.asList("Opérateur", "Comparer à");
     }
 
     @Override
     public String getValeurParametre(String nom) {
         if ("Opérateur".equals(nom)) return operateur;
-        if ("Valeur de comparaison".equals(nom)) return valeurComparaison;
+        if ("Comparer à".equals(nom)) return valeurComparaison;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
         if ("Opérateur".equals(nom)) operateur = valeur;
-        if ("Valeur de comparaison".equals(nom)) valeurComparaison = valeur;
+        if ("Comparer à".equals(nom)) valeurComparaison = valeur;
     }
 
     @Override
@@ -194,4 +194,3 @@ public class NoeudConditionComparaison extends NoeudBase {
     }
 }
 // bas 1
-
