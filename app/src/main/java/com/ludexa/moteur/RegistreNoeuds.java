@@ -35,7 +35,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fin de Clic", "Événements", "NoeudEventFinClic"));
         REGISTRE.add(new InfoNoeud("Toast", "Actions", "NoeudActionToast"));
         REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Actions", "NoeudActionAjouterVariable"));
-        REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Visibilité", "NoeudActionVisibilite"));
+        REGISTRE.add(new InfoNoeud("Visibilité", "Actions", "NoeudActionVisibilite"));
     }
     }
 
