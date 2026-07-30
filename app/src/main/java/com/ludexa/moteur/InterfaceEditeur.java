@@ -213,7 +213,7 @@ public class InterfaceEditeur extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 1
-    // haut 2
+// haut 2
     public void lancerImportAsset(String mimeType) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -370,21 +370,7 @@ public class InterfaceEditeur extends Activity {
             writerProjet.write(jsonProjet);
             writerProjet.close();
 
-            File dossierLogique = new File(getFilesDir(), "logique");
-            if (!dossierLogique.exists()) {
-                dossierLogique.mkdirs();
-            }
-            File fileBlueprint = new File(dossierLogique, "blueprint.json");
-            Blueprint blueprintASauvegarder = new Blueprint();
-            if (sceneActive != null && sceneActive.noeudsLogique != null) {
-                blueprintASauvegarder.noeuds.addAll(sceneActive.noeudsLogique);
-            }
-            
-            FileWriter writerBp = new FileWriter(fileBlueprint);
-            writerBp.write(blueprintASauvegarder.toJson());
-            writerBp.close();
-
-            Toast.makeText(this, "Projet et Blueprint sauvegardés avec succès.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Projet sauvegardé avec succès.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
@@ -392,6 +378,9 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
+
+
 
 
 
