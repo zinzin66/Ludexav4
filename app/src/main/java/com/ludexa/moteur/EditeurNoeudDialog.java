@@ -302,7 +302,7 @@ public class EditeurNoeudDialog extends Dialog {
         titreVars.setTextColor(Palette.texteNormal);
         titreVars.setGravity(Gravity.CENTER);
         titreVars.setBackgroundColor(Palette.enTeteDialogues);
-        titreVars.setPadding(10, 15, 10, 15);
+        titreVars.setPadding(10, 30, 10, 15);
         listeDroite.addView(titreVars);
 
         View.OnClickListener varClickListener = v -> {
@@ -337,7 +337,7 @@ public class EditeurNoeudDialog extends Dialog {
         titreScenes.setTextColor(Palette.texteNormal);
         titreScenes.setGravity(Gravity.CENTER);
         titreScenes.setBackgroundColor(Palette.enTeteDialogues); 
-        titreScenes.setPadding(10, 15, 10, 15);
+        titreScenes.setPadding(10, 30, 10, 15);
         listeDroite.addView(titreScenes);
 
         List<Scene> scenesRecuperees = null;
