@@ -66,4 +66,9 @@ public class NoeudActionDeplacer extends NoeudBase {
     public ObjetBase getCibleObjet() {
         return this.cible;
     }
+
+    @Override
+    public boolean utiliseClavierTexte() {
+        return true;
+    }
 }
