@@ -4,7 +4,7 @@
     <application
         android:allowBackup="true"
         android:label="Ludexa"
-        android:theme="@android:style/Theme.Material.Light">
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
             android:name=".EcranDemarrage"
