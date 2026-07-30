@@ -28,7 +28,7 @@ public class EditeurNoeudDialog extends Dialog {
 
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
-        root.setBackgroundColor(Color.parseColor("#1E1E1E")); 
+        root.setBackgroundColor(Palette.fondPanneaux); 
         root.setLayoutParams(new ViewGroup.LayoutParams(1200, 800));
 
         final LinearLayout conteneurClavier = new LinearLayout(context);
@@ -56,7 +56,7 @@ public class EditeurNoeudDialog extends Dialog {
 
         // NOUVEAU : Résumé de l'expression en cours
         final TextView txtResumeExpression = new TextView(context);
-        txtResumeExpression.setTextColor(Color.parseColor("#44AAFF"));
+        txtResumeExpression.setTextColor(Palette.texteSelectionne);
         txtResumeExpression.setTextSize(18);
         txtResumeExpression.setPadding(15, 0, 15, 10);
         // CORRECTION ICI : passage par getPaint() pour le texte en gras
@@ -64,8 +64,8 @@ public class EditeurNoeudDialog extends Dialog {
         zoneGauche.addView(txtResumeExpression);
 
         EditText champSaisie = new EditText(context);
-        champSaisie.setTextColor(Color.WHITE);
-        champSaisie.setBackgroundColor(Color.parseColor("#2A2A2A"));
+        champSaisie.setTextColor(Palette.texteNormal);
+        champSaisie.setBackgroundColor(Palette.canvasFond);
         champSaisie.setTextSize(20);
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
@@ -118,7 +118,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
-        // haut 2
+// haut 2
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
             champSaisie.setText(valInit != null ? valInit : "");
@@ -126,8 +126,8 @@ public class EditeurNoeudDialog extends Dialog {
             for (String paramName : params) {
                 Button btnParam = new Button(context);
                 btnParam.setText(paramName);
-                btnParam.setTextColor(Color.WHITE);
-                btnParam.setBackgroundColor(champActif.equals(paramName) ? Color.parseColor("#4CAF50") : Color.parseColor("#555555"));
+                btnParam.setTextColor(Palette.texteNormal);
+                btnParam.setBackgroundColor(champActif.equals(paramName) ? Color.parseColor("#4CAF50") : Palette.boutonNormal);
                 
                 LinearLayout.LayoutParams btnParamsLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 btnParamsLayout.setMargins(0, 0, 15, 0);
@@ -144,7 +144,7 @@ public class EditeurNoeudDialog extends Dialog {
                             if (((Button)child).getText().toString().equals(champActif)) {
                                 child.setBackgroundColor(Color.parseColor("#4CAF50"));
                             } else {
-                                child.setBackgroundColor(Color.parseColor("#555555"));
+                                child.setBackgroundColor(Palette.boutonNormal);
                             }
                         }
                     }
@@ -161,7 +161,7 @@ public class EditeurNoeudDialog extends Dialog {
             Button btnDepuisObjet = new Button(context);
             btnDepuisObjet.setText("Depuis objet...");
             btnDepuisObjet.setTextColor(Color.parseColor("#FFD700")); 
-            btnDepuisObjet.setBackgroundColor(Color.parseColor("#333333"));
+            btnDepuisObjet.setBackgroundColor(Palette.boutonNormal);
             btnDepuisObjet.setOnClickListener(v -> Toast.makeText(context, "À venir...", Toast.LENGTH_SHORT).show());
             barreParams.addView(btnDepuisObjet);
         }
@@ -186,8 +186,8 @@ public class EditeurNoeudDialog extends Dialog {
             for (String touche : ligne) {
                 Button btn = new Button(context);
                 btn.setText(touche);
-                btn.setTextColor(Color.WHITE);
-                btn.setBackgroundColor(Color.parseColor("#333333"));
+                btn.setTextColor(Palette.texteNormal);
+                btn.setBackgroundColor(Palette.boutonNormal);
                 
                 LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
                 btnParams.setMargins(5, 5, 5, 5);
@@ -223,7 +223,7 @@ public class EditeurNoeudDialog extends Dialog {
         Button btnVrai = new Button(context);
         btnVrai.setText("Vrai (true)");
         btnVrai.setBackgroundColor(Color.parseColor("#4CAF50"));
-        btnVrai.setTextColor(Color.WHITE);
+        btnVrai.setTextColor(Palette.texteNormal);
         LinearLayout.LayoutParams paramVrai = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramVrai.setMargins(10, 10, 10, 10);
         btnVrai.setLayoutParams(paramVrai);
@@ -232,7 +232,7 @@ public class EditeurNoeudDialog extends Dialog {
         Button btnFaux = new Button(context);
         btnFaux.setText("Faux (false)");
         btnFaux.setBackgroundColor(Color.parseColor("#F44336"));
-        btnFaux.setTextColor(Color.WHITE);
+        btnFaux.setTextColor(Palette.texteNormal);
         LinearLayout.LayoutParams paramFaux = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramFaux.setMargins(10, 10, 10, 10);
         btnFaux.setLayoutParams(paramFaux);
@@ -244,22 +244,21 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 2
 
 
-
-    // haut 3
+// haut 3
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
         LinearLayout zoneDroite = new LinearLayout(context);
         zoneDroite.setOrientation(LinearLayout.VERTICAL);
         zoneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.8f));
-        zoneDroite.setBackgroundColor(Color.parseColor("#151515"));
+        zoneDroite.setBackgroundColor(Palette.fondPanneaux);
         
         ScrollView scrollDroite = new ScrollView(context);
         LinearLayout listeDroite = new LinearLayout(context);
         listeDroite.setOrientation(LinearLayout.VERTICAL);
 
         final TextView txtCibleActuelle = new TextView(context);
-        txtCibleActuelle.setTextColor(Color.parseColor("#44AAFF"));
+        txtCibleActuelle.setTextColor(Palette.texteSelectionne);
         txtCibleActuelle.setPadding(20, 20, 20, 20);
         txtCibleActuelle.setTextSize(16);
         
@@ -274,9 +273,9 @@ public class EditeurNoeudDialog extends Dialog {
         // --- RESTAURATION : Section ITEMS (Cible Objet) ---
         TextView titreItems = new TextView(context);
         titreItems.setText("Items (Cible Objet)");
-        titreItems.setTextColor(Color.WHITE);
+        titreItems.setTextColor(Palette.texteNormal);
         titreItems.setGravity(Gravity.CENTER);
-        titreItems.setBackgroundColor(Color.parseColor("#1a435c")); 
+        titreItems.setBackgroundColor(Palette.enTeteDialogues); 
         titreItems.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreItems);
 
@@ -284,8 +283,8 @@ public class EditeurNoeudDialog extends Dialog {
             for (ObjetBase obj : scene.objets) {
                 Button btnObj = new Button(context);
                 btnObj.setText(obj.nom);
-                btnObj.setTextColor(Color.LTGRAY);
-                btnObj.setBackgroundColor(Color.parseColor("#222222"));
+                btnObj.setTextColor(Palette.texteNormal);
+                btnObj.setBackgroundColor(Color.TRANSPARENT);
                 btnObj.setOnClickListener(v -> {
                     if (noeud.requiertCibleObjet()) {
                         noeud.setCibleObjet(obj);
@@ -300,9 +299,9 @@ public class EditeurNoeudDialog extends Dialog {
         // Section : VARIABLES
         TextView titreVars = new TextView(context);
         titreVars.setText("Variables");
-        titreVars.setTextColor(Color.WHITE);
+        titreVars.setTextColor(Palette.texteNormal);
         titreVars.setGravity(Gravity.CENTER);
-        titreVars.setBackgroundColor(Color.parseColor("#1a435c"));
+        titreVars.setBackgroundColor(Palette.enTeteDialogues);
         titreVars.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreVars);
 
@@ -324,8 +323,8 @@ public class EditeurNoeudDialog extends Dialog {
             for (Variable var : scene.variablesLocales) {
                 Button btnVar = new Button(context);
                 btnVar.setText(var.nom + " (Locale)");
-                btnVar.setTextColor(Color.WHITE);
-                btnVar.setBackgroundColor(Color.parseColor("#2e4a2e")); 
+                btnVar.setTextColor(Palette.texteNormal);
+                btnVar.setBackgroundColor(Color.TRANSPARENT); 
                 btnVar.setTag(var);
                 btnVar.setOnClickListener(varClickListener);
                 listeDroite.addView(btnVar);
@@ -335,9 +334,9 @@ public class EditeurNoeudDialog extends Dialog {
         // --- RESTAURATION : Section SCÈNES ---
         TextView titreScenes = new TextView(context);
         titreScenes.setText("Scènes");
-        titreScenes.setTextColor(Color.WHITE);
+        titreScenes.setTextColor(Palette.texteNormal);
         titreScenes.setGravity(Gravity.CENTER);
-        titreScenes.setBackgroundColor(Color.parseColor("#1a435c")); 
+        titreScenes.setBackgroundColor(Palette.enTeteDialogues); 
         titreScenes.setPadding(10, 15, 10, 15);
         listeDroite.addView(titreScenes);
 
@@ -355,8 +354,8 @@ public class EditeurNoeudDialog extends Dialog {
             for (Scene s : scenesRecuperees) {
                 Button btnScene = new Button(context);
                 btnScene.setText(s.nom + " (Scène)");
-                btnScene.setTextColor(Color.WHITE);
-                btnScene.setBackgroundColor(Color.parseColor("#6a1b9a")); 
+                btnScene.setTextColor(Palette.texteNormal);
+                btnScene.setBackgroundColor(Color.TRANSPARENT); 
                 btnScene.setOnClickListener(v -> {
                     int start = Math.max(champSaisie.getSelectionStart(), 0);
                     int end = Math.max(champSaisie.getSelectionEnd(), 0);
@@ -372,13 +371,13 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout bottomBar = new LinearLayout(context);
         bottomBar.setOrientation(LinearLayout.HORIZONTAL);
         bottomBar.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-        bottomBar.setBackgroundColor(Color.parseColor("#1E1E1E"));
+        bottomBar.setBackgroundColor(Palette.fondPanneaux);
         bottomBar.setPadding(20, 20, 20, 20);
 
         Button btnCancel = new Button(context);
         btnCancel.setText("Fermer");
-        btnCancel.setBackgroundColor(Color.parseColor("#444444"));
-        btnCancel.setTextColor(Color.WHITE);
+        btnCancel.setBackgroundColor(Palette.boutonNormal);
+        btnCancel.setTextColor(Palette.texteNormal);
         btnCancel.setOnClickListener(v -> {
             if (onValidate != null) onValidate.run();
             dismiss();
@@ -495,6 +494,9 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 3
 
 
+
+
+        
 
 
     
