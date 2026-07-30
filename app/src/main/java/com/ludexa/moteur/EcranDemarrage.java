@@ -23,7 +23,6 @@ public class EcranDemarrage extends Activity {
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
         layoutPrincipal.setPadding(40, 40, 40, 40);
-        layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
 
         LinearLayout colonneGauche = new LinearLayout(this);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -31,32 +30,22 @@ public class EcranDemarrage extends Activity {
         LinearLayout.LayoutParams paramsGauche = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         colonneGauche.setLayoutParams(paramsGauche);
 
-        TextView logo = new TextView(this);
-        logo.setText("[LOGO]");
-        logo.setTextSize(48f);
-        logo.setGravity(Gravity.CENTER);
-        logo.setTextColor(Palette.texteNormal);
+        // --- DÉBUT DES MODIFICATIONS POUR L'IMAGE ---
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.logo_ludexa);
         colonneGauche.addView(logo);
-
-        TextView nomApp = new TextView(this);
-        nomApp.setText("LUDEXA");
-        nomApp.setTextSize(32f);
-        nomApp.setGravity(Gravity.CENTER);
-        nomApp.setTextColor(Palette.texteNormal);
-        colonneGauche.addView(nomApp);
+        // Le TextView "LUDEXA" a été retiré car le nom est déjà dans l'image
+        // --- FIN DES MODIFICATIONS ---
 
         TextView texteBienvenue = new TextView(this);
         texteBienvenue.setText("Bienvenue dans LUDEXA — créez vos jeux sans coder.");
         texteBienvenue.setTextSize(16f);
         texteBienvenue.setGravity(Gravity.CENTER);
         texteBienvenue.setPadding(0, 20, 0, 20);
-        texteBienvenue.setTextColor(Palette.texteNormal);
         colonneGauche.addView(texteBienvenue);
 
         Button boutonLangue = new Button(this);
         boutonLangue.setText("Langue : Français");
-        boutonLangue.setBackgroundColor(Palette.boutonNormal);
-        boutonLangue.setTextColor(Palette.texteNormal);
         boutonLangue.setOnClickListener(v -> {
             // À implémenter : sélection de la langue
         });
@@ -69,8 +58,6 @@ public class EcranDemarrage extends Activity {
 
         Button boutonCreerProjet = new Button(this);
         boutonCreerProjet.setText("Créer un projet");
-        boutonCreerProjet.setBackgroundColor(Palette.boutonNormal);
-        boutonCreerProjet.setTextColor(Palette.texteNormal);
         boutonCreerProjet.setOnClickListener(v -> {
             Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
             startActivity(intent);
@@ -79,8 +66,6 @@ public class EcranDemarrage extends Activity {
 
         Button boutonOuvrirProjet = new Button(this);
         boutonOuvrirProjet.setText("Ouvrir un projet téléchargé");
-        boutonOuvrirProjet.setBackgroundColor(Palette.boutonNormal);
-        boutonOuvrirProjet.setTextColor(Palette.texteNormal);
         boutonOuvrirProjet.setOnClickListener(v -> {
             // À implémenter : sélecteur de fichiers Android
         });
@@ -90,7 +75,6 @@ public class EcranDemarrage extends Activity {
         titreListe.setText("Projets existants :");
         titreListe.setTextSize(18f);
         titreListe.setPadding(0, 30, 0, 10);
-        titreListe.setTextColor(Palette.texteNormal);
         colonneDroite.addView(titreListe);
 
         ListView listeProjets = new ListView(this);
@@ -106,3 +90,5 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 1
+
+
