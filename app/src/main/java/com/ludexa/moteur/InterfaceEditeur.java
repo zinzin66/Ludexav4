@@ -208,6 +208,7 @@ public class InterfaceEditeur extends Activity {
         // MODIFICATION 2 : Transmission du chemin au constructeur
         panneauRessources = new PanneauRessources(this, canvasEditeur, cheminProjet);
         menuInspecteur = new InspecteurProprietes(this, sceneActive, canvasEditeur);
+        menuInspecteur.setCheminProjet(cheminProjet); // AJOUT : Transmission du chemin du projet à l'inspecteur
         canvasEditeur.setInspecteur(menuInspecteur);
         
         zoneMilieu.addView(panneauRessources);
@@ -391,3 +392,6 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
+
+
