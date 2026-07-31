@@ -52,11 +52,19 @@ public class InspecteurProprietes extends LinearLayout {
     private ObjetBase objetCourant;
     private boolean miseAJourEnCours = false;
 
+    // NOUVEAU CHAMP
+    private String cheminProjet;
+
     public InspecteurProprietes(Context context, Scene scene, CanvasEditeur canvas) {
         super(context);
         this.sceneActive = scene;
         this.canvasEditeur = canvas;
         initialiserInterface(context);
+    }
+
+    // NOUVEAU SETTER
+    public void setCheminProjet(String cheminProjet) {
+        this.cheminProjet = cheminProjet;
     }
 
     private void initialiserInterface(Context context) {
@@ -134,7 +142,8 @@ public class InspecteurProprietes extends LinearLayout {
         layoutNom.addView(btnValiderNom);
         
         blocProprietes.addView(layoutNom);
-
+// bas 1
+// haut 2
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
         labelPos.setTextColor(Palette.texteNormal);
@@ -215,8 +224,7 @@ public class InspecteurProprietes extends LinearLayout {
         layoutScale.addView(champScaleX);
         layoutScale.addView(champScaleY);
         blocProprietes.addView(layoutScale);
-// bas 1
-// haut 2
+
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
@@ -260,7 +268,10 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setTextColor(Palette.texteNormal);
         champZOrder.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champZOrder);
+// bas 2
 
+
+// haut 3
         TextView labelParent = new TextView(context);
         labelParent.setText("Objet Parent");
         labelParent.setTextColor(Palette.texteNormal);
@@ -343,9 +354,7 @@ public class InspecteurProprietes extends LinearLayout {
             builder.show();
         });
         blocTexte.addView(champContenu);
-// bas 2
 
-// haut 3
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
@@ -391,7 +400,10 @@ public class InspecteurProprietes extends LinearLayout {
         btnSupprimerImage.setBackgroundColor(Palette.boutonNormal);
         btnSupprimerImage.setTextColor(Palette.texteNormal);
         blocImage.addView(btnSupprimerImage);
+// bas 3
 
+
+// haut 4
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
         cbFondColore.setTextColor(Palette.texteNormal);
@@ -464,8 +476,13 @@ public class InspecteurProprietes extends LinearLayout {
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
             
-            // Correction ici : l'inspecteur pointe désormais vers assets_ludexa/Images
-            java.io.File dossierImages = new java.io.File(context.getFilesDir(), "assets_ludexa/Images");
+            // CORRECTION: Utilisation de cheminProjet au lieu de context.getFilesDir()
+            if (cheminProjet == null) {
+                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
             List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
             
             if (images.isEmpty()) {
@@ -495,9 +512,10 @@ public class InspecteurProprietes extends LinearLayout {
                 canvasEditeur.invalidate();
             }
         });
-// bas 3
-        
-    // haut 4
+// bas 4
+
+
+// haut 5
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -702,11 +720,14 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 4
+// bas 5
 
 
 
 
+        
+        
+        
 
 
     

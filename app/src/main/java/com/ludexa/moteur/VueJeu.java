@@ -23,6 +23,8 @@ public class VueJeu extends View {
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
     
+    private String cheminProjet; // Nouveau champ
+    
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
     // Boucle de rendu continue synchronisée sur le rafraîchissement de l'écran
@@ -34,9 +36,11 @@ public class VueJeu extends View {
         }
     };
 
-    public VueJeu(Context context, Scene scene, Blueprint blueprintActif) {
+    // Constructeur modifié pour accepter cheminProjet
+    public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet) {
         super(context);
         this.sceneActive = scene;
+        this.cheminProjet = cheminProjet;
 
         peintureObjet = new Paint();
         peintureObjet.setColor(Color.BLUE);
@@ -117,12 +121,12 @@ public class VueJeu extends View {
     }
 
     private void dessinerImage(Canvas canvas, ObjetBase objet) {
-        if (objet.cheminImage != null) {
+        if (objet.cheminImage != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
             if (bmp == null) {
                 try {
-                    // Lecture avec le même correctif que le CanvasEditeur
-                    java.io.File imgFile = new java.io.File(getContext().getFilesDir(), objet.cheminImage);
+                    // Utilisation de cheminProjet au lieu de getFilesDir()
+                    java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                         if (bmp != null) {
