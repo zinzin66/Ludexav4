@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -20,6 +19,8 @@ import com.google.gson.Gson;
 public class InterfaceEditeur extends Activity {
 
     public static final List<Handler> handlersActifs = new ArrayList<>();
+
+    public String cheminProjet; // NOUVEAU : Stockage du chemin du projet
 
     public List<Scene> listeScenes = new ArrayList<>();
     public List<Variable> variablesGlobales = new ArrayList<>(); 
@@ -58,6 +59,9 @@ public class InterfaceEditeur extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         NoeudBase.contexteApplication = this;
+
+        // NOUVEAU : Récupération du chemin du projet
+        cheminProjet = getIntent().getStringExtra("cheminProjet");
 
         layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -172,10 +176,10 @@ public class InterfaceEditeur extends Activity {
         boutonBasculeBlueprint.setOnClickListener(v -> {
             InterfaceBlueprint.sceneACharger = this.sceneActive;
             InterfaceBlueprint.variablesGlobalesACharger = this.variablesGlobales; 
-            
             InterfaceBlueprint.listeScenesACharger = this.listeScenes; 
             
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
+            intent.putExtra("cheminProjet", cheminProjet); // NOUVEAU : Transmission du chemin
             startActivity(intent);
         });
         bandeauHaut.addView(boutonBasculeBlueprint);
@@ -212,8 +216,7 @@ public class InterfaceEditeur extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
-// haut 2
+
     public void lancerImportAsset(String mimeType) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -254,7 +257,9 @@ public class InterfaceEditeur extends Activity {
         }
 
         Blueprint blueprintActif = new Blueprint();
-        File dossierLogique = new File(getFilesDir(), "logique");
+        
+        // NOUVEAU : Utilisation du chemin relatif au projet au lieu de getFilesDir()
+        File dossierLogique = new File(cheminProjet, "logique");
         File fileBlueprint = new File(dossierLogique, "blueprint.json");
 
         if (fileBlueprint.exists()) {
@@ -365,7 +370,10 @@ public class InterfaceEditeur extends Activity {
         try {
             Gson gson = new Gson();
             String jsonProjet = gson.toJson(listeScenes);
-            File fileProjet = new File(getFilesDir(), "projet_sauvegarde.json");
+            
+            // NOUVEAU : Utilisation du chemin du projet pour le fichier de sauvegarde
+            File fileProjet = new File(cheminProjet, "projet_sauvegarde.json");
+            
             FileWriter writerProjet = new FileWriter(fileProjet);
             writerProjet.write(jsonProjet);
             writerProjet.close();
@@ -377,10 +385,5 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 2
-
-
-
-
 
 
