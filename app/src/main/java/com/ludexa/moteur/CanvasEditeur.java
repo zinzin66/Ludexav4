@@ -26,6 +26,8 @@ public class CanvasEditeur extends View {
     private ObjetBase objetSelectionne;
     private InspecteurProprietes inspecteurLie;
     private InterfaceEditeur editeurLie;
+    
+    private String cheminProjet; // Nouveau champ pour le chemin du projet
 
     private int currentMode = 0; 
     private float dragStartX, dragStartY;
@@ -39,6 +41,10 @@ public class CanvasEditeur extends View {
     public CanvasEditeur(Context context) {
         super(context);
         init();
+    }
+
+    public void setCheminProjet(String cheminProjet) {
+        this.cheminProjet = cheminProjet;
     }
 
     public void setInspecteur(InspecteurProprietes inspecteur) {
@@ -288,11 +294,12 @@ public class CanvasEditeur extends View {
     }
 
     private void dessinerImage(Canvas canvas, ObjetBase objet) {
-        if (objet.cheminImage != null) {
+        if (objet.cheminImage != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
             if (bmp == null) {
                 try {
-                    java.io.File imgFile = new java.io.File(getContext().getFilesDir(), objet.cheminImage);
+                    // Utilisation de cheminProjet au lieu de getFilesDir()
+                    java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                         if (bmp != null) {
@@ -519,8 +526,6 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 2
-
-
 
 
 
