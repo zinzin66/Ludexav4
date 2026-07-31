@@ -2,10 +2,22 @@
 package com.ludexa.moteur;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.*;
+
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Scanner;
+import java.util.UUID;
 
 public class EcranDemarrage extends Activity {
 
@@ -60,8 +72,7 @@ public class EcranDemarrage extends Activity {
         Button boutonCreerProjet = new Button(this);
         boutonCreerProjet.setText("Créer un projet");
         boutonCreerProjet.setOnClickListener(v -> {
-            Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
-            startActivity(intent);
+            afficherDialogueCreationProjet();
         });
         colonneDroite.addView(boutonCreerProjet);
 
@@ -86,10 +97,129 @@ public class EcranDemarrage extends Activity {
         listeProjets.setLayoutParams(paramsListe);
         colonneDroite.addView(listeProjets);
 
+        // Charger les projets existants dans la liste
+        chargerListeProjets(listeProjets);
+
         layoutPrincipal.addView(colonneGauche);
         layoutPrincipal.addView(colonneDroite);
 
         setContentView(layoutPrincipal);
+    }
+
+    private void afficherDialogueCreationProjet() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Nouveau projet");
+        
+        final EditText input = new EditText(this);
+        input.setHint("Nom du projet");
+        builder.setView(input);
+
+        builder.setPositiveButton("Créer", (dialog, which) -> {
+            String nomProjet = input.getText().toString().trim();
+            if (!nomProjet.isEmpty()) {
+                creerNouveauProjet(nomProjet);
+            } else {
+                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        builder.setNegativeButton("Annuler", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void creerNouveauProjet(String nomProjet) {
+        String uuid = UUID.randomUUID().toString();
+        File dossierProjets = new File(getFilesDir(), "projets");
+        File dossierNouveauProjet = new File(dossierProjets, uuid);
+        
+        // Création de l'arborescence
+        dossierNouveauProjet.mkdirs();
+        new File(dossierNouveauProjet, "logique").mkdirs();
+        File dossierAssets = new File(dossierNouveauProjet, "assets_ludexa");
+        new File(dossierAssets, "Images").mkdirs();
+        new File(dossierAssets, "Sons").mkdirs();
+
+        String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+
+        try {
+            // Création de meta.json
+            File metaFile = new File(dossierNouveauProjet, "meta.json");
+            JSONObject metaJson = new JSONObject();
+            metaJson.put("nom", nomProjet);
+            metaJson.put("dateCreation", dateActuelle);
+            metaJson.put("dateModif", dateActuelle);
+            FileWriter fwMeta = new FileWriter(metaFile);
+            fwMeta.write(metaJson.toString(4));
+            fwMeta.close();
+
+            // Création de projet_sauvegarde.json
+            File sauvegardeFile = new File(dossierNouveauProjet, "projet_sauvegarde.json");
+            FileWriter fwSauvegarde = new FileWriter(sauvegardeFile);
+            fwSauvegarde.write("{ \"scenes\": [] }");
+            fwSauvegarde.close();
+
+            // Création de logique/blueprint.json
+            File blueprintFile = new File(new File(dossierNouveauProjet, "logique"), "blueprint.json");
+            FileWriter fwBlueprint = new FileWriter(blueprintFile);
+            fwBlueprint.write("{}");
+            fwBlueprint.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de la création des fichiers", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Lancement de l'éditeur
+        Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+        intent.putExtra("cheminProjet", dossierNouveauProjet.getAbsolutePath());
+        startActivity(intent);
+    }
+
+    private void chargerListeProjets(ListView listeProjets) {
+        File dossierProjets = new File(getFilesDir(), "projets");
+        ArrayList<String> affichageList = new ArrayList<>();
+        final ArrayList<File> dossiersList = new ArrayList<>();
+
+        if (dossierProjets.exists() && dossierProjets.isDirectory()) {
+            File[] sousDossiers = dossierProjets.listFiles();
+            if (sousDossiers != null) {
+                for (File sousDossier : sousDossiers) {
+                    if (sousDossier.isDirectory()) {
+                        File metaFile = new File(sousDossier, "meta.json");
+                        if (metaFile.exists()) {
+                            try {
+                                StringBuilder sb = new StringBuilder();
+                                Scanner scanner = new Scanner(metaFile);
+                                while (scanner.hasNextLine()) {
+                                    sb.append(scanner.nextLine());
+                                }
+                                scanner.close();
+
+                                JSONObject metaJson = new JSONObject(sb.toString());
+                                String nom = metaJson.optString("nom", "Projet Sans Nom");
+                                String dateModif = metaJson.optString("dateModif", "Date inconnue");
+
+                                affichageList.add(nom + " (Modifié le : " + dateModif + ")");
+                                dossiersList.add(sousDossier);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, affichageList);
+        listeProjets.setAdapter(adapter);
+
+        listeProjets.setOnItemClickListener((parent, view, position, id) -> {
+            File dossierChoisi = dossiersList.get(position);
+            Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+            intent.putExtra("cheminProjet", dossierChoisi.getAbsolutePath());
+            startActivity(intent);
+        });
     }
 }
 // bas 1

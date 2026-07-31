@@ -18,12 +18,14 @@ import java.util.List;
 
 public class InterfaceBlueprint extends Activity {
 
+    public String cheminProjet; // NOUVEAU : Stockage du chemin
+
     public static Scene sceneACharger; 
     public static List<Variable> variablesGlobalesACharger; 
-    public static List<Scene> listeScenesACharger; // NOUVEAU : Réception de la liste des scènes
+    public static List<Scene> listeScenesACharger;
 
     public List<Variable> variablesGlobales; 
-    public List<Scene> listeScenes; // NOUVEAU : Champ public pour la réflexion
+    public List<Scene> listeScenes; 
 
     private Blueprint blueprintActif;
     private CanvasBlueprint canvasBlueprint;
@@ -38,9 +40,12 @@ public class InterfaceBlueprint extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         NoeudBase.contexteApplication = this;
+
+        // NOUVEAU : Récupération du chemin du projet
+        cheminProjet = getIntent().getStringExtra("cheminProjet");
         
         this.variablesGlobales = variablesGlobalesACharger; 
-        this.listeScenes = listeScenesACharger; // NOUVEAU : Assignation
+        this.listeScenes = listeScenesACharger; 
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
@@ -152,10 +157,13 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
+// bas 1
 
+// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
-            File dir = new File(getFilesDir(), "logique");
+            // NOUVEAU : Utilisation du chemin du projet
+            File dir = new File(cheminProjet, "logique");
             if (!dir.exists()) dir.mkdirs();
             File file = new File(dir, "blueprint.json");
             
@@ -172,8 +180,10 @@ public class InterfaceBlueprint extends Activity {
 
     private void chargerBlueprintLocal(boolean estChargementAuto) {
         try {
-            File dir = new File(getFilesDir(), "logique");
+            // NOUVEAU : Utilisation du chemin du projet
+            File dir = new File(cheminProjet, "logique");
             File file = new File(dir, "blueprint.json");
+            
             if (!file.exists()) {
                 if (!estChargementAuto) {
                     Toast.makeText(this, "Aucune sauvegarde trouvée", Toast.LENGTH_SHORT).show();
@@ -195,7 +205,6 @@ public class InterfaceBlueprint extends Activity {
             }
             fis.close();
             
-            // CORRECTION : Transmission de la scène active pour permettre la reconnexion des cibles
             blueprintActif = Blueprint.fromJson(sb.toString(), canvasBlueprint.sceneActive);
             
             canvasBlueprint.setBlueprint(blueprintActif);
@@ -309,7 +318,8 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 1
+// bas 2
+
 
 
 
