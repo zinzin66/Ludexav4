@@ -23,6 +23,8 @@ public class EcranDemarrage extends Activity {
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
         layoutPrincipal.setPadding(40, 40, 40, 40);
+        // Utilisation de ta classe Palette pour le fond
+        layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
 
         LinearLayout colonneGauche = new LinearLayout(this);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -30,23 +32,17 @@ public class EcranDemarrage extends Activity {
         LinearLayout.LayoutParams paramsGauche = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         colonneGauche.setLayoutParams(paramsGauche);
 
-        TextView logo = new TextView(this);
-        logo.setText("[LOGO]");
-        logo.setTextSize(48f);
-        logo.setGravity(Gravity.CENTER);
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.logo_ludexa);
         colonneGauche.addView(logo);
-
-        TextView nomApp = new TextView(this);
-        nomApp.setText("LUDEXA");
-        nomApp.setTextSize(32f);
-        nomApp.setGravity(Gravity.CENTER);
-        colonneGauche.addView(nomApp);
 
         TextView texteBienvenue = new TextView(this);
         texteBienvenue.setText("Bienvenue dans LUDEXA — créez vos jeux sans coder.");
         texteBienvenue.setTextSize(16f);
         texteBienvenue.setGravity(Gravity.CENTER);
         texteBienvenue.setPadding(0, 20, 0, 20);
+        // Utilisation de ta classe Palette pour le texte
+        texteBienvenue.setTextColor(Palette.texteNormal);
         colonneGauche.addView(texteBienvenue);
 
         Button boutonLangue = new Button(this);
@@ -80,6 +76,8 @@ public class EcranDemarrage extends Activity {
         titreListe.setText("Projets existants :");
         titreListe.setTextSize(18f);
         titreListe.setPadding(0, 30, 0, 10);
+        // Utilisation de ta classe Palette pour le titre
+        titreListe.setTextColor(Palette.texteNormal);
         colonneDroite.addView(titreListe);
 
         ListView listeProjets = new ListView(this);

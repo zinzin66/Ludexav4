@@ -21,7 +21,7 @@ public class PanneauNoeuds extends ScrollView {
     }
 
     private void init(Context context) {
-        setBackgroundColor(Color.parseColor("#2A2A2A")); 
+        setBackgroundColor(Palette.fondPanneaux); 
         setLayoutParams(new LinearLayout.LayoutParams(300, LinearLayout.LayoutParams.MATCH_PARENT));
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
@@ -67,9 +67,9 @@ public class PanneauNoeuds extends ScrollView {
     private TextView creerItemNoeud(Context context, String libelle, String typeClasse) {
         TextView item = new TextView(context);
         item.setText(libelle);
-        item.setTextColor(Color.WHITE);
+        item.setTextColor(Palette.texteNormal);
         item.setPadding(20, 20, 20, 20);
-        item.setBackgroundColor(Color.parseColor("#444444"));
+        item.setBackgroundColor(Color.TRANSPARENT);
         
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, 
@@ -93,4 +93,5 @@ public class PanneauNoeuds extends ScrollView {
     }
 }
 // bas 1
+
 

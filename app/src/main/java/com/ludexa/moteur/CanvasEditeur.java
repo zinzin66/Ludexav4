@@ -68,8 +68,10 @@ public class CanvasEditeur extends View {
 
     private void init() {
         paintGrille = new Paint();
-        paintGrille.setColor(Color.LTGRAY);
+        paintGrille.setColor(Palette.canvasGrille);
         paintGrille.setStrokeWidth(1);
+        
+        setBackgroundColor(Palette.canvasFond);
 
         paintCamera = new Paint();
         paintCamera.setColor(Color.RED);
@@ -517,4 +519,8 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 2
+
+
+
+
 
