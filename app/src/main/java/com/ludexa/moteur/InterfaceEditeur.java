@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -131,6 +132,7 @@ public class InterfaceEditeur extends Activity {
         listeScenes.add(sceneActive);
 
         canvasEditeur = new CanvasEditeur(this);
+        canvasEditeur.setCheminProjet(cheminProjet); // MODIFICATION 1 : Transmission du chemin
         canvasEditeur.setScene(sceneActive);
         canvasEditeur.setEditeur(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
@@ -203,7 +205,8 @@ public class InterfaceEditeur extends Activity {
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        panneauRessources = new PanneauRessources(this, canvasEditeur);
+        // MODIFICATION 2 : Transmission du chemin au constructeur
+        panneauRessources = new PanneauRessources(this, canvasEditeur, cheminProjet);
         menuInspecteur = new InspecteurProprietes(this, sceneActive, canvasEditeur);
         canvasEditeur.setInspecteur(menuInspecteur);
         
@@ -235,7 +238,8 @@ public class InterfaceEditeur extends Activity {
             }
         }
     }
-
+// bas 1
+// haut 2
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
         sceneActiveBackup = sceneActive;
@@ -281,7 +285,8 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        VueJeu vueJeu = new VueJeu(this, sceneActive, blueprintActif);
+        // MODIFICATION 3 : Transmission du chemin au constructeur
+        VueJeu vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
         conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
@@ -385,5 +390,4 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-
-
+// bas 2
