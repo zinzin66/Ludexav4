@@ -81,8 +81,8 @@ public class InspecteurProprietes extends LinearLayout {
         enteteInspecteur.setBackgroundColor(Palette.enTeteDialogues);
 
         titreInspecteur = new TextView(context);
-        titreInspecteur.setText("Inspecteur");
-        titreInspecteur.setTextSize(16f);
+        titreInspecteur.setText("INSPECTEUR");
+        titreInspecteur.setTextSize(18f);
         titreInspecteur.setGravity(Gravity.CENTER_VERTICAL);
         titreInspecteur.setTextColor(Palette.texteNormal);
         LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
@@ -96,7 +96,7 @@ public class InspecteurProprietes extends LinearLayout {
 
         enteteInspecteur.addView(titreInspecteur);
         enteteInspecteur.addView(boutonMasquer);
-        this.addView(enteteInspecteur);
+        this.addView(enteteInspecteur); 
 
         scrollInspecteur = new ScrollView(context);
         LinearLayout contenuInspecteur = new LinearLayout(context);
@@ -173,7 +173,7 @@ public class InspecteurProprietes extends LinearLayout {
         View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
 
         TextView labelDim = new TextView(context);
-        labelDim.setText("Largeur / Hauteur Base");
+        labelDim.setText("Largeur / Hauteur");
         labelDim.setTextColor(Palette.texteNormal);
         blocProprietes.addView(labelDim);
 
