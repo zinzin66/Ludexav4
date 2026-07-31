@@ -54,12 +54,10 @@ public class EditeurNoeudDialog extends Dialog {
         barreParams.setPadding(0, 0, 0, 15);
         zoneGauche.addView(barreParams);
 
-        // NOUVEAU : Résumé de l'expression en cours
         final TextView txtResumeExpression = new TextView(context);
         txtResumeExpression.setTextColor(Palette.texteSelectionne);
         txtResumeExpression.setTextSize(18);
         txtResumeExpression.setPadding(15, 0, 15, 10);
-        // CORRECTION ICI : passage par getPaint() pour le texte en gras
         txtResumeExpression.getPaint().setFakeBoldText(true);
         zoneGauche.addView(txtResumeExpression);
 
@@ -76,7 +74,6 @@ public class EditeurNoeudDialog extends Dialog {
             champActif = params.get(0);
         }
 
-        // NOUVEAU : TextWatcher pour mise à jour dynamique du nœud et du résumé
         champSaisie.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -118,6 +115,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
+
 // haut 2
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
@@ -242,9 +240,7 @@ public class EditeurNoeudDialog extends Dialog {
         conteneurBooleen.addView(btnFaux);
         zoneGauche.addView(conteneurBooleen);
 // bas 2
-
-
-// haut 3
+  // haut 3
         // =========================================================
         // PANNEAU DROIT : Listes (Items, Variables...)
         // =========================================================
@@ -254,6 +250,10 @@ public class EditeurNoeudDialog extends Dialog {
         zoneDroite.setBackgroundColor(Palette.fondPanneaux);
         
         ScrollView scrollDroite = new ScrollView(context);
+        // CORRECTION DU SCROLL : Ajout des LayoutParams MATCH_PARENT et FillViewport
+        scrollDroite.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        scrollDroite.setFillViewport(true);
+        
         LinearLayout listeDroite = new LinearLayout(context);
         listeDroite.setOrientation(LinearLayout.VERTICAL);
 
@@ -270,7 +270,7 @@ public class EditeurNoeudDialog extends Dialog {
             listeDroite.addView(txtCibleActuelle);
         }
 
-        // --- RESTAURATION : Section ITEMS (Cible Objet) ---
+        // Section ITEMS (Cible Objet)
         TextView titreItems = new TextView(context);
         titreItems.setText("Items (Cible Objet)");
         titreItems.setTextColor(Palette.texteNormal);
@@ -285,18 +285,17 @@ public class EditeurNoeudDialog extends Dialog {
                 btnObj.setText(obj.nom);
                 btnObj.setTextColor(Palette.texteNormal);
                 btnObj.setBackgroundColor(Color.TRANSPARENT);
+                // CORRECTION : Insertion systématique au curseur
                 btnObj.setOnClickListener(v -> {
-                    if (noeud.requiertCibleObjet()) {
-                        noeud.setCibleObjet(obj);
-                        txtCibleActuelle.setText("Cible : " + obj.nom);
-                        mettreAJourResumeExpression(noeud, txtResumeExpression); // Mise à jour du résumé
-                    }
+                    int start = Math.max(champSaisie.getSelectionStart(), 0);
+                    int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                    champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), obj.nom, 0, obj.nom.length());
                 });
                 listeDroite.addView(btnObj);
             }
         }
 
-        // Section : VARIABLES
+        // Section VARIABLES
         TextView titreVars = new TextView(context);
         titreVars.setText("Variables");
         titreVars.setTextColor(Palette.texteNormal);
@@ -305,18 +304,12 @@ public class EditeurNoeudDialog extends Dialog {
         titreVars.setPadding(10, 30, 10, 15);
         listeDroite.addView(titreVars);
 
+        // CORRECTION : Insertion systématique au curseur
         View.OnClickListener varClickListener = v -> {
             Variable var = (Variable) v.getTag();
-            if (noeud.requiertCibleVariable()) {
-                noeud.setCibleVariable(var);
-                txtCibleActuelle.setText("Cible : " + var.nom);
-                appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
-                mettreAJourResumeExpression(noeud, txtResumeExpression);
-            } else {
-                int start = Math.max(champSaisie.getSelectionStart(), 0);
-                int end = Math.max(champSaisie.getSelectionEnd(), 0);
-                champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), var.nom, 0, var.nom.length());
-            }
+            int start = Math.max(champSaisie.getSelectionStart(), 0);
+            int end = Math.max(champSaisie.getSelectionEnd(), 0);
+            champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), var.nom, 0, var.nom.length());
         };
 
         if (scene != null && scene.variablesLocales != null) {
@@ -331,7 +324,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        // --- RESTAURATION : Section SCÈNES ---
+        // Section SCÈNES
         TextView titreScenes = new TextView(context);
         titreScenes.setText("Scènes");
         titreScenes.setTextColor(Palette.texteNormal);
@@ -399,7 +392,6 @@ public class EditeurNoeudDialog extends Dialog {
         mettreAJourResumeExpression(noeud, txtResumeExpression);
     }
 
-    // NOUVEAU : Méthode de mise à jour du résumé (Modifiée sans dépendance de classe stricte)
     private void mettreAJourResumeExpression(NoeudBase noeud, TextView txtResume) {
         boolean estComparaisonGenerique = false;
         if (noeud.requiertCibleVariable() && noeud.getNomsParametres() != null) {
@@ -448,13 +440,12 @@ public class EditeurNoeudDialog extends Dialog {
             if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
             if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
         } else {
+            // CORRECTION : Le type de l'éditeur dicte la règle (Suppression de la priorité noeud.requiertCibleVariable)
             champSaisie.setFocusable(true);
             champSaisie.setFocusableInTouchMode(true);
             champSaisie.setClickable(true);
             
-            if (noeud.requiertCibleVariable() && noeud.getCibleVariable() != null) {
-                majInterfacePourVariable(noeud.getCibleVariable(), champSaisie, conteneurClavier, conteneurBooleen);
-            } else if (!noeud.utiliseClavierTexte()) {
+            if (!noeud.utiliseClavierTexte()) {
                 champSaisie.setShowSoftInputOnFocus(false);
                 champSaisie.setInputType(InputType.TYPE_NULL);
                 if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
@@ -469,6 +460,8 @@ public class EditeurNoeudDialog extends Dialog {
         }
     }
 
+    // INFO : Cette méthode est désormais inutilisée dans ce fichier suite au changement dans appliquerTypeEditeur.
+    // Elle est conservée uniquement au cas où elle serait appelée depuis d'autres parties du code.
     private void majInterfacePourVariable(Variable var, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
         if (var == null) return;
         
@@ -492,11 +485,6 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 3
-
-
-
-
-        
-
+            
 
     
