@@ -39,7 +39,7 @@ public class PanneauRessources extends ScrollView {
     }
 
     private void init(Context context) {
-        setBackgroundColor(Color.parseColor("#333333"));
+        setBackgroundColor(Palette.fondPanneaux);
         setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
 
         rootAssetsDir = new File(context.getFilesDir(), "assets_ludexa");
@@ -106,7 +106,7 @@ public class PanneauRessources extends ScrollView {
                 
                 TextView txtObjet = new TextView(getContext());
                 txtObjet.setText("• " + obj.nom);
-                txtObjet.setTextColor(obj == objetSelectionne ? Color.YELLOW : Color.WHITE);
+                txtObjet.setTextColor(obj == objetSelectionne ? Color.YELLOW : Palette.texteNormal);
                 txtObjet.setPadding(10, 10, 10, 10);
                 txtObjet.setTextSize(14f);
                 
@@ -123,7 +123,7 @@ public class PanneauRessources extends ScrollView {
         if (conteneurArborescence.getChildCount() == 0) {
             TextView txtVide = new TextView(getContext());
             txtVide.setText("Aucun objet dans la scène");
-            txtVide.setTextColor(Color.LTGRAY);
+            txtVide.setTextColor(Palette.texteNormal);
             txtVide.setPadding(10, 10, 10, 10);
             conteneurArborescence.addView(txtVide);
         }
@@ -285,7 +285,7 @@ public class PanneauRessources extends ScrollView {
                 if (s == editeur.sceneActive) {
                     nomScene.setTextColor(Color.YELLOW);
                 } else {
-                    nomScene.setTextColor(Color.WHITE);
+                    nomScene.setTextColor(Palette.texteNormal);
                 }
                 nomScene.setPadding(10, 15, 10, 15);
                 nomScene.setTextSize(16f);
@@ -398,7 +398,6 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
-
 // haut 3
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
@@ -420,7 +419,7 @@ public class PanneauRessources extends ScrollView {
             for (int i = 0; i < depth; i++) prefix.append("   ");
             
             tv.setText(prefix.toString() + "📁 " + dir.getName());
-            tv.setTextColor(dir.equals(currentFolderSelected) ? Color.YELLOW : Color.WHITE);
+            tv.setTextColor(dir.equals(currentFolderSelected) ? Color.YELLOW : Palette.texteNormal);
             tv.setPadding(0, 10, 0, 10);
             tv.setTextSize(14f);
             
@@ -477,7 +476,7 @@ public class PanneauRessources extends ScrollView {
         
         TextView nom = new TextView(context);
         nom.setText(f.getName());
-        nom.setTextColor(f.equals(currentAssetSelected) ? Color.YELLOW : Color.WHITE);
+        nom.setTextColor(f.equals(currentAssetSelected) ? Color.YELLOW : Palette.texteNormal);
         nom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         
         itemLayout.setOnClickListener(v -> {
@@ -557,6 +556,7 @@ public class PanneauRessources extends ScrollView {
         fileOrDirectory.delete();
     }
 // bas 3
+
 
 // haut 4
     private View creerSectionVariables(Context context) {
@@ -783,7 +783,6 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 4
-
 
 // haut 5
     private void afficherPopupCreerVariable(Context context) {
@@ -1183,11 +1182,10 @@ public class PanneauRessources extends ScrollView {
 }
 // bas 6
 
-
-    
     
 
     
     
 
     
+

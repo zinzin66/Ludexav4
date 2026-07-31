@@ -61,13 +61,17 @@ public class InterfaceEditeur extends Activity {
 
         layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
+        layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
 
         LinearLayout bandeauHaut = new LinearLayout(this);
         bandeauHaut.setOrientation(LinearLayout.HORIZONTAL);
         bandeauHaut.setPadding(10, 10, 10, 10);
+        bandeauHaut.setBackgroundColor(Palette.fondPanneaux);
 
         Button boutonQuitter = new Button(this);
         boutonQuitter.setText("Quitter");
+        boutonQuitter.setBackgroundColor(Palette.boutonNormal);
+        boutonQuitter.setTextColor(Palette.texteNormal);
         boutonQuitter.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonQuitter);
 
@@ -75,15 +79,20 @@ public class InterfaceEditeur extends Activity {
         nomProjet.setText("Projet sans nom");
         nomProjet.setTextSize(18f);
         nomProjet.setPadding(20, 0, 20, 0);
+        nomProjet.setTextColor(Palette.texteNormal);
         bandeauHaut.addView(nomProjet);
 
         Button boutonSauvegarde = new Button(this);
         boutonSauvegarde.setText("Sauvegarde");
+        boutonSauvegarde.setBackgroundColor(Palette.boutonNormal);
+        boutonSauvegarde.setTextColor(Palette.texteNormal);
         boutonSauvegarde.setOnClickListener(v -> sauvegarderProjet());
         bandeauHaut.addView(boutonSauvegarde);
 
         Button boutonUndo = new Button(this);
         boutonUndo.setText("Undo");
+        boutonUndo.setBackgroundColor(Palette.boutonNormal);
+        boutonUndo.setTextColor(Palette.texteNormal);
         boutonUndo.setOnClickListener(v -> {
             if (!undoStack.isEmpty()) {
                 Commande c = undoStack.pop();
@@ -99,6 +108,8 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonRedo = new Button(this);
         boutonRedo.setText("Redo");
+        boutonRedo.setBackgroundColor(Palette.boutonNormal);
+        boutonRedo.setTextColor(Palette.texteNormal);
         boutonRedo.setOnClickListener(v -> {
             if (!redoStack.isEmpty()) {
                 Commande c = redoStack.pop();
@@ -124,21 +135,29 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("[-]");
+        boutonZoomMoins.setBackgroundColor(Palette.boutonNormal);
+        boutonZoomMoins.setTextColor(Palette.texteNormal);
         boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
         bandeauHaut.addView(boutonZoomMoins);
 
         Button boutonZoomReset = new Button(this);
         boutonZoomReset.setText("[[]]");
+        boutonZoomReset.setBackgroundColor(Palette.boutonNormal);
+        boutonZoomReset.setTextColor(Palette.texteNormal);
         boutonZoomReset.setOnClickListener(v -> canvasEditeur.zoomReset());
         bandeauHaut.addView(boutonZoomReset);
 
         Button boutonZoomPlus = new Button(this);
         boutonZoomPlus.setText("[+]");
+        boutonZoomPlus.setBackgroundColor(Palette.boutonNormal);
+        boutonZoomPlus.setTextColor(Palette.texteNormal);
         boutonZoomPlus.setOnClickListener(v -> canvasEditeur.zoomPlus());
         bandeauHaut.addView(boutonZoomPlus);
 
         Button boutonDeplacerScene = new Button(this);
         boutonDeplacerScene.setText("Déplacer Scène");
+        boutonDeplacerScene.setBackgroundColor(Palette.boutonNormal);
+        boutonDeplacerScene.setTextColor(Palette.texteNormal);
         boutonDeplacerScene.setOnClickListener(v -> {
             boolean nouveauMode = !canvasEditeur.isPanMode();
             canvasEditeur.setPanMode(nouveauMode);
@@ -148,6 +167,8 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonBasculeBlueprint = new Button(this);
         boutonBasculeBlueprint.setText("Node Editor");
+        boutonBasculeBlueprint.setBackgroundColor(Palette.boutonNormal);
+        boutonBasculeBlueprint.setTextColor(Palette.texteNormal);
         boutonBasculeBlueprint.setOnClickListener(v -> {
             InterfaceBlueprint.sceneACharger = this.sceneActive;
             InterfaceBlueprint.variablesGlobalesACharger = this.variablesGlobales; 
@@ -161,10 +182,14 @@ public class InterfaceEditeur extends Activity {
 
         Button boutonBuild = new Button(this);
         boutonBuild.setText("Build");
+        boutonBuild.setBackgroundColor(Palette.boutonNormal);
+        boutonBuild.setTextColor(Palette.texteNormal);
         bandeauHaut.addView(boutonBuild);
 
         Button boutonPlay = new Button(this);
         boutonPlay.setText("Play");
+        boutonPlay.setBackgroundColor(Palette.boutonNormal);
+        boutonPlay.setTextColor(Palette.texteNormal);
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
 
@@ -188,7 +213,6 @@ public class InterfaceEditeur extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 1
-
 // haut 2
     public void lancerImportAsset(String mimeType) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -346,21 +370,7 @@ public class InterfaceEditeur extends Activity {
             writerProjet.write(jsonProjet);
             writerProjet.close();
 
-            File dossierLogique = new File(getFilesDir(), "logique");
-            if (!dossierLogique.exists()) {
-                dossierLogique.mkdirs();
-            }
-            File fileBlueprint = new File(dossierLogique, "blueprint.json");
-            Blueprint blueprintASauvegarder = new Blueprint();
-            if (sceneActive != null && sceneActive.noeudsLogique != null) {
-                blueprintASauvegarder.noeuds.addAll(sceneActive.noeudsLogique);
-            }
-            
-            FileWriter writerBp = new FileWriter(fileBlueprint);
-            writerBp.write(blueprintASauvegarder.toJson());
-            writerBp.close();
-
-            Toast.makeText(this, "Projet et Blueprint sauvegardés avec succès.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Projet sauvegardé avec succès.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
@@ -368,6 +378,9 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
+
+
 
 
 

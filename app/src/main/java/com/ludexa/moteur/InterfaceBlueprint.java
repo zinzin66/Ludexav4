@@ -1,4 +1,3 @@
-
 // haut 1
 package com.ludexa.moteur;
 
@@ -45,14 +44,18 @@ public class InterfaceBlueprint extends Activity {
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
+        layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
 
         // ---- Bandeau du haut ----
         LinearLayout bandeauHaut = new LinearLayout(this);
         bandeauHaut.setOrientation(LinearLayout.HORIZONTAL);
         bandeauHaut.setPadding(10, 10, 10, 10);
+        bandeauHaut.setBackgroundColor(Palette.fondPanneaux);
 
         Button boutonRetour = new Button(this);
         boutonRetour.setText("Retour Scène");
+        boutonRetour.setBackgroundColor(Palette.boutonNormal);
+        boutonRetour.setTextColor(Palette.texteNormal);
         boutonRetour.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonRetour);
 
@@ -63,44 +66,62 @@ public class InterfaceBlueprint extends Activity {
 
         Button boutonSauvegarder = new Button(this);
         boutonSauvegarder.setText("Sauvegarder");
+        boutonSauvegarder.setBackgroundColor(Palette.boutonNormal);
+        boutonSauvegarder.setTextColor(Palette.texteNormal);
         boutonSauvegarder.setOnClickListener(v -> sauvegarderBlueprintLocal());
         bandeauHaut.addView(boutonSauvegarder);
 
         Button boutonCharger = new Button(this);
         boutonCharger.setText("Charger");
+        boutonCharger.setBackgroundColor(Palette.boutonNormal);
+        boutonCharger.setTextColor(Palette.texteNormal);
         boutonCharger.setOnClickListener(v -> chargerBlueprintLocal(false));
         bandeauHaut.addView(boutonCharger);
 
         Button boutonZoomMoins = new Button(this);
         boutonZoomMoins.setText("[-]");
+        boutonZoomMoins.setBackgroundColor(Palette.boutonNormal);
+        boutonZoomMoins.setTextColor(Palette.texteNormal);
         boutonZoomMoins.setOnClickListener(v -> canvasBlueprint.zoomMoins());
         bandeauHaut.addView(boutonZoomMoins);
 
         Button boutonZoomReset = new Button(this);
         boutonZoomReset.setText("[[]]");
+        boutonZoomReset.setBackgroundColor(Palette.boutonNormal);
+        boutonZoomReset.setTextColor(Palette.texteNormal);
         boutonZoomReset.setOnClickListener(v -> canvasBlueprint.zoomReset());
         bandeauHaut.addView(boutonZoomReset);
 
         Button boutonZoomPlus = new Button(this);
         boutonZoomPlus.setText("[+]");
+        boutonZoomPlus.setBackgroundColor(Palette.boutonNormal);
+        boutonZoomPlus.setTextColor(Palette.texteNormal);
         boutonZoomPlus.setOnClickListener(v -> canvasBlueprint.zoomPlus());
         bandeauHaut.addView(boutonZoomPlus);
 
         Button boutonUndo = new Button(this);
         boutonUndo.setText("[<]");
+        boutonUndo.setBackgroundColor(Palette.boutonNormal);
+        boutonUndo.setTextColor(Palette.texteNormal);
         bandeauHaut.addView(boutonUndo);
 
         Button boutonRedo = new Button(this);
         boutonRedo.setText("[>]");
+        boutonRedo.setBackgroundColor(Palette.boutonNormal);
+        boutonRedo.setTextColor(Palette.texteNormal);
         bandeauHaut.addView(boutonRedo);
 
         Button boutonSupprimerNode = new Button(this);
         boutonSupprimerNode.setText("Supprimer le node");
+        boutonSupprimerNode.setBackgroundColor(Palette.boutonNormal);
+        boutonSupprimerNode.setTextColor(Palette.texteNormal);
         boutonSupprimerNode.setOnClickListener(v -> canvasBlueprint.supprimerNoeudSelectionne());
         bandeauHaut.addView(boutonSupprimerNode);
 
         Button boutonCode = new Button(this);
         boutonCode.setText("Code");
+        boutonCode.setBackgroundColor(Palette.boutonNormal);
+        boutonCode.setTextColor(Palette.texteNormal);
         boutonCode.setOnClickListener(v -> afficherFenetreCode());
         bandeauHaut.addView(boutonCode);
 
@@ -131,11 +152,7 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
-    
-    
 
-// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
             File dir = new File(getFilesDir(), "logique");
@@ -206,6 +223,7 @@ public class InterfaceBlueprint extends Activity {
         LinearLayout layoutDialog = new LinearLayout(this);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
         layoutDialog.setPadding(30, 30, 30, 30);
+        layoutDialog.setBackgroundColor(Palette.fondPanneaux);
 
         // --- Génération dynamique du texte du Blueprint ---
         StringBuilder res = new StringBuilder();
@@ -252,6 +270,7 @@ public class InterfaceBlueprint extends Activity {
         TextView textViewCode = new TextView(this);
         textViewCode.setText(res.toString());
         textViewCode.setTextSize(14f); 
+        textViewCode.setTextColor(Palette.texteNormal);
 
         ScrollView scrollView = new ScrollView(this);
         scrollView.setPadding(0, 0, 0, 30);
@@ -267,6 +286,8 @@ public class InterfaceBlueprint extends Activity {
 
         Button btnCopier = new Button(this);
         btnCopier.setText("Copier");
+        btnCopier.setBackgroundColor(Palette.boutonNormal);
+        btnCopier.setTextColor(Palette.texteNormal);
         btnCopier.setOnClickListener(v -> {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("Code LUDEXA", textViewCode.getText());
@@ -277,6 +298,8 @@ public class InterfaceBlueprint extends Activity {
 
         Button btnQuitter = new Button(this);
         btnQuitter.setText("Quitter");
+        btnQuitter.setBackgroundColor(Palette.boutonNormal);
+        btnQuitter.setTextColor(Palette.texteNormal);
         btnQuitter.setOnClickListener(v -> dialog.dismiss());
         boutonsDialog.addView(btnQuitter);
 
@@ -286,4 +309,7 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 2
+// bas 1
+
+
+

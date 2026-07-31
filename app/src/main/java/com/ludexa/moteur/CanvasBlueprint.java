@@ -65,25 +65,25 @@ public class CanvasBlueprint extends View {
 
     private void init() {
         paintGrille = new Paint();
-        paintGrille.setColor(Color.DKGRAY);
+        paintGrille.setColor(Palette.canvasGrille);
         paintGrille.setStrokeWidth(2);
         
         paintNoeudBG = new Paint();
-        paintNoeudBG.setColor(Color.parseColor("#2A2A2A"));
+        paintNoeudBG.setColor(Palette.fondPanneaux);
         paintNoeudBG.setStyle(Paint.Style.FILL);
         
         paintTitreBG = new Paint();
-        paintTitreBG.setColor(Color.parseColor("#444444"));
+        paintTitreBG.setColor(Palette.enTeteDialogues);
         paintTitreBG.setStyle(Paint.Style.FILL);
         
         paintTexteTitre = new Paint();
-        paintTexteTitre.setColor(Color.WHITE);
+        paintTexteTitre.setColor(Palette.texteNormal);
         paintTexteTitre.setTextSize(24);
         paintTexteTitre.setFakeBoldText(true);
         paintTexteTitre.setAntiAlias(true);
         
         paintTextePort = new Paint();
-        paintTextePort.setColor(Color.LTGRAY);
+        paintTextePort.setColor(Palette.texteNormal);
         paintTextePort.setTextSize(18);
         paintTextePort.setAntiAlias(true);
         
@@ -103,7 +103,7 @@ public class CanvasBlueprint extends View {
         paintSelection.setAntiAlias(true);
 
         paintBoutonEdition = new Paint();
-        paintBoutonEdition.setColor(Color.parseColor("#4A4A4A"));
+        paintBoutonEdition.setColor(Palette.boutonNormal);
         paintBoutonEdition.setStyle(Paint.Style.FILL);
         
         paintTexteBouton = new Paint();
@@ -112,7 +112,7 @@ public class CanvasBlueprint extends View {
         paintTexteBouton.setTextAlign(Paint.Align.CENTER);
         paintTexteBouton.setAntiAlias(true);
         
-        setBackgroundColor(Color.parseColor("#1E1E1E")); 
+        setBackgroundColor(Palette.canvasFond); 
 
         this.setOnDragListener((v, event) -> {
             switch (event.getAction()) {
@@ -205,6 +205,7 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
+
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -301,7 +302,6 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-
 // haut 3
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
@@ -369,7 +369,7 @@ public class CanvasBlueprint extends View {
         // Résumé des paramètres
         float currentY = y + 60 + (maxPorts * 40) + 15;
         Paint paintResume = new Paint();
-        paintResume.setColor(Color.parseColor("#AAAAAA"));
+        paintResume.setColor(Palette.texteSelectionne);
         paintResume.setTextSize(14);
         paintResume.setAntiAlias(true);
         
@@ -528,7 +528,8 @@ public class CanvasBlueprint extends View {
     }
 // bas 3
 
-    // haut 4
+
+// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -666,4 +667,9 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
+
+    
+
+
+    
 

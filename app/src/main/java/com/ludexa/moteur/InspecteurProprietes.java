@@ -61,7 +61,7 @@ public class InspecteurProprietes extends LinearLayout {
 
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
-        this.setBackgroundColor(0xFFE0E0E0);
+        this.setBackgroundColor(Palette.fondPanneaux);
 
         paramsOuvert = new LinearLayout.LayoutParams(450, LinearLayout.LayoutParams.MATCH_PARENT);
         paramsFerme = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
@@ -70,18 +70,21 @@ public class InspecteurProprietes extends LinearLayout {
         LinearLayout enteteInspecteur = new LinearLayout(context);
         enteteInspecteur.setOrientation(LinearLayout.HORIZONTAL);
         enteteInspecteur.setPadding(10, 10, 10, 10);
-        enteteInspecteur.setBackgroundColor(0xFFCCCCCC);
+        enteteInspecteur.setBackgroundColor(Palette.enTeteDialogues);
 
         titreInspecteur = new TextView(context);
         titreInspecteur.setText("Inspecteur");
         titreInspecteur.setTextSize(16f);
         titreInspecteur.setGravity(Gravity.CENTER_VERTICAL);
+        titreInspecteur.setTextColor(Palette.texteNormal);
         LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         titreInspecteur.setLayoutParams(paramsTitre);
 
         boutonMasquer = new Button(context);
         boutonMasquer.setText(">");
+        boutonMasquer.setBackgroundColor(Palette.boutonNormal);
+        boutonMasquer.setTextColor(Palette.texteNormal);
 
         enteteInspecteur.addView(titreInspecteur);
         enteteInspecteur.addView(boutonMasquer);
@@ -95,6 +98,7 @@ public class InspecteurProprietes extends LinearLayout {
         texteInfo = new TextView(context);
         texteInfo.setText("Sélectionnez un objet sur la scène pour afficher et modifier ses propriétés.");
         texteInfo.setPadding(0, 0, 0, 30);
+        texteInfo.setTextColor(Palette.texteNormal);
         contenuInspecteur.addView(texteInfo);
 
         blocProprietes = new LinearLayout(context);
@@ -103,12 +107,13 @@ public class InspecteurProprietes extends LinearLayout {
 
         valeurType = new TextView(context);
         valeurType.setPadding(0, 0, 0, 15);
-        valeurType.setTextColor(0xFF555555);
+        valeurType.setTextColor(Palette.texteNormal);
         valeurType.setTextSize(14f);
         blocProprietes.addView(valeurType);
 
         TextView labelNom = new TextView(context);
         labelNom.setText("Nom");
+        labelNom.setTextColor(Palette.texteNormal);
         blocProprietes.addView(labelNom);
 
         LinearLayout layoutNom = new LinearLayout(context);
@@ -118,16 +123,21 @@ public class InspecteurProprietes extends LinearLayout {
         champNom.setSingleLine(true);
         champNom.setImeOptions(EditorInfo.IME_ACTION_DONE); 
         champNom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        champNom.setTextColor(Palette.texteNormal);
+        champNom.setBackgroundColor(Palette.canvasFond);
         layoutNom.addView(champNom);
         
         btnValiderNom = new Button(context);
         btnValiderNom.setText("OK");
+        btnValiderNom.setBackgroundColor(Palette.boutonNormal);
+        btnValiderNom.setTextColor(Palette.texteNormal);
         layoutNom.addView(btnValiderNom);
         
         blocProprietes.addView(layoutNom);
 
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
+        labelPos.setTextColor(Palette.texteNormal);
         blocProprietes.addView(labelPos);
 
         LinearLayout layoutPos = new LinearLayout(context);
@@ -137,11 +147,15 @@ public class InspecteurProprietes extends LinearLayout {
         champX.setHint("X");
         champX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         champX.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        champX.setTextColor(Palette.texteNormal);
+        champX.setBackgroundColor(Palette.canvasFond);
         
         champY = new EditText(context);
         champY.setHint("Y");
         champY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         champY.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        champY.setTextColor(Palette.texteNormal);
+        champY.setBackgroundColor(Palette.canvasFond);
         
         layoutPos.addView(champX);
         layoutPos.addView(champY);
@@ -151,6 +165,7 @@ public class InspecteurProprietes extends LinearLayout {
 
         TextView labelDim = new TextView(context);
         labelDim.setText("Largeur / Hauteur Base");
+        labelDim.setTextColor(Palette.texteNormal);
         blocProprietes.addView(labelDim);
 
         LinearLayout layoutDim = new LinearLayout(context);
@@ -160,11 +175,15 @@ public class InspecteurProprietes extends LinearLayout {
         champLargeur.setHint("Largeur");
         champLargeur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         champLargeur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        champLargeur.setTextColor(Palette.texteNormal);
+        champLargeur.setBackgroundColor(Palette.canvasFond);
         
         champHauteur = new EditText(context);
         champHauteur.setHint("Hauteur");
         champHauteur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         champHauteur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        champHauteur.setTextColor(Palette.texteNormal);
+        champHauteur.setBackgroundColor(Palette.canvasFond);
         
         layoutDim.addView(champLargeur);
         layoutDim.addView(champHauteur);
@@ -173,6 +192,7 @@ public class InspecteurProprietes extends LinearLayout {
         // FIX 2: Ajout section Echelle
         TextView labelScale = new TextView(context);
         labelScale.setText("Echelle X / Y (Scale)");
+        labelScale.setTextColor(Palette.texteNormal);
         blocProprietes.addView(labelScale);
 
         LinearLayout layoutScale = new LinearLayout(context);
@@ -182,56 +202,74 @@ public class InspecteurProprietes extends LinearLayout {
         champScaleX.setHint("Scale X");
         champScaleX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         champScaleX.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        champScaleX.setTextColor(Palette.texteNormal);
+        champScaleX.setBackgroundColor(Palette.canvasFond);
         
         champScaleY = new EditText(context);
         champScaleY.setHint("Scale Y");
         champScaleY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         champScaleY.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        champScaleY.setTextColor(Palette.texteNormal);
+        champScaleY.setBackgroundColor(Palette.canvasFond);
         
         layoutScale.addView(champScaleX);
         layoutScale.addView(champScaleY);
         blocProprietes.addView(layoutScale);
 // bas 1
-        // haut 2
+// haut 2
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        champRotation.setTextColor(Palette.texteNormal);
+        champRotation.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champRotation);
 
         btnCouleur = new Button(context);
         btnCouleur.setText("Couleur : Sélecteur");
+        btnCouleur.setBackgroundColor(Palette.boutonNormal);
+        btnCouleur.setTextColor(Palette.texteNormal);
         blocProprietes.addView(btnCouleur);
 
         champAlpha = new EditText(context);
         champAlpha.setHint("Transparence (0-1)");
         champAlpha.setFocusable(false);
         champAlpha.setOnClickListener(toastListener);
+        champAlpha.setTextColor(Palette.texteNormal);
+        champAlpha.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champAlpha);
 
         cbVisible = new CheckBox(context);
         cbVisible.setText("Visible");
+        cbVisible.setTextColor(Palette.texteNormal);
         blocProprietes.addView(cbVisible);
 
         cbVerrouille = new CheckBox(context);
         cbVerrouille.setText("Verrouillé (empêche l'édition)");
         cbVerrouille.setOnClickListener(toastListener);
+        cbVerrouille.setTextColor(Palette.texteNormal);
         blocProprietes.addView(cbVerrouille);
 
         TextView labelZOrder = new TextView(context);
         labelZOrder.setText("Calque (Z-Order)");
+        labelZOrder.setTextColor(Palette.texteNormal);
         blocProprietes.addView(labelZOrder);
 
         champZOrder = new EditText(context);
         champZOrder.setHint("Calque (Z-Order)");
         champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        champZOrder.setTextColor(Palette.texteNormal);
+        champZOrder.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champZOrder);
 
         TextView labelParent = new TextView(context);
         labelParent.setText("Objet Parent");
+        labelParent.setTextColor(Palette.texteNormal);
         blocProprietes.addView(labelParent);
 
         btnParent = new Button(context);
         btnParent.setText("Parent : Aucun");
+        btnParent.setBackgroundColor(Palette.boutonNormal);
+        btnParent.setTextColor(Palette.texteNormal);
         blocProprietes.addView(btnParent);
 
         btnParent.setOnClickListener(v -> {
@@ -271,13 +309,15 @@ public class InspecteurProprietes extends LinearLayout {
 
         TextView sepTexte = new TextView(context);
         sepTexte.setText("--- Propriétés Spécifiques Texte ---");
-        sepTexte.setTextColor(0xFF888888);
+        sepTexte.setTextColor(Palette.texteNormal);
         sepTexte.setPadding(0, 10, 0, 10);
         blocTexte.addView(sepTexte);
 
         champContenu = new EditText(context);
         champContenu.setHint("Contenu du texte");
         champContenu.setFocusable(false);
+        champContenu.setTextColor(Palette.texteNormal);
+        champContenu.setBackgroundColor(Palette.canvasFond);
         champContenu.setOnClickListener(v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -304,20 +344,27 @@ public class InspecteurProprietes extends LinearLayout {
         });
         blocTexte.addView(champContenu);
 // bas 2
-        // haut 3
+
+// haut 3
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
         champTaille.setOnClickListener(toastListener);
+        champTaille.setTextColor(Palette.texteNormal);
+        champTaille.setBackgroundColor(Palette.canvasFond);
         blocTexte.addView(champTaille);
 
         btnCouleurTexte = new Button(context);
         btnCouleurTexte.setText("Couleur du texte");
+        btnCouleurTexte.setBackgroundColor(Palette.boutonNormal);
+        btnCouleurTexte.setTextColor(Palette.texteNormal);
         blocTexte.addView(btnCouleurTexte);
 
         btnPolice = new Button(context);
         btnPolice.setText("Police : Sélecteur");
         btnPolice.setOnClickListener(toastListener);
+        btnPolice.setBackgroundColor(Palette.boutonNormal);
+        btnPolice.setTextColor(Palette.texteNormal);
         blocTexte.addView(btnPolice);
         
         blocProprietes.addView(blocTexte);
@@ -329,20 +376,25 @@ public class InspecteurProprietes extends LinearLayout {
 
         TextView sepImage = new TextView(context);
         sepImage.setText("--- Propriétés Image ---");
-        sepImage.setTextColor(0xFF888888);
+        sepImage.setTextColor(Palette.texteNormal);
         sepImage.setPadding(0, 10, 0, 10);
         blocImage.addView(sepImage);
 
         btnChargerImage = new Button(context);
         btnChargerImage.setText("Charger une image (Assets)");
+        btnChargerImage.setBackgroundColor(Palette.boutonNormal);
+        btnChargerImage.setTextColor(Palette.texteNormal);
         blocImage.addView(btnChargerImage);
 
         btnSupprimerImage = new Button(context);
         btnSupprimerImage.setText("Supprimer l'image");
+        btnSupprimerImage.setBackgroundColor(Palette.boutonNormal);
+        btnSupprimerImage.setTextColor(Palette.texteNormal);
         blocImage.addView(btnSupprimerImage);
 
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
+        cbFondColore.setTextColor(Palette.texteNormal);
         blocImage.addView(cbFondColore);
 
         blocProprietes.addView(blocImage);
@@ -351,7 +403,8 @@ public class InspecteurProprietes extends LinearLayout {
 
         boutonSupprimer = new Button(context);
         boutonSupprimer.setText("Supprimer l'objet");
-        boutonSupprimer.setBackgroundColor(0xFFFFCCCC);
+        boutonSupprimer.setBackgroundColor(Color.parseColor("#8B3A3A"));
+        boutonSupprimer.setTextColor(Palette.texteNormal);
         boutonSupprimer.setOnClickListener(v -> {
             if (objetCourant == null) {
                 Toast.makeText(context, "Aucun objet sélectionné", Toast.LENGTH_SHORT).show();
@@ -443,8 +496,8 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 // bas 3
-
-       // haut 4
+        
+    // haut 4
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -653,7 +706,7 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-        
+
 
 
     
