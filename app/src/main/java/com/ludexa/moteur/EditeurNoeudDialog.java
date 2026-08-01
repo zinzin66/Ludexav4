@@ -120,6 +120,8 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
+
+
 // haut 2
         // =========================================================
         // PANNEAU DROIT (Édition)
@@ -545,7 +547,8 @@ public class EditeurNoeudDialog extends Dialog {
             } else {
                 champSaisie.setShowSoftInputOnFocus(true);
                 champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+                // MODIFICATION : Le clavier custom reste visible en complément du clavier texte standard
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
                 if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
                 champSaisie.requestFocus();
             }
@@ -577,6 +580,4 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 3
 
         
-
-
     
