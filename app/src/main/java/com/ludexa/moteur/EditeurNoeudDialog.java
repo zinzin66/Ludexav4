@@ -33,19 +33,18 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
         root.setBackgroundColor(Palette.fondPanneaux); 
-        // L'ancienne taille fixe a été retirée d'ici pour laisser la place à une taille dynamique sur la Window plus bas.
 
         // =========================================================
         // DÉCLARATIONS COMMUNES
         // =========================================================
         final LinearLayout conteneurClavier = new LinearLayout(context);
         conteneurClavier.setOrientation(LinearLayout.VERTICAL);
-        conteneurClavier.setPadding(0, 20, 0, 0);
+        conteneurClavier.setPadding(0, 10, 0, 0); 
 
         final LinearLayout conteneurBooleen = new LinearLayout(context);
         conteneurBooleen.setOrientation(LinearLayout.HORIZONTAL);
         conteneurBooleen.setGravity(Gravity.CENTER);
-        conteneurBooleen.setPadding(0, 20, 0, 0);
+        conteneurBooleen.setPadding(0, 15, 0, 0);
         conteneurBooleen.setVisibility(View.GONE);
 
         final LinearLayout listeGauche = new LinearLayout(context);
@@ -53,23 +52,22 @@ public class EditeurNoeudDialog extends Dialog {
 
         final LinearLayout barreParams = new LinearLayout(context);
         barreParams.setOrientation(LinearLayout.HORIZONTAL);
-        barreParams.setPadding(0, 0, 0, 15);
+        barreParams.setPadding(0, 0, 0, 10);
 
         final TextView txtResumeExpression = new TextView(context);
         txtResumeExpression.setTextColor(Palette.texteSelectionne);
-        txtResumeExpression.setTextSize(18);
-        txtResumeExpression.setPadding(15, 0, 15, 10);
+        txtResumeExpression.setTextSize(16); 
+        txtResumeExpression.setPadding(10, 0, 10, 5);
         txtResumeExpression.getPaint().setFakeBoldText(true);
 
         final EditText champSaisie = new EditText(context);
         champSaisie.setTextColor(Palette.texteNormal);
         champSaisie.setBackgroundColor(Palette.canvasFond);
-        champSaisie.setTextSize(20);
+        champSaisie.setTextSize(18); 
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
         
-        // FIX : Conversion de la hauteur de champSaisie en dp (équivalent 100dp) 
-        int hauteurChampDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, context.getResources().getDisplayMetrics());
+        int hauteurChampDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80, context.getResources().getDisplayMetrics());
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hauteurChampDp));
         
         final Button btnCible = new Button(context);
@@ -126,10 +124,18 @@ public class EditeurNoeudDialog extends Dialog {
         // =========================================================
         // PANNEAU DROIT (Édition)
         // =========================================================
+        LinearLayout wrapperDroite = new LinearLayout(context);
+        wrapperDroite.setOrientation(LinearLayout.VERTICAL);
+        // MODIFICATION : Poids augmenté (de 1.2f à 1.5f) pour élargir la zone de droite
+        wrapperDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f));
+
+        ScrollView scrollDroit = new ScrollView(context);
+        scrollDroit.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        scrollDroit.setFillViewport(true);
+
         LinearLayout colonneDroite = new LinearLayout(context);
         colonneDroite.setOrientation(LinearLayout.VERTICAL);
-        colonneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.2f));
-        colonneDroite.setPadding(20, 20, 20, 20);
+        colonneDroite.setPadding(15, 15, 15, 15); 
 
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
@@ -180,7 +186,6 @@ public class EditeurNoeudDialog extends Dialog {
 
         colonneDroite.addView(champSaisie);
 
-        // Clavier enrichi avec les nouvelles lignes de comparaison et booléens
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -193,8 +198,7 @@ public class EditeurNoeudDialog extends Dialog {
             {"%", ",", "true", "false"}
         };
 
-        // FIX : Conversion de la marge du clavier en dp
-        int margeClavierDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, context.getResources().getDisplayMetrics());
+        int margeClavierDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, context.getResources().getDisplayMetrics());
 
         for (String[] ligne : touchesCode) {
             LinearLayout rowLayout = new LinearLayout(context);
@@ -206,6 +210,11 @@ public class EditeurNoeudDialog extends Dialog {
                 btn.setText(touche);
                 btn.setTextColor(Palette.texteNormal);
                 btn.setBackgroundColor(Palette.boutonNormal);
+                
+                btn.setMinHeight(0);
+                btn.setMinimumHeight(0);
+                btn.setPadding(0, 15, 0, 15);
+                btn.setTextSize(14); 
                 
                 LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
                 btnParams.setMargins(margeClavierDp, margeClavierDp, margeClavierDp, margeClavierDp);
@@ -238,8 +247,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
         colonneDroite.addView(conteneurClavier);
 
-        // FIX : Uniformisation des marges des boutons booléens en dp 
-        int margeBooleenDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, context.getResources().getDisplayMetrics());
+        int margeBooleenDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, context.getResources().getDisplayMetrics());
 
         Button btnVrai = new Button(context);
         btnVrai.setText("Vrai (true)");
@@ -262,8 +270,10 @@ public class EditeurNoeudDialog extends Dialog {
         conteneurBooleen.addView(btnVrai);
         conteneurBooleen.addView(btnFaux);
         colonneDroite.addView(conteneurBooleen);
-// bas 2
 
+        scrollDroit.addView(colonneDroite);
+        wrapperDroite.addView(scrollDroit);
+// bas 2
 
 // haut 3
         // =========================================================
@@ -271,14 +281,14 @@ public class EditeurNoeudDialog extends Dialog {
         // =========================================================
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
-        colonneGauche.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.8f));
+        // MODIFICATION : Poids réduit (de 0.8f à 0.5f) pour affiner la colonne des listes
+        colonneGauche.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.5f));
         colonneGauche.setBackgroundColor(Palette.fondPanneaux);
         
         ScrollView scrollGauche = new ScrollView(context);
         scrollGauche.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         scrollGauche.setFillViewport(true);
 
-        // Bouton Cible intégré à la colonne de gauche
         if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable()) {
             btnCible.setText("Cible");
             btnCible.setTextColor(Color.parseColor("#FFD700"));
@@ -444,10 +454,10 @@ public class EditeurNoeudDialog extends Dialog {
         colonneGauche.addView(scrollGauche);
 
         // =========================================================
-        // AJOUT AU ROOT DANS LE NOUVEL ORDRE (Gauche = Listes, Droite = Édition)
+        // AJOUT AU ROOT
         // =========================================================
         root.addView(colonneGauche);
-        root.addView(colonneDroite);
+        root.addView(wrapperDroite);
 
         LinearLayout bottomBar = new LinearLayout(context);
         bottomBar.setOrientation(LinearLayout.HORIZONTAL);
@@ -472,9 +482,6 @@ public class EditeurNoeudDialog extends Dialog {
 
         setContentView(grandLayout);
 
-        // =========================================================
-        // DIMENSIONNEMENT DYNAMIQUE DE LA FENÊTRE APRÈS setContentView
-        // =========================================================
         Window window = getWindow();
         if (window != null) {
             DisplayMetrics metrics = context.getResources().getDisplayMetrics();
@@ -547,7 +554,6 @@ public class EditeurNoeudDialog extends Dialog {
             } else {
                 champSaisie.setShowSoftInputOnFocus(true);
                 champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                // MODIFICATION : Le clavier custom reste visible en complément du clavier texte standard
                 if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
                 if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
                 champSaisie.requestFocus();
@@ -578,6 +584,10 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 3
+                
+
 
         
+
+
     
