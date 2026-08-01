@@ -67,6 +67,11 @@ public class InspecteurProprietes extends LinearLayout {
         this.cheminProjet = cheminProjet;
     }
 
+    // AJOUT: Setter pour mettre à jour la scène active dynamiquement
+    public void setSceneActive(Scene scene) {
+        this.sceneActive = scene;
+    }
+
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
         this.setBackgroundColor(Palette.fondPanneaux);
@@ -143,6 +148,7 @@ public class InspecteurProprietes extends LinearLayout {
         
         blocProprietes.addView(layoutNom);
 // bas 1
+
 // haut 2
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
@@ -269,7 +275,6 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champZOrder);
 // bas 2
-
 
 // haut 3
         TextView labelParent = new TextView(context);
@@ -402,7 +407,6 @@ public class InspecteurProprietes extends LinearLayout {
         blocImage.addView(btnSupprimerImage);
 // bas 3
 
-
 // haut 4
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
@@ -476,7 +480,6 @@ public class InspecteurProprietes extends LinearLayout {
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
             
-            // CORRECTION: Utilisation de cheminProjet au lieu de context.getFilesDir()
             if (cheminProjet == null) {
                 Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
                 return;
@@ -512,10 +515,7 @@ public class InspecteurProprietes extends LinearLayout {
                 canvasEditeur.invalidate();
             }
         });
-// bas 4
 
-
-// haut 5
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -537,7 +537,6 @@ public class InspecteurProprietes extends LinearLayout {
             }
         }));
         
-        // FIX 2: Watchers Echelle
         champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -584,7 +583,8 @@ public class InspecteurProprietes extends LinearLayout {
         btnCouleur.setOnClickListener(selecteurCouleurListener);
         btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
     }
-
+// bas 4
+// haut 5
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -594,10 +594,29 @@ public class InspecteurProprietes extends LinearLayout {
 
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
-        String nouveauNom = champNom.getText().toString();
-        String ancienNom = objetCourant.nom;
+        String nouveauNom = champNom.getText().toString().trim();
+        String ancienNom = objetCourant.nom != null ? objetCourant.nom : "";
         
         if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
+            
+            // ANTI-DOUBLON STRICT
+            if (sceneActive != null && sceneActive.objets != null) {
+                for (ObjetBase obj : sceneActive.objets) {
+                    if (!obj.id.equals(objetCourant.id) && obj.nom != null && obj.nom.trim().equalsIgnoreCase(nouveauNom)) {
+                        new AlertDialog.Builder(context)
+                                .setTitle("Impossible")
+                                .setMessage("Un objet nommé '" + nouveauNom + "' existe déjà dans cette scène.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                        return; // Bloque la suite
+                    }
+                }
+            }
+
             new AlertDialog.Builder(context)
                     .setTitle("Confirmation")
                     .setMessage("Renommer " + ancienNom + " en " + nouveauNom + " ?")
@@ -642,7 +661,6 @@ public class InspecteurProprietes extends LinearLayout {
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
             
-            // FIX 2: Mise à jour visuelle des valeurs d'échelle
             champScaleX.setText(String.valueOf(objet.scaleX));
             champScaleY.setText(String.valueOf(objet.scaleY));
             
@@ -682,7 +700,9 @@ public class InspecteurProprietes extends LinearLayout {
 
         miseAJourEnCours = false;
     }
+// bas 5
 
+// haut 6
     private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
         List<String> resultats = new ArrayList<>();
         if (dir != null && dir.exists() && dir.isDirectory()) {
@@ -720,13 +740,15 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 5
+// bas 6
 
 
+    
 
 
+    
         
-        
+
         
 
 

@@ -10,12 +10,15 @@ import android.view.Gravity;
 import android.widget.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.lang.reflect.Type;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class InterfaceEditeur extends Activity {
 
@@ -81,7 +84,28 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.addView(boutonQuitter);
 
         TextView nomProjet = new TextView(this);
-        nomProjet.setText("Projet sans nom");
+        
+        // --- MODIFICATION : Lecture du fichier meta.json pour le nom du projet ---
+        String texteNomProjet = "Projet sans nom";
+        if (cheminProjet != null) {
+            try {
+                File metaFile = new File(cheminProjet, "meta.json");
+                if (metaFile.exists()) {
+                    BufferedReader br = new BufferedReader(new FileReader(metaFile));
+                    Type type = new TypeToken<Map<String, String>>(){}.getType();
+                    Map<String, String> meta = new Gson().fromJson(br, type);
+                    br.close();
+                    if (meta != null && meta.containsKey("nom")) {
+                        texteNomProjet = meta.get("nom");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        nomProjet.setText(texteNomProjet);
+        // --------------------------------------------------------------------------
+
         nomProjet.setTextSize(18f);
         nomProjet.setPadding(20, 0, 20, 0);
         nomProjet.setTextColor(Palette.texteNormal);
@@ -105,6 +129,7 @@ public class InterfaceEditeur extends Activity {
                 redoStack.push(c);
                 canvasEditeur.invalidate();
                 if (menuInspecteur != null) {
+                    menuInspecteur.setSceneActive(sceneActive); // AJOUT
                     menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
                 }
             }
@@ -122,14 +147,39 @@ public class InterfaceEditeur extends Activity {
                 undoStack.push(c);
                 canvasEditeur.invalidate();
                 if (menuInspecteur != null) {
+                    menuInspecteur.setSceneActive(sceneActive); // AJOUT
                     menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
                 }
             }
         });
         bandeauHaut.addView(boutonRedo);
 
-        sceneActive = new Scene("SceneDepart");
-        listeScenes.add(sceneActive);
+        // --- MODIFICATION : Chargement conditionnel des scènes ---
+        listeScenes = new ArrayList<>();
+        if (cheminProjet != null) {
+            try {
+                File fileProjet = new File(cheminProjet, "projet_sauvegarde.json");
+                if (fileProjet.exists()) {
+                    BufferedReader br = new BufferedReader(new FileReader(fileProjet));
+                    Type listType = new TypeToken<ArrayList<Scene>>(){}.getType();
+                    List<Scene> scenesChargees = new Gson().fromJson(br, listType);
+                    br.close();
+                    if (scenesChargees != null && !scenesChargees.isEmpty()) {
+                        listeScenes.addAll(scenesChargees);
+                        sceneActive = listeScenes.get(0);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        // Comportement de repli si le fichier n'existe pas, erreur, ou liste vide
+        if (listeScenes.isEmpty()) {
+            sceneActive = new Scene("SceneDepart");
+            listeScenes.add(sceneActive);
+        }
+        // ---------------------------------------------------------
 
         canvasEditeur = new CanvasEditeur(this);
         canvasEditeur.setCheminProjet(cheminProjet); // MODIFICATION 1 : Transmission du chemin
@@ -336,6 +386,11 @@ public class InterfaceEditeur extends Activity {
             }
             
             canvasEditeur.setScene(sceneActive);
+            
+            if (menuInspecteur != null) {
+                menuInspecteur.setSceneActive(sceneActive); // AJOUT
+            }
+            
             panneauRessources.rafraichirScenes();
 
             canvasEditeur.invalidate();
@@ -365,6 +420,7 @@ public class InterfaceEditeur extends Activity {
         canvasEditeur.setScene(scene);
         canvasEditeur.deselectionner();
         if (menuInspecteur != null) {
+            menuInspecteur.setSceneActive(scene); // AJOUT
             menuInspecteur.afficherObjet(null);
         }
         panneauRessources.rafraichirScenes();
