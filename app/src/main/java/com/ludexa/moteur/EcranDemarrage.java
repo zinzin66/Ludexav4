@@ -1,4 +1,3 @@
-
 // haut 1
 package com.ludexa.moteur;
 
@@ -122,6 +121,29 @@ public class EcranDemarrage extends Activity {
         });
         colonneDroite.addView(boutonDebug);
         // --- FIN AJOUT BOUTON DEBUG ---
+
+        // --- DÉBUT AJOUT BOUTON DEBUG MKDIRS ---
+        Button boutonDebugMkdirs = new Button(this);
+        boutonDebugMkdirs.setText("DEBUG Test mkdirs");
+        boutonDebugMkdirs.setOnClickListener(v -> {
+            File dossierProjets = new File(getFilesDir(), "projets");
+            boolean resultat = dossierProjets.mkdirs();
+            
+            StringBuilder info = new StringBuilder();
+            info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
+            info.append("Valeur de resultat (mkdirs) : ").append(resultat).append("\n");
+            info.append("exists() : ").append(dossierProjets.exists()).append("\n");
+            info.append("canWrite() : ").append(dossierProjets.canWrite()).append("\n");
+            info.append("getFilesDir().canWrite() (parent) : ").append(getFilesDir().canWrite()).append("\n");
+
+            new AlertDialog.Builder(EcranDemarrage.this)
+                    .setTitle("Debug : Test mkdirs")
+                    .setMessage(info.toString())
+                    .setPositiveButton("OK", null)
+                    .show();
+        });
+        colonneDroite.addView(boutonDebugMkdirs);
+        // --- FIN AJOUT BOUTON DEBUG MKDIRS ---
 
         TextView titreListe = new TextView(this);
         titreListe.setText("Projets existants :");
@@ -425,3 +447,6 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 2
+
+
+
