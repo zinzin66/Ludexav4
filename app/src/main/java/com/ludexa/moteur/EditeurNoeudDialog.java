@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -66,8 +67,10 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setTextSize(20);
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
-        // FIX : Hauteur fixée à 250px (équivalent 3-4 lignes) pour ne pas engloutir l'espace du clavier.
-        champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 250));
+        
+        // FIX : Conversion de la hauteur de champSaisie en dp (équivalent 100dp) 
+        int hauteurChampDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, context.getResources().getDisplayMetrics());
+        champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hauteurChampDp));
         
         final Button btnCible = new Button(context);
 
@@ -188,6 +191,9 @@ public class EditeurNoeudDialog extends Dialog {
             {"%", ",", "true", "false"}
         };
 
+        // FIX : Conversion de la marge du clavier en dp
+        int margeClavierDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, context.getResources().getDisplayMetrics());
+
         for (String[] ligne : touchesCode) {
             LinearLayout rowLayout = new LinearLayout(context);
             rowLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -200,7 +206,7 @@ public class EditeurNoeudDialog extends Dialog {
                 btn.setBackgroundColor(Palette.boutonNormal);
                 
                 LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-                btnParams.setMargins(5, 5, 5, 5);
+                btnParams.setMargins(margeClavierDp, margeClavierDp, margeClavierDp, margeClavierDp);
                 btn.setLayoutParams(btnParams);
 
                 if (touche.isEmpty()) {
@@ -230,12 +236,15 @@ public class EditeurNoeudDialog extends Dialog {
         }
         colonneDroite.addView(conteneurClavier);
 
+        // FIX : Uniformisation des marges des boutons booléens en dp 
+        int margeBooleenDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10, context.getResources().getDisplayMetrics());
+
         Button btnVrai = new Button(context);
         btnVrai.setText("Vrai (true)");
         btnVrai.setBackgroundColor(Color.parseColor("#4CAF50"));
         btnVrai.setTextColor(Palette.texteNormal);
         LinearLayout.LayoutParams paramVrai = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        paramVrai.setMargins(10, 10, 10, 10);
+        paramVrai.setMargins(margeBooleenDp, margeBooleenDp, margeBooleenDp, margeBooleenDp);
         btnVrai.setLayoutParams(paramVrai);
         btnVrai.setOnClickListener(v -> champSaisie.setText("true"));
 
@@ -244,7 +253,7 @@ public class EditeurNoeudDialog extends Dialog {
         btnFaux.setBackgroundColor(Color.parseColor("#F44336"));
         btnFaux.setTextColor(Palette.texteNormal);
         LinearLayout.LayoutParams paramFaux = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        paramFaux.setMargins(10, 10, 10, 10);
+        paramFaux.setMargins(margeBooleenDp, margeBooleenDp, margeBooleenDp, margeBooleenDp);
         btnFaux.setLayoutParams(paramFaux);
         btnFaux.setOnClickListener(v -> champSaisie.setText("false"));
 
@@ -252,6 +261,7 @@ public class EditeurNoeudDialog extends Dialog {
         conteneurBooleen.addView(btnFaux);
         colonneDroite.addView(conteneurBooleen);
 // bas 2
+
 
 // haut 3
         // =========================================================
@@ -565,8 +575,6 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 3
-
-
 
         
 
