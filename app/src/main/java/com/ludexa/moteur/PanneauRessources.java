@@ -2,6 +2,7 @@
 package com.ludexa.moteur;
 
 import android.app.Dialog;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.View;
@@ -217,7 +218,8 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 1
-    // haut 2
+
+// haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -560,6 +562,7 @@ public class PanneauRessources extends ScrollView {
         fileOrDirectory.delete();
     }
 // bas 3
+
 // haut 4
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -716,12 +719,30 @@ public class PanneauRessources extends ScrollView {
         Button btnValider = new Button(context);
         btnValider.setText("Valider");
         btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString();
-            if(!nouveauNom.isEmpty()) {
-                scene.nom = nouveauNom;
-                rafraichirScenes();
-                Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
+            String nouveauNom = champTexte.getText().toString().trim();
+            if(nouveauNom.isEmpty()) {
+                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            // Vérification anti-doublon pour les scènes
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            if (editeur.listeScenes != null) {
+                for (Scene s : editeur.listeScenes) {
+                    if (s != scene && s.nom.equals(nouveauNom)) {
+                        new AlertDialog.Builder(context)
+                                .setTitle("Impossible")
+                                .setMessage("Une scène avec ce nom existe déjà dans le projet.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return; // On bloque le processus ici
+                    }
+                }
+            }
+
+            scene.nom = nouveauNom;
+            rafraichirScenes();
+            Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
 
@@ -786,9 +807,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 4
 
-
-
-    // haut 5
+// haut 5
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -1006,7 +1025,8 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 5
-    
+
+
 // haut 6
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1187,11 +1207,16 @@ public class PanneauRessources extends ScrollView {
 // bas 6
 
 
+    
 
 
     
 
+
+
     
+
+
 
     
 
