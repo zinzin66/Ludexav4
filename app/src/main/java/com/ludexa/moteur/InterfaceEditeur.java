@@ -242,6 +242,7 @@ public class InterfaceEditeur extends Activity {
         }
     }
 // bas 1
+
 // haut 2
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
@@ -400,3 +401,7 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
+
+
+
