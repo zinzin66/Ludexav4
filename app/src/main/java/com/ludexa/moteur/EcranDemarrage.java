@@ -1,3 +1,4 @@
+
 // haut 1
 package com.ludexa.moteur;
 
@@ -83,6 +84,44 @@ public class EcranDemarrage extends Activity {
             // À implémenter : sélecteur de fichiers Android
         });
         colonneDroite.addView(boutonOuvrirProjet);
+
+        // --- DÉBUT AJOUT BOUTON DEBUG ---
+        Button boutonDebug = new Button(this);
+        boutonDebug.setText("DEBUG Vérifier dossier projets");
+        boutonDebug.setOnClickListener(v -> {
+            File dossierProjets = new File(getFilesDir(), "projets");
+            StringBuilder info = new StringBuilder();
+            
+            info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
+            info.append("Existe : ").append(dossierProjets.exists()).append("\n");
+            info.append("Est un dossier : ").append(dossierProjets.isDirectory()).append("\n\n");
+
+            File[] sousDossiers = dossierProjets.listFiles();
+            if (sousDossiers == null) {
+                info.append("listFiles() a retourné null\n");
+            } else if (sousDossiers.length == 0) {
+                info.append("Aucun sous-dossier trouvé\n");
+            } else {
+                for (File sousDossier : sousDossiers) {
+                    info.append("Dossier : ").append(sousDossier.getName()).append("\n");
+                    File metaFile = new File(sousDossier, "meta.json");
+                    boolean metaExiste = metaFile.exists();
+                    info.append("  -> meta.json existe : ").append(metaExiste);
+                    if (metaExiste) {
+                        info.append(" (Taille : ").append(metaFile.length()).append(" octets)");
+                    }
+                    info.append("\n");
+                }
+            }
+
+            new AlertDialog.Builder(EcranDemarrage.this)
+                    .setTitle("Debug : Dossier projets")
+                    .setMessage(info.toString())
+                    .setPositiveButton("OK", null)
+                    .show();
+        });
+        colonneDroite.addView(boutonDebug);
+        // --- FIN AJOUT BOUTON DEBUG ---
 
         TextView titreListe = new TextView(this);
         titreListe.setText("Projets existants :");
@@ -185,7 +224,8 @@ public class EcranDemarrage extends Activity {
             dialog.dismiss();
         });
     }
-
+// bas 1
+// haut 2
     private void creerNouveauProjet(String nomProjet) {
         String uuid = UUID.randomUUID().toString();
         File dossierProjets = new File(getFilesDir(), "projets");
@@ -384,5 +424,4 @@ public class EcranDemarrage extends Activity {
         });
     }
 }
-// bas 1
-        
+// bas 2
