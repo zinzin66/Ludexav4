@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
 
 import org.json.JSONObject;
@@ -332,7 +334,22 @@ public class EcranDemarrage extends Activity {
             }
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, affichageList);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, affichageList) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView textView;
+                if (convertView == null) {
+                    textView = new TextView(getContext());
+                    textView.setPadding(20, 20, 20, 20);
+                    textView.setTextSize(16f);
+                    textView.setTextColor(Palette.texteNormal);
+                } else {
+                    textView = (TextView) convertView;
+                }
+                textView.setText(getItem(position));
+                return textView;
+            }
+        };
         listeProjets.setAdapter(adapter);
 
         // Clic court : Ouvre le projet existant
@@ -447,6 +464,6 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 2
-
+                
 
 
