@@ -4,6 +4,7 @@ package com.ludexa.moteur;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.widget.*;
@@ -106,6 +107,49 @@ public class EcranDemarrage extends Activity {
         setContentView(layoutPrincipal);
     }
 
+    private ArrayList<String> listeNomsProjetsExistants() {
+        ArrayList<String> noms = new ArrayList<>();
+        File dossierProjets = new File(getFilesDir(), "projets");
+        
+        if (dossierProjets.exists() && dossierProjets.isDirectory()) {
+            File[] sousDossiers = dossierProjets.listFiles();
+            if (sousDossiers != null) {
+                for (File sousDossier : sousDossiers) {
+                    if (sousDossier.isDirectory()) {
+                        File metaFile = new File(sousDossier, "meta.json");
+                        if (metaFile.exists()) {
+                            try {
+                                StringBuilder sb = new StringBuilder();
+                                Scanner scanner = new Scanner(metaFile);
+                                while (scanner.hasNextLine()) {
+                                    sb.append(scanner.nextLine());
+                                }
+                                scanner.close();
+                                JSONObject metaJson = new JSONObject(sb.toString());
+                                noms.add(metaJson.optString("nom", "Projet Sans Nom"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return noms;
+    }
+
+    private void supprimerDossierRecursif(File dossier) {
+        if (dossier.isDirectory()) {
+            File[] enfants = dossier.listFiles();
+            if (enfants != null) {
+                for (File enfant : enfants) {
+                    supprimerDossierRecursif(enfant);
+                }
+            }
+        }
+        dossier.delete();
+    }
+
     private void afficherDialogueCreationProjet() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Nouveau projet");
@@ -114,17 +158,32 @@ public class EcranDemarrage extends Activity {
         input.setHint("Nom du projet");
         builder.setView(input);
 
-        builder.setPositiveButton("Créer", (dialog, which) -> {
-            String nomProjet = input.getText().toString().trim();
-            if (!nomProjet.isEmpty()) {
-                creerNouveauProjet(nomProjet);
-            } else {
-                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
-            }
-        });
-        
+        // On assigne 'null' au listener initial pour empêcher la fermeture automatique
+        builder.setPositiveButton("Créer", null);
         builder.setNegativeButton("Annuler", (dialog, which) -> dialog.cancel());
-        builder.show();
+        
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // On redéfinit le comportement du bouton Créer après l'affichage
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String nomProjet = input.getText().toString().trim();
+            if (nomProjet.isEmpty()) {
+                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            ArrayList<String> existants = listeNomsProjetsExistants();
+            for (String existant : existants) {
+                if (existant.equalsIgnoreCase(nomProjet)) {
+                    Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                    return; // Stoppe l'exécution, le dialogue reste ouvert
+                }
+            }
+
+            creerNouveauProjet(nomProjet);
+            dialog.dismiss();
+        });
     }
 
     private void creerNouveauProjet(String nomProjet) {
@@ -214,12 +273,116 @@ public class EcranDemarrage extends Activity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, affichageList);
         listeProjets.setAdapter(adapter);
 
+        // Clic court : Ouvre le projet existant
         listeProjets.setOnItemClickListener((parent, view, position, id) -> {
             File dossierChoisi = dossiersList.get(position);
             Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
             intent.putExtra("cheminProjet", dossierChoisi.getAbsolutePath());
             startActivity(intent);
         });
+
+        // Clic long : Renommer ou Supprimer
+        listeProjets.setOnItemLongClickListener((parent, view, position, id) -> {
+            File dossierChoisi = dossiersList.get(position);
+            File metaFile = new File(dossierChoisi, "meta.json");
+            
+            // Récupérer le nom actuel directement depuis le JSON
+            String nomActuel = "";
+            try {
+                StringBuilder sb = new StringBuilder();
+                Scanner scanner = new Scanner(metaFile);
+                while (scanner.hasNextLine()) {
+                    sb.append(scanner.nextLine());
+                }
+                scanner.close();
+                JSONObject metaJson = new JSONObject(sb.toString());
+                nomActuel = metaJson.optString("nom", "");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            final String nomFinal = nomActuel;
+            String[] options = {"Renommer", "Supprimer"};
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setItems(options, (dialog, which) -> {
+                if (which == 0) {
+                    // Action Renommer
+                    AlertDialog.Builder builderRenommer = new AlertDialog.Builder(this);
+                    builderRenommer.setTitle("Renommer le projet");
+                    
+                    final EditText input = new EditText(this);
+                    input.setText(nomFinal);
+                    builderRenommer.setView(input);
+
+                    builderRenommer.setPositiveButton("Valider", null);
+                    builderRenommer.setNegativeButton("Annuler", (d, w) -> d.cancel());
+                    
+                    AlertDialog dialogRenommer = builderRenommer.create();
+                    dialogRenommer.show();
+
+                    dialogRenommer.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                        String nouveauNom = input.getText().toString().trim();
+                        if (nouveauNom.isEmpty()) {
+                            Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        ArrayList<String> existants = listeNomsProjetsExistants();
+                        for (String existant : existants) {
+                            if (existant.equalsIgnoreCase(nouveauNom) && !existant.equalsIgnoreCase(nomFinal)) {
+                                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                        }
+
+                        try {
+                            // Lecture du JSON existant
+                            StringBuilder sb = new StringBuilder();
+                            Scanner scanner = new Scanner(metaFile);
+                            while (scanner.hasNextLine()) {
+                                sb.append(scanner.nextLine());
+                            }
+                            scanner.close();
+                            
+                            JSONObject metaJson = new JSONObject(sb.toString());
+                            metaJson.put("nom", nouveauNom);
+                            String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                            metaJson.put("dateModif", dateActuelle);
+                            
+                            // Réécriture
+                            FileWriter fwMeta = new FileWriter(metaFile);
+                            fwMeta.write(metaJson.toString(4));
+                            fwMeta.close();
+
+                            chargerListeProjets(listeProjets);
+                            dialogRenommer.dismiss();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "Erreur lors du renommage", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else if (which == 1) {
+                    // Action Supprimer
+                    AlertDialog.Builder builderSupprimer = new AlertDialog.Builder(this);
+                    builderSupprimer.setMessage("Supprimer définitivement le projet " + nomFinal + " ? Cette action est irréversible.");
+                    
+                    builderSupprimer.setPositiveButton("Supprimer", (d, w) -> {
+                        supprimerDossierRecursif(dossierChoisi);
+                        chargerListeProjets(listeProjets);
+                    });
+                    builderSupprimer.setNegativeButton("Annuler", (d, w) -> d.cancel());
+                    
+                    AlertDialog dialogSupprimer = builderSupprimer.create();
+                    dialogSupprimer.show();
+                    // Passage du bouton en rouge pour marquer la destruction
+                    dialogSupprimer.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
+                }
+            });
+            builder.show();
+            return true;
+        });
     }
 }
 // bas 1
+        
