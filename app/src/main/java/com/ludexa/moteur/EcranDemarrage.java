@@ -24,6 +24,9 @@ import java.util.UUID;
 
 public class EcranDemarrage extends Activity {
 
+    // Champ d'instance pour accéder à la liste dans onResume()
+    private ListView listeProjets;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,19 +158,29 @@ public class EcranDemarrage extends Activity {
         titreListe.setTextColor(Palette.texteNormal);
         colonneDroite.addView(titreListe);
 
-        ListView listeProjets = new ListView(this);
+        // Initialisation de la variable d'instance (plus de redéclaration locale)
+        listeProjets = new ListView(this);
         LinearLayout.LayoutParams paramsListe = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         listeProjets.setLayoutParams(paramsListe);
         colonneDroite.addView(listeProjets);
 
-        // Charger les projets existants dans la liste
+        // Charger les projets existants dans la liste au premier lancement
         chargerListeProjets(listeProjets);
 
         layoutPrincipal.addView(colonneGauche);
         layoutPrincipal.addView(colonneDroite);
 
         setContentView(layoutPrincipal);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recharge la liste à chaque fois que l'utilisateur revient sur cet écran
+        if (listeProjets != null) {
+            chargerListeProjets(listeProjets);
+        }
     }
 
     private ArrayList<String> listeNomsProjetsExistants() {
@@ -249,6 +262,7 @@ public class EcranDemarrage extends Activity {
         });
     }
 // bas 1
+    
 // haut 2
     private void creerNouveauProjet(String nomProjet) {
         String uuid = UUID.randomUUID().toString();
@@ -464,6 +478,3 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 2
-                
-
-
