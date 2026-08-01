@@ -9,6 +9,7 @@ import java.util.List;
 public class NoeudActionTimer extends NoeudBase {
 
     private String delaiSaisi = "1.0"; // Valeur par défaut
+    private String repetitionsSaisies = "1"; // Valeur par défaut (1 seule exécution)
 
     public NoeudActionTimer() {
         super(genererId(), "Timer", "Action");
@@ -19,7 +20,7 @@ public class NoeudActionTimer extends NoeudBase {
 
     @Override
     public void executer() {
-        // 1. Exécution immédiate du premier port
+        // 1. Exécution immédiate du premier port (non affecté par les répétitions)
         propagerExecution("Immédiat");
 
         // 2. Conversion sécurisée du délai saisi en float
@@ -33,38 +34,61 @@ public class NoeudActionTimer extends NoeudBase {
             delai = 0f; // En cas d'erreur de saisie (ex: texte au lieu de chiffres), on met 0
         }
         
-        long delaiMs = (long) (delai * 1000f);
+        final long delaiMs = (long) (delai * 1000f);
 
-        // 3. Planification de l'exécution retardée sur le thread principal de l'UI
-        Handler handler = new Handler(Looper.getMainLooper());
+        // 3. Conversion sécurisée des répétitions
+        int maxRepetitions = 1;
+        try {
+            if (repetitionsSaisies != null && !repetitionsSaisies.isEmpty()) {
+                maxRepetitions = Integer.parseInt(repetitionsSaisies.trim());
+            }
+        } catch (NumberFormatException e) {
+            maxRepetitions = 1; // 1 par défaut en cas d'erreur
+        }
+        final int nbMax = maxRepetitions;
+
+        // 4. Planification de l'exécution retardée sur le thread principal de l'UI
+        final Handler handler = new Handler(Looper.getMainLooper());
         InterfaceEditeur.handlersActifs.add(handler);
+        
         handler.postDelayed(new Runnable() {
+            int compteur = 0;
+            
             @Override
             public void run() {
+                // Déclenchement à chaque cycle
                 propagerExecution("Après délai");
+                compteur++;
+                
+                // Relance automatique si infini (0) ou si la limite n'est pas encore atteinte
+                if (nbMax == 0 || compteur < nbMax) {
+                    handler.postDelayed(this, delaiMs);
+                }
             }
         }, delaiMs);
     }
 
     @Override
     public List<String> getNomsParametres() { 
-        return Arrays.asList("Délai (secondes)"); 
+        return Arrays.asList("Délai (secondes)", "Répétitions"); 
     }
 
     @Override
     public String getValeurParametre(String nom) {
         if ("Délai (secondes)".equals(nom)) return delaiSaisi;
+        if ("Répétitions".equals(nom)) return repetitionsSaisies;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
         if ("Délai (secondes)".equals(nom)) delaiSaisi = valeur;
+        if ("Répétitions".equals(nom)) repetitionsSaisies = valeur;
     }
     
     @Override
     public String getTypeEditeurParametre(String nomParametre) {
-        if ("Délai (secondes)".equals(nomParametre)) {
+        if ("Délai (secondes)".equals(nomParametre) || "Répétitions".equals(nomParametre)) {
             return TYPE_NOMBRE; // Fait appel au clavier numérique si le moteur le gère
         }
         return super.getTypeEditeurParametre(nomParametre);
