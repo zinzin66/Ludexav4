@@ -144,7 +144,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(layoutNom);
 // bas 1
 
-// haut 2
+        // haut 2
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
         labelPos.setTextColor(Palette.texteNormal);
@@ -270,6 +270,7 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champZOrder);
 // bas 2
+
 
 // haut 3
         TextView labelParent = new TextView(context);
@@ -401,7 +402,7 @@ public class InspecteurProprietes extends LinearLayout {
         btnSupprimerImage.setTextColor(Palette.texteNormal);
         blocImage.addView(btnSupprimerImage);
 // bas 3
-
+        
 // haut 4
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
@@ -475,7 +476,6 @@ public class InspecteurProprietes extends LinearLayout {
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
             
-            // CORRECTION: Utilisation de cheminProjet au lieu de context.getFilesDir()
             if (cheminProjet == null) {
                 Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
                 return;
@@ -512,6 +512,78 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 
+        champX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.y = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champLargeur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.largeur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champHauteur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        
+        // FIX 2: Watchers Echelle
+        champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champZOrder.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.zOrder = Integer.parseInt(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        cbVisible.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.visible = isChecked;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        View.OnClickListener selecteurCouleurListener = v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Sélectionner une couleur");
+            String[] couleursNoms = {"Bleu (Défaut)", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+            int[] couleursValeurs = {Color.BLUE, Color.RED, Color.GREEN, Color.BLACK, Color.WHITE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
+            
+            builder.setItems(couleursNoms, (dialog, which) -> {
+                objetCourant.couleur = couleursValeurs[which];
+                canvasEditeur.invalidate();
+            });
+            builder.show();
+        };
+
+        btnCouleur.setOnClickListener(selecteurCouleurListener);
+        btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
+    }
+// bas 4
+    
+
+// haut 5
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -569,8 +641,7 @@ public class InspecteurProprietes extends LinearLayout {
                     .show();
         }
     }
-// bas 4
-// haut 5
+
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
         miseAJourEnCours = true;
@@ -594,7 +665,6 @@ public class InspecteurProprietes extends LinearLayout {
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
             
-            // FIX 2: Mise à jour visuelle des valeurs d'échelle
             champScaleX.setText(String.valueOf(objet.scaleX));
             champScaleY.setText(String.valueOf(objet.scaleY));
             
@@ -634,7 +704,8 @@ public class InspecteurProprietes extends LinearLayout {
 
         miseAJourEnCours = false;
     }
-
+// bas 5
+    // haut 6
     private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
         List<String> resultats = new ArrayList<>();
         if (dir != null && dir.exists() && dir.isDirectory()) {
@@ -672,21 +743,9 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 5
-
-
-
-
-
-
-
-
-    
-
+// bas 6
 
         
-
-
         
 
 
