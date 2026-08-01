@@ -10,6 +10,8 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.util.DisplayMetrics;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -30,7 +32,7 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
         root.setBackgroundColor(Palette.fondPanneaux); 
-        root.setLayoutParams(new ViewGroup.LayoutParams(1200, 800));
+        // L'ancienne taille fixe a été retirée d'ici pour laisser la place à une taille dynamique sur la Window plus bas.
 
         // =========================================================
         // DÉCLARATIONS COMMUNES
@@ -64,8 +66,8 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setTextSize(20);
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
-        // FIX : Hauteur fixée à 200px (au lieu de weight=1f) pour ne pas engloutir l'espace
-        champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200));
+        // FIX : Hauteur fixée à 250px (équivalent 3-4 lignes) pour ne pas engloutir l'espace du clavier.
+        champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 250));
         
         final Button btnCible = new Button(context);
 
@@ -117,7 +119,7 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 1
 // haut 2
         // =========================================================
-        // PANNEAU DROIT (Édition, anciennement zoneGauche)
+        // PANNEAU DROIT (Édition)
         // =========================================================
         LinearLayout colonneDroite = new LinearLayout(context);
         colonneDroite.setOrientation(LinearLayout.VERTICAL);
@@ -173,7 +175,7 @@ public class EditeurNoeudDialog extends Dialog {
 
         colonneDroite.addView(champSaisie);
 
-        // Clavier enrichi avec les nouvelles lignes
+        // Clavier enrichi avec les nouvelles lignes de comparaison et booléens
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -253,7 +255,7 @@ public class EditeurNoeudDialog extends Dialog {
 
 // haut 3
         // =========================================================
-        // PANNEAU GAUCHE (Listes/Cibles, anciennement zoneDroite)
+        // PANNEAU GAUCHE (Listes/Cibles)
         // =========================================================
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -429,7 +431,9 @@ public class EditeurNoeudDialog extends Dialog {
         scrollGauche.addView(listeGauche);
         colonneGauche.addView(scrollGauche);
 
+        // =========================================================
         // AJOUT AU ROOT DANS LE NOUVEL ORDRE (Gauche = Listes, Droite = Édition)
+        // =========================================================
         root.addView(colonneGauche);
         root.addView(colonneDroite);
 
@@ -455,6 +459,17 @@ public class EditeurNoeudDialog extends Dialog {
         grandLayout.addView(bottomBar);
 
         setContentView(grandLayout);
+
+        // =========================================================
+        // DIMENSIONNEMENT DYNAMIQUE DE LA FENÊTRE APRÈS setContentView
+        // =========================================================
+        Window window = getWindow();
+        if (window != null) {
+            DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+            int width = (int) (metrics.widthPixels * 0.95);
+            int height = (int) (metrics.heightPixels * 0.90);
+            window.setLayout(width, height);
+        }
 
         appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
         mettreAJourResumeExpression(noeud, txtResumeExpression);
@@ -550,6 +565,8 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 3
+
+
 
         
 
