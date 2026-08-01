@@ -21,7 +21,7 @@ import java.util.List;
 public class EditeurNoeudDialog extends Dialog {
     
     private String champActif = null;
-    private boolean modeCible = false; // NOUVEAU : Mode de ciblage
+    private boolean modeCible = false; // Mode de ciblage
 
     public EditeurNoeudDialog(Context context, NoeudBase noeud, Scene scene, Runnable onValidate) {
         super(context);
@@ -32,6 +32,9 @@ public class EditeurNoeudDialog extends Dialog {
         root.setBackgroundColor(Palette.fondPanneaux); 
         root.setLayoutParams(new ViewGroup.LayoutParams(1200, 800));
 
+        // =========================================================
+        // DÉCLARATIONS COMMUNES
+        // =========================================================
         final LinearLayout conteneurClavier = new LinearLayout(context);
         conteneurClavier.setOrientation(LinearLayout.VERTICAL);
         conteneurClavier.setPadding(0, 20, 0, 0);
@@ -42,37 +45,29 @@ public class EditeurNoeudDialog extends Dialog {
         conteneurBooleen.setPadding(0, 20, 0, 0);
         conteneurBooleen.setVisibility(View.GONE);
 
-        // =========================================================
-        // PANNEAU GAUCHE : Zone de texte et Clavier Code
-        // =========================================================
-        LinearLayout zoneGauche = new LinearLayout(context);
-        zoneGauche.setOrientation(LinearLayout.VERTICAL);
-        zoneGauche.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.2f));
-        zoneGauche.setPadding(20, 20, 20, 20);
+        final LinearLayout listeGauche = new LinearLayout(context);
+        listeGauche.setOrientation(LinearLayout.VERTICAL);
 
-        // MIS EN FINAL POUR ACCÈS DEPUIS LES LISTENERS
         final LinearLayout barreParams = new LinearLayout(context);
         barreParams.setOrientation(LinearLayout.HORIZONTAL);
         barreParams.setPadding(0, 0, 0, 15);
-        zoneGauche.addView(barreParams);
 
         final TextView txtResumeExpression = new TextView(context);
         txtResumeExpression.setTextColor(Palette.texteSelectionne);
         txtResumeExpression.setTextSize(18);
         txtResumeExpression.setPadding(15, 0, 15, 10);
         txtResumeExpression.getPaint().setFakeBoldText(true);
-        zoneGauche.addView(txtResumeExpression);
 
-        // MIS EN FINAL POUR ACCÈS DEPUIS LES LISTENERS
         final EditText champSaisie = new EditText(context);
         champSaisie.setTextColor(Palette.texteNormal);
         champSaisie.setBackgroundColor(Palette.canvasFond);
         champSaisie.setTextSize(20);
         champSaisie.setGravity(Gravity.TOP | Gravity.START);
         champSaisie.setPadding(15, 15, 15, 15);
-        champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        // FIX : Hauteur fixée à 200px (au lieu de weight=1f) pour ne pas engloutir l'espace
+        champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200));
         
-        final Button btnCible = new Button(context); // Déclaration du bouton Cible ici
+        final Button btnCible = new Button(context);
 
         List<String> params = noeud.getNomsParametres();
         if (params != null && !params.isEmpty()) {
@@ -120,8 +115,18 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
-
 // haut 2
+        // =========================================================
+        // PANNEAU DROIT (Édition, anciennement zoneGauche)
+        // =========================================================
+        LinearLayout colonneDroite = new LinearLayout(context);
+        colonneDroite.setOrientation(LinearLayout.VERTICAL);
+        colonneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.2f));
+        colonneDroite.setPadding(20, 20, 20, 20);
+
+        colonneDroite.addView(barreParams);
+        colonneDroite.addView(txtResumeExpression);
+
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
             champSaisie.setText(valInit != null ? valInit : "");
@@ -137,12 +142,11 @@ public class EditeurNoeudDialog extends Dialog {
                 btnParam.setLayoutParams(btnParamsLayout);
 
                 btnParam.setOnClickListener(v -> {
-                    modeCible = false; // Désactiver le mode cible si on change de paramètre
+                    modeCible = false;
                     champActif = paramName;
                     String val = noeud.getValeurParametre(champActif);
                     champSaisie.setText(val != null ? val : "");
                     
-                    // Réinitialisation visuelle du bouton Cible
                     btnCible.setBackgroundColor(Palette.boutonNormal);
                     btnCible.setTextColor(Color.parseColor("#FFD700"));
 
@@ -167,34 +171,9 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        // NOUVEAU : Bouton Cible remplaçant l'ancien "Depuis objet..."
-        if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable()) {
-            btnCible.setText("Cible");
-            btnCible.setTextColor(Color.parseColor("#FFD700"));
-            btnCible.setBackgroundColor(Palette.boutonNormal);
-            
-            LinearLayout.LayoutParams btnCibleLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            btnCibleLayout.setMargins(0, 0, 15, 0);
-            btnCible.setLayoutParams(btnCibleLayout);
-            
-            btnCible.setOnClickListener(v -> {
-                modeCible = true;
-                btnCible.setBackgroundColor(Color.parseColor("#FFD700"));
-                btnCible.setTextColor(Color.BLACK); // Contraste pour signaler l'activation
-                
-                // Désélectionne visuellement les autres boutons de la barre
-                for (int i = 0; i < barreParams.getChildCount(); i++) {
-                    View child = barreParams.getChildAt(i);
-                    if (child instanceof Button && child != btnCible) {
-                        child.setBackgroundColor(Palette.boutonNormal);
-                    }
-                }
-            });
-            barreParams.addView(btnCible);
-        }
+        colonneDroite.addView(champSaisie);
 
-        zoneGauche.addView(champSaisie);
-
+        // Clavier enrichi avec les nouvelles lignes
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -202,7 +181,9 @@ public class EditeurNoeudDialog extends Dialog {
             {".", "0", "+", "-"},
             {"*", "/", "(", ")"},
             {">", "<", "=", "!"},
-            {"||", "&&", "", ""}
+            {"||", "&&", "", ""},
+            {"==", "!=", ">=", "<="},
+            {"%", ",", "true", "false"}
         };
 
         for (String[] ligne : touchesCode) {
@@ -245,7 +226,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
             conteneurClavier.addView(rowLayout);
         }
-        zoneGauche.addView(conteneurClavier);
+        colonneDroite.addView(conteneurClavier);
 
         Button btnVrai = new Button(context);
         btnVrai.setText("Vrai (true)");
@@ -267,47 +248,67 @@ public class EditeurNoeudDialog extends Dialog {
 
         conteneurBooleen.addView(btnVrai);
         conteneurBooleen.addView(btnFaux);
-        zoneGauche.addView(conteneurBooleen);
+        colonneDroite.addView(conteneurBooleen);
 // bas 2
-
 
 // haut 3
         // =========================================================
-        // PANNEAU DROIT : Listes (Items, Variables...)
+        // PANNEAU GAUCHE (Listes/Cibles, anciennement zoneDroite)
         // =========================================================
-        LinearLayout zoneDroite = new LinearLayout(context);
-        zoneDroite.setOrientation(LinearLayout.VERTICAL);
-        zoneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.8f));
-        zoneDroite.setBackgroundColor(Palette.fondPanneaux);
+        LinearLayout colonneGauche = new LinearLayout(context);
+        colonneGauche.setOrientation(LinearLayout.VERTICAL);
+        colonneGauche.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.8f));
+        colonneGauche.setBackgroundColor(Palette.fondPanneaux);
         
-        ScrollView scrollDroite = new ScrollView(context);
-        scrollDroite.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        scrollDroite.setFillViewport(true);
-        
-        LinearLayout listeDroite = new LinearLayout(context);
-        listeDroite.setOrientation(LinearLayout.VERTICAL);
+        ScrollView scrollGauche = new ScrollView(context);
+        scrollGauche.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        scrollGauche.setFillViewport(true);
+
+        // Bouton Cible intégré à la colonne de gauche
+        if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable()) {
+            btnCible.setText("Cible");
+            btnCible.setTextColor(Color.parseColor("#FFD700"));
+            btnCible.setBackgroundColor(Palette.boutonNormal);
+            
+            LinearLayout.LayoutParams btnCibleLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            btnCibleLayout.setMargins(20, 20, 20, 10);
+            btnCible.setLayoutParams(btnCibleLayout);
+            
+            btnCible.setOnClickListener(v -> {
+                modeCible = true;
+                btnCible.setBackgroundColor(Color.parseColor("#FFD700"));
+                btnCible.setTextColor(Color.BLACK); 
+                
+                for (int i = 0; i < barreParams.getChildCount(); i++) {
+                    View child = barreParams.getChildAt(i);
+                    if (child instanceof Button && child != btnCible) {
+                        child.setBackgroundColor(Palette.boutonNormal);
+                    }
+                }
+            });
+            listeGauche.addView(btnCible);
+        }
 
         final TextView txtCibleActuelle = new TextView(context);
         txtCibleActuelle.setTextColor(Palette.texteSelectionne);
-        txtCibleActuelle.setPadding(20, 20, 20, 20);
+        txtCibleActuelle.setPadding(20, 0, 20, 20);
         txtCibleActuelle.setTextSize(16);
         
         if (noeud.requiertCibleObjet()) {
             txtCibleActuelle.setText("Cible : " + (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : "Aucune"));
-            listeDroite.addView(txtCibleActuelle);
+            listeGauche.addView(txtCibleActuelle);
         } else if (noeud.requiertCibleVariable()) {
             txtCibleActuelle.setText("Cible : " + (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : "Aucune"));
-            listeDroite.addView(txtCibleActuelle);
+            listeGauche.addView(txtCibleActuelle);
         }
 
-        // Section ITEMS (Cible Objet)
         TextView titreItems = new TextView(context);
         titreItems.setText("Items (Cible Objet)");
         titreItems.setTextColor(Palette.texteNormal);
         titreItems.setGravity(Gravity.CENTER);
         titreItems.setBackgroundColor(Palette.enTeteDialogues); 
         titreItems.setPadding(10, 15, 10, 15);
-        listeDroite.addView(titreItems);
+        listeGauche.addView(titreItems);
 
         if (scene != null && scene.objets != null) {
             for (ObjetBase obj : scene.objets) {
@@ -320,12 +321,11 @@ public class EditeurNoeudDialog extends Dialog {
                     if (modeCible && noeud.requiertCibleObjet()) {
                         noeud.setCibleObjet(obj);
                         txtCibleActuelle.setText("Cible : " + obj.nom);
-                        modeCible = false; // Désactive le mode
+                        modeCible = false; 
                         
                         btnCible.setBackgroundColor(Palette.boutonNormal);
                         btnCible.setTextColor(Color.parseColor("#FFD700"));
                         
-                        // Restaure le bouton actif visuellement si nécessaire
                         if (champActif != null) {
                             for (int i = 0; i < barreParams.getChildCount(); i++) {
                                 View child = barreParams.getChildAt(i);
@@ -342,30 +342,28 @@ public class EditeurNoeudDialog extends Dialog {
                         champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), obj.nom, 0, obj.nom.length());
                     }
                 });
-                listeDroite.addView(btnObj);
+                listeGauche.addView(btnObj);
             }
         }
 
-        // Section VARIABLES
         TextView titreVars = new TextView(context);
         titreVars.setText("Variables");
         titreVars.setTextColor(Palette.texteNormal);
         titreVars.setGravity(Gravity.CENTER);
         titreVars.setBackgroundColor(Palette.enTeteDialogues);
         titreVars.setPadding(10, 30, 10, 15);
-        listeDroite.addView(titreVars);
+        listeGauche.addView(titreVars);
 
         View.OnClickListener varClickListener = v -> {
             Variable var = (Variable) v.getTag();
             if (modeCible && noeud.requiertCibleVariable()) {
                 noeud.setCibleVariable(var);
                 txtCibleActuelle.setText("Cible : " + var.nom);
-                modeCible = false; // Désactive le mode
+                modeCible = false; 
                 
                 btnCible.setBackgroundColor(Palette.boutonNormal);
                 btnCible.setTextColor(Color.parseColor("#FFD700"));
                 
-                // Restaure le bouton actif visuellement si nécessaire
                 if (champActif != null) {
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
@@ -391,18 +389,17 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setBackgroundColor(Color.TRANSPARENT); 
                 btnVar.setTag(var);
                 btnVar.setOnClickListener(varClickListener);
-                listeDroite.addView(btnVar);
+                listeGauche.addView(btnVar);
             }
         }
 
-        // Section SCÈNES
         TextView titreScenes = new TextView(context);
         titreScenes.setText("Scènes");
         titreScenes.setTextColor(Palette.texteNormal);
         titreScenes.setGravity(Gravity.CENTER);
         titreScenes.setBackgroundColor(Palette.enTeteDialogues); 
         titreScenes.setPadding(10, 30, 10, 15);
-        listeDroite.addView(titreScenes);
+        listeGauche.addView(titreScenes);
 
         List<Scene> scenesRecuperees = null;
         if (NoeudBase.contexteApplication != null) {
@@ -425,12 +422,16 @@ public class EditeurNoeudDialog extends Dialog {
                     int end = Math.max(champSaisie.getSelectionEnd(), 0);
                     champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), s.nom, 0, s.nom.length());
                 });
-                listeDroite.addView(btnScene);
+                listeGauche.addView(btnScene);
             }
         }
 
-        scrollDroite.addView(listeDroite);
-        zoneDroite.addView(scrollDroite);
+        scrollGauche.addView(listeGauche);
+        colonneGauche.addView(scrollGauche);
+
+        // AJOUT AU ROOT DANS LE NOUVEL ORDRE (Gauche = Listes, Droite = Édition)
+        root.addView(colonneGauche);
+        root.addView(colonneDroite);
 
         LinearLayout bottomBar = new LinearLayout(context);
         bottomBar.setOrientation(LinearLayout.HORIZONTAL);
@@ -448,9 +449,6 @@ public class EditeurNoeudDialog extends Dialog {
         });
         bottomBar.addView(btnCancel);
 
-        root.addView(zoneGauche);
-        root.addView(zoneDroite);
-
         LinearLayout grandLayout = new LinearLayout(context);
         grandLayout.setOrientation(LinearLayout.VERTICAL);
         grandLayout.addView(root, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
@@ -458,7 +456,6 @@ public class EditeurNoeudDialog extends Dialog {
 
         setContentView(grandLayout);
 
-        // Appels initiaux
         appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
         mettreAJourResumeExpression(noeud, txtResumeExpression);
     }
@@ -555,5 +552,6 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 3
 
         
+
 
     
