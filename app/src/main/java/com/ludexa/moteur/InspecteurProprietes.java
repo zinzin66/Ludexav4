@@ -148,6 +148,7 @@ public class InspecteurProprietes extends LinearLayout {
         
         blocProprietes.addView(layoutNom);
 // bas 1
+
 // haut 2
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
@@ -274,6 +275,7 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champZOrder);
 // bas 2
+
 // haut 3
         TextView labelParent = new TextView(context);
         labelParent.setText("Objet Parent");
@@ -404,6 +406,7 @@ public class InspecteurProprietes extends LinearLayout {
         btnSupprimerImage.setTextColor(Palette.texteNormal);
         blocImage.addView(btnSupprimerImage);
 // bas 3
+
 // haut 4
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
@@ -698,6 +701,7 @@ public class InspecteurProprietes extends LinearLayout {
         miseAJourEnCours = false;
     }
 // bas 5
+
 // haut 6
     private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
         List<String> resultats = new ArrayList<>();
@@ -737,3 +741,15 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 6
+
+
+    
+
+
+    
+        
+
+        
+
+
+    
