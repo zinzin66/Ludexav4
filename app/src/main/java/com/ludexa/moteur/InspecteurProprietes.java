@@ -143,6 +143,7 @@ public class InspecteurProprietes extends LinearLayout {
         
         blocProprietes.addView(layoutNom);
 // bas 1
+
 // haut 2
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
@@ -269,7 +270,6 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champZOrder);
 // bas 2
-
 
 // haut 3
         TextView labelParent = new TextView(context);
@@ -402,7 +402,6 @@ public class InspecteurProprietes extends LinearLayout {
         blocImage.addView(btnSupprimerImage);
 // bas 3
 
-
 // haut 4
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
@@ -512,78 +511,6 @@ public class InspecteurProprietes extends LinearLayout {
                 canvasEditeur.invalidate();
             }
         });
-// bas 4
-
-
-// haut 5
-        champX.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-        champY.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.y = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-        champLargeur.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.largeur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-        champHauteur.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-        
-        // FIX 2: Watchers Echelle
-        champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-        champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-
-        champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-        champZOrder.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.zOrder = Integer.parseInt(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
-        }));
-
-        cbVisible.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (objetCourant != null && !miseAJourEnCours) {
-                objetCourant.visible = isChecked;
-                canvasEditeur.invalidate();
-            }
-        });
-
-        View.OnClickListener selecteurCouleurListener = v -> {
-            if (objetCourant == null) return;
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Sélectionner une couleur");
-            String[] couleursNoms = {"Bleu (Défaut)", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
-            int[] couleursValeurs = {Color.BLUE, Color.RED, Color.GREEN, Color.BLACK, Color.WHITE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
-            
-            builder.setItems(couleursNoms, (dialog, which) -> {
-                objetCourant.couleur = couleursValeurs[which];
-                canvasEditeur.invalidate();
-            });
-            builder.show();
-        };
-
-        btnCouleur.setOnClickListener(selecteurCouleurListener);
-        btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
-    }
 
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -594,10 +521,34 @@ public class InspecteurProprietes extends LinearLayout {
 
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
-        String nouveauNom = champNom.getText().toString();
+        String nouveauNom = champNom.getText().toString().trim();
         String ancienNom = objetCourant.nom;
         
         if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
+            boolean existeDeja = false;
+            
+            if (sceneActive != null && sceneActive.objets != null) {
+                for (ObjetBase obj : sceneActive.objets) {
+                    if (obj != objetCourant && nouveauNom.equals(obj.nom)) {
+                        existeDeja = true;
+                        break;
+                    }
+                }
+            }
+
+            if (existeDeja) {
+                new AlertDialog.Builder(context)
+                        .setTitle("Impossible")
+                        .setMessage("Un objet nommé '" + nouveauNom + "' existe déjà dans cette scène.")
+                        .setPositiveButton("OK", null)
+                        .show();
+                
+                miseAJourEnCours = true;
+                champNom.setText(ancienNom);
+                miseAJourEnCours = false;
+                return;
+            }
+
             new AlertDialog.Builder(context)
                     .setTitle("Confirmation")
                     .setMessage("Renommer " + ancienNom + " en " + nouveauNom + " ?")
@@ -618,7 +569,8 @@ public class InspecteurProprietes extends LinearLayout {
                     .show();
         }
     }
-
+// bas 4
+// haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
         miseAJourEnCours = true;
@@ -725,8 +677,16 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
+
+
+
+
+    
+
+
         
-        
+
+
         
 
 
