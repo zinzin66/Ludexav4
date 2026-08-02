@@ -10,22 +10,30 @@ import android.view.Gravity;
 import android.widget.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.lang.reflect.Type;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class InterfaceEditeur extends Activity {
 
     public static final List<Handler> handlersActifs = new ArrayList<>();
 
-    public String cheminProjet; // NOUVEAU : Stockage du chemin du projet
+    public String cheminProjet; 
 
     public List<Scene> listeScenes = new ArrayList<>();
     public List<Variable> variablesGlobales = new ArrayList<>(); 
     public Scene sceneActive;
+    
+    // NOUVEAU : Ajout de la scène HUD active
+    public Scene sceneHudActive = null;
+    
+    private VueJeu vueJeu;
     
     // VARIABLES DE SAUVEGARDE POUR L'ISOLEMENT DU PLAY
     private List<Scene> listeScenesBackup;
@@ -42,8 +50,24 @@ public class InterfaceEditeur extends Activity {
     private LinearLayout layoutPrincipal;
     private boolean enModeJeu = false;
 
-    // Code de requête pour l'import d'asset
     public static final int REQUEST_CODE_IMPORT_ASSET = 1001;
+    
+    // NOUVEAU : Méthodes pour gérer le HUD
+    public void ouvrirHUD(Scene scene) {
+        this.sceneHudActive = scene;
+        if (vueJeu != null) {
+            vueJeu.setSceneHud(scene);
+        }
+        Toast.makeText(this, "HUD ouvert : " + (scene != null ? scene.nom : "null"), Toast.LENGTH_SHORT).show();
+    }
+
+    public void fermerHUD() {
+        this.sceneHudActive = null;
+        if (vueJeu != null) {
+            vueJeu.setSceneHud(null);
+        }
+        Toast.makeText(this, "HUD fermé", Toast.LENGTH_SHORT).show();
+    }
 
     public void ajouterCommande(Commande c) {
         undoStack.push(c);
@@ -61,7 +85,6 @@ public class InterfaceEditeur extends Activity {
         super.onCreate(savedInstanceState);
         NoeudBase.contexteApplication = this;
 
-        // NOUVEAU : Récupération du chemin du projet
         cheminProjet = getIntent().getStringExtra("cheminProjet");
 
         layoutPrincipal = new LinearLayout(this);
@@ -81,7 +104,26 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.addView(boutonQuitter);
 
         TextView nomProjet = new TextView(this);
-        nomProjet.setText("Projet sans nom");
+        
+        String texteNomProjet = "Projet sans nom";
+        if (cheminProjet != null) {
+            try {
+                File metaFile = new File(cheminProjet, "meta.json");
+                if (metaFile.exists()) {
+                    BufferedReader br = new BufferedReader(new FileReader(metaFile));
+                    Type type = new TypeToken<Map<String, String>>(){}.getType();
+                    Map<String, String> meta = new Gson().fromJson(br, type);
+                    br.close();
+                    if (meta != null && meta.containsKey("nom")) {
+                        texteNomProjet = meta.get("nom");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        nomProjet.setText(texteNomProjet);
+
         nomProjet.setTextSize(18f);
         nomProjet.setPadding(20, 0, 20, 0);
         nomProjet.setTextColor(Palette.texteNormal);
@@ -105,6 +147,7 @@ public class InterfaceEditeur extends Activity {
                 redoStack.push(c);
                 canvasEditeur.invalidate();
                 if (menuInspecteur != null) {
+                    menuInspecteur.setSceneActive(sceneActive); 
                     menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
                 }
             }
@@ -122,17 +165,62 @@ public class InterfaceEditeur extends Activity {
                 undoStack.push(c);
                 canvasEditeur.invalidate();
                 if (menuInspecteur != null) {
+                    menuInspecteur.setSceneActive(sceneActive); 
                     menuInspecteur.afficherObjet(canvasEditeur.getObjetSelectionne());
                 }
             }
         });
         bandeauHaut.addView(boutonRedo);
 
-        sceneActive = new Scene("SceneDepart");
-        listeScenes.add(sceneActive);
+        listeScenes = new ArrayList<>();
+        if (cheminProjet != null) {
+            try {
+                File fileProjet = new File(cheminProjet, "projet_sauvegarde.json");
+                if (fileProjet.exists()) {
+                    BufferedReader br = new BufferedReader(new FileReader(fileProjet));
+                    Type listType = new TypeToken<ArrayList<Scene>>(){}.getType();
+                    List<Scene> scenesChargees = new Gson().fromJson(br, listType);
+                    br.close();
+                    if (scenesChargees != null && !scenesChargees.isEmpty()) {
+                        listeScenes.addAll(scenesChargees);
+                        sceneActive = listeScenes.get(0);
+                        
+                        // DÉBUT DE LA CORRECTION : Compatibilité ascendante pour Scene.id
+                        boolean sceneModifiee = false;
+                        for (Scene scene : listeScenes) {
+                            if (scene.id == null) {
+                                scene.id = java.util.UUID.randomUUID().toString();
+                                sceneModifiee = true;
+                            }
+                        }
+                        
+                        // Si au moins une scène a reçu un nouvel id, on sauvegarde directement
+                        if (sceneModifiee) {
+                            try {
+                                Gson gson = new Gson();
+                                String jsonProjet = gson.toJson(listeScenes);
+                                FileWriter writerProjet = new FileWriter(fileProjet);
+                                writerProjet.write(jsonProjet);
+                                writerProjet.close();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        // FIN DE LA CORRECTION
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        if (listeScenes.isEmpty()) {
+            sceneActive = new Scene("SceneDepart");
+            listeScenes.add(sceneActive);
+        }
 
         canvasEditeur = new CanvasEditeur(this);
-        canvasEditeur.setCheminProjet(cheminProjet); // MODIFICATION 1 : Transmission du chemin
+        canvasEditeur.setCheminProjet(cheminProjet); 
         canvasEditeur.setScene(sceneActive);
         canvasEditeur.setEditeur(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
@@ -181,7 +269,7 @@ public class InterfaceEditeur extends Activity {
             InterfaceBlueprint.listeScenesACharger = this.listeScenes; 
             
             Intent intent = new Intent(InterfaceEditeur.this, InterfaceBlueprint.class);
-            intent.putExtra("cheminProjet", cheminProjet); // NOUVEAU : Transmission du chemin
+            intent.putExtra("cheminProjet", cheminProjet); 
             startActivity(intent);
         });
         bandeauHaut.addView(boutonBasculeBlueprint);
@@ -198,17 +286,18 @@ public class InterfaceEditeur extends Activity {
         boutonPlay.setTextColor(Palette.texteNormal);
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
+// bas 1
 
+// haut 2
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
-        // MODIFICATION 2 : Transmission du chemin au constructeur
         panneauRessources = new PanneauRessources(this, canvasEditeur, cheminProjet);
         menuInspecteur = new InspecteurProprietes(this, sceneActive, canvasEditeur);
-        menuInspecteur.setCheminProjet(cheminProjet); // AJOUT : Transmission du chemin du projet à l'inspecteur
+        menuInspecteur.setCheminProjet(cheminProjet); 
         canvasEditeur.setInspecteur(menuInspecteur);
         
         zoneMilieu.addView(panneauRessources);
@@ -239,8 +328,7 @@ public class InterfaceEditeur extends Activity {
             }
         }
     }
-// bas 1
-// haut 2
+
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
         sceneActiveBackup = sceneActive;
@@ -263,9 +351,9 @@ public class InterfaceEditeur extends Activity {
 
         Blueprint blueprintActif = new Blueprint();
         
-        // NOUVEAU : Utilisation du chemin relatif au projet au lieu de getFilesDir()
         File dossierLogique = new File(cheminProjet, "logique");
-        File fileBlueprint = new File(dossierLogique, "blueprint.json");
+        // CORRECTION 1 : Chargement basé sur l'id de la scène active
+        File fileBlueprint = new File(dossierLogique, sceneActive.id + ".json");
 
         if (fileBlueprint.exists()) {
             try {
@@ -286,11 +374,31 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        // MODIFICATION 3 : Transmission du chemin au constructeur
-        VueJeu vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet);
+        // CORRECTION 2 : Chargement pour le HUD
+        Blueprint blueprintHud = null;
+        if (sceneHudActive != null) {
+            File fileBlueprintHud = new File(dossierLogique, sceneHudActive.id + ".json");
+            if (fileBlueprintHud.exists()) {
+                try {
+                    BufferedReader brHud = new BufferedReader(new FileReader(fileBlueprintHud));
+                    StringBuilder sbHud = new StringBuilder();
+                    String ligneHud;
+                    while ((ligneHud = brHud.readLine()) != null) {
+                        sbHud.append(ligneHud);
+                    }
+                    brHud.close();
+                    blueprintHud = Blueprint.fromJson(sbHud.toString(), sceneHudActive);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // CORRECTION 3 : Passage de blueprintHud et sceneHudActive au constructeur
+        this.vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet, sceneHudActive, blueprintHud);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
-        conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
+        conteneurJeu.addView(this.vueJeu, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
 
@@ -336,6 +444,11 @@ public class InterfaceEditeur extends Activity {
             }
             
             canvasEditeur.setScene(sceneActive);
+            
+            if (menuInspecteur != null) {
+                menuInspecteur.setSceneActive(sceneActive); 
+            }
+            
             panneauRessources.rafraichirScenes();
 
             canvasEditeur.invalidate();
@@ -365,6 +478,7 @@ public class InterfaceEditeur extends Activity {
         canvasEditeur.setScene(scene);
         canvasEditeur.deselectionner();
         if (menuInspecteur != null) {
+            menuInspecteur.setSceneActive(scene); 
             menuInspecteur.afficherObjet(null);
         }
         panneauRessources.rafraichirScenes();
@@ -377,7 +491,6 @@ public class InterfaceEditeur extends Activity {
             Gson gson = new Gson();
             String jsonProjet = gson.toJson(listeScenes);
             
-            // NOUVEAU : Utilisation du chemin du projet pour le fichier de sauvegarde
             File fileProjet = new File(cheminProjet, "projet_sauvegarde.json");
             
             FileWriter writerProjet = new FileWriter(fileProjet);
@@ -392,6 +505,3 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
-
-
-

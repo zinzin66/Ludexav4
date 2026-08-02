@@ -2,6 +2,7 @@
 package com.ludexa.moteur;
 
 import android.app.Dialog;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.View;
@@ -32,9 +33,8 @@ public class PanneauRessources extends ScrollView {
     private LinearLayout conteneurArborescenceDossiers;
     private LinearLayout conteneurListeAssets;
     
-    private String cheminProjet; // Nouveau champ
+    private String cheminProjet;
 
-    // Modification du constructeur pour recevoir cheminProjet
     public PanneauRessources(Context context, CanvasEditeur canvas, String cheminProjet) {
         super(context);
         this.canvasEditeur = canvas;
@@ -46,7 +46,6 @@ public class PanneauRessources extends ScrollView {
         setBackgroundColor(Palette.fondPanneaux);
         setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
 
-        // Utilisation de cheminProjet
         rootAssetsDir = new File(cheminProjet, "assets_ludexa");
         if (!rootAssetsDir.exists()) rootAssetsDir.mkdirs();
         
@@ -217,7 +216,8 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 1
-    // haut 2
+
+// haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -402,7 +402,9 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
-// haut 3
+
+
+    // haut 3
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
         rafraichirListeAssets();
@@ -560,6 +562,8 @@ public class PanneauRessources extends ScrollView {
         fileOrDirectory.delete();
     }
 // bas 3
+
+
 // haut 4
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -678,12 +682,28 @@ public class PanneauRessources extends ScrollView {
         Button btnValider = new Button(context);
         btnValider.setText("Valider");
         btnValider.setOnClickListener(v -> {
-            String nom = champTexte.getText().toString();
+            String nom = champTexte.getText().toString().trim();
             if(!nom.isEmpty()) {
-                ((InterfaceEditeur)context).creerScene(nom);
+                
+                // ANTI-DOUBLON POUR LA CRÉATION DE SCÈNE
+                InterfaceEditeur editeur = (InterfaceEditeur) context;
+                if (editeur.listeScenes != null) {
+                    for (Scene s : editeur.listeScenes) {
+                        if (s.nom != null && s.nom.trim().equalsIgnoreCase(nom)) {
+                            new AlertDialog.Builder(context)
+                                    .setTitle("Impossible")
+                                    .setMessage("Une scène avec ce nom existe déjà dans le projet.")
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                            return; // Bloque la création
+                        }
+                    }
+                }
+
+                editeur.creerScene(nom);
                 Toast.makeText(context, "Scène créée : " + nom, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
             }
-            dialog.dismiss();
         });
 
         Button btnAnnuler = new Button(context);
@@ -716,12 +736,30 @@ public class PanneauRessources extends ScrollView {
         Button btnValider = new Button(context);
         btnValider.setText("Valider");
         btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString();
-            if(!nouveauNom.isEmpty()) {
-                scene.nom = nouveauNom;
-                rafraichirScenes();
-                Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
+            String nouveauNom = champTexte.getText().toString().trim();
+            if(nouveauNom.isEmpty()) {
+                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            // ANTI-DOUBLON STRICT POUR LE RENOMMAGE DE SCÈNE
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            if (editeur.listeScenes != null) {
+                for (Scene s : editeur.listeScenes) {
+                    if (s != scene && s.nom != null && s.nom.trim().equalsIgnoreCase(nouveauNom)) {
+                        new AlertDialog.Builder(context)
+                                .setTitle("Impossible")
+                                .setMessage("Une scène avec ce nom existe déjà dans le projet.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return; // Bloque le renommage, laisse le dialogue ouvert
+                    }
+                }
+            }
+
+            scene.nom = nouveauNom;
+            rafraichirScenes();
+            Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
 
@@ -785,9 +823,6 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 4
-
-
-
     // haut 5
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1007,7 +1042,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 5
     
-// haut 6
+    // haut 6
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Nouveau dossier");
@@ -1186,13 +1221,5 @@ public class PanneauRessources extends ScrollView {
 }
 // bas 6
 
-
-
-
-    
-
-    
-
-    
 
 

@@ -75,6 +75,11 @@ public class Blueprint {
             if (n.requiertCibleVariable() && n.getCibleVariable() != null) {
                 ndto.cibleVariableNom = n.getCibleVariable().nom;
             }
+            
+            // NOUVEAU : Sauvegarde de la cible Scene
+            if (n.requiertCibleScene() && n.getCibleScene() != null) {
+                ndto.cibleSceneNom = n.getCibleScene().nom;
+            }
 
             for (Port p : n.portsEntree) {
                 if (p.valeurSaisie != null && !p.valeurSaisie.isEmpty()) {
@@ -171,6 +176,25 @@ public class Blueprint {
                         n.setCibleVariable(cibleTrouvee);
                     }
                 }
+                
+                // NOUVEAU : Restauration de la cible Scene
+                if (ndto.cibleSceneNom != null && NoeudBase.contexteApplication != null) {
+                    try {
+                        java.lang.reflect.Field field = NoeudBase.contexteApplication.getClass().getField("listeScenes");
+                        @SuppressWarnings("unchecked")
+                        List<Scene> scenes = (List<Scene>) field.get(NoeudBase.contexteApplication);
+                        if (scenes != null) {
+                            for (Scene s : scenes) {
+                                if (ndto.cibleSceneNom.equals(s.nom)) {
+                                    n.setCibleScene(s);
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Silencieux : le contexte ne possède peut-être pas de listeScenes
+                    }
+                }
 
                 for (PortDTO pdto : ndto.portsEntree) {
                     for (Port p : n.portsEntree) {
@@ -223,6 +247,7 @@ public class Blueprint {
         Map<String, String> parametres = new HashMap<>(); 
         String cibleNom; 
         String cibleVariableNom; // NOUVEAU : Champ pour sauver le nom de la variable
+        String cibleSceneNom; // NOUVEAU : Champ pour sauver le nom de la scene
     }
 
     private static class PortDTO {

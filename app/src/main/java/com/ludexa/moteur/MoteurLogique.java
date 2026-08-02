@@ -37,5 +37,20 @@ public class MoteurLogique {
             }
         }
     }
+
+    // NOUVELLE MÉTHODE
+    public void executerEvenementSurObjet(Class<? extends NoeudBase> typeEvenement, ObjetBase objetTouche) {
+        if (blueprintActif == null || blueprintActif.noeuds == null || objetTouche == null) {
+            return;
+        }
+        for (NoeudBase noeud : blueprintActif.noeuds) {
+            if (typeEvenement.isInstance(noeud) && noeud.requiertCibleObjet()) {
+                ObjetBase cible = noeud.getCibleObjet();
+                if (cible != null && cible.id.equals(objetTouche.id)) {
+                    noeud.executer();
+                }
+            }
+        }
+    }
 }
 // bas 1
