@@ -184,6 +184,29 @@ public class InterfaceEditeur extends Activity {
                     if (scenesChargees != null && !scenesChargees.isEmpty()) {
                         listeScenes.addAll(scenesChargees);
                         sceneActive = listeScenes.get(0);
+                        
+                        // DÉBUT DE LA CORRECTION : Compatibilité ascendante pour Scene.id
+                        boolean sceneModifiee = false;
+                        for (Scene scene : listeScenes) {
+                            if (scene.id == null) {
+                                scene.id = java.util.UUID.randomUUID().toString();
+                                sceneModifiee = true;
+                            }
+                        }
+                        
+                        // Si au moins une scène a reçu un nouvel id, on sauvegarde directement
+                        if (sceneModifiee) {
+                            try {
+                                Gson gson = new Gson();
+                                String jsonProjet = gson.toJson(listeScenes);
+                                FileWriter writerProjet = new FileWriter(fileProjet);
+                                writerProjet.write(jsonProjet);
+                                writerProjet.close();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        // FIN DE LA CORRECTION
                     }
                 }
             } catch (Exception e) {
@@ -329,7 +352,8 @@ public class InterfaceEditeur extends Activity {
         Blueprint blueprintActif = new Blueprint();
         
         File dossierLogique = new File(cheminProjet, "logique");
-        File fileBlueprint = new File(dossierLogique, "blueprint.json");
+        // CORRECTION 1 : Chargement basé sur l'id de la scène active
+        File fileBlueprint = new File(dossierLogique, sceneActive.id + ".json");
 
         if (fileBlueprint.exists()) {
             try {
@@ -350,7 +374,28 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        this.vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet);
+        // CORRECTION 2 : Chargement pour le HUD
+        Blueprint blueprintHud = null;
+        if (sceneHudActive != null) {
+            File fileBlueprintHud = new File(dossierLogique, sceneHudActive.id + ".json");
+            if (fileBlueprintHud.exists()) {
+                try {
+                    BufferedReader brHud = new BufferedReader(new FileReader(fileBlueprintHud));
+                    StringBuilder sbHud = new StringBuilder();
+                    String ligneHud;
+                    while ((ligneHud = brHud.readLine()) != null) {
+                        sbHud.append(ligneHud);
+                    }
+                    brHud.close();
+                    blueprintHud = Blueprint.fromJson(sbHud.toString(), sceneHudActive);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // CORRECTION 3 : Passage de blueprintHud et sceneHudActive au constructeur
+        this.vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet, sceneHudActive, blueprintHud);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
         conteneurJeu.addView(this.vueJeu, new FrameLayout.LayoutParams(
@@ -460,7 +505,3 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
-
-
-
-    

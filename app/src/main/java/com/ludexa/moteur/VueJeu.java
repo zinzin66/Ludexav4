@@ -17,29 +17,35 @@ import java.util.List;
 public class VueJeu extends View {
 
     private Scene sceneActive;
-    private Scene sceneHudActive; // Nouveau champ pour le HUD
+    private Scene sceneHudActive;
     private Paint peintureObjet;
     private Paint peintureTexte;
     private Paint peintureDebug;
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
-    
+    private MoteurLogique moteurHud;
+
     private String cheminProjet; 
+    
+    // Champs factorisés pour la conversion des coordonnées
+    private float echelle = 1f;
+    private float decalageX = 0f;
+    private float decalageY = 0f;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
-    // Boucle de rendu continue synchronisée sur le rafraîchissement de l'écran
     private final Runnable boucleDeRendu = new Runnable() {
         @Override
         public void run() {
-            invalidate(); // Demande un redessin
-            postOnAnimation(this); // Relance à la prochaine frame
+            invalidate();
+            postOnAnimation(this);
         }
     };
 
-    public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet) {
+    public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet, Scene sceneHud, Blueprint blueprintHud) {
         super(context);
         this.sceneActive = scene;
+        this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
         peintureObjet = new Paint();
@@ -61,9 +67,12 @@ public class VueJeu extends View {
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
         }
+        
+        if (blueprintHud != null) {
+            this.moteurHud = new MoteurLogique(blueprintHud);
+        }
     }
 
-    // Méthode pour synchroniser le HUD
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
     }
@@ -74,21 +83,85 @@ public class VueJeu extends View {
         if (this.moteur != null) {
             this.moteur.executerDemarrage();
         }
-        // Démarrage de la boucle de rendu
+        if (this.moteurHud != null) {
+            this.moteurHud.executerDemarrage();
+        }
         postOnAnimation(boucleDeRendu);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        // Arrêt propre de la boucle de rendu pour ne pas tourner en arrière-plan
         removeCallbacks(boucleDeRendu);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // Détection du relâchement du doigt
         if (event.getAction() == MotionEvent.ACTION_UP) {
+            // Conversion vers les coordonnées du jeu
+            float xJeu = (event.getX() - decalageX) / echelle;
+            float yJeu = (event.getY() - decalageY) / echelle;
+            
+            boolean clickIntercepte = false;
+
+            // 1. Hit-testing HUD en priorité
+            if (sceneHudActive != null && sceneHudActive.objets != null) {
+                List<ObjetBase> objetsHudTries = new ArrayList<>(sceneHudActive.objets);
+                Collections.sort(objetsHudTries, new Comparator<ObjetBase>() {
+                    @Override
+                    public int compare(ObjetBase o1, ObjetBase o2) {
+                        // Du dessus vers le dessous (zOrder décroissant)
+                        return Integer.compare(o2.zOrder, o1.zOrder); 
+                    }
+                });
+
+                for (ObjetBase obj : objetsHudTries) {
+                    if (!obj.visible) continue;
+                    Matrix absMatrix = getAbsoluteMatrix(obj, sceneHudActive.objets);
+                    Matrix inverseMatrix = new Matrix();
+                    if (absMatrix.invert(inverseMatrix)) {
+                        float[] ptLocal = new float[]{xJeu, yJeu};
+                        inverseMatrix.mapPoints(ptLocal);
+                        if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
+                            if (this.moteurHud != null) {
+                                this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            }
+                            break;
+                        }
+                    }
+                }
+                // Si le HUD est ouvert, on intercepte (on ne descend jamais vers la scène de jeu)
+                clickIntercepte = true;
+            }
+
+            // 2. Hit-testing Scène Jeu (si HUD inactif)
+            if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
+                List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
+                Collections.sort(objetsJeuTries, new Comparator<ObjetBase>() {
+                    @Override
+                    public int compare(ObjetBase o1, ObjetBase o2) {
+                        return Integer.compare(o2.zOrder, o1.zOrder);
+                    }
+                });
+
+                for (ObjetBase obj : objetsJeuTries) {
+                    if (!obj.visible) continue;
+                    Matrix absMatrix = getAbsoluteMatrix(obj, sceneActive.objets);
+                    Matrix inverseMatrix = new Matrix();
+                    if (absMatrix.invert(inverseMatrix)) {
+                        float[] ptLocal = new float[]{xJeu, yJeu};
+                        inverseMatrix.mapPoints(ptLocal);
+                        if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
+                            if (this.moteur != null) {
+                                this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 3. Événement global (toujours appelé)
             if (this.moteur != null) {
                 this.moteur.executerEvenement(NoeudEventFinClic.class);
             }
@@ -96,7 +169,6 @@ public class VueJeu extends View {
         return true;
     }
 
-    // Adapté pour chercher dans la liste d'objets fournie
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -105,7 +177,6 @@ public class VueJeu extends View {
         return null;
     }
 
-    // Adapté pour accepter le contexte d'objets (scène principale ou HUD)
     private Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -159,7 +230,6 @@ public class VueJeu extends View {
         }
     }
 
-    // Nouvelle méthode générique de rendu
     private void dessinerListeObjets(Canvas canvas, List<ObjetBase> objets, boolean avecDebugPosition) {
         List<ObjetBase> objetsTries = new ArrayList<>(objets);
         Collections.sort(objetsTries, new Comparator<ObjetBase>() {
@@ -181,7 +251,6 @@ public class VueJeu extends View {
                 peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
             }
 
-            // On passe la liste d'objets pour résoudre la hiérarchie locale
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
 
             canvas.save();
@@ -224,9 +293,10 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        float echelle = Math.min((float) getWidth() / ConfigurationJeu.LARGEUR_JEU, (float) getHeight() / ConfigurationJeu.HAUTEUR_JEU);
-        float decalageX = (getWidth() - ConfigurationJeu.LARGEUR_JEU * echelle) / 2f;
-        float decalageY = (getHeight() - ConfigurationJeu.HAUTEUR_JEU * echelle) / 2f;
+        // Calcul et mise en cache des dimensions pour le hit-testing
+        echelle = Math.min((float) getWidth() / ConfigurationJeu.LARGEUR_JEU, (float) getHeight() / ConfigurationJeu.HAUTEUR_JEU);
+        decalageX = (getWidth() - ConfigurationJeu.LARGEUR_JEU * echelle) / 2f;
+        decalageY = (getHeight() - ConfigurationJeu.HAUTEUR_JEU * echelle) / 2f;
         
         canvas.drawColor(Color.BLACK);
         canvas.translate(decalageX, decalageY);
@@ -234,15 +304,14 @@ public class VueJeu extends View {
         
         canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
-        // Dessin de la scène de jeu
         if (sceneActive != null && sceneActive.objets != null) {
             dessinerListeObjets(canvas, sceneActive.objets, true);
         }
 
-        // Dessin de la scène HUD en superposition
         if (sceneHudActive != null && sceneHudActive.objets != null) {
             dessinerListeObjets(canvas, sceneHudActive.objets, false);
         }
     }
 }
 // bas 1
+    

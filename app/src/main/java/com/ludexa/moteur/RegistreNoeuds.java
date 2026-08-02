@@ -35,9 +35,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Visibilité", "Actions", "NoeudActionVisibilite"));
         REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Actions", "NoeudActionNombreAleatoire"));
         
-        // NOUVEAU : UI HUD
+        // UI HUD
         REGISTRE.add(new InfoNoeud("Ouvrir HUD", "UI", "NoeudActionOuvrirHUD"));
         REGISTRE.add(new InfoNoeud("Fermer HUD", "UI", "NoeudActionFermerHUD"));
+        
+        // NOUVEAU : Clic Objet
+        REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {

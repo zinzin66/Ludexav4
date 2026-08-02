@@ -3,14 +3,17 @@ package com.ludexa.moteur;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Scene {
+    public String id;
     public String nom;
     public List<ObjetBase> objets;
     public List<NoeudBase> noeudsLogique;
     public List<Variable> variablesLocales;
 
     public Scene(String nom) {
+        this.id = java.util.UUID.randomUUID().toString();
         this.nom = nom;
         this.objets = new ArrayList<>();
         this.noeudsLogique = new ArrayList<>();
@@ -29,6 +32,9 @@ public class Scene {
     public Scene clonerProfond() {
         Scene copie = new Scene(this.nom);
         
+        // Le clone doit garder le même id que l'original (Sandbox Play)
+        copie.id = this.id;
+        
         // Clonage des objets
         for (ObjetBase obj : this.objets) {
             copie.ajouterObjet(obj.clonerProfond());
@@ -46,3 +52,6 @@ public class Scene {
     }
 }
 // bas 1
+
+
+

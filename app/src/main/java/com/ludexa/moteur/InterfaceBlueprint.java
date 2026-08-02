@@ -157,21 +157,19 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
 
-// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
             // NOUVEAU : Utilisation du chemin du projet
             File dir = new File(cheminProjet, "logique");
             if (!dir.exists()) dir.mkdirs();
-            File file = new File(dir, "blueprint.json");
+            File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
             
             String json = blueprintActif.toJson();
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(json.getBytes());
             fos.close();
-            Toast.makeText(this, "Blueprint sauvegardé (logique/blueprint.json)", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Blueprint sauvegardé", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erreur de sauvegarde", Toast.LENGTH_SHORT).show();
@@ -182,7 +180,7 @@ public class InterfaceBlueprint extends Activity {
         try {
             // NOUVEAU : Utilisation du chemin du projet
             File dir = new File(cheminProjet, "logique");
-            File file = new File(dir, "blueprint.json");
+            File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
             
             if (!file.exists()) {
                 if (!estChargementAuto) {
@@ -318,8 +316,4 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 2
-
-
-
-
+// bas 1
