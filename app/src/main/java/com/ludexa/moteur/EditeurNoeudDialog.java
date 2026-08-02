@@ -272,8 +272,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 2
-        
-// haut 3
+   // haut 3
         // =========================================================
         // PANNEAU GAUCHE (Listes/Cibles)
         // =========================================================
@@ -417,6 +416,36 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setTag(var);
                 btnVar.setOnClickListener(varClickListener);
                 listeGauche.addView(btnVar);
+            }
+        }
+
+        TextView titreVarsGlobales = new TextView(context);
+        titreVarsGlobales.setText("Variables Globales");
+        titreVarsGlobales.setTextColor(Palette.texteNormal);
+        titreVarsGlobales.setGravity(Gravity.CENTER);
+        titreVarsGlobales.setBackgroundColor(Palette.enTeteDialogues);
+        titreVarsGlobales.setPadding(10, 15, 10, 15);
+        listeGauche.addView(titreVarsGlobales);
+
+        List<Variable> variablesGlobalesRecuperees = null;
+        if (NoeudBase.contexteApplication != null) {
+            try {
+                java.lang.reflect.Field globalesField = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
+                @SuppressWarnings("unchecked")
+                List<Variable> globales = (List<Variable>) globalesField.get(NoeudBase.contexteApplication);
+                variablesGlobalesRecuperees = globales;
+            } catch (Exception e) {}
+        }
+
+        if (variablesGlobalesRecuperees != null) {
+            for (Variable var : variablesGlobalesRecuperees) {
+                Button btnVarGlobale = new Button(context);
+                btnVarGlobale.setText(var.nom + " (Globale)");
+                btnVarGlobale.setTextColor(Palette.texteNormal);
+                btnVarGlobale.setBackgroundColor(Color.TRANSPARENT);
+                btnVarGlobale.setTag(var);
+                btnVarGlobale.setOnClickListener(varClickListener);
+                listeGauche.addView(btnVarGlobale);
             }
         }
 
@@ -598,6 +627,7 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 3
+                
 
 
     
