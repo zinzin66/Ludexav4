@@ -23,7 +23,8 @@ public class VueJeu extends View {
     private Paint peintureDebug;
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
-    
+    private MoteurLogique moteurHud;
+
     private String cheminProjet; 
     
     // Champs factorisés pour la conversion des coordonnées
@@ -41,9 +42,10 @@ public class VueJeu extends View {
         }
     };
 
-    public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet) {
+    public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet, Scene sceneHud, Blueprint blueprintHud) {
         super(context);
         this.sceneActive = scene;
+        this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
         peintureObjet = new Paint();
@@ -65,6 +67,10 @@ public class VueJeu extends View {
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
         }
+        
+        if (blueprintHud != null) {
+            this.moteurHud = new MoteurLogique(blueprintHud);
+        }
     }
 
     public void setSceneHud(Scene scene) {
@@ -76,6 +82,9 @@ public class VueJeu extends View {
         super.onAttachedToWindow();
         if (this.moteur != null) {
             this.moteur.executerDemarrage();
+        }
+        if (this.moteurHud != null) {
+            this.moteurHud.executerDemarrage();
         }
         postOnAnimation(boucleDeRendu);
     }
@@ -114,8 +123,8 @@ public class VueJeu extends View {
                         float[] ptLocal = new float[]{xJeu, yJeu};
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
-                            if (this.moteur != null) {
-                                this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            if (this.moteurHud != null) {
+                                this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
                             }
                             break;
                         }
@@ -305,4 +314,4 @@ public class VueJeu extends View {
     }
 }
 // bas 1
-                                                          
+    
