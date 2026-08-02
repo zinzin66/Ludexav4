@@ -1,4 +1,4 @@
-// haut 1
+    // haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -184,6 +184,29 @@ public class InterfaceEditeur extends Activity {
                     if (scenesChargees != null && !scenesChargees.isEmpty()) {
                         listeScenes.addAll(scenesChargees);
                         sceneActive = listeScenes.get(0);
+                        
+                        // DÉBUT DE LA CORRECTION : Compatibilité ascendante pour Scene.id
+                        boolean sceneModifiee = false;
+                        for (Scene scene : listeScenes) {
+                            if (scene.id == null) {
+                                scene.id = java.util.UUID.randomUUID().toString();
+                                sceneModifiee = true;
+                            }
+                        }
+                        
+                        // Si au moins une scène a reçu un nouvel id, on sauvegarde directement
+                        if (sceneModifiee) {
+                            try {
+                                Gson gson = new Gson();
+                                String jsonProjet = gson.toJson(listeScenes);
+                                FileWriter writerProjet = new FileWriter(fileProjet);
+                                writerProjet.write(jsonProjet);
+                                writerProjet.close();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        // FIN DE LA CORRECTION
                     }
                 }
             } catch (Exception e) {
