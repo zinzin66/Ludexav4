@@ -8,8 +8,9 @@ public class NoeudActionFermerHUD extends NoeudBase {
 
     public NoeudActionFermerHUD() {
         super(genererId(), "Fermer HUD", "UI");
-        this.ajouterPort(new Port(this, "Entrée", Port.TYPE_EXECUTION_ENTREE));
-        this.ajouterPort(new Port(this, "Sortie", Port.TYPE_EXECUTION_SORTIE));
+        // Correction : Retrait du paramètre "this"
+        this.ajouterPort(new Port("Entrée", Port.TYPE_EXECUTION_ENTREE));
+        this.ajouterPort(new Port("Sortie", Port.TYPE_EXECUTION_SORTIE));
     }
 
     @Override
