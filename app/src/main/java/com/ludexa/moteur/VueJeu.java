@@ -17,13 +17,14 @@ import java.util.List;
 public class VueJeu extends View {
 
     private Scene sceneActive;
+    private Scene sceneHudActive; // Nouveau champ pour le HUD
     private Paint peintureObjet;
     private Paint peintureTexte;
     private Paint peintureDebug;
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
     
-    private String cheminProjet; // Nouveau champ
+    private String cheminProjet; 
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
@@ -36,7 +37,6 @@ public class VueJeu extends View {
         }
     };
 
-    // Constructeur modifié pour accepter cheminProjet
     public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet) {
         super(context);
         this.sceneActive = scene;
@@ -61,6 +61,11 @@ public class VueJeu extends View {
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
         }
+    }
+
+    // Méthode pour synchroniser le HUD
+    public void setSceneHud(Scene scene) {
+        this.sceneHudActive = scene;
     }
 
     @Override
@@ -91,21 +96,23 @@ public class VueJeu extends View {
         return true;
     }
 
-    private ObjetBase getObjetById(String id) {
-        if (sceneActive == null || id == null) return null;
-        for (ObjetBase o : sceneActive.objets) {
+    // Adapté pour chercher dans la liste d'objets fournie
+    private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
+        if (contexteObjets == null || id == null) return null;
+        for (ObjetBase o : contexteObjets) {
             if (o.id.equals(id)) return o;
         }
         return null;
     }
 
-    private Matrix getAbsoluteMatrix(ObjetBase obj) {
+    // Adapté pour accepter le contexte d'objets (scène principale ou HUD)
+    private Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
         ObjetBase cur = obj;
         while (cur != null) {
             chaine.add(cur);
-            cur = getObjetById(cur.parentId);
+            cur = getObjetById(cur.parentId, contexteObjets);
         }
         
         for (int i = chaine.size() - 1; i >= 0; i--) {
@@ -125,7 +132,6 @@ public class VueJeu extends View {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
             if (bmp == null) {
                 try {
-                    // Utilisation de cheminProjet au lieu de getFilesDir()
                     java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
@@ -153,6 +159,67 @@ public class VueJeu extends View {
         }
     }
 
+    // Nouvelle méthode générique de rendu
+    private void dessinerListeObjets(Canvas canvas, List<ObjetBase> objets, boolean avecDebugPosition) {
+        List<ObjetBase> objetsTries = new ArrayList<>(objets);
+        Collections.sort(objetsTries, new Comparator<ObjetBase>() {
+            @Override
+            public int compare(ObjetBase o1, ObjetBase o2) {
+                return Integer.compare(o1.zOrder, o2.zOrder);
+            }
+        });
+
+        for (ObjetBase objet : objetsTries) {
+            if (!objet.visible) {
+                continue; 
+            }
+
+            peintureObjet.setColor(objet.couleur);
+            peintureTexte.setColor(objet.couleur);
+            
+            if ("texte".equals(objet.type)) {
+                peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
+            }
+
+            // On passe la liste d'objets pour résoudre la hiérarchie locale
+            Matrix absMatrix = getAbsoluteMatrix(objet, objets);
+
+            canvas.save();
+            canvas.concat(absMatrix);
+
+            if ("rond".equals(objet.type)) {
+                if (objet.afficherFondColore || objet.cheminImage == null) {
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
+                }
+                dessinerImage(canvas, objet);
+            } else if ("texte".equals(objet.type)) {
+                String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+                peintureTexte.setTextScaleX(1.0f);
+                float tw = peintureTexte.measureText(texteAAfficher);
+                if (tw > 0) peintureTexte.setTextScaleX(objet.largeur / tw);
+                canvas.drawText(texteAAfficher, 0, objet.hauteur - (objet.hauteur * 0.1f), peintureTexte);
+                peintureTexte.setTextScaleX(1.0f);
+            } else {
+                if (objet.afficherFondColore || objet.cheminImage == null) {
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
+                }
+                dessinerImage(canvas, objet);
+            }
+
+            canvas.restore();
+
+            if (avecDebugPosition) {
+                float[] posAbsolue = {0, 0};
+                absMatrix.mapPoints(posAbsolue);
+                canvas.drawText(
+                        objet.nom + " (" + (int) objet.x + ", " + (int) objet.y + ")",
+                        posAbsolue[0], posAbsolue[1] - 10f, peintureDebug
+                );
+            }
+        }
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -167,61 +234,14 @@ public class VueJeu extends View {
         
         canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
+        // Dessin de la scène de jeu
         if (sceneActive != null && sceneActive.objets != null) {
-            List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
-            Collections.sort(objetsTries, new Comparator<ObjetBase>() {
-                @Override
-                public int compare(ObjetBase o1, ObjetBase o2) {
-                    return Integer.compare(o1.zOrder, o2.zOrder);
-                }
-            });
+            dessinerListeObjets(canvas, sceneActive.objets, true);
+        }
 
-            for (ObjetBase objet : objetsTries) {
-                if (!objet.visible) {
-                    continue; 
-                }
-
-                peintureObjet.setColor(objet.couleur);
-                peintureTexte.setColor(objet.couleur);
-                
-                if ("texte".equals(objet.type)) {
-                    peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
-                }
-
-                Matrix absMatrix = getAbsoluteMatrix(objet);
-
-                canvas.save();
-                canvas.concat(absMatrix);
-
-                if ("rond".equals(objet.type)) {
-                    if (objet.afficherFondColore || objet.cheminImage == null) {
-                        float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
-                        canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
-                    }
-                    dessinerImage(canvas, objet);
-                } else if ("texte".equals(objet.type)) {
-                    String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                    peintureTexte.setTextScaleX(1.0f);
-                    float tw = peintureTexte.measureText(texteAAfficher);
-                    if (tw > 0) peintureTexte.setTextScaleX(objet.largeur / tw);
-                    canvas.drawText(texteAAfficher, 0, objet.hauteur - (objet.hauteur * 0.1f), peintureTexte);
-                    peintureTexte.setTextScaleX(1.0f);
-                } else {
-                    if (objet.afficherFondColore || objet.cheminImage == null) {
-                        canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
-                    }
-                    dessinerImage(canvas, objet);
-                }
-
-                canvas.restore();
-
-                float[] posAbsolue = {0, 0};
-                absMatrix.mapPoints(posAbsolue);
-                canvas.drawText(
-                        objet.nom + " (" + (int) objet.x + ", " + (int) objet.y + ")",
-                        posAbsolue[0], posAbsolue[1] - 10f, peintureDebug
-                );
-            }
+        // Dessin de la scène HUD en superposition
+        if (sceneHudActive != null && sceneHudActive.objets != null) {
+            dessinerListeObjets(canvas, sceneHudActive.objets, false);
         }
     }
 }

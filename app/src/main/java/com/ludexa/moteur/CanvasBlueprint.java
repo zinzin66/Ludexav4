@@ -206,6 +206,7 @@ public class CanvasBlueprint extends View {
     }
 // bas 1
 
+
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -302,11 +303,12 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-// haut 3
+ // haut 3
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
         if (noeud.requiertCibleObjet()) count++;
         if (noeud.requiertCibleVariable()) count++;
+        if (noeud.requiertCibleScene()) count++;
         if (noeud.getNomsParametres() != null) count += noeud.getNomsParametres().size();
         return count * 22f;
     }
@@ -381,6 +383,11 @@ public class CanvasBlueprint extends View {
         if (noeud.requiertCibleVariable()) {
             String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "Aucune";
             canvas.drawText("Variable : " + nom, x + 15, currentY, paintResume);
+            currentY += 22;
+        }
+        if (noeud.requiertCibleScene()) {
+            String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : "Aucune";
+            canvas.drawText("Scène : " + nom, x + 15, currentY, paintResume);
             currentY += 22;
         }
         if (noeud.getNomsParametres() != null) {
@@ -527,8 +534,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-
-
+    
 // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -667,9 +673,3 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
-
-    
-
-
-    
-
