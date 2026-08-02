@@ -216,8 +216,7 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 1
-
-// haut 2
+    // haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -402,9 +401,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
-
-
-    // haut 3
+// haut 3
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
         rafraichirListeAssets();
@@ -563,7 +560,6 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 3
 
-
 // haut 4
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -642,10 +638,27 @@ public class PanneauRessources extends ScrollView {
         conteneurLigne.setPadding(0, 5, 0, 15);
         
         TextView nomVariable = new TextView(context);
-        String labelType = var.type.equals("BOOLEEN") ? "Oui/Non" : (var.type.equals("CHIFFRE") ? "Chiffre" : "Texte");
+        
+        String labelType;
+        switch (var.type) {
+            case "BOOLEEN": labelType = "Oui/Non"; break;
+            case "CHIFFRE": labelType = "Chiffre"; break;
+            case "ENTIER": labelType = "Entier"; break;
+            case "LISTE_INVENTAIRE": labelType = "Liste d'Inventaire"; break;
+            default: labelType = "Texte"; break;
+        }
+        
         String labelScope = var.scope.equals("GLOBALE") ? "Globale" : "Locale";
         
-        nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "] = " + var.valeur);
+        String texteValeur;
+        if (var.type.equals("LISTE_INVENTAIRE") && var.valeur instanceof java.util.List) {
+            texteValeur = ((java.util.List<?>) var.valeur).size() + " objet(s)";
+        } else {
+            texteValeur = String.valueOf(var.valeur);
+        }
+        
+        nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "] = " + texteValeur);
+        
         if (var == variableSelectionnee) {
             nomVariable.setTextColor(Color.YELLOW); 
         } else {
@@ -823,6 +836,8 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 4
+
+
     // haut 5
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
@@ -851,7 +866,7 @@ public class PanneauRessources extends ScrollView {
         layoutDialog.addView(txtType);
 
         Spinner spinnerType = new Spinner(context);
-        ArrayAdapter<String> adapterType = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Texte", "Oui/Non"});
+        ArrayAdapter<String> adapterType = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Entier", "Texte", "Oui/Non", "Liste d'Inventaire"});
         adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(adapterType);
         layoutDialog.addView(spinnerType);
@@ -859,6 +874,19 @@ public class PanneauRessources extends ScrollView {
         EditText champValeurInit = new EditText(context);
         champValeurInit.setHint("Valeur initiale (optionnel)");
         layoutDialog.addView(champValeurInit);
+        
+        spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (spinnerType.getSelectedItem().toString().equals("Liste d'Inventaire")) {
+                    champValeurInit.setVisibility(View.GONE);
+                } else {
+                    champValeurInit.setVisibility(View.VISIBLE);
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
@@ -877,6 +905,8 @@ public class PanneauRessources extends ScrollView {
             String typeSelect = "CHIFFRE";
             if (typeSelectText.equals("Texte")) typeSelect = "TEXTE";
             if (typeSelectText.equals("Oui/Non")) typeSelect = "BOOLEEN";
+            if (typeSelectText.equals("Entier")) typeSelect = "ENTIER";
+            if (typeSelectText.equals("Liste d'Inventaire")) typeSelect = "LISTE_INVENTAIRE";
 
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             
@@ -911,6 +941,12 @@ public class PanneauRessources extends ScrollView {
                 } else if (typeSelect.equals("BOOLEEN")) {
                     String cleanVal = valInitTexte.toLowerCase();
                     nouvelleVar.valeur = (cleanVal.equals("oui") || cleanVal.equals("vrai") || cleanVal.equals("true"));
+                } else if (typeSelect.equals("ENTIER")) {
+                    try {
+                        nouvelleVar.valeur = Integer.parseInt(valInitTexte);
+                    } catch (NumberFormatException e) {
+                        nouvelleVar.valeur = 0;
+                    }
                 }
             }
 
@@ -1041,7 +1077,7 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 5
-    
+
     // haut 6
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1220,6 +1256,9 @@ public class PanneauRessources extends ScrollView {
     }
 }
 // bas 6
+                        
 
+    
 
-
+    
+                
