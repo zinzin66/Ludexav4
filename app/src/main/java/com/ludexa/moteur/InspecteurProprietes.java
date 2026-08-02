@@ -46,6 +46,7 @@ public class InspecteurProprietes extends LinearLayout {
     private LinearLayout blocImage;
     private Button btnChargerImage, btnSupprimerImage;
     private CheckBox cbFondColore;
+    private CheckBox cbRamassable, cbZoneDeClic;
 
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
@@ -147,9 +148,7 @@ public class InspecteurProprietes extends LinearLayout {
         layoutNom.addView(btnValiderNom);
         
         blocProprietes.addView(layoutNom);
-// bas 1
 
-// haut 2
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
         labelPos.setTextColor(Palette.texteNormal);
@@ -274,9 +273,7 @@ public class InspecteurProprietes extends LinearLayout {
         champZOrder.setTextColor(Palette.texteNormal);
         champZOrder.setBackgroundColor(Palette.canvasFond);
         blocProprietes.addView(champZOrder);
-// bas 2
 
-// haut 3
         TextView labelParent = new TextView(context);
         labelParent.setText("Objet Parent");
         labelParent.setTextColor(Palette.texteNormal);
@@ -382,7 +379,10 @@ public class InspecteurProprietes extends LinearLayout {
         blocTexte.addView(btnPolice);
         
         blocProprietes.addView(blocTexte);
+// bas 1
 
+
+// haut 2
         // --- BLOC IMAGE ---
         blocImage = new LinearLayout(context);
         blocImage.setOrientation(LinearLayout.VERTICAL);
@@ -405,13 +405,21 @@ public class InspecteurProprietes extends LinearLayout {
         btnSupprimerImage.setBackgroundColor(Palette.boutonNormal);
         btnSupprimerImage.setTextColor(Palette.texteNormal);
         blocImage.addView(btnSupprimerImage);
-// bas 3
 
-// haut 4
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
         cbFondColore.setTextColor(Palette.texteNormal);
         blocImage.addView(cbFondColore);
+
+        cbRamassable = new CheckBox(context);
+        cbRamassable.setText("Ramassable (peut aller dans l'inventaire)");
+        cbRamassable.setTextColor(Palette.texteNormal);
+        blocProprietes.addView(cbRamassable);
+
+        cbZoneDeClic = new CheckBox(context);
+        cbZoneDeClic.setText("Zone de clic (hitbox invisible)");
+        cbZoneDeClic.setTextColor(Palette.texteNormal);
+        blocProprietes.addView(cbZoneDeClic);
 
         blocProprietes.addView(blocImage);
 
@@ -516,6 +524,18 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 
+        cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.estRamassable = isChecked;
+            }
+        });
+
+        cbZoneDeClic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.estZoneDeClic = isChecked;
+            }
+        });
+
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -583,8 +603,7 @@ public class InspecteurProprietes extends LinearLayout {
         btnCouleur.setOnClickListener(selecteurCouleurListener);
         btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
     }
-// bas 4
-// haut 5
+
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
@@ -679,6 +698,9 @@ public class InspecteurProprietes extends LinearLayout {
             }
             btnParent.setText("Parent : " + nomParent);
             
+            cbRamassable.setChecked(objet.estRamassable);
+            cbZoneDeClic.setChecked(objet.estZoneDeClic);
+            
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
                 champContenu.setText(objet.contenuTexte);
@@ -700,9 +722,7 @@ public class InspecteurProprietes extends LinearLayout {
 
         miseAJourEnCours = false;
     }
-// bas 5
 
-// haut 6
     private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
         List<String> resultats = new ArrayList<>();
         if (dir != null && dir.exists() && dir.isDirectory()) {
@@ -740,16 +760,7 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 6
-
-
-    
-
-
-    
-        
-
-        
+// bas 2
 
 
     
