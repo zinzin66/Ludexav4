@@ -7,7 +7,7 @@ public class Variable {
     public String id;
     public String nom;
     public String scope; // "LOCALE" ou "GLOBALE"
-    public String type; // "CHIFFRE", "TEXTE", "BOOLEEN"
+    public String type; // "CHIFFRE", "TEXTE", "BOOLEEN", "ENTIER", "LISTE_INVENTAIRE"
     public Object valeur;
 
     public Variable(String nom, String scope, String type) {
@@ -22,6 +22,10 @@ public class Variable {
             this.valeur = "";
         } else if ("BOOLEEN".equals(type)) {
             this.valeur = false;
+        } else if ("ENTIER".equals(type)) {
+            this.valeur = 0;
+        } else if ("LISTE_INVENTAIRE".equals(type)) {
+            this.valeur = new java.util.ArrayList<String>();
         }
     }
 
@@ -31,7 +35,11 @@ public class Variable {
         copie.id = this.id; // IMPORTANT : Garder le même ID
         // Note : En Java, Float, String et Boolean sont immuables. 
         // Une copie de référence avec "=" est donc parfaitement sécurisée pour 'valeur'.
-        copie.valeur = this.valeur; 
+        if ("LISTE_INVENTAIRE".equals(this.type) && this.valeur instanceof java.util.List) {
+            copie.valeur = new java.util.ArrayList<String>((java.util.List<String>) this.valeur);
+        } else {
+            copie.valeur = this.valeur;
+        }
         return copie;
     }
 }
