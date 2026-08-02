@@ -118,8 +118,6 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
-
-
 // haut 2
         // =========================================================
         // PANNEAU DROIT (Édition)
@@ -274,7 +272,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 2
-
+        
 // haut 3
         // =========================================================
         // PANNEAU GAUCHE (Listes/Cibles)
@@ -289,7 +287,8 @@ public class EditeurNoeudDialog extends Dialog {
         scrollGauche.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         scrollGauche.setFillViewport(true);
 
-        if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable()) {
+        // AJOUT : Prise en compte de requiertCibleScene
+        if (noeud.requiertCibleObjet() || noeud.requiertCibleVariable() || noeud.requiertCibleScene()) {
             btnCible.setText("Cible");
             btnCible.setTextColor(Color.parseColor("#FFD700"));
             btnCible.setBackgroundColor(Palette.boutonNormal);
@@ -323,6 +322,10 @@ public class EditeurNoeudDialog extends Dialog {
             listeGauche.addView(txtCibleActuelle);
         } else if (noeud.requiertCibleVariable()) {
             txtCibleActuelle.setText("Cible : " + (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : "Aucune"));
+            listeGauche.addView(txtCibleActuelle);
+        // AJOUT : Affichage de la cible actuelle Scene
+        } else if (noeud.requiertCibleScene()) {
+            txtCibleActuelle.setText("Cible : " + (noeud.getCibleScene() != null ? noeud.getCibleScene().nom : "Aucune"));
             listeGauche.addView(txtCibleActuelle);
         }
 
@@ -441,11 +444,22 @@ public class EditeurNoeudDialog extends Dialog {
                 btnScene.setText(s.nom + " (Scène)");
                 btnScene.setTextColor(Palette.texteNormal);
                 btnScene.setBackgroundColor(Color.TRANSPARENT); 
+                
+                // AJOUT : Remplacement du comportement au clic
                 btnScene.setOnClickListener(v -> {
-                    int start = Math.max(champSaisie.getSelectionStart(), 0);
-                    int end = Math.max(champSaisie.getSelectionEnd(), 0);
-                    champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), s.nom, 0, s.nom.length());
+                    if (modeCible && noeud.requiertCibleScene()) {
+                        noeud.setCibleScene(s);
+                        txtCibleActuelle.setText("Cible : " + s.nom);
+                        modeCible = false;
+                        btnCible.setBackgroundColor(Palette.boutonNormal);
+                        btnCible.setTextColor(Color.parseColor("#FFD700"));
+                    } else {
+                        int start = Math.max(champSaisie.getSelectionStart(), 0);
+                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                        champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), s.nom, 0, s.nom.length());
+                    }
                 });
+                
                 listeGauche.addView(btnScene);
             }
         }
@@ -584,10 +598,6 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 3
-                
-
-
-        
 
 
     
