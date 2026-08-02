@@ -33,6 +33,8 @@ public class InterfaceEditeur extends Activity {
     // NOUVEAU : Ajout de la scène HUD active
     public Scene sceneHudActive = null;
     
+    private VueJeu vueJeu;
+    
     // VARIABLES DE SAUVEGARDE POUR L'ISOLEMENT DU PLAY
     private List<Scene> listeScenesBackup;
     private Scene sceneActiveBackup;
@@ -53,11 +55,17 @@ public class InterfaceEditeur extends Activity {
     // NOUVEAU : Méthodes pour gérer le HUD
     public void ouvrirHUD(Scene scene) {
         this.sceneHudActive = scene;
+        if (vueJeu != null) {
+            vueJeu.setSceneHud(scene);
+        }
         Toast.makeText(this, "HUD ouvert : " + (scene != null ? scene.nom : "null"), Toast.LENGTH_SHORT).show();
     }
 
     public void fermerHUD() {
         this.sceneHudActive = null;
+        if (vueJeu != null) {
+            vueJeu.setSceneHud(null);
+        }
         Toast.makeText(this, "HUD fermé", Toast.LENGTH_SHORT).show();
     }
 
@@ -256,6 +264,7 @@ public class InterfaceEditeur extends Activity {
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
 // bas 1
+
 // haut 2
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
@@ -341,10 +350,10 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        VueJeu vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet);
+        this.vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
-        conteneurJeu.addView(vueJeu, new FrameLayout.LayoutParams(
+        conteneurJeu.addView(this.vueJeu, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
 
