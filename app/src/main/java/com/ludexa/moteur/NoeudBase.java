@@ -95,6 +95,11 @@ public abstract class NoeudBase {
     public void setCibleVariable(Variable v) {}
     public Variable getCibleVariable() { return null; }
     
+    // NOUVEAU : Cible Scene
+    public boolean requiertCibleScene() { return false; }
+    public void setCibleScene(Scene s) {}
+    public Scene getCibleScene() { return null; }
+    
     // NOUVEAU : Méthode pour déterminer le type de clavier à afficher
     public boolean utiliseClavierTexte() { return false; }
 
@@ -109,9 +114,7 @@ public abstract class NoeudBase {
     }
     
     public boolean aDesParametresEditables() {
-        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleVariable();
+        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleVariable() || requiertCibleScene();
     }
 }
 // bas 1
-
-
