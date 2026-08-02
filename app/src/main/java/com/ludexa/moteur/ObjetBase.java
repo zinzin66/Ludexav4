@@ -30,6 +30,8 @@ public class ObjetBase {
     // Nouveaux champs pour l'image
     public String cheminImage = null;
     public boolean afficherFondColore = true;
+    public boolean estRamassable = false;
+    public boolean estZoneDeClic = false;
 
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
@@ -80,6 +82,8 @@ public class ObjetBase {
         // Copie des nouvelles propriétés d'image
         copie.cheminImage = this.cheminImage;
         copie.afficherFondColore = this.afficherFondColore;
+        copie.estRamassable = this.estRamassable;
+        copie.estZoneDeClic = this.estZoneDeClic;
         
         return copie;
     }
