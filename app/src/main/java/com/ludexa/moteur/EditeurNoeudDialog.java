@@ -118,6 +118,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
+
 // haut 2
         // =========================================================
         // PANNEAU DROIT (Édition)
@@ -272,7 +273,9 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 2
-   // haut 3
+
+
+// haut 3
         // =========================================================
         // PANNEAU GAUCHE (Listes/Cibles)
         // =========================================================
@@ -311,21 +314,32 @@ public class EditeurNoeudDialog extends Dialog {
             listeGauche.addView(btnCible);
         }
 
-        final TextView txtCibleActuelle = new TextView(context);
-        txtCibleActuelle.setTextColor(Palette.texteSelectionne);
-        txtCibleActuelle.setPadding(20, 0, 20, 20);
-        txtCibleActuelle.setTextSize(16);
+        final TextView txtCibleObjetActuelle = new TextView(context);
+        txtCibleObjetActuelle.setTextColor(Palette.texteSelectionne);
+        txtCibleObjetActuelle.setPadding(20, 0, 20, 20);
+        txtCibleObjetActuelle.setTextSize(16);
+
+        final TextView txtCibleVariableActuelle = new TextView(context);
+        txtCibleVariableActuelle.setTextColor(Palette.texteSelectionne);
+        txtCibleVariableActuelle.setPadding(20, 0, 20, 20);
+        txtCibleVariableActuelle.setTextSize(16);
+
+        final TextView txtCibleSceneActuelle = new TextView(context);
+        txtCibleSceneActuelle.setTextColor(Palette.texteSelectionne);
+        txtCibleSceneActuelle.setPadding(20, 0, 20, 20);
+        txtCibleSceneActuelle.setTextSize(16);
         
         if (noeud.requiertCibleObjet()) {
-            txtCibleActuelle.setText("Cible : " + (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : "Aucune"));
-            listeGauche.addView(txtCibleActuelle);
-        } else if (noeud.requiertCibleVariable()) {
-            txtCibleActuelle.setText("Cible : " + (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : "Aucune"));
-            listeGauche.addView(txtCibleActuelle);
-        // AJOUT : Affichage de la cible actuelle Scene
-        } else if (noeud.requiertCibleScene()) {
-            txtCibleActuelle.setText("Cible : " + (noeud.getCibleScene() != null ? noeud.getCibleScene().nom : "Aucune"));
-            listeGauche.addView(txtCibleActuelle);
+            txtCibleObjetActuelle.setText("Cible Objet : " + (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : "Aucune"));
+            listeGauche.addView(txtCibleObjetActuelle);
+        }
+        if (noeud.requiertCibleVariable()) {
+            txtCibleVariableActuelle.setText("Cible Variable : " + (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : "Aucune"));
+            listeGauche.addView(txtCibleVariableActuelle);
+        }
+        if (noeud.requiertCibleScene()) {
+            txtCibleSceneActuelle.setText("Cible Scène : " + (noeud.getCibleScene() != null ? noeud.getCibleScene().nom : "Aucune"));
+            listeGauche.addView(txtCibleSceneActuelle);
         }
 
         TextView titreItems = new TextView(context);
@@ -346,7 +360,7 @@ public class EditeurNoeudDialog extends Dialog {
                 btnObj.setOnClickListener(v -> {
                     if (modeCible && noeud.requiertCibleObjet()) {
                         noeud.setCibleObjet(obj);
-                        txtCibleActuelle.setText("Cible : " + obj.nom);
+                        txtCibleObjetActuelle.setText("Cible Objet : " + obj.nom);
                         modeCible = false; 
                         
                         btnCible.setBackgroundColor(Palette.boutonNormal);
@@ -384,7 +398,7 @@ public class EditeurNoeudDialog extends Dialog {
             Variable var = (Variable) v.getTag();
             if (modeCible && noeud.requiertCibleVariable()) {
                 noeud.setCibleVariable(var);
-                txtCibleActuelle.setText("Cible : " + var.nom);
+                txtCibleVariableActuelle.setText("Cible Variable : " + var.nom);
                 modeCible = false; 
                 
                 btnCible.setBackgroundColor(Palette.boutonNormal);
@@ -478,7 +492,7 @@ public class EditeurNoeudDialog extends Dialog {
                 btnScene.setOnClickListener(v -> {
                     if (modeCible && noeud.requiertCibleScene()) {
                         noeud.setCibleScene(s);
-                        txtCibleActuelle.setText("Cible : " + s.nom);
+                        txtCibleSceneActuelle.setText("Cible Scène : " + s.nom);
                         modeCible = false;
                         btnCible.setBackgroundColor(Palette.boutonNormal);
                         btnCible.setTextColor(Color.parseColor("#FFD700"));
@@ -628,6 +642,9 @@ public class EditeurNoeudDialog extends Dialog {
 }
 // bas 3
                 
+
+
+        
 
 
     
