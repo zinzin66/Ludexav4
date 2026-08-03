@@ -31,6 +31,10 @@ public class VueJeu extends View {
     private float echelle = 1f;
     private float decalageX = 0f;
     private float decalageY = 0f;
+
+    private ObjetBase objetEnGlissement = null;
+    private float lastXJeu = 0f;
+    private float lastYJeu = 0f;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
 
@@ -95,8 +99,58 @@ public class VueJeu extends View {
         removeCallbacks(boucleDeRendu);
     }
 
+    private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu) {
+        List<ObjetBase> listeARechercher = null;
+        if (sceneHudActive != null && sceneHudActive.objets != null) {
+            listeARechercher = sceneHudActive.objets;
+        } else if (sceneActive != null && sceneActive.objets != null) {
+            listeARechercher = sceneActive.objets;
+        }
+        if (listeARechercher == null) return null;
+
+        List<ObjetBase> objetsTries = new ArrayList<>(listeARechercher);
+        Collections.sort(objetsTries, new Comparator<ObjetBase>() {
+            @Override
+            public int compare(ObjetBase o1, ObjetBase o2) {
+                return Integer.compare(o2.zOrder, o1.zOrder);
+            }
+        });
+
+        for (ObjetBase obj : objetsTries) {
+            if (!obj.visible) continue;
+            Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
+            Matrix inverseMatrix = new Matrix();
+            if (absMatrix.invert(inverseMatrix)) {
+                float[] ptLocal = new float[]{xJeu, yJeu};
+                inverseMatrix.mapPoints(ptLocal);
+                if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
+                    return obj;
+                }
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        float xJeuActuel = (event.getX() - decalageX) / echelle;
+        float yJeuActuel = (event.getY() - decalageY) / echelle;
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel);
+            lastXJeu = xJeuActuel;
+            lastYJeu = yJeuActuel;
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            if (objetEnGlissement != null) {
+                float deltaX = xJeuActuel - lastXJeu;
+                float deltaY = yJeuActuel - lastYJeu;
+                objetEnGlissement.x += deltaX;
+                objetEnGlissement.y += deltaY;
+                lastXJeu = xJeuActuel;
+                lastYJeu = yJeuActuel;
+            }
+        }
+
         if (event.getAction() == MotionEvent.ACTION_UP) {
             // Conversion vers les coordonnées du jeu
             float xJeu = (event.getX() - decalageX) / echelle;
@@ -165,6 +219,8 @@ public class VueJeu extends View {
             if (this.moteur != null) {
                 this.moteur.executerEvenement(NoeudEventFinClic.class);
             }
+
+            objetEnGlissement = null;
         }
         return true;
     }
@@ -314,4 +370,3 @@ public class VueJeu extends View {
     }
 }
 // bas 1
-    
