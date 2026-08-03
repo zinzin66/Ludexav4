@@ -41,6 +41,11 @@ public class RegistreNoeuds {
         
         // NOUVEAU : Clic Objet
         REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
+        
+        // NOUVEAU : Inventaire
+        REGISTRE.add(new InfoNoeud("Ajouter à l'inventaire", "Actions", "NoeudActionAjouterInventaire"));
+        REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Actions", "NoeudActionRetirerInventaire"));
+        REGISTRE.add(new InfoNoeud("Si dans l'inventaire", "Logique", "NoeudConditionSiDansInventaire"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
