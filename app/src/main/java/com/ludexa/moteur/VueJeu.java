@@ -118,6 +118,7 @@ public class VueJeu extends View {
 
         for (ObjetBase obj : objetsTries) {
             if (!obj.visible) continue;
+            if (!obj.estDeplacable) continue;
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
             Matrix inverseMatrix = new Matrix();
             if (absMatrix.invert(inverseMatrix)) {
