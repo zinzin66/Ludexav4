@@ -183,6 +183,15 @@ public class InterfaceEditeur extends Activity {
                     br.close();
                     if (scenesChargees != null && !scenesChargees.isEmpty()) {
                         listeScenes.addAll(scenesChargees);
+                        
+                        for (Scene s : scenesChargees) {
+                            if (s.variablesLocales != null) {
+                                for (Variable v : s.variablesLocales) {
+                                    v.corrigerTypeValeur();
+                                }
+                            }
+                        }
+                        
                         sceneActive = listeScenes.get(0);
                         
                         // DÉBUT DE LA CORRECTION : Compatibilité ascendante pour Scene.id
@@ -219,6 +228,10 @@ public class InterfaceEditeur extends Activity {
                         brVar.close();
                         if (variablesChargees != null) {
                             variablesGlobales = new ArrayList<>(variablesChargees);
+                            
+                            for (Variable v : variablesGlobales) {
+                                v.corrigerTypeValeur();
+                            }
                         }
                     }
                 } catch (Exception e) {
@@ -531,9 +544,6 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
-
-
-
-
+                
 
     
