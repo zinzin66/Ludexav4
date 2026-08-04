@@ -46,7 +46,7 @@ public class InspecteurProprietes extends LinearLayout {
     private LinearLayout blocImage;
     private Button btnChargerImage, btnSupprimerImage;
     private CheckBox cbFondColore;
-    private CheckBox cbRamassable, cbZoneDeClic;
+    private CheckBox cbRamassable, cbZoneDeClic, cbDeplacable;
 
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
@@ -356,7 +356,9 @@ public class InspecteurProprietes extends LinearLayout {
             builder.show();
         });
         blocTexte.addView(champContenu);
+// bas 1
 
+// haut 2
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
@@ -379,10 +381,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocTexte.addView(btnPolice);
         
         blocProprietes.addView(blocTexte);
-// bas 1
 
-
-// haut 2
         // --- BLOC IMAGE ---
         blocImage = new LinearLayout(context);
         blocImage.setOrientation(LinearLayout.VERTICAL);
@@ -420,6 +419,11 @@ public class InspecteurProprietes extends LinearLayout {
         cbZoneDeClic.setText("Zone de clic (hitbox invisible)");
         cbZoneDeClic.setTextColor(Palette.texteNormal);
         blocProprietes.addView(cbZoneDeClic);
+
+        cbDeplacable = new CheckBox(context);
+        cbDeplacable.setText("Déplaçable (glissable en mode Play)");
+        cbDeplacable.setTextColor(Palette.texteNormal);
+        blocProprietes.addView(cbDeplacable);
 
         blocProprietes.addView(blocImage);
 
@@ -533,6 +537,12 @@ public class InspecteurProprietes extends LinearLayout {
         cbZoneDeClic.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) {
                 objetCourant.estZoneDeClic = isChecked;
+            }
+        });
+
+        cbDeplacable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.estDeplacable = isChecked;
             }
         });
 
@@ -700,6 +710,7 @@ public class InspecteurProprietes extends LinearLayout {
             
             cbRamassable.setChecked(objet.estRamassable);
             cbZoneDeClic.setChecked(objet.estZoneDeClic);
+            cbDeplacable.setChecked(objet.estDeplacable);
             
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
@@ -761,6 +772,9 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 2
+                                                              
+
+
 
 
     

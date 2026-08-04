@@ -29,6 +29,17 @@ public class Variable {
         }
     }
 
+    public void corrigerTypeValeur() {
+        if (valeur instanceof Double) {
+            double d = (Double) valeur;
+            if ("ENTIER".equals(type)) {
+                valeur = (int) d;
+            } else if ("CHIFFRE".equals(type)) {
+                valeur = (float) d;
+            }
+        }
+    }
+
     // NOUVEAU : Méthode de clonage
     public Variable clonerProfond() {
         Variable copie = new Variable(this.nom, this.scope, this.type);

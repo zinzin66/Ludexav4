@@ -183,6 +183,15 @@ public class InterfaceEditeur extends Activity {
                     br.close();
                     if (scenesChargees != null && !scenesChargees.isEmpty()) {
                         listeScenes.addAll(scenesChargees);
+                        
+                        for (Scene s : scenesChargees) {
+                            if (s.variablesLocales != null) {
+                                for (Variable v : s.variablesLocales) {
+                                    v.corrigerTypeValeur();
+                                }
+                            }
+                        }
+                        
                         sceneActive = listeScenes.get(0);
                         
                         // DÉBUT DE LA CORRECTION : Compatibilité ascendante pour Scene.id
@@ -209,6 +218,26 @@ public class InterfaceEditeur extends Activity {
                         // FIN DE LA CORRECTION
                     }
                 }
+                
+                try {
+                    File fileVariablesGlobales = new File(cheminProjet, "variables_globales.json");
+                    if (fileVariablesGlobales.exists()) {
+                        BufferedReader brVar = new BufferedReader(new FileReader(fileVariablesGlobales));
+                        Type listTypeVar = new TypeToken<ArrayList<Variable>>(){}.getType();
+                        List<Variable> variablesChargees = new Gson().fromJson(brVar, listTypeVar);
+                        brVar.close();
+                        if (variablesChargees != null) {
+                            variablesGlobales = new ArrayList<>(variablesChargees);
+                            
+                            for (Variable v : variablesGlobales) {
+                                v.corrigerTypeValeur();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -497,6 +526,16 @@ public class InterfaceEditeur extends Activity {
             writerProjet.write(jsonProjet);
             writerProjet.close();
 
+            try {
+                File fileVariablesGlobales = new File(cheminProjet, "variables_globales.json");
+                String jsonVariables = gson.toJson(variablesGlobales);
+                FileWriter writerVariables = new FileWriter(fileVariablesGlobales);
+                writerVariables.write(jsonVariables);
+                writerVariables.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             Toast.makeText(this, "Projet sauvegardé avec succès.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -505,3 +544,7 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+                           
+
+
+    
