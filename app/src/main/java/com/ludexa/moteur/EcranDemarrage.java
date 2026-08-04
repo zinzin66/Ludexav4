@@ -51,9 +51,24 @@ public class EcranDemarrage extends Activity {
         colonneGauche.setLayoutParams(paramsGauche);
 
         ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.logo_ludexa);
-        colonneGauche.addView(logo);
+logo.setImageResource(R.drawable.logo_ludexa);
 
+// 1. Définir une taille personnalisée (ex: 300 pixels de large et de haut)
+LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+    300, // Largeur
+    300  // Hauteur
+);
+
+// 2. Centrer le logo si nécessaire
+params.gravity = Gravity.CENTER;
+
+// 3. Appliquer les paramètres à l'image
+logo.setLayoutParams(params);
+
+// 4. Demander à l'image de conserver ses proportions pour ne pas être écrasée
+logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+colonneGauche.addView(logo);
         TextView texteBienvenue = new TextView(this);
         texteBienvenue.setText("Bienvenue dans LUDEXA — créez vos jeux sans coder.");
         texteBienvenue.setTextSize(16f);
