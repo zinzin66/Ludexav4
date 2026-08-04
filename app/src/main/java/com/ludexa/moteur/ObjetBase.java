@@ -32,6 +32,7 @@ public class ObjetBase {
     public boolean afficherFondColore = true;
     public boolean estRamassable = false;
     public boolean estZoneDeClic = false;
+    public boolean estDeplacable = false;
 
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
@@ -84,6 +85,7 @@ public class ObjetBase {
         copie.afficherFondColore = this.afficherFondColore;
         copie.estRamassable = this.estRamassable;
         copie.estZoneDeClic = this.estZoneDeClic;
+        copie.estDeplacable = this.estDeplacable;
         
         return copie;
     }
