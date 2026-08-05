@@ -382,11 +382,11 @@ public class CanvasEditeur extends View {
         ObjetBase obj = trouverObjetSousToucher(xEcran, yEcran);
         if (obj != null) {
             objetSelectionne = obj;
-            if (editeurLie != null) editeurLie.rafraichirArborescence();
+            if (editeurLie != null) editeurLie.rafraichirArborescence(obj);
             return 2; 
         }
         objetSelectionne = null;
-        if (editeurLie != null) editeurLie.rafraichirArborescence();
+        if (editeurLie != null) editeurLie.rafraichirArborescence(null);
         return 0; 
     }
 
@@ -529,6 +529,8 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 2
+
+
 
 
 
