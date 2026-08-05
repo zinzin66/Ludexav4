@@ -316,6 +316,7 @@ public class InterfaceEditeur extends Activity {
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
 // bas 1
+
 // haut 2
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
@@ -549,6 +550,10 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
+
+
+
+
 
 
 
