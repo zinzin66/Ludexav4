@@ -515,6 +515,12 @@ public class InterfaceEditeur extends Activity {
         canvasEditeur.invalidate();
     }
 
+    public void rafraichirArborescence() {
+        if (panneauRessources != null) {
+            panneauRessources.rafraichirArborescence();
+        }
+    }
+
     private void sauvegarderProjet() {
         try {
             Gson gson = new Gson();
@@ -544,7 +550,8 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
-                           
+
+
 
 
     
