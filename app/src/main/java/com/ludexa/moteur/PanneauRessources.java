@@ -99,6 +99,11 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 
+    public void setObjetSelectionne(ObjetBase objet) {
+        this.objetSelectionne = objet;
+        rafraichirArborescence();
+    }
+
     public void rafraichirArborescence() {
         if (conteneurArborescence == null) return;
         conteneurArborescence.removeAllViews();
@@ -216,7 +221,7 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 1
-    // haut 2
+// haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -559,7 +564,6 @@ public class PanneauRessources extends ScrollView {
         fileOrDirectory.delete();
     }
 // bas 3
-
 // haut 4
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -838,7 +842,8 @@ public class PanneauRessources extends ScrollView {
 // bas 4
 
 
-    // haut 5
+
+// haut 5
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -1078,7 +1083,11 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 5
 
-    // haut 6
+
+
+
+
+// haut 6
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Nouveau dossier");
@@ -1256,9 +1265,24 @@ public class PanneauRessources extends ScrollView {
     }
 }
 // bas 6
-                        
 
     
 
     
-                
+
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+
+
+

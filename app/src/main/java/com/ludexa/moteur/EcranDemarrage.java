@@ -24,24 +24,19 @@ import java.util.UUID;
 
 public class EcranDemarrage extends Activity {
 
-    // Champ d'instance pour accéder à la liste dans onResume()
     private ListView listeProjets;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Initialisation du contexte
         NoeudBase.contexteApplication = this;
 
-        // TEST DE VÉRIFICATION : Si tu vois ce message au lancement, 
-        // le système de Toast est bien fonctionnel sur ta tablette.
         Toast.makeText(this, "Test affichage OK : Système Toast actif", Toast.LENGTH_LONG).show();
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
         layoutPrincipal.setPadding(40, 40, 40, 40);
-        // Utilisation de ta classe Palette pour le fond
         layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
 
         LinearLayout colonneGauche = new LinearLayout(this);
@@ -52,6 +47,12 @@ public class EcranDemarrage extends Activity {
 
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo_ludexa);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(300, 300);
+        params.gravity = Gravity.CENTER;
+        logo.setLayoutParams(params);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
         colonneGauche.addView(logo);
 
         TextView texteBienvenue = new TextView(this);
@@ -59,16 +60,17 @@ public class EcranDemarrage extends Activity {
         texteBienvenue.setTextSize(16f);
         texteBienvenue.setGravity(Gravity.CENTER);
         texteBienvenue.setPadding(0, 20, 0, 20);
-        // Utilisation de ta classe Palette pour le texte
         texteBienvenue.setTextColor(Palette.texteNormal);
         colonneGauche.addView(texteBienvenue);
 
         Button boutonLangue = new Button(this);
         boutonLangue.setText("Langue : Français");
+        boutonLangue.setBackgroundColor(Palette.boutonNormal);
         boutonLangue.setOnClickListener(v -> {
-            // À implémenter : sélection de la langue
         });
-        colonneGauche.addView(boutonLangue);
+        LinearLayout.LayoutParams margeBouton1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        margeBouton1.setMargins(30, 15, 30, 15);
+        colonneGauche.addView(boutonLangue, margeBouton1);
 
         LinearLayout colonneDroite = new LinearLayout(this);
         colonneDroite.setOrientation(LinearLayout.VERTICAL);
@@ -77,21 +79,26 @@ public class EcranDemarrage extends Activity {
 
         Button boutonCreerProjet = new Button(this);
         boutonCreerProjet.setText("Créer un projet");
+        boutonCreerProjet.setBackgroundColor(Palette.boutonNormal);
         boutonCreerProjet.setOnClickListener(v -> {
             afficherDialogueCreationProjet();
         });
-        colonneDroite.addView(boutonCreerProjet);
+        LinearLayout.LayoutParams margeBouton2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        margeBouton2.setMargins(30, 15, 30, 15);
+        colonneDroite.addView(boutonCreerProjet, margeBouton2);
 
         Button boutonOuvrirProjet = new Button(this);
         boutonOuvrirProjet.setText("Ouvrir un projet téléchargé");
+        boutonOuvrirProjet.setBackgroundColor(Palette.boutonNormal);
         boutonOuvrirProjet.setOnClickListener(v -> {
-            // À implémenter : sélecteur de fichiers Android
         });
-        colonneDroite.addView(boutonOuvrirProjet);
+        LinearLayout.LayoutParams margeBouton3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        margeBouton3.setMargins(30, 15, 30, 15);
+        colonneDroite.addView(boutonOuvrirProjet, margeBouton3);
 
-        // --- DÉBUT AJOUT BOUTON DEBUG ---
         Button boutonDebug = new Button(this);
         boutonDebug.setText("DEBUG Vérifier dossier projets");
+        boutonDebug.setBackgroundColor(Palette.boutonNormal);
         boutonDebug.setOnClickListener(v -> {
             File dossierProjets = new File(getFilesDir(), "projets");
             StringBuilder info = new StringBuilder();
@@ -124,12 +131,13 @@ public class EcranDemarrage extends Activity {
                     .setPositiveButton("OK", null)
                     .show();
         });
-        colonneDroite.addView(boutonDebug);
-        // --- FIN AJOUT BOUTON DEBUG ---
+        LinearLayout.LayoutParams margeBouton4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        margeBouton4.setMargins(30, 15, 30, 15);
+        colonneDroite.addView(boutonDebug, margeBouton4);
 
-        // --- DÉBUT AJOUT BOUTON DEBUG MKDIRS ---
         Button boutonDebugMkdirs = new Button(this);
         boutonDebugMkdirs.setText("DEBUG Test mkdirs");
+        boutonDebugMkdirs.setBackgroundColor(Palette.boutonNormal);
         boutonDebugMkdirs.setOnClickListener(v -> {
             File dossierProjets = new File(getFilesDir(), "projets");
             boolean resultat = dossierProjets.mkdirs();
@@ -147,25 +155,23 @@ public class EcranDemarrage extends Activity {
                     .setPositiveButton("OK", null)
                     .show();
         });
-        colonneDroite.addView(boutonDebugMkdirs);
-        // --- FIN AJOUT BOUTON DEBUG MKDIRS ---
+        LinearLayout.LayoutParams margeBouton5 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        margeBouton5.setMargins(30, 15, 30, 15);
+        colonneDroite.addView(boutonDebugMkdirs, margeBouton5);
 
         TextView titreListe = new TextView(this);
         titreListe.setText("Projets existants :");
         titreListe.setTextSize(18f);
         titreListe.setPadding(0, 30, 0, 10);
-        // Utilisation de ta classe Palette pour le titre
         titreListe.setTextColor(Palette.texteNormal);
         colonneDroite.addView(titreListe);
 
-        // Initialisation de la variable d'instance (plus de redéclaration locale)
         listeProjets = new ListView(this);
         LinearLayout.LayoutParams paramsListe = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
         listeProjets.setLayoutParams(paramsListe);
         colonneDroite.addView(listeProjets);
 
-        // Charger les projets existants dans la liste au premier lancement
         chargerListeProjets(listeProjets);
 
         layoutPrincipal.addView(colonneGauche);
@@ -177,12 +183,13 @@ public class EcranDemarrage extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Recharge la liste à chaque fois que l'utilisateur revient sur cet écran
         if (listeProjets != null) {
             chargerListeProjets(listeProjets);
         }
     }
+// bas 1
 
+// haut 2
     private ArrayList<String> listeNomsProjetsExistants() {
         ArrayList<String> noms = new ArrayList<>();
         File dossierProjets = new File(getFilesDir(), "projets");
@@ -234,14 +241,12 @@ public class EcranDemarrage extends Activity {
         input.setHint("Nom du projet");
         builder.setView(input);
 
-        // On assigne 'null' au listener initial pour empêcher la fermeture automatique
         builder.setPositiveButton("Créer", null);
         builder.setNegativeButton("Annuler", (dialog, which) -> dialog.cancel());
         
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        // On redéfinit le comportement du bouton Créer après l'affichage
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nomProjet = input.getText().toString().trim();
             if (nomProjet.isEmpty()) {
@@ -253,7 +258,7 @@ public class EcranDemarrage extends Activity {
             for (String existant : existants) {
                 if (existant.equalsIgnoreCase(nomProjet)) {
                     Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
-                    return; // Stoppe l'exécution, le dialogue reste ouvert
+                    return;
                 }
             }
 
@@ -261,15 +266,12 @@ public class EcranDemarrage extends Activity {
             dialog.dismiss();
         });
     }
-// bas 1
-    
-// haut 2
+
     private void creerNouveauProjet(String nomProjet) {
         String uuid = UUID.randomUUID().toString();
         File dossierProjets = new File(getFilesDir(), "projets");
         File dossierNouveauProjet = new File(dossierProjets, uuid);
         
-        // Création de l'arborescence
         dossierNouveauProjet.mkdirs();
         new File(dossierNouveauProjet, "logique").mkdirs();
         File dossierAssets = new File(dossierNouveauProjet, "assets_ludexa");
@@ -279,7 +281,6 @@ public class EcranDemarrage extends Activity {
         String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
         try {
-            // Création de meta.json
             File metaFile = new File(dossierNouveauProjet, "meta.json");
             JSONObject metaJson = new JSONObject();
             metaJson.put("nom", nomProjet);
@@ -289,13 +290,11 @@ public class EcranDemarrage extends Activity {
             fwMeta.write(metaJson.toString(4));
             fwMeta.close();
 
-            // Création de projet_sauvegarde.json
             File sauvegardeFile = new File(dossierNouveauProjet, "projet_sauvegarde.json");
             FileWriter fwSauvegarde = new FileWriter(sauvegardeFile);
             fwSauvegarde.write("{ \"scenes\": [] }");
             fwSauvegarde.close();
 
-            // Création de logique/blueprint.json
             File blueprintFile = new File(new File(dossierNouveauProjet, "logique"), "blueprint.json");
             FileWriter fwBlueprint = new FileWriter(blueprintFile);
             fwBlueprint.write("{}");
@@ -307,7 +306,6 @@ public class EcranDemarrage extends Activity {
             return;
         }
 
-        // Lancement de l'éditeur
         Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
         intent.putExtra("cheminProjet", dossierNouveauProjet.getAbsolutePath());
         startActivity(intent);
@@ -366,7 +364,6 @@ public class EcranDemarrage extends Activity {
         };
         listeProjets.setAdapter(adapter);
 
-        // Clic court : Ouvre le projet existant
         listeProjets.setOnItemClickListener((parent, view, position, id) -> {
             File dossierChoisi = dossiersList.get(position);
             Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
@@ -374,12 +371,10 @@ public class EcranDemarrage extends Activity {
             startActivity(intent);
         });
 
-        // Clic long : Renommer ou Supprimer
         listeProjets.setOnItemLongClickListener((parent, view, position, id) -> {
             File dossierChoisi = dossiersList.get(position);
             File metaFile = new File(dossierChoisi, "meta.json");
             
-            // Récupérer le nom actuel directement depuis le JSON
             String nomActuel = "";
             try {
                 StringBuilder sb = new StringBuilder();
@@ -400,7 +395,6 @@ public class EcranDemarrage extends Activity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setItems(options, (dialog, which) -> {
                 if (which == 0) {
-                    // Action Renommer
                     AlertDialog.Builder builderRenommer = new AlertDialog.Builder(this);
                     builderRenommer.setTitle("Renommer le projet");
                     
@@ -430,7 +424,6 @@ public class EcranDemarrage extends Activity {
                         }
 
                         try {
-                            // Lecture du JSON existant
                             StringBuilder sb = new StringBuilder();
                             Scanner scanner = new Scanner(metaFile);
                             while (scanner.hasNextLine()) {
@@ -443,7 +436,6 @@ public class EcranDemarrage extends Activity {
                             String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
                             metaJson.put("dateModif", dateActuelle);
                             
-                            // Réécriture
                             FileWriter fwMeta = new FileWriter(metaFile);
                             fwMeta.write(metaJson.toString(4));
                             fwMeta.close();
@@ -456,7 +448,6 @@ public class EcranDemarrage extends Activity {
                         }
                     });
                 } else if (which == 1) {
-                    // Action Supprimer
                     AlertDialog.Builder builderSupprimer = new AlertDialog.Builder(this);
                     builderSupprimer.setMessage("Supprimer définitivement le projet " + nomFinal + " ? Cette action est irréversible.");
                     
@@ -468,7 +459,6 @@ public class EcranDemarrage extends Activity {
                     
                     AlertDialog dialogSupprimer = builderSupprimer.create();
                     dialogSupprimer.show();
-                    // Passage du bouton en rouge pour marquer la destruction
                     dialogSupprimer.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
                 }
             });
@@ -478,3 +468,7 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 2
+
+
+
+
