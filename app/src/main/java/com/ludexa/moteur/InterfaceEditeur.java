@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -38,6 +37,7 @@ public class InterfaceEditeur extends Activity {
     // VARIABLES DE SAUVEGARDE POUR L'ISOLEMENT DU PLAY
     private List<Scene> listeScenesBackup;
     private Scene sceneActiveBackup;
+    private Scene sceneHudActiveBackup;
     private List<Variable> variablesGlobalesBackup;
 
     private CanvasEditeur canvasEditeur;
@@ -315,9 +315,10 @@ public class InterfaceEditeur extends Activity {
         boutonPlay.setTextColor(Palette.texteNormal);
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
-// bas 1
 
-// haut 2
+// fin1
+        // debut 2
+        
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
@@ -361,6 +362,7 @@ public class InterfaceEditeur extends Activity {
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
         sceneActiveBackup = sceneActive;
+        sceneHudActiveBackup = sceneHudActive;
         variablesGlobalesBackup = new ArrayList<>(variablesGlobales);
         
         listeScenes = new ArrayList<>();
@@ -370,6 +372,9 @@ public class InterfaceEditeur extends Activity {
             
             if (s == sceneActiveBackup) {
                 sceneActive = clone;
+            }
+            if (s == sceneHudActiveBackup) {
+                sceneHudActive = clone;
             }
         }
         
@@ -467,6 +472,10 @@ public class InterfaceEditeur extends Activity {
                 sceneActive = sceneActiveBackup;
                 sceneActiveBackup = null;
             }
+            if (sceneHudActiveBackup != null) {
+                sceneHudActive = sceneHudActiveBackup;
+                sceneHudActiveBackup = null;
+            }
             if (variablesGlobalesBackup != null) {
                 variablesGlobales = variablesGlobalesBackup;
                 variablesGlobalesBackup = null;
@@ -549,14 +558,6 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 2
-
-
-
-
-
-
-
-
+// fin 2
 
     
