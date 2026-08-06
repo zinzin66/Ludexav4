@@ -1,6 +1,8 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.graphics.Color;
+import android.widget.ImageView;
 
 public class Palette {
     // Vos couleurs d'origine restaurées
@@ -15,6 +17,15 @@ public class Palette {
     public static int canvasGrille = Color.parseColor("#152B43");
 
     // La nouvelle couleur ajoutée sans rien casser
-    public static int fondListe = Color.parseColor("#1E1E1E"); 
+    public static int fondListe = Color.parseColor("#1E1E1E");
     public static int fondNormal = Color.parseColor("#121212");
+
+    // Couleur dédiée aux icônes monochromes
+    public static int iconeNormal = Color.parseColor("#FFFFFF");
+    public static int iconeSurvol = Color.parseColor("#95DFF5");
+
+    public static void appliquerCouleurIcone(ImageView icone, int couleur) {
+        icone.setColorFilter(couleur);
+    }
 }
+// bas 1
