@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -55,8 +56,27 @@ public class InterfaceEditeur extends Activity {
     // NOUVEAU : Méthodes pour gérer le HUD
     public void ouvrirHUD(Scene scene) {
         this.sceneHudActive = scene;
+        Blueprint blueprintHud = null;
+        if (scene != null && cheminProjet != null) {
+            try {
+                File dossierLogique = new File(cheminProjet, "logique");
+                File fileBlueprintHud = new File(dossierLogique, scene.id + ".json");
+                if (fileBlueprintHud.exists()) {
+                    BufferedReader brHud = new BufferedReader(new FileReader(fileBlueprintHud));
+                    StringBuilder sbHud = new StringBuilder();
+                    String ligneHud;
+                    while ((ligneHud = brHud.readLine()) != null) {
+                        sbHud.append(ligneHud);
+                    }
+                    brHud.close();
+                    blueprintHud = Blueprint.fromJson(sbHud.toString(), scene);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         if (vueJeu != null) {
-            vueJeu.setSceneHud(scene);
+            vueJeu.ouvrirHudDynamique(scene, blueprintHud);
         }
         Toast.makeText(this, "HUD ouvert : " + (scene != null ? scene.nom : "null"), Toast.LENGTH_SHORT).show();
     }
@@ -171,7 +191,9 @@ public class InterfaceEditeur extends Activity {
             }
         });
         bandeauHaut.addView(boutonRedo);
+// bas 1
 
+// haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
             try {
@@ -316,9 +338,6 @@ public class InterfaceEditeur extends Activity {
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
 
-// fin1
-        // debut 2
-        
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
@@ -558,6 +577,10 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// fin 2
+// bas 2
+
+
+
+
 
     
