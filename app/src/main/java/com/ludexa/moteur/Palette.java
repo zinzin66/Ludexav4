@@ -1,17 +1,15 @@
 // haut 1
-package com.ludexa.moteur;
+package com.zinzin66.ludexa; 
 
 import android.graphics.Color;
 
 public class Palette {
-    public static int fondPanneaux = Color.parseColor("#021726");
-    public static int enTeteDialogues = Color.parseColor("#034574");
-    public static int bordure = Color.parseColor("#10598A");
-    public static int texteNormal = Color.parseColor("#FFFFFF");
-    public static int texteSelectionne = Color.parseColor("#95DFF5");
-    public static int boutonNormal = Color.parseColor("#045A90");
-    public static int boutonSurvol = Color.parseColor("#0975B5");
-    public static int canvasFond = Color.parseColor("#022E4D");
-    public static int canvasGrille = Color.parseColor("#152B43");
+    // Tes couleurs principales existantes (valeurs d'exemple à adapter selon tes goûts)
+    public static final int fondNormal = Color.parseColor("#121212");
+    public static final int texteNormal = Color.parseColor("#FFFFFF");
+    public static final int boutonNormal = Color.parseColor("#333333");
+    
+    // NOUVELLE COULEUR : Fond spécifique pour différencier la ListView des projets
+    public static final int fondListe = Color.parseColor("#1E1E1E"); 
 }
 // bas 1
