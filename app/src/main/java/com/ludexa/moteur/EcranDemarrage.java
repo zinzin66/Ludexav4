@@ -3,12 +3,24 @@ package com.ludexa.moteur;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ListView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.*;
+
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Scanner;
+import java.util.UUID;
 
 public class EcranDemarrage extends Activity {
 
@@ -17,95 +29,100 @@ public class EcranDemarrage extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        NoeudBase.contexteApplication = this;
 
-        // Conteneur principal
+        Toast.makeText(this, "Test affichage OK : Système Toast actif", Toast.LENGTH_LONG).show();
+
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
-        layoutPrincipal.setBackgroundColor(Palette.fondNormal);
+        layoutPrincipal.setPadding(40, 40, 40, 40);
+        layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
 
-        // Colonne de gauche
         LinearLayout colonneGauche = new LinearLayout(this);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
         colonneGauche.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams paramsGauche = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         colonneGauche.setLayoutParams(paramsGauche);
 
-        // BOUTON LANGUE
-        Button boutonLangue = new Button(this);
-        boutonLangue.setText("Langue : Français");
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.logo_ludexa);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(300, 300);
+        params.gravity = Gravity.CENTER;
+        logo.setLayoutParams(params);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        colonneGauche.addView(logo);
+
+        TextView texteBienvenue = new TextView(this);
+        texteBienvenue.setText("Bienvenue dans LUDEXA — créez vos jeux sans coder.");
+        texteBienvenue.setTextSize(16f);
+        texteBienvenue.setGravity(Gravity.CENTER);
+        texteBienvenue.setPadding(0, 20, 0, 20);
+        texteBienvenue.setTextColor(Palette.texteNormal);
+        colonneGauche.addView(texteBienvenue);
+
+        // Bouton "Langue" : icône monochrome au lieu du texte
+        ImageButton boutonLangue = new ImageButton(this);
+        boutonLangue.setImageResource(R.drawable.language_24px);
         boutonLangue.setBackgroundColor(Palette.boutonNormal);
-        boutonLangue.setTextColor(Palette.texteNormal);
-        
-        android.graphics.drawable.Drawable iconeLangue = getResources().getDrawable(R.drawable.language_24px).mutate();
-        iconeLangue.setColorFilter(Palette.texteNormal, android.graphics.PorterDuff.Mode.SRC_IN);
-        boutonLangue.setCompoundDrawablesWithIntrinsicBounds(iconeLangue, null, null, null);
-        boutonLangue.setCompoundDrawablePadding(15);
-        boutonLangue.setOnClickListener(v -> {});
-        
-        LinearLayout.LayoutParams margeBouton1 = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, 
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        margeBouton1.gravity = Gravity.CENTER_HORIZONTAL;
+        boutonLangue.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonLangue, Palette.iconeNormal);
+        boutonLangue.setContentDescription("Langue : Français");
+        boutonLangue.setOnClickListener(v -> {
+        });
+        LinearLayout.LayoutParams margeBouton1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton1.setMargins(30, 15, 30, 15);
         colonneGauche.addView(boutonLangue, margeBouton1);
 
-        // Colonne de droite
         LinearLayout colonneDroite = new LinearLayout(this);
         colonneDroite.setOrientation(LinearLayout.VERTICAL);
-        colonneDroite.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams paramsDroite = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         colonneDroite.setLayoutParams(paramsDroite);
 
-        // BOUTON CRÉER PROJET
-        Button boutonCreerProjet = new Button(this);
-        boutonCreerProjet.setText("Créer un projet");
+        // Bouton "Créer un projet" : icône monochrome au lieu du texte
+        ImageButton boutonCreerProjet = new ImageButton(this);
+        boutonCreerProjet.setImageResource(R.drawable.add_24px);
         boutonCreerProjet.setBackgroundColor(Palette.boutonNormal);
-        boutonCreerProjet.setTextColor(Palette.texteNormal);
-        
-        android.graphics.drawable.Drawable iconeCreer = getResources().getDrawable(R.drawable.add_24px).mutate();
-        iconeCreer.setColorFilter(Palette.texteNormal, android.graphics.PorterDuff.Mode.SRC_IN);
-        boutonCreerProjet.setCompoundDrawablesWithIntrinsicBounds(iconeCreer, null, null, null);
-        boutonCreerProjet.setCompoundDrawablePadding(15);
-        boutonCreerProjet.setOnClickListener(v -> { afficherDialogueCreationProjet(); });
-        
-        LinearLayout.LayoutParams margeBouton2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        margeBouton2.gravity = Gravity.CENTER_HORIZONTAL;
+        boutonCreerProjet.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonCreerProjet, Palette.iconeNormal);
+        boutonCreerProjet.setContentDescription("Créer un projet");
+        boutonCreerProjet.setOnClickListener(v -> {
+            afficherDialogueCreationProjet();
+        });
+        LinearLayout.LayoutParams margeBouton2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton2.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonCreerProjet, margeBouton2);
 
-        // BOUTON OUVRIR PROJET
-        Button boutonOuvrirProjet = new Button(this);
-        boutonOuvrirProjet.setText("Ouvrir un projet téléchargé");
+        // Bouton "Ouvrir un projet téléchargé" : icône monochrome au lieu du texte
+        ImageButton boutonOuvrirProjet = new ImageButton(this);
+        boutonOuvrirProjet.setImageResource(R.drawable.folder_open_24px);
         boutonOuvrirProjet.setBackgroundColor(Palette.boutonNormal);
-        boutonOuvrirProjet.setTextColor(Palette.texteNormal);
-        
-        android.graphics.drawable.Drawable iconeOuvrir = getResources().getDrawable(R.drawable.folder_open_24px).mutate();
-        iconeOuvrir.setColorFilter(Palette.texteNormal, android.graphics.PorterDuff.Mode.SRC_IN);
-        boutonOuvrirProjet.setCompoundDrawablesWithIntrinsicBounds(iconeOuvrir, null, null, null);
-        boutonOuvrirProjet.setCompoundDrawablePadding(15);
-        boutonOuvrirProjet.setOnClickListener(v -> {});
-        
-        LinearLayout.LayoutParams margeBouton3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        margeBouton3.gravity = Gravity.CENTER_HORIZONTAL;
+        boutonOuvrirProjet.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonOuvrirProjet, Palette.iconeNormal);
+        boutonOuvrirProjet.setContentDescription("Ouvrir un projet téléchargé");
+        boutonOuvrirProjet.setOnClickListener(v -> {
+        });
+        LinearLayout.LayoutParams margeBouton3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton3.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonOuvrirProjet, margeBouton3);
 
-        // BOUTON DEBUG VÉRIFIER
-        Button boutonDebug = new Button(this);
-        boutonDebug.setText("DEBUG Vérifier dossier projets");
+        // Bouton "DEBUG Vérifier dossier projets" : icône monochrome au lieu du texte
+        ImageButton boutonDebug = new ImageButton(this);
+        boutonDebug.setImageResource(R.drawable.bug_report_24px);
         boutonDebug.setBackgroundColor(Palette.boutonNormal);
-        boutonDebug.setTextColor(Palette.texteNormal);
-        
-        android.graphics.drawable.Drawable iconeDebug1 = getResources().getDrawable(R.drawable.bug_report_24px).mutate();
-        iconeDebug1.setColorFilter(Palette.texteNormal, android.graphics.PorterDuff.Mode.SRC_IN);
-        boutonDebug.setCompoundDrawablesWithIntrinsicBounds(iconeDebug1, null, null, null);
-        boutonDebug.setCompoundDrawablePadding(15);
-        boutonDebug.setOnClickListener(v -> { 
+        boutonDebug.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonDebug, Palette.iconeNormal);
+        boutonDebug.setContentDescription("DEBUG Vérifier dossier projets");
+        boutonDebug.setOnClickListener(v -> {
             File dossierProjets = new File(getFilesDir(), "projets");
             StringBuilder info = new StringBuilder();
+            
             info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
             info.append("Existe : ").append(dossierProjets.exists()).append("\n");
             info.append("Est un dossier : ").append(dossierProjets.isDirectory()).append("\n\n");
+
             File[] sousDossiers = dossierProjets.listFiles();
             if (sousDossiers == null) {
                 info.append("listFiles() a retourné null\n");
@@ -123,73 +140,351 @@ public class EcranDemarrage extends Activity {
                     info.append("\n");
                 }
             }
+
             new AlertDialog.Builder(EcranDemarrage.this)
                     .setTitle("Debug : Dossier projets")
                     .setMessage(info.toString())
                     .setPositiveButton("OK", null)
                     .show();
         });
-        
-        LinearLayout.LayoutParams margeBouton4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        margeBouton4.gravity = Gravity.CENTER_HORIZONTAL;
+        LinearLayout.LayoutParams margeBouton4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton4.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonDebug, margeBouton4);
 
-        // BOUTON DEBUG MKDIRS
-        Button boutonDebugMkdirs = new Button(this);
-        boutonDebugMkdirs.setText("DEBUG Test mkdirs");
+        // Bouton "DEBUG Test mkdirs" : icône monochrome au lieu du texte
+        ImageButton boutonDebugMkdirs = new ImageButton(this);
+        boutonDebugMkdirs.setImageResource(R.drawable.build_24px);
         boutonDebugMkdirs.setBackgroundColor(Palette.boutonNormal);
-        boutonDebugMkdirs.setTextColor(Palette.texteNormal);
-        
-        android.graphics.drawable.Drawable iconeDebug2 = getResources().getDrawable(R.drawable.build_24px).mutate();
-        iconeDebug2.setColorFilter(Palette.texteNormal, android.graphics.PorterDuff.Mode.SRC_IN);
-        boutonDebugMkdirs.setCompoundDrawablesWithIntrinsicBounds(iconeDebug2, null, null, null);
-        boutonDebugMkdirs.setCompoundDrawablePadding(15);
-        boutonDebugMkdirs.setOnClickListener(v -> { 
+        boutonDebugMkdirs.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonDebugMkdirs, Palette.iconeNormal);
+        boutonDebugMkdirs.setContentDescription("DEBUG Test mkdirs");
+        boutonDebugMkdirs.setOnClickListener(v -> {
             File dossierProjets = new File(getFilesDir(), "projets");
             boolean resultat = dossierProjets.mkdirs();
+            
             StringBuilder info = new StringBuilder();
             info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
             info.append("Valeur de resultat (mkdirs) : ").append(resultat).append("\n");
             info.append("exists() : ").append(dossierProjets.exists()).append("\n");
             info.append("canWrite() : ").append(dossierProjets.canWrite()).append("\n");
             info.append("getFilesDir().canWrite() (parent) : ").append(getFilesDir().canWrite()).append("\n");
+
             new AlertDialog.Builder(EcranDemarrage.this)
                     .setTitle("Debug : Test mkdirs")
                     .setMessage(info.toString())
                     .setPositiveButton("OK", null)
                     .show();
         });
-        
-        LinearLayout.LayoutParams margeBouton5 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        margeBouton5.gravity = Gravity.CENTER_HORIZONTAL;
+        LinearLayout.LayoutParams margeBouton5 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton5.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonDebugMkdirs, margeBouton5);
 
-        // LISTE DES PROJETS (Avec la nouvelle couleur de fond)
-        listeProjets = new ListView(this);
-        listeProjets.setBackgroundColor(Palette.fondListe);
+        TextView titreListe = new TextView(this);
+        titreListe.setText("Projets existants :");
+        titreListe.setTextSize(18f);
+        titreListe.setPadding(0, 30, 0, 10);
+        titreListe.setTextColor(Palette.texteNormal);
+        colonneDroite.addView(titreListe);
 
+        listeProjets = new ListView(this);
         LinearLayout.LayoutParams paramsListe = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        paramsListe.setMargins(20, 0, 20, 20); 
         listeProjets.setLayoutParams(paramsListe);
         colonneDroite.addView(listeProjets);
 
-        // Ajout des colonnes au layout principal
+        chargerListeProjets(listeProjets);
+
         layoutPrincipal.addView(colonneGauche);
         layoutPrincipal.addView(colonneDroite);
 
-        // Définition de la vue
         setContentView(layoutPrincipal);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (listeProjets != null) {
+            chargerListeProjets(listeProjets);
+        }
+    }
+// bas 1
+// haut 2
+    private ArrayList<String> listeNomsProjetsExistants() {
+        ArrayList<String> noms = new ArrayList<>();
+        File dossierProjets = new File(getFilesDir(), "projets");
+        
+        if (dossierProjets.exists() && dossierProjets.isDirectory()) {
+            File[] sousDossiers = dossierProjets.listFiles();
+            if (sousDossiers != null) {
+                for (File sousDossier : sousDossiers) {
+                    if (sousDossier.isDirectory()) {
+                        File metaFile = new File(sousDossier, "meta.json");
+                        if (metaFile.exists()) {
+                            try {
+                                StringBuilder sb = new StringBuilder();
+                                Scanner scanner = new Scanner(metaFile);
+                                while (scanner.hasNextLine()) {
+                                    sb.append(scanner.nextLine());
+                                }
+                                scanner.close();
+                                JSONObject metaJson = new JSONObject(sb.toString());
+                                noms.add(metaJson.optString("nom", "Projet Sans Nom"));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return noms;
+    }
+
+    private void supprimerDossierRecursif(File dossier) {
+        if (dossier.isDirectory()) {
+            File[] enfants = dossier.listFiles();
+            if (enfants != null) {
+                for (File enfant : enfants) {
+                    supprimerDossierRecursif(enfant);
+                }
+            }
+        }
+        dossier.delete();
+    }
+
     private void afficherDialogueCreationProjet() {
-        // La logique existante pour ta boite de dialogue reste ici
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Nouveau projet");
+        
+        final EditText input = new EditText(this);
+        input.setHint("Nom du projet");
+        builder.setView(input);
+
+        builder.setPositiveButton("Créer", null);
+        builder.setNegativeButton("Annuler", (dialog, which) -> dialog.cancel());
+        
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String nomProjet = input.getText().toString().trim();
+            if (nomProjet.isEmpty()) {
+                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            ArrayList<String> existants = listeNomsProjetsExistants();
+            for (String existant : existants) {
+                if (existant.equalsIgnoreCase(nomProjet)) {
+                    Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            creerNouveauProjet(nomProjet);
+            dialog.dismiss();
+        });
+    }
+
+    private void creerNouveauProjet(String nomProjet) {
+        String uuid = UUID.randomUUID().toString();
+        File dossierProjets = new File(getFilesDir(), "projets");
+        File dossierNouveauProjet = new File(dossierProjets, uuid);
+        
+        dossierNouveauProjet.mkdirs();
+        new File(dossierNouveauProjet, "logique").mkdirs();
+        File dossierAssets = new File(dossierNouveauProjet, "assets_ludexa");
+        new File(dossierAssets, "Images").mkdirs();
+        new File(dossierAssets, "Sons").mkdirs();
+
+        String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+
+        try {
+            File metaFile = new File(dossierNouveauProjet, "meta.json");
+            JSONObject metaJson = new JSONObject();
+            metaJson.put("nom", nomProjet);
+            metaJson.put("dateCreation", dateActuelle);
+            metaJson.put("dateModif", dateActuelle);
+            FileWriter fwMeta = new FileWriter(metaFile);
+            fwMeta.write(metaJson.toString(4));
+            fwMeta.close();
+
+            File sauvegardeFile = new File(dossierNouveauProjet, "projet_sauvegarde.json");
+            FileWriter fwSauvegarde = new FileWriter(sauvegardeFile);
+            fwSauvegarde.write("{ \"scenes\": [] }");
+            fwSauvegarde.close();
+
+            File blueprintFile = new File(new File(dossierNouveauProjet, "logique"), "blueprint.json");
+            FileWriter fwBlueprint = new FileWriter(blueprintFile);
+            fwBlueprint.write("{}");
+            fwBlueprint.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de la création des fichiers", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+        intent.putExtra("cheminProjet", dossierNouveauProjet.getAbsolutePath());
+        startActivity(intent);
+    }
+
+    private void chargerListeProjets(ListView listeProjets) {
+        File dossierProjets = new File(getFilesDir(), "projets");
+        ArrayList<String> affichageList = new ArrayList<>();
+        final ArrayList<File> dossiersList = new ArrayList<>();
+
+        if (dossierProjets.exists() && dossierProjets.isDirectory()) {
+            File[] sousDossiers = dossierProjets.listFiles();
+            if (sousDossiers != null) {
+                for (File sousDossier : sousDossiers) {
+                    if (sousDossier.isDirectory()) {
+                        File metaFile = new File(sousDossier, "meta.json");
+                        if (metaFile.exists()) {
+                            try {
+                                StringBuilder sb = new StringBuilder();
+                                Scanner scanner = new Scanner(metaFile);
+                                while (scanner.hasNextLine()) {
+                                    sb.append(scanner.nextLine());
+                                }
+                                scanner.close();
+
+                                JSONObject metaJson = new JSONObject(sb.toString());
+                                String nom = metaJson.optString("nom", "Projet Sans Nom");
+                                String dateModif = metaJson.optString("dateModif", "Date inconnue");
+
+                                affichageList.add(nom + " (Modifié le : " + dateModif + ")");
+                                dossiersList.add(sousDossier);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, affichageList) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView textView;
+                if (convertView == null) {
+                    textView = new TextView(getContext());
+                    textView.setPadding(20, 20, 20, 20);
+                    textView.setTextSize(16f);
+                    textView.setTextColor(Palette.texteNormal);
+                } else {
+                    textView = (TextView) convertView;
+                }
+                textView.setText(getItem(position));
+                return textView;
+            }
+        };
+        listeProjets.setAdapter(adapter);
+
+        listeProjets.setOnItemClickListener((parent, view, position, id) -> {
+            File dossierChoisi = dossiersList.get(position);
+            Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+            intent.putExtra("cheminProjet", dossierChoisi.getAbsolutePath());
+            startActivity(intent);
+        });
+
+        listeProjets.setOnItemLongClickListener((parent, view, position, id) -> {
+            File dossierChoisi = dossiersList.get(position);
+            File metaFile = new File(dossierChoisi, "meta.json");
+            
+            String nomActuel = "";
+            try {
+                StringBuilder sb = new StringBuilder();
+                Scanner scanner = new Scanner(metaFile);
+                while (scanner.hasNextLine()) {
+                    sb.append(scanner.nextLine());
+                }
+                scanner.close();
+                JSONObject metaJson = new JSONObject(sb.toString());
+                nomActuel = metaJson.optString("nom", "");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            final String nomFinal = nomActuel;
+            String[] options = {"Renommer", "Supprimer"};
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setItems(options, (dialog, which) -> {
+                if (which == 0) {
+                    AlertDialog.Builder builderRenommer = new AlertDialog.Builder(this);
+                    builderRenommer.setTitle("Renommer le projet");
+                    
+                    final EditText input = new EditText(this);
+                    input.setText(nomFinal);
+                    builderRenommer.setView(input);
+
+                    builderRenommer.setPositiveButton("Valider", null);
+                    builderRenommer.setNegativeButton("Annuler", (d, w) -> d.cancel());
+                    
+                    AlertDialog dialogRenommer = builderRenommer.create();
+                    dialogRenommer.show();
+
+                    dialogRenommer.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                        String nouveauNom = input.getText().toString().trim();
+                        if (nouveauNom.isEmpty()) {
+                            Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        ArrayList<String> existants = listeNomsProjetsExistants();
+                        for (String existant : existants) {
+                            if (existant.equalsIgnoreCase(nouveauNom) && !existant.equalsIgnoreCase(nomFinal)) {
+                                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                        }
+
+                        try {
+                            StringBuilder sb = new StringBuilder();
+                            Scanner scanner = new Scanner(metaFile);
+                            while (scanner.hasNextLine()) {
+                                sb.append(scanner.nextLine());
+                            }
+                            scanner.close();
+                            
+                            JSONObject metaJson = new JSONObject(sb.toString());
+                            metaJson.put("nom", nouveauNom);
+                            String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                            metaJson.put("dateModif", dateActuelle);
+                            
+                            FileWriter fwMeta = new FileWriter(metaFile);
+                            fwMeta.write(metaJson.toString(4));
+                            fwMeta.close();
+
+                            chargerListeProjets(listeProjets);
+                            dialogRenommer.dismiss();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "Erreur lors du renommage", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else if (which == 1) {
+                    AlertDialog.Builder builderSupprimer = new AlertDialog.Builder(this);
+                    builderSupprimer.setMessage("Supprimer définitivement le projet " + nomFinal + " ? Cette action est irréversible.");
+                    
+                    builderSupprimer.setPositiveButton("Supprimer", (d, w) -> {
+                        supprimerDossierRecursif(dossierChoisi);
+                        chargerListeProjets(listeProjets);
+                    });
+                    builderSupprimer.setNegativeButton("Annuler", (d, w) -> d.cancel());
+                    
+                    AlertDialog dialogSupprimer = builderSupprimer.create();
+                    dialogSupprimer.show();
+                    dialogSupprimer.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
+                }
+            });
+            builder.show();
+            return true;
+        });
     }
 }
-// bas 1
+// bas 2
 
-        
-                    
-                                        
