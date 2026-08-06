@@ -16,4 +16,5 @@ public class Palette {
 
     // La nouvelle couleur ajoutée sans rien casser
     public static int fondListe = Color.parseColor("#1E1E1E"); 
+    public static int fondNormal = Color.parseColor("#121212");
 }
