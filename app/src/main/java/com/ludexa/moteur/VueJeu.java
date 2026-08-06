@@ -81,6 +81,16 @@ public class VueJeu extends View {
         this.sceneHudActive = scene;
     }
 
+    public void ouvrirHudDynamique(Scene scene, Blueprint blueprintHud) {
+        this.sceneHudActive = scene;
+        if (blueprintHud != null) {
+            this.moteurHud = new MoteurLogique(blueprintHud);
+            this.moteurHud.executerDemarrage();
+        } else {
+            this.moteurHud = null;
+        }
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
