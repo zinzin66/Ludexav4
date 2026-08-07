@@ -63,12 +63,16 @@ public class EcranDemarrage extends Activity {
         texteBienvenue.setTextColor(Palette.texteNormal);
         colonneGauche.addView(texteBienvenue);
 
-        Button boutonLangue = new Button(this);
-        boutonLangue.setText("Langue : Français");
+        // Bouton "Langue" : icône monochrome au lieu du texte
+        ImageButton boutonLangue = new ImageButton(this);
+        boutonLangue.setImageResource(R.drawable.language_24px);
         boutonLangue.setBackgroundColor(Palette.boutonNormal);
+        boutonLangue.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonLangue, Palette.iconeNormal);
+        boutonLangue.setContentDescription("Langue : Français");
         boutonLangue.setOnClickListener(v -> {
         });
-        LinearLayout.LayoutParams margeBouton1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams margeBouton1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton1.setMargins(30, 15, 30, 15);
         colonneGauche.addView(boutonLangue, margeBouton1);
 
@@ -77,28 +81,40 @@ public class EcranDemarrage extends Activity {
         LinearLayout.LayoutParams paramsDroite = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         colonneDroite.setLayoutParams(paramsDroite);
 
-        Button boutonCreerProjet = new Button(this);
-        boutonCreerProjet.setText("Créer un projet");
+        // Bouton "Créer un projet" : icône monochrome au lieu du texte
+        ImageButton boutonCreerProjet = new ImageButton(this);
+        boutonCreerProjet.setImageResource(R.drawable.add_24px);
         boutonCreerProjet.setBackgroundColor(Palette.boutonNormal);
+        boutonCreerProjet.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonCreerProjet, Palette.iconeNormal);
+        boutonCreerProjet.setContentDescription("Créer un projet");
         boutonCreerProjet.setOnClickListener(v -> {
             afficherDialogueCreationProjet();
         });
-        LinearLayout.LayoutParams margeBouton2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams margeBouton2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton2.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonCreerProjet, margeBouton2);
 
-        Button boutonOuvrirProjet = new Button(this);
-        boutonOuvrirProjet.setText("Ouvrir un projet téléchargé");
+        // Bouton "Ouvrir un projet téléchargé" : icône monochrome au lieu du texte
+        ImageButton boutonOuvrirProjet = new ImageButton(this);
+        boutonOuvrirProjet.setImageResource(R.drawable.folder_open_24px);
         boutonOuvrirProjet.setBackgroundColor(Palette.boutonNormal);
+        boutonOuvrirProjet.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonOuvrirProjet, Palette.iconeNormal);
+        boutonOuvrirProjet.setContentDescription("Ouvrir un projet téléchargé");
         boutonOuvrirProjet.setOnClickListener(v -> {
         });
-        LinearLayout.LayoutParams margeBouton3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams margeBouton3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton3.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonOuvrirProjet, margeBouton3);
 
-        Button boutonDebug = new Button(this);
-        boutonDebug.setText("DEBUG Vérifier dossier projets");
+        // Bouton "DEBUG Vérifier dossier projets" : icône monochrome au lieu du texte
+        ImageButton boutonDebug = new ImageButton(this);
+        boutonDebug.setImageResource(R.drawable.bug_report_24px);
         boutonDebug.setBackgroundColor(Palette.boutonNormal);
+        boutonDebug.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonDebug, Palette.iconeNormal);
+        boutonDebug.setContentDescription("DEBUG Vérifier dossier projets");
         boutonDebug.setOnClickListener(v -> {
             File dossierProjets = new File(getFilesDir(), "projets");
             StringBuilder info = new StringBuilder();
@@ -131,13 +147,17 @@ public class EcranDemarrage extends Activity {
                     .setPositiveButton("OK", null)
                     .show();
         });
-        LinearLayout.LayoutParams margeBouton4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams margeBouton4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton4.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonDebug, margeBouton4);
 
-        Button boutonDebugMkdirs = new Button(this);
-        boutonDebugMkdirs.setText("DEBUG Test mkdirs");
+        // Bouton "DEBUG Test mkdirs" : icône monochrome au lieu du texte
+        ImageButton boutonDebugMkdirs = new ImageButton(this);
+        boutonDebugMkdirs.setImageResource(R.drawable.build_24px);
         boutonDebugMkdirs.setBackgroundColor(Palette.boutonNormal);
+        boutonDebugMkdirs.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        Palette.appliquerCouleurIcone(boutonDebugMkdirs, Palette.iconeNormal);
+        boutonDebugMkdirs.setContentDescription("DEBUG Test mkdirs");
         boutonDebugMkdirs.setOnClickListener(v -> {
             File dossierProjets = new File(getFilesDir(), "projets");
             boolean resultat = dossierProjets.mkdirs();
@@ -155,7 +175,7 @@ public class EcranDemarrage extends Activity {
                     .setPositiveButton("OK", null)
                     .show();
         });
-        LinearLayout.LayoutParams margeBouton5 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams margeBouton5 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
         margeBouton5.setMargins(30, 15, 30, 15);
         colonneDroite.addView(boutonDebugMkdirs, margeBouton5);
 
@@ -188,7 +208,6 @@ public class EcranDemarrage extends Activity {
         }
     }
 // bas 1
-
 // haut 2
     private ArrayList<String> listeNomsProjetsExistants() {
         ArrayList<String> noms = new ArrayList<>();
@@ -468,7 +487,4 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 2
-
-
-
 
