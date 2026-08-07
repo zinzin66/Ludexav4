@@ -43,6 +43,10 @@ public class RegistreNoeuds {
         // NOUVEAU : Clic Objet
         REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
         
+        // NOUVEAUX : Événements de Glissement
+        REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
+        REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
+        
         // NOUVEAU : Inventaire
         REGISTRE.add(new InfoNoeud("Ajouter à l'inventaire", "Actions", "NoeudActionAjouterInventaire"));
         REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Actions", "NoeudActionRetirerInventaire"));
