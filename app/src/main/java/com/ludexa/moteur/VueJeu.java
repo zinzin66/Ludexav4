@@ -151,6 +151,19 @@ public class VueJeu extends View {
             objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel);
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
+            
+            // DÉCLENCHEMENT : Début de Glisser
+            if (objetEnGlissement != null) {
+                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement)) {
+                    if (this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
+                    }
+                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement)) {
+                    if (this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
+                    }
+                }
+            }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (objetEnGlissement != null) {
                 float deltaX = xJeuActuel - lastXJeu;
@@ -229,6 +242,19 @@ public class VueJeu extends View {
             // 3. Événement global (toujours appelé)
             if (this.moteur != null) {
                 this.moteur.executerEvenement(NoeudEventFinClic.class);
+            }
+
+            // DÉCLENCHEMENT : Fin de Glisser
+            if (objetEnGlissement != null) {
+                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement)) {
+                    if (this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
+                    }
+                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement)) {
+                    if (this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
+                    }
+                }
             }
 
             objetEnGlissement = null;
@@ -381,3 +407,4 @@ public class VueJeu extends View {
     }
 }
 // bas 1
+                
