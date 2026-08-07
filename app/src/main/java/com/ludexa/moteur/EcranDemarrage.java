@@ -56,8 +56,8 @@ public class EcranDemarrage extends Activity {
         colonneGauche.addView(logo);
 
         TextView texteBienvenue = new TextView(this);
-        texteBienvenue.setText("Bienvenue dans LUDEXA — créez vos jeux sans coder.");
-        texteBienvenue.setTextSize(16f);
+        texteBienvenue.setText("Bienvenue dans YOP.2D — créez vos jeux sans coder.");
+        texteBienvenue.setTextSize(18f);
         texteBienvenue.setGravity(Gravity.CENTER);
         texteBienvenue.setPadding(0, 20, 0, 20);
         texteBienvenue.setTextColor(Palette.texteNormal);
