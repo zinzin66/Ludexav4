@@ -1,4 +1,4 @@
-// NoeudConditionSiObjetToucheZone.java
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
@@ -22,11 +22,12 @@ public class NoeudConditionSiObjetToucheZone extends NoeudBase {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.vueJeu != null && editeur.sceneActive != null) {
+                    // Utilisation du getter pour remplacer l'accès direct au champ privé vueJeu
+                    if (editeur.getVueJeu() != null && editeur.sceneActive != null) {
                         collision = UtilCollision.rectanglesSeChevauchent(
                             objetCible, editeur.sceneActive.objets, 
                             objetCibleB, editeur.sceneActive.objets, 
-                            editeur.vueJeu
+                            editeur.getVueJeu()
                         );
                     }
                 }
@@ -62,3 +63,4 @@ public class NoeudConditionSiObjetToucheZone extends NoeudBase {
     @Override
     public ObjetBase getCibleObjetB() { return this.objetCibleB; }
 }
+// bas 1
