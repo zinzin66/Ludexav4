@@ -1,6 +1,8 @@
 // haut 1
 package com.ludexa.moteur;
 
+import java.util.List;
+
 public class MoteurLogique {
     private Blueprint blueprintActif;
 
@@ -9,14 +11,8 @@ public class MoteurLogique {
     }
 
     public void executerDemarrage() {
-        // Sécurité : on s'assure qu'un Blueprint valide est chargé
-        if (blueprintActif == null || blueprintActif.noeuds == null) {
-            return;
-        }
-
-        // On parcourt la liste réelle des nœuds en mémoire
+        if (blueprintActif == null || blueprintActif.noeuds == null) return;
         for (NoeudBase noeud : blueprintActif.noeuds) {
-            // Si on trouve un nœud de type "Au Démarrage", on lance son exécution
             if (noeud instanceof NoeudEventStart) {
                 noeud.executer();
             }
@@ -24,30 +20,45 @@ public class MoteurLogique {
     }
 
     public void executerEvenement(Class<? extends NoeudBase> typeEvenement) {
-        // Sécurité : on s'assure qu'un Blueprint valide est chargé
-        if (blueprintActif == null || blueprintActif.noeuds == null) {
-            return;
-        }
-
-        // On parcourt la liste réelle des nœuds en mémoire
+        if (blueprintActif == null || blueprintActif.noeuds == null) return;
         for (NoeudBase noeud : blueprintActif.noeuds) {
-            // Si le nœud correspond à la classe d'événement recherchée
             if (typeEvenement.isInstance(noeud)) {
                 noeud.executer();
             }
         }
     }
 
-    // NOUVELLE MÉTHODE
     public void executerEvenementSurObjet(Class<? extends NoeudBase> typeEvenement, ObjetBase objetTouche) {
-        if (blueprintActif == null || blueprintActif.noeuds == null || objetTouche == null) {
-            return;
-        }
+        if (blueprintActif == null || blueprintActif.noeuds == null || objetTouche == null) return;
         for (NoeudBase noeud : blueprintActif.noeuds) {
             if (typeEvenement.isInstance(noeud) && noeud.requiertCibleObjet()) {
                 ObjetBase cible = noeud.getCibleObjet();
                 if (cible != null && cible.id.equals(objetTouche.id)) {
                     noeud.executer();
+                }
+            }
+        }
+    }
+
+    // NOUVEAU : Méthode dédiée à la vérification des événements de collision (vérifie les noeuds "Collision A/B")
+    public void verifierCollisions(VueJeu vueJeu, List<ObjetBase> objetsContexte) {
+        if (blueprintActif == null || blueprintActif.noeuds == null || objetsContexte == null) return;
+        
+        for (NoeudBase noeud : blueprintActif.noeuds) {
+            if (noeud instanceof NoeudEventCollisionAB) {
+                NoeudEventCollisionAB noeudCol = (NoeudEventCollisionAB) noeud;
+                ObjetBase objA = noeudCol.getCibleObjet();
+                ObjetBase objB = noeudCol.getCibleObjetB();
+                
+                if (objA != null && objB != null) {
+                    boolean enCollision = UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu);
+                    
+                    if (enCollision && !noeudCol.isEtaitEnCollision()) {
+                        noeudCol.setEtaitEnCollision(true);
+                        noeudCol.executer();
+                    } else if (!enCollision && noeudCol.isEtaitEnCollision()) {
+                        noeudCol.setEtaitEnCollision(false); // Reset pour le prochain déclenchement
+                    }
                 }
             }
         }

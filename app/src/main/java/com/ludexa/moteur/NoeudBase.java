@@ -10,7 +10,6 @@ import java.util.UUID;
 public abstract class NoeudBase {
     public static Context contexteApplication;
 
-    // NOUVEAU : Constantes définissant les types d'éditeurs possibles
     public static final String TYPE_TEXTE_LIBRE = "TYPE_TEXTE_LIBRE";
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
     public static final String TYPE_COULEUR = "TYPE_COULEUR";
@@ -47,12 +46,8 @@ public abstract class NoeudBase {
             portSortie.portDestination = portEntree;
         } else {
             if (contexteApplication != null) {
-                if (portSortie == null) {
-                    Toast.makeText(contexteApplication, "ERREUR : port " + nomPortSortie + " introuvable sur " + this.nom, Toast.LENGTH_LONG).show();
-                }
-                if (portEntree == null) {
-                    Toast.makeText(contexteApplication, "ERREUR : port " + nomPortEntree + " introuvable sur " + noeudArrivee.nom, Toast.LENGTH_LONG).show();
-                }
+                if (portSortie == null) Toast.makeText(contexteApplication, "ERREUR : port " + nomPortSortie + " introuvable sur " + this.nom, Toast.LENGTH_LONG).show();
+                if (portEntree == null) Toast.makeText(contexteApplication, "ERREUR : port " + nomPortEntree + " introuvable sur " + noeudArrivee.nom, Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -86,35 +81,39 @@ public abstract class NoeudBase {
     public abstract String getValeurParametre(String nom);
     public abstract void setValeurParametre(String nom, String valeur);
     
-    // Contrats existants
     public abstract boolean requiertCibleObjet();
     public abstract void setCibleObjet(ObjetBase objet);
     public abstract ObjetBase getCibleObjet();
+    
+    // NOUVEAU : Mécanisme spécifique de deuxième cible pour la détection de collisions
+    public boolean requiertCibleObjetB() { return false; }
+    public void setCibleObjetB(ObjetBase objet) {}
+    public ObjetBase getCibleObjetB() { return null; }
     
     public boolean requiertCibleVariable() { return false; }
     public void setCibleVariable(Variable v) {}
     public Variable getCibleVariable() { return null; }
     
-    // NOUVEAU : Cible Scene
     public boolean requiertCibleScene() { return false; }
     public void setCibleScene(Scene s) {}
     public Scene getCibleScene() { return null; }
     
-    // NOUVEAU : Méthode pour déterminer le type de clavier à afficher
     public boolean utiliseClavierTexte() { return false; }
 
-    // NOUVEAU : Déclaration générique du type d'éditeur pour un paramètre
     public String getTypeEditeurParametre(String nomParametre) {
-        return TYPE_TEXTE_LIBRE; // Valeur par défaut
+        return TYPE_TEXTE_LIBRE; 
     }
     
-    // NOUVEAU : Fournit les options pour un type TYPE_CHOIX_LISTE
     public List<String> getOptionsChoixListe(String nomParametre) {
         return new ArrayList<>();
     }
     
     public boolean aDesParametresEditables() {
-        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleVariable() || requiertCibleScene();
+        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleObjetB() || requiertCibleVariable() || requiertCibleScene();
     }
 }
 // bas 1
+
+
+
+
