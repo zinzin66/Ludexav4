@@ -633,8 +633,3 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 2
-
-
-
-
-    ˆ
