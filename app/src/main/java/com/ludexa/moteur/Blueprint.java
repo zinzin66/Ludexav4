@@ -67,19 +67,13 @@ public class Blueprint {
                 }
             }
             
-            if (n.requiertCibleObjet() && n.getCibleObjet() != null) {
-                ndto.cibleNom = n.getCibleObjet().nom;
-            }
+            if (n.requiertCibleObjet() && n.getCibleObjet() != null) ndto.cibleNom = n.getCibleObjet().nom;
             
-            // NOUVEAU : Sauvegarde de la cible Variable
-            if (n.requiertCibleVariable() && n.getCibleVariable() != null) {
-                ndto.cibleVariableNom = n.getCibleVariable().nom;
-            }
+            // NOUVEAU : Sauvegarde Cible Objet B
+            if (n.requiertCibleObjetB() && n.getCibleObjetB() != null) ndto.cibleNomB = n.getCibleObjetB().nom;
             
-            // NOUVEAU : Sauvegarde de la cible Scene
-            if (n.requiertCibleScene() && n.getCibleScene() != null) {
-                ndto.cibleSceneNom = n.getCibleScene().nom;
-            }
+            if (n.requiertCibleVariable() && n.getCibleVariable() != null) ndto.cibleVariableNom = n.getCibleVariable().nom;
+            if (n.requiertCibleScene() && n.getCibleScene() != null) ndto.cibleSceneNom = n.getCibleScene().nom;
 
             for (Port p : n.portsEntree) {
                 if (p.valeurSaisie != null && !p.valeurSaisie.isEmpty()) {
@@ -115,7 +109,6 @@ public class Blueprint {
         }
 
         Map<String, NoeudBase> dictionnaireNoeuds = new HashMap<>();
-        int noeudsReussis = 0;
 
         for (NoeudDTO ndto : dto.noeuds) {
             try {
@@ -124,108 +117,69 @@ public class Blueprint {
                 n.id = ndto.id;
 
                 if (ndto.parametres != null) {
-                    for (Map.Entry<String, String> entry : ndto.parametres.entrySet()) {
-                        n.setValeurParametre(entry.getKey(), entry.getValue());
-                    }
+                    for (Map.Entry<String, String> entry : ndto.parametres.entrySet()) n.setValeurParametre(entry.getKey(), entry.getValue());
                 }
                 
-                // Restauration de la cible Objet
                 if (ndto.cibleNom != null && scene != null && scene.objets != null) {
                     for (ObjetBase obj : scene.objets) {
-                        if (ndto.cibleNom.equals(obj.nom)) {
-                            n.setCibleObjet(obj);
-                            break;
-                        }
+                        if (ndto.cibleNom.equals(obj.nom)) { n.setCibleObjet(obj); break; }
                     }
                 }
                 
-                // NOUVEAU : Restauration de la cible Variable
+                // NOUVEAU : Restauration Cible Objet B
+                if (ndto.cibleNomB != null && scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (ndto.cibleNomB.equals(obj.nom)) { n.setCibleObjetB(obj); break; }
+                    }
+                }
+                
                 if (ndto.cibleVariableNom != null) {
                     Variable cibleTrouvee = null;
-                    
-                    // 1. Chercher d'abord dans les variables locales de la scène
                     if (scene != null && scene.variablesLocales != null) {
-                        for (Variable v : scene.variablesLocales) {
-                            if (ndto.cibleVariableNom.equals(v.nom)) {
-                                cibleTrouvee = v;
-                                break;
-                            }
-                        }
+                        for (Variable v : scene.variablesLocales) { if (ndto.cibleVariableNom.equals(v.nom)) { cibleTrouvee = v; break; } }
                     }
-                    
-                    // 2. Si non trouvée, chercher dans les variables globales
                     if (cibleTrouvee == null && NoeudBase.contexteApplication != null) {
                         try {
                             java.lang.reflect.Field field = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
                             @SuppressWarnings("unchecked")
                             List<Variable> globales = (List<Variable>) field.get(NoeudBase.contexteApplication);
                             if (globales != null) {
-                                for (Variable v : globales) {
-                                    if (ndto.cibleVariableNom.equals(v.nom)) {
-                                        cibleTrouvee = v;
-                                        break;
-                                    }
-                                }
+                                for (Variable v : globales) { if (ndto.cibleVariableNom.equals(v.nom)) { cibleTrouvee = v; break; } }
                             }
-                        } catch (Exception e) {
-                            // Silencieux : le contexte ne possède peut-être pas de variablesGlobales
-                        }
+                        } catch (Exception e) {}
                     }
-                    
-                    if (cibleTrouvee != null) {
-                        n.setCibleVariable(cibleTrouvee);
-                    }
+                    if (cibleTrouvee != null) n.setCibleVariable(cibleTrouvee);
                 }
                 
-                // NOUVEAU : Restauration de la cible Scene
                 if (ndto.cibleSceneNom != null && NoeudBase.contexteApplication != null) {
                     try {
                         java.lang.reflect.Field field = NoeudBase.contexteApplication.getClass().getField("listeScenes");
                         @SuppressWarnings("unchecked")
                         List<Scene> scenes = (List<Scene>) field.get(NoeudBase.contexteApplication);
                         if (scenes != null) {
-                            for (Scene s : scenes) {
-                                if (ndto.cibleSceneNom.equals(s.nom)) {
-                                    n.setCibleScene(s);
-                                    break;
-                                }
-                            }
+                            for (Scene s : scenes) { if (ndto.cibleSceneNom.equals(s.nom)) { n.setCibleScene(s); break; } }
                         }
-                    } catch (Exception e) {
-                        // Silencieux : le contexte ne possède peut-être pas de listeScenes
-                    }
+                    } catch (Exception e) {}
                 }
 
                 for (PortDTO pdto : ndto.portsEntree) {
                     for (Port p : n.portsEntree) {
-                        if (p.nom.equals(pdto.nom)) {
-                            p.valeurSaisie = pdto.valeurSaisie;
-                            break;
-                        }
+                        if (p.nom.equals(pdto.nom)) { p.valeurSaisie = pdto.valeurSaisie; break; }
                     }
                 }
 
                 bp.ajouterNoeud(n, ndto.x, ndto.y);
                 dictionnaireNoeuds.put(n.id, n);
-                noeudsReussis++;
             } catch (Exception e) {
                 if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, "Échec création du nœud : " + ndto.classeType, Toast.LENGTH_LONG).show();
-                e.printStackTrace();
             }
         }
 
-        int liensReussis = 0;
         for (LienDTO ldto : dto.liens) {
             NoeudBase dep = dictionnaireNoeuds.get(ldto.idDepart);
             NoeudBase arr = dictionnaireNoeuds.get(ldto.idArrivee);
-            if (dep != null && arr != null) {
-                bp.ajouterLien(dep, ldto.portDepart, arr, ldto.portArrivee);
-                liensReussis++;
-            } else {
-                if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, "Lien ignoré : Nœud de départ ou d'arrivée manquant", Toast.LENGTH_LONG).show();
-            }
+            if (dep != null && arr != null) bp.ajouterLien(dep, ldto.portDepart, arr, ldto.portArrivee);
         }
-
         return bp;
     }
 
@@ -246,8 +200,9 @@ public class Blueprint {
         List<PortDTO> portsEntree = new ArrayList<>();
         Map<String, String> parametres = new HashMap<>(); 
         String cibleNom; 
-        String cibleVariableNom; // NOUVEAU : Champ pour sauver le nom de la variable
-        String cibleSceneNom; // NOUVEAU : Champ pour sauver le nom de la scene
+        String cibleNomB; // NOUVEAU
+        String cibleVariableNom; 
+        String cibleSceneNom;
     }
 
     private static class PortDTO {
