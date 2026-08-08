@@ -1,11 +1,13 @@
-// haut 1
+// haut 1 07
 package com.ludexa.moteur;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,225 +16,470 @@ import android.widget.*;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+/**
+ * Ã‰cran de dÃ©marrage YOP.2D â€” mise en page faÃ§on Godot :
+ *  - colonne gauche : identitÃ© (logo, baseline, langue)
+ *  - colonne droite : bandeau d'outils compact en haut, liste des projets au centre,
+ *                     barre d'actions contextuelles en bas (Ã‰diter / Renommer /
+ *                     Dupliquer / Exporter / Supprimer).
+ */
 public class EcranDemarrage extends Activity {
 
     private ListView listeProjets;
+    private AdaptateurProjets adaptateurProjets;
+    private final ArrayList<File> dossiersProjets = new ArrayList<>();
+    private int positionSelectionnee = -1;
+
+    private LinearLayout barreActions;
+    private TextView etiquetteSelection;
+
+    // ---------------------------------------------------------------- outils UI
+
+    /** Conversion dp -> pixels : indispensable pour rester net sur toutes les tablettes. */
+    private int dp(float valeur) {
+        return Math.round(TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, valeur, getResources().getDisplayMetrics()));
+    }
+
+    /** Fond arrondi rÃ©utilisable (panneaux, boutons, champs). */
+    private GradientDrawable fond(int couleur, int rayonDp, int couleurBordure, int epaisseurDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(couleur);
+        g.setCornerRadius(dp(rayonDp));
+        if (epaisseurDp > 0) {
+            g.setStroke(dp(epaisseurDp), couleurBordure);
+        }
+        return g;
+    }
+
+    // --- Couleurs dÃ©rivÃ©es directement de Palette.java (aucune valeur en dur) ---
+    private int couleurSurface() {
+        return Palette.canvasFond;      // panneau de droite
+    }
+
+    private int couleurFondListe() {
+        return Palette.fondListe;       // zone de liste des projets
+    }
+
+    private int couleurBordure() {
+        return Palette.bordure;
+    }
+
+    private int couleurSelection() {
+        return Palette.boutonSurvol;    // ligne sÃ©lectionnÃ©e
+    }
+
+    private int couleurTexteSecondaire() {
+        return Palette.texteSelectionne;
+    }
+
+    /** Petit bouton icÃ´ne du bandeau (style Godot : compact, carrÃ©, discret). */
+    private ImageButton boutonBandeau(int idIcone, String description, View.OnClickListener action) {
+        ImageButton b = new ImageButton(this);
+        b.setImageResource(idIcone);
+        b.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        b.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        b.setPadding(dp(6), dp(6), dp(6), dp(6));
+        Palette.appliquerCouleurIcone(b, Palette.iconeNormal);
+        b.setContentDescription(description);
+        b.setOnClickListener(action);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(38), dp(38));
+        lp.setMargins(0, 0, dp(6), 0);
+        b.setLayoutParams(lp);
+        return b;
+    }
+
+    /** Bouton texte compact de la barre d'actions du bas. */
+    private TextView boutonAction(String libelle, boolean destructif, View.OnClickListener action) {
+        TextView t = new TextView(this);
+        t.setText(libelle);
+        t.setTextSize(13f);
+        t.setAllCaps(false);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(dp(12), dp(9), dp(12), dp(9));
+        t.setTextColor(destructif ? Color.parseColor("#FF6B6B") : Palette.texteNormal);
+        t.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        t.setClickable(true);
+        t.setOnClickListener(action);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(0, 0, dp(6), 0);
+        t.setLayoutParams(lp);
+        return t;
+    }
+
+    private TextView separateurVertical() {
+        TextView s = new TextView(this);
+        s.setBackgroundColor(couleurBordure());
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(1), dp(26));
+        lp.setMargins(dp(4), 0, dp(10), 0);
+        lp.gravity = Gravity.CENTER_VERTICAL;
+        s.setLayoutParams(lp);
+        return s;
+    }
+
+    // ---------------------------------------------------------------- cycle de vie
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        NoeudBase.contexteApplication = this;
 
-        Toast.makeText(this, "Test affichage OK : Système Toast actif", Toast.LENGTH_LONG).show();
+        NoeudBase.contexteApplication = this;
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
-        layoutPrincipal.setPadding(40, 40, 40, 40);
-        layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
+        layoutPrincipal.setPadding(dp(16), dp(16), dp(16), dp(16));
+        layoutPrincipal.setBackgroundColor(Palette.fondNormal);
 
-        LinearLayout colonneGauche = new LinearLayout(this);
-        colonneGauche.setOrientation(LinearLayout.VERTICAL);
-        colonneGauche.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams paramsGauche = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
-        colonneGauche.setLayoutParams(paramsGauche);
-
-        ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.logo_ludexa);
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(300, 300);
-        params.gravity = Gravity.CENTER;
-        logo.setLayoutParams(params);
-        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-        colonneGauche.addView(logo);
-
-        TextView texteBienvenue = new TextView(this);
-        texteBienvenue.setText("Bienvenue dans LUDEXA — créez vos jeux sans coder.");
-        texteBienvenue.setTextSize(16f);
-        texteBienvenue.setGravity(Gravity.CENTER);
-        texteBienvenue.setPadding(0, 20, 0, 20);
-        texteBienvenue.setTextColor(Palette.texteNormal);
-        colonneGauche.addView(texteBienvenue);
-
-        // Bouton "Langue" : icône monochrome au lieu du texte
-        ImageButton boutonLangue = new ImageButton(this);
-        boutonLangue.setImageResource(R.drawable.language_24px);
-        boutonLangue.setBackgroundColor(Palette.boutonNormal);
-        boutonLangue.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        Palette.appliquerCouleurIcone(boutonLangue, Palette.iconeNormal);
-        boutonLangue.setContentDescription("Langue : Français");
-        boutonLangue.setOnClickListener(v -> {
-        });
-        LinearLayout.LayoutParams margeBouton1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
-        margeBouton1.setMargins(30, 15, 30, 15);
-        colonneGauche.addView(boutonLangue, margeBouton1);
-
-        LinearLayout colonneDroite = new LinearLayout(this);
-        colonneDroite.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams paramsDroite = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
-        colonneDroite.setLayoutParams(paramsDroite);
-
-        // Bouton "Créer un projet" : icône monochrome au lieu du texte
-        ImageButton boutonCreerProjet = new ImageButton(this);
-        boutonCreerProjet.setImageResource(R.drawable.add_24px);
-        boutonCreerProjet.setBackgroundColor(Palette.boutonNormal);
-        boutonCreerProjet.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        Palette.appliquerCouleurIcone(boutonCreerProjet, Palette.iconeNormal);
-        boutonCreerProjet.setContentDescription("Créer un projet");
-        boutonCreerProjet.setOnClickListener(v -> {
-            afficherDialogueCreationProjet();
-        });
-        LinearLayout.LayoutParams margeBouton2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
-        margeBouton2.setMargins(30, 15, 30, 15);
-        colonneDroite.addView(boutonCreerProjet, margeBouton2);
-
-        // Bouton "Ouvrir un projet téléchargé" : icône monochrome au lieu du texte
-        ImageButton boutonOuvrirProjet = new ImageButton(this);
-        boutonOuvrirProjet.setImageResource(R.drawable.folder_open_24px);
-        boutonOuvrirProjet.setBackgroundColor(Palette.boutonNormal);
-        boutonOuvrirProjet.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        Palette.appliquerCouleurIcone(boutonOuvrirProjet, Palette.iconeNormal);
-        boutonOuvrirProjet.setContentDescription("Ouvrir un projet téléchargé");
-        boutonOuvrirProjet.setOnClickListener(v -> {
-        });
-        LinearLayout.LayoutParams margeBouton3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
-        margeBouton3.setMargins(30, 15, 30, 15);
-        colonneDroite.addView(boutonOuvrirProjet, margeBouton3);
-
-        // Bouton "DEBUG Vérifier dossier projets" : icône monochrome au lieu du texte
-        ImageButton boutonDebug = new ImageButton(this);
-        boutonDebug.setImageResource(R.drawable.bug_report_24px);
-        boutonDebug.setBackgroundColor(Palette.boutonNormal);
-        boutonDebug.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        Palette.appliquerCouleurIcone(boutonDebug, Palette.iconeNormal);
-        boutonDebug.setContentDescription("DEBUG Vérifier dossier projets");
-        boutonDebug.setOnClickListener(v -> {
-            File dossierProjets = new File(getFilesDir(), "projets");
-            StringBuilder info = new StringBuilder();
-            
-            info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
-            info.append("Existe : ").append(dossierProjets.exists()).append("\n");
-            info.append("Est un dossier : ").append(dossierProjets.isDirectory()).append("\n\n");
-
-            File[] sousDossiers = dossierProjets.listFiles();
-            if (sousDossiers == null) {
-                info.append("listFiles() a retourné null\n");
-            } else if (sousDossiers.length == 0) {
-                info.append("Aucun sous-dossier trouvé\n");
-            } else {
-                for (File sousDossier : sousDossiers) {
-                    info.append("Dossier : ").append(sousDossier.getName()).append("\n");
-                    File metaFile = new File(sousDossier, "meta.json");
-                    boolean metaExiste = metaFile.exists();
-                    info.append("  -> meta.json existe : ").append(metaExiste);
-                    if (metaExiste) {
-                        info.append(" (Taille : ").append(metaFile.length()).append(" octets)");
-                    }
-                    info.append("\n");
-                }
-            }
-
-            new AlertDialog.Builder(EcranDemarrage.this)
-                    .setTitle("Debug : Dossier projets")
-                    .setMessage(info.toString())
-                    .setPositiveButton("OK", null)
-                    .show();
-        });
-        LinearLayout.LayoutParams margeBouton4 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
-        margeBouton4.setMargins(30, 15, 30, 15);
-        colonneDroite.addView(boutonDebug, margeBouton4);
-
-        // Bouton "DEBUG Test mkdirs" : icône monochrome au lieu du texte
-        ImageButton boutonDebugMkdirs = new ImageButton(this);
-        boutonDebugMkdirs.setImageResource(R.drawable.build_24px);
-        boutonDebugMkdirs.setBackgroundColor(Palette.boutonNormal);
-        boutonDebugMkdirs.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        Palette.appliquerCouleurIcone(boutonDebugMkdirs, Palette.iconeNormal);
-        boutonDebugMkdirs.setContentDescription("DEBUG Test mkdirs");
-        boutonDebugMkdirs.setOnClickListener(v -> {
-            File dossierProjets = new File(getFilesDir(), "projets");
-            boolean resultat = dossierProjets.mkdirs();
-            
-            StringBuilder info = new StringBuilder();
-            info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
-            info.append("Valeur de resultat (mkdirs) : ").append(resultat).append("\n");
-            info.append("exists() : ").append(dossierProjets.exists()).append("\n");
-            info.append("canWrite() : ").append(dossierProjets.canWrite()).append("\n");
-            info.append("getFilesDir().canWrite() (parent) : ").append(getFilesDir().canWrite()).append("\n");
-
-            new AlertDialog.Builder(EcranDemarrage.this)
-                    .setTitle("Debug : Test mkdirs")
-                    .setMessage(info.toString())
-                    .setPositiveButton("OK", null)
-                    .show();
-        });
-        LinearLayout.LayoutParams margeBouton5 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 120);
-        margeBouton5.setMargins(30, 15, 30, 15);
-        colonneDroite.addView(boutonDebugMkdirs, margeBouton5);
-
-        TextView titreListe = new TextView(this);
-        titreListe.setText("Projets existants :");
-        titreListe.setTextSize(18f);
-        titreListe.setPadding(0, 30, 0, 10);
-        titreListe.setTextColor(Palette.texteNormal);
-        colonneDroite.addView(titreListe);
-
-        listeProjets = new ListView(this);
-        LinearLayout.LayoutParams paramsListe = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        listeProjets.setLayoutParams(paramsListe);
-        colonneDroite.addView(listeProjets);
-
-        chargerListeProjets(listeProjets);
-
-        layoutPrincipal.addView(colonneGauche);
-        layoutPrincipal.addView(colonneDroite);
+        layoutPrincipal.addView(construireColonneGauche());
+        layoutPrincipal.addView(construireColonneDroite());
 
         setContentView(layoutPrincipal);
+
+        chargerListeProjets();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (listeProjets != null) {
-            chargerListeProjets(listeProjets);
+        chargerListeProjets();
+    }
+
+    // ---------------------------------------------------------------- colonne gauche
+
+    private View construireColonneGauche() {
+        LinearLayout colonneGauche = new LinearLayout(this);
+        colonneGauche.setOrientation(LinearLayout.VERTICAL);
+        colonneGauche.setGravity(Gravity.CENTER);
+        colonneGauche.setPadding(dp(24), dp(24), dp(24), dp(24));
+        colonneGauche.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.MATCH_PARENT, 0.9f));
+
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.logo_ludexa);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams pLogo = new LinearLayout.LayoutParams(dp(140), dp(140));
+        pLogo.gravity = Gravity.CENTER;
+        colonneGauche.addView(logo, pLogo);
+
+        TextView titre = new TextView(this);
+        titre.setText("YOP.2D");
+        titre.setTextSize(28f);
+        titre.setGravity(Gravity.CENTER);
+        titre.setLetterSpacing(0.12f);
+        titre.setPadding(0, dp(14), 0, 0);
+        titre.setTextColor(Palette.texteNormal);
+        colonneGauche.addView(titre);
+
+        TextView baseline = new TextView(this);
+        baseline.setText("Moteur de jeu 2D â€” crÃ©ez sans coder.");
+        baseline.setTextSize(13f);
+        baseline.setGravity(Gravity.CENTER);
+        baseline.setPadding(0, dp(6), 0, dp(20));
+        baseline.setTextColor(couleurTexteSecondaire());
+        colonneGauche.addView(baseline);
+
+        LinearLayout rangeeLangue = new LinearLayout(this);
+        rangeeLangue.setOrientation(LinearLayout.HORIZONTAL);
+        rangeeLangue.setGravity(Gravity.CENTER);
+        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, "Langue : FranÃ§ais", v ->
+                Toast.makeText(this, "Langue : FranÃ§ais", Toast.LENGTH_SHORT).show()));
+
+        TextView libelleLangue = new TextView(this);
+        libelleLangue.setText("FranÃ§ais");
+        libelleLangue.setTextSize(13f);
+        libelleLangue.setTextColor(couleurTexteSecondaire());
+        libelleLangue.setGravity(Gravity.CENTER_VERTICAL);
+        rangeeLangue.addView(libelleLangue);
+
+        colonneGauche.addView(rangeeLangue);
+
+        return colonneGauche;
+    }
+
+    // ---------------------------------------------------------------- colonne droite
+
+    private View construireColonneDroite() {
+        LinearLayout colonneDroite = new LinearLayout(this);
+        colonneDroite.setOrientation(LinearLayout.VERTICAL);
+        colonneDroite.setBackground(fond(couleurSurface(), 10, couleurBordure(), 1));
+        colonneDroite.setPadding(dp(10), dp(8), dp(10), dp(10));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.MATCH_PARENT, 1.4f);
+        lp.setMargins(dp(10), 0, 0, 0);
+        colonneDroite.setLayoutParams(lp);
+
+        colonneDroite.addView(construireBandeauOutils());
+        colonneDroite.addView(construireEnteteListe());
+        colonneDroite.addView(construireListe());
+        colonneDroite.addView(construireBarreActions());
+
+        return colonneDroite;
+    }
+
+    /** Bandeau supÃ©rieur type Godot : petits boutons icÃ´nes alignÃ©s Ã  gauche. */
+    private View construireBandeauOutils() {
+        LinearLayout bandeau = new LinearLayout(this);
+        bandeau.setOrientation(LinearLayout.HORIZONTAL);
+        bandeau.setGravity(Gravity.CENTER_VERTICAL);
+        bandeau.setPadding(dp(6), dp(6), dp(6), dp(6));
+        bandeau.setBackground(fond(Palette.fondPanneaux, 8, couleurBordure(), 1));
+
+        bandeau.addView(boutonBandeau(R.drawable.add_24px, "CrÃ©er un projet",
+                v -> afficherDialogueCreationProjet()));
+        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, "Ouvrir un projet tÃ©lÃ©chargÃ©",
+                v -> Toast.makeText(this, "Import de projet : Ã  venir", Toast.LENGTH_SHORT).show()));
+
+        bandeau.addView(separateurVertical());
+
+        bandeau.addView(boutonBandeau(R.drawable.bug_report_24px, "Diagnostic du dossier projets",
+                v -> afficherDiagnosticDossier()));
+        bandeau.addView(boutonBandeau(R.drawable.build_24px, "Test mkdirs",
+                v -> afficherTestMkdirs()));
+
+        // Espace Ã©lastique puis compteur de projets, alignÃ© Ã  droite.
+        View espace = new View(this);
+        espace.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
+        bandeau.addView(espace);
+
+        etiquetteSelection = new TextView(this);
+        etiquetteSelection.setTextSize(12f);
+        etiquetteSelection.setTextColor(couleurTexteSecondaire());
+        etiquetteSelection.setPadding(dp(8), 0, dp(4), 0);
+        bandeau.addView(etiquetteSelection);
+
+        return bandeau;
+    }
+
+    private View construireEnteteListe() {
+        TextView titreListe = new TextView(this);
+        titreListe.setText("PROJETS");
+        titreListe.setTextSize(11f);
+        titreListe.setLetterSpacing(0.18f);
+        titreListe.setPadding(dp(4), dp(14), 0, dp(6));
+        titreListe.setTextColor(couleurTexteSecondaire());
+        return titreListe;
+    }
+
+    private View construireListe() {
+        FrameLayout conteneur = new FrameLayout(this);
+        conteneur.setBackground(fond(couleurFondListe(), 8, couleurBordure(), 1));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        conteneur.setLayoutParams(lp);
+
+        listeProjets = new ListView(this);
+        listeProjets.setDivider(null);
+        listeProjets.setDividerHeight(0);
+        listeProjets.setPadding(dp(6), dp(6), dp(6), dp(6));
+        listeProjets.setClipToPadding(false);
+        listeProjets.setSelector(new GradientDrawable());
+        conteneur.addView(listeProjets, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+        return conteneur;
+    }
+
+    /** Barre d'actions contextuelles, en bas de la colonne des projets. */
+    private View construireBarreActions() {
+        barreActions = new LinearLayout(this);
+        barreActions.setOrientation(LinearLayout.HORIZONTAL);
+        barreActions.setPadding(dp(6), dp(8), dp(0), dp(2));
+
+        barreActions.addView(boutonAction("Ã‰diter", false, v -> actionEditer()));
+        barreActions.addView(boutonAction("Renommer", false, v -> actionRenommer()));
+        barreActions.addView(boutonAction("Dupliquer", false, v -> actionDupliquer()));
+        barreActions.addView(boutonAction("Exporter", false, v -> actionExporter()));
+        barreActions.addView(boutonAction("Supprimer", true, v -> actionSupprimer()));
+
+        majEtatActions();
+        return barreActions;
+    }
+
+    private void majEtatActions() {
+        boolean actif = positionSelectionnee >= 0 && positionSelectionnee < dossiersProjets.size();
+        if (barreActions != null) {
+            for (int i = 0; i < barreActions.getChildCount(); i++) {
+                View enfant = barreActions.getChildAt(i);
+                enfant.setEnabled(actif);
+                enfant.setAlpha(actif ? 1f : 0.4f);
+            }
+        }
+        if (etiquetteSelection != null) {
+            int total = dossiersProjets.size();
+            etiquetteSelection.setText(actif
+                    ? "1 projet sÃ©lectionnÃ© Â· " + total + " au total"
+                    : total + " projet(s)");
         }
     }
 // bas 1
 // haut 2
+
+    // ---------------------------------------------------------------- adaptateur liste
+
+    private class AdaptateurProjets extends ArrayAdapter<String> {
+        private final ArrayList<String> sousTitres;
+
+        AdaptateurProjets(ArrayList<String> noms, ArrayList<String> sousTitres) {
+            super(EcranDemarrage.this, 0, noms);
+            this.sousTitres = sousTitres;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            LinearLayout ligne;
+            TextView titre;
+            TextView sousTitre;
+
+            if (convertView == null) {
+                ligne = new LinearLayout(EcranDemarrage.this);
+                ligne.setOrientation(LinearLayout.VERTICAL);
+                ligne.setPadding(dp(12), dp(10), dp(12), dp(10));
+
+                titre = new TextView(EcranDemarrage.this);
+                titre.setTextSize(15f);
+                titre.setTag("titre");
+                ligne.addView(titre);
+
+                sousTitre = new TextView(EcranDemarrage.this);
+                sousTitre.setTextSize(11f);
+                sousTitre.setPadding(0, dp(2), 0, 0);
+                sousTitre.setTag("sousTitre");
+                ligne.addView(sousTitre);
+
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lp.setMargins(0, 0, 0, dp(4));
+                ligne.setLayoutParams(lp);
+            } else {
+                ligne = (LinearLayout) convertView;
+                titre = (TextView) ligne.findViewWithTag("titre");
+                sousTitre = (TextView) ligne.findViewWithTag("sousTitre");
+            }
+
+            boolean choisi = position == positionSelectionnee;
+            ligne.setBackground(choisi
+                    ? fond(couleurSelection(), 6, Palette.bordure, 1)
+                    : fond(Color.TRANSPARENT, 6, Color.TRANSPARENT, 0));
+
+            titre.setText(getItem(position));
+            titre.setTextColor(choisi ? Palette.texteSelectionne : Palette.texteNormal);
+            sousTitre.setText(sousTitres.get(position));
+            sousTitre.setTextColor(couleurTexteSecondaire());
+
+            return ligne;
+        }
+    }
+
+    // ---------------------------------------------------------------- donnÃ©es
+
+    private void chargerListeProjets() {
+        if (listeProjets == null) return;
+
+        File dossierRacine = new File(getFilesDir(), "projets");
+        ArrayList<String> noms = new ArrayList<>();
+        ArrayList<String> sousTitres = new ArrayList<>();
+        dossiersProjets.clear();
+
+        if (dossierRacine.exists() && dossierRacine.isDirectory()) {
+            File[] sousDossiers = dossierRacine.listFiles();
+            if (sousDossiers != null) {
+                for (File sousDossier : sousDossiers) {
+                    if (!sousDossier.isDirectory()) continue;
+                    File metaFile = new File(sousDossier, "meta.json");
+                    if (!metaFile.exists()) continue;
+                    try {
+                        JSONObject metaJson = lireJson(metaFile);
+                        noms.add(metaJson.optString("nom", "Projet Sans Nom"));
+                        sousTitres.add("ModifiÃ© le " + metaJson.optString("dateModif", "date inconnue"));
+                        dossiersProjets.add(sousDossier);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        if (positionSelectionnee >= noms.size()) {
+            positionSelectionnee = -1;
+        }
+
+        adaptateurProjets = new AdaptateurProjets(noms, sousTitres);
+        listeProjets.setAdapter(adaptateurProjets);
+
+        listeProjets.setOnItemClickListener((parent, view, position, id) -> {
+            positionSelectionnee = position;
+            adaptateurProjets.notifyDataSetChanged();
+            majEtatActions();
+        });
+
+        listeProjets.setOnItemLongClickListener((parent, view, position, id) -> {
+            positionSelectionnee = position;
+            adaptateurProjets.notifyDataSetChanged();
+            majEtatActions();
+            actionEditer();
+            return true;
+        });
+
+        majEtatActions();
+    }
+
+    private JSONObject lireJson(File fichier) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        Scanner scanner = new Scanner(fichier);
+        while (scanner.hasNextLine()) {
+            sb.append(scanner.nextLine());
+        }
+        scanner.close();
+        return new JSONObject(sb.toString());
+    }
+
+    private File dossierSelectionne() {
+        if (positionSelectionnee < 0 || positionSelectionnee >= dossiersProjets.size()) {
+            Toast.makeText(this, "SÃ©lectionnez d'abord un projet", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        return dossiersProjets.get(positionSelectionnee);
+    }
+
+    private String nomProjet(File dossier) {
+        try {
+            return lireJson(new File(dossier, "meta.json")).optString("nom", "Projet Sans Nom");
+        } catch (Exception e) {
+            return "Projet Sans Nom";
+        }
+    }
+
+    private String dateMaintenant() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+    }
+
     private ArrayList<String> listeNomsProjetsExistants() {
         ArrayList<String> noms = new ArrayList<>();
         File dossierProjets = new File(getFilesDir(), "projets");
-        
-        if (dossierProjets.exists() && dossierProjets.isDirectory()) {
-            File[] sousDossiers = dossierProjets.listFiles();
-            if (sousDossiers != null) {
-                for (File sousDossier : sousDossiers) {
-                    if (sousDossier.isDirectory()) {
-                        File metaFile = new File(sousDossier, "meta.json");
-                        if (metaFile.exists()) {
-                            try {
-                                StringBuilder sb = new StringBuilder();
-                                Scanner scanner = new Scanner(metaFile);
-                                while (scanner.hasNextLine()) {
-                                    sb.append(scanner.nextLine());
-                                }
-                                scanner.close();
-                                JSONObject metaJson = new JSONObject(sb.toString());
-                                noms.add(metaJson.optString("nom", "Projet Sans Nom"));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
+        File[] sousDossiers = dossierProjets.listFiles();
+        if (sousDossiers != null) {
+            for (File sousDossier : sousDossiers) {
+                File metaFile = new File(sousDossier, "meta.json");
+                if (sousDossier.isDirectory() && metaFile.exists()) {
+                    try {
+                        noms.add(lireJson(metaFile).optString("nom", "Projet Sans Nom"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -240,7 +487,217 @@ public class EcranDemarrage extends Activity {
         return noms;
     }
 
+    private boolean nomDejaUtilise(String nom, String nomIgnore) {
+        for (String existant : listeNomsProjetsExistants()) {
+            if (existant.equalsIgnoreCase(nom) && !existant.equalsIgnoreCase(nomIgnore)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ---------------------------------------------------------------- actions
+    // ---------------------------------------------------------------- actions
+
+    private void actionEditer() {
+        File dossier = dossierSelectionne();
+        if (dossier == null) return;
+        Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+        intent.putExtra("cheminProjet", dossier.getAbsolutePath());
+        startActivity(intent);
+    }
+
+    private void actionRenommer() {
+        File dossier = dossierSelectionne();
+        if (dossier == null) return;
+        final File metaFile = new File(dossier, "meta.json");
+        final String nomActuel = nomProjet(dossier);
+
+        final EditText champ = new EditText(this);
+        champ.setText(nomActuel);
+        champ.setSelectAllOnFocus(true);
+
+        AlertDialog dialogue = new AlertDialog.Builder(this)
+                .setTitle("Renommer le projet")
+                .setView(champ)
+                .setPositiveButton("Valider", null)
+                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .create();
+        dialogue.show();
+
+        dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String nouveauNom = champ.getText().toString().trim();
+            if (nouveauNom.isEmpty()) {
+                Toast.makeText(this, "Le nom du projet ne peut pas Ãªtre vide", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (nomDejaUtilise(nouveauNom, nomActuel)) {
+                Toast.makeText(this, "Ce nom de projet est dÃ©jÃ  utilisÃ©.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            try {
+                JSONObject metaJson = lireJson(metaFile);
+                metaJson.put("nom", nouveauNom);
+                metaJson.put("dateModif", dateMaintenant());
+                FileWriter fw = new FileWriter(metaFile);
+                fw.write(metaJson.toString(4));
+                fw.close();
+                chargerListeProjets();
+                dialogue.dismiss();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Erreur lors du renommage", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void actionDupliquer() {
+        File source = dossierSelectionne();
+        if (source == null) return;
+
+        String base = nomProjet(source) + " (copie)";
+        String nomFinal = base;
+        int index = 2;
+        while (nomDejaUtilise(nomFinal, null)) {
+            nomFinal = base + " " + index++;
+        }
+
+        File cible = new File(new File(getFilesDir(), "projets"), UUID.randomUUID().toString());
+        try {
+            copierRecursif(source, cible);
+            File metaFile = new File(cible, "meta.json");
+            JSONObject metaJson = lireJson(metaFile);
+            metaJson.put("nom", nomFinal);
+            metaJson.put("dateCreation", dateMaintenant());
+            metaJson.put("dateModif", dateMaintenant());
+            FileWriter fw = new FileWriter(metaFile);
+            fw.write(metaJson.toString(4));
+            fw.close();
+            chargerListeProjets();
+            Toast.makeText(this, "Projet dupliquÃ© : " + nomFinal, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            supprimerDossierRecursif(cible);
+            Toast.makeText(this, "Erreur lors de la duplication", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void actionExporter() {
+        File source = dossierSelectionne();
+        if (source == null) return;
+
+        String nom = nomProjet(source).replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
+        File dossierExports = new File(getExternalFilesDir(null), "exports");
+        dossierExports.mkdirs();
+        File archive = new File(dossierExports, nom + ".zip");
+
+        try {
+            ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(archive));
+            zipperRecursif(source, "", zip);
+            zip.close();
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Export terminÃ©")
+                    .setMessage("Archive crÃ©Ã©e :\n" + archive.getAbsolutePath())
+                    .setPositiveButton("OK", null)
+                    .show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de l'export", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void actionSupprimer() {
+        File dossier = dossierSelectionne();
+        if (dossier == null) return;
+        String nom = nomProjet(dossier);
+
+        AlertDialog dialogue = new AlertDialog.Builder(this)
+                .setTitle("Supprimer le projet")
+                .setMessage("Supprimer dÃ©finitivement Â« " + nom + " Â» ? Cette action est irrÃ©versible.")
+                .setPositiveButton("Supprimer", (d, w) -> {
+                    supprimerDossierRecursif(dossier);
+                    positionSelectionnee = -1;
+                    chargerListeProjets();
+                })
+                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .create();
+        dialogue.show();
+        dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
+    }
+
+    // ---------------------------------------------------------------- crÃ©ation projet
+
+    private void afficherDialogueCreationProjet() {
+        final EditText champ = new EditText(this);
+        champ.setHint("Nom du projet");
+
+        AlertDialog dialogue = new AlertDialog.Builder(this)
+                .setTitle("Nouveau projet")
+                .setView(champ)
+                .setPositiveButton("CrÃ©er", null)
+                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .create();
+        dialogue.show();
+
+        dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String nomProjet = champ.getText().toString().trim();
+            if (nomProjet.isEmpty()) {
+                Toast.makeText(this, "Le nom du projet ne peut pas Ãªtre vide", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (nomDejaUtilise(nomProjet, null)) {
+                Toast.makeText(this, "Ce nom de projet est dÃ©jÃ  utilisÃ©.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            creerNouveauProjet(nomProjet);
+            dialogue.dismiss();
+        });
+    }
+
+    private void creerNouveauProjet(String nomProjet) {
+        String uuid = UUID.randomUUID().toString();
+        File dossierNouveauProjet = new File(new File(getFilesDir(), "projets"), uuid);
+
+        dossierNouveauProjet.mkdirs();
+        new File(dossierNouveauProjet, "logique").mkdirs();
+        File dossierAssets = new File(dossierNouveauProjet, "assets_ludexa");
+        new File(dossierAssets, "Images").mkdirs();
+        new File(dossierAssets, "Sons").mkdirs();
+
+        String dateActuelle = dateMaintenant();
+
+        try {
+            JSONObject metaJson = new JSONObject();
+            metaJson.put("nom", nomProjet);
+            metaJson.put("dateCreation", dateActuelle);
+            metaJson.put("dateModif", dateActuelle);
+            FileWriter fwMeta = new FileWriter(new File(dossierNouveauProjet, "meta.json"));
+            fwMeta.write(metaJson.toString(4));
+            fwMeta.close();
+
+            FileWriter fwSauvegarde = new FileWriter(new File(dossierNouveauProjet, "projet_sauvegarde.json"));
+            fwSauvegarde.write("{ \"scenes\": [] }");
+            fwSauvegarde.close();
+
+            FileWriter fwBlueprint = new FileWriter(new File(new File(dossierNouveauProjet, "logique"), "blueprint.json"));
+            fwBlueprint.write("{}");
+            fwBlueprint.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de la crÃ©ation des fichiers", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+        intent.putExtra("cheminProjet", dossierNouveauProjet.getAbsolutePath());
+        startActivity(intent);
+    }
+
+    // ---------------------------------------------------------------- fichiers
+
     private void supprimerDossierRecursif(File dossier) {
+        if (dossier == null || !dossier.exists()) return;
         if (dossier.isDirectory()) {
             File[] enfants = dossier.listFiles();
             if (enfants != null) {
@@ -252,239 +709,102 @@ public class EcranDemarrage extends Activity {
         dossier.delete();
     }
 
-    private void afficherDialogueCreationProjet() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Nouveau projet");
-        
-        final EditText input = new EditText(this);
-        input.setHint("Nom du projet");
-        builder.setView(input);
-
-        builder.setPositiveButton("Créer", null);
-        builder.setNegativeButton("Annuler", (dialog, which) -> dialog.cancel());
-        
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String nomProjet = input.getText().toString().trim();
-            if (nomProjet.isEmpty()) {
-                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            ArrayList<String> existants = listeNomsProjetsExistants();
-            for (String existant : existants) {
-                if (existant.equalsIgnoreCase(nomProjet)) {
-                    Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
-                    return;
+    private void copierRecursif(File source, File cible) throws Exception {
+        if (source.isDirectory()) {
+            cible.mkdirs();
+            File[] enfants = source.listFiles();
+            if (enfants != null) {
+                for (File enfant : enfants) {
+                    copierRecursif(enfant, new File(cible, enfant.getName()));
                 }
             }
-
-            creerNouveauProjet(nomProjet);
-            dialog.dismiss();
-        });
-    }
-
-    private void creerNouveauProjet(String nomProjet) {
-        String uuid = UUID.randomUUID().toString();
-        File dossierProjets = new File(getFilesDir(), "projets");
-        File dossierNouveauProjet = new File(dossierProjets, uuid);
-        
-        dossierNouveauProjet.mkdirs();
-        new File(dossierNouveauProjet, "logique").mkdirs();
-        File dossierAssets = new File(dossierNouveauProjet, "assets_ludexa");
-        new File(dossierAssets, "Images").mkdirs();
-        new File(dossierAssets, "Sons").mkdirs();
-
-        String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-
-        try {
-            File metaFile = new File(dossierNouveauProjet, "meta.json");
-            JSONObject metaJson = new JSONObject();
-            metaJson.put("nom", nomProjet);
-            metaJson.put("dateCreation", dateActuelle);
-            metaJson.put("dateModif", dateActuelle);
-            FileWriter fwMeta = new FileWriter(metaFile);
-            fwMeta.write(metaJson.toString(4));
-            fwMeta.close();
-
-            File sauvegardeFile = new File(dossierNouveauProjet, "projet_sauvegarde.json");
-            FileWriter fwSauvegarde = new FileWriter(sauvegardeFile);
-            fwSauvegarde.write("{ \"scenes\": [] }");
-            fwSauvegarde.close();
-
-            File blueprintFile = new File(new File(dossierNouveauProjet, "logique"), "blueprint.json");
-            FileWriter fwBlueprint = new FileWriter(blueprintFile);
-            fwBlueprint.write("{}");
-            fwBlueprint.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de la création des fichiers", Toast.LENGTH_SHORT).show();
-            return;
+        } else {
+            InputStream in = new FileInputStream(source);
+            OutputStream out = new FileOutputStream(cible);
+            byte[] tampon = new byte[8192];
+            int lus;
+            while ((lus = in.read(tampon)) > 0) {
+                out.write(tampon, 0, lus);
+            }
+            in.close();
+            out.close();
         }
-
-        Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
-        intent.putExtra("cheminProjet", dossierNouveauProjet.getAbsolutePath());
-        startActivity(intent);
     }
 
-    private void chargerListeProjets(ListView listeProjets) {
-        File dossierProjets = new File(getFilesDir(), "projets");
-        ArrayList<String> affichageList = new ArrayList<>();
-        final ArrayList<File> dossiersList = new ArrayList<>();
-
-        if (dossierProjets.exists() && dossierProjets.isDirectory()) {
-            File[] sousDossiers = dossierProjets.listFiles();
-            if (sousDossiers != null) {
-                for (File sousDossier : sousDossiers) {
-                    if (sousDossier.isDirectory()) {
-                        File metaFile = new File(sousDossier, "meta.json");
-                        if (metaFile.exists()) {
-                            try {
-                                StringBuilder sb = new StringBuilder();
-                                Scanner scanner = new Scanner(metaFile);
-                                while (scanner.hasNextLine()) {
-                                    sb.append(scanner.nextLine());
-                                }
-                                scanner.close();
-
-                                JSONObject metaJson = new JSONObject(sb.toString());
-                                String nom = metaJson.optString("nom", "Projet Sans Nom");
-                                String dateModif = metaJson.optString("dateModif", "Date inconnue");
-
-                                affichageList.add(nom + " (Modifié le : " + dateModif + ")");
-                                dossiersList.add(sousDossier);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
+    private void zipperRecursif(File source, String chemin, ZipOutputStream zip) throws Exception {
+        if (source.isDirectory()) {
+            File[] enfants = source.listFiles();
+            if (enfants != null) {
+                for (File enfant : enfants) {
+                    zipperRecursif(enfant, chemin.isEmpty() ? enfant.getName() : chemin + "/" + enfant.getName(), zip);
                 }
+            }
+        } else {
+            zip.putNextEntry(new ZipEntry(chemin));
+            InputStream in = new FileInputStream(source);
+            byte[] tampon = new byte[8192];
+            int lus;
+            while ((lus = in.read(tampon)) > 0) {
+                zip.write(tampon, 0, lus);
+            }
+            in.close();
+            zip.closeEntry();
+        }
+    }
+
+    // ---------------------------------------------------------------- debug
+
+    private void afficherDiagnosticDossier() {
+        File dossierProjets = new File(getFilesDir(), "projets");
+        StringBuilder info = new StringBuilder();
+
+        info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
+        info.append("Existe : ").append(dossierProjets.exists()).append("\n");
+        info.append("Est un dossier : ").append(dossierProjets.isDirectory()).append("\n\n");
+
+        File[] sousDossiers = dossierProjets.listFiles();
+        if (sousDossiers == null) {
+            info.append("listFiles() a retournÃ© null\n");
+        } else if (sousDossiers.length == 0) {
+            info.append("Aucun sous-dossier trouvÃ©\n");
+        } else {
+            for (File sousDossier : sousDossiers) {
+                info.append("Dossier : ").append(sousDossier.getName()).append("\n");
+                File metaFile = new File(sousDossier, "meta.json");
+                boolean metaExiste = metaFile.exists();
+                info.append("  -> meta.json existe : ").append(metaExiste);
+                if (metaExiste) {
+                    info.append(" (Taille : ").append(metaFile.length()).append(" octets)");
+                }
+                info.append("\n");
             }
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, affichageList) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                TextView textView;
-                if (convertView == null) {
-                    textView = new TextView(getContext());
-                    textView.setPadding(20, 20, 20, 20);
-                    textView.setTextSize(16f);
-                    textView.setTextColor(Palette.texteNormal);
-                } else {
-                    textView = (TextView) convertView;
-                }
-                textView.setText(getItem(position));
-                return textView;
-            }
-        };
-        listeProjets.setAdapter(adapter);
+        new AlertDialog.Builder(this)
+                .setTitle("Debug : Dossier projets")
+                .setMessage(info.toString())
+                .setPositiveButton("OK", null)
+                .show();
+    }
 
-        listeProjets.setOnItemClickListener((parent, view, position, id) -> {
-            File dossierChoisi = dossiersList.get(position);
-            Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
-            intent.putExtra("cheminProjet", dossierChoisi.getAbsolutePath());
-            startActivity(intent);
-        });
+    private void afficherTestMkdirs() {
+        File dossierProjets = new File(getFilesDir(), "projets");
+        boolean resultat = dossierProjets.mkdirs();
 
-        listeProjets.setOnItemLongClickListener((parent, view, position, id) -> {
-            File dossierChoisi = dossiersList.get(position);
-            File metaFile = new File(dossierChoisi, "meta.json");
-            
-            String nomActuel = "";
-            try {
-                StringBuilder sb = new StringBuilder();
-                Scanner scanner = new Scanner(metaFile);
-                while (scanner.hasNextLine()) {
-                    sb.append(scanner.nextLine());
-                }
-                scanner.close();
-                JSONObject metaJson = new JSONObject(sb.toString());
-                nomActuel = metaJson.optString("nom", "");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        StringBuilder info = new StringBuilder();
+        info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
+        info.append("Valeur de resultat (mkdirs) : ").append(resultat).append("\n");
+        info.append("exists() : ").append(dossierProjets.exists()).append("\n");
+        info.append("canWrite() : ").append(dossierProjets.canWrite()).append("\n");
+        info.append("getFilesDir().canWrite() (parent) : ").append(getFilesDir().canWrite()).append("\n");
 
-            final String nomFinal = nomActuel;
-            String[] options = {"Renommer", "Supprimer"};
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setItems(options, (dialog, which) -> {
-                if (which == 0) {
-                    AlertDialog.Builder builderRenommer = new AlertDialog.Builder(this);
-                    builderRenommer.setTitle("Renommer le projet");
-                    
-                    final EditText input = new EditText(this);
-                    input.setText(nomFinal);
-                    builderRenommer.setView(input);
-
-                    builderRenommer.setPositiveButton("Valider", null);
-                    builderRenommer.setNegativeButton("Annuler", (d, w) -> d.cancel());
-                    
-                    AlertDialog dialogRenommer = builderRenommer.create();
-                    dialogRenommer.show();
-
-                    dialogRenommer.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                        String nouveauNom = input.getText().toString().trim();
-                        if (nouveauNom.isEmpty()) {
-                            Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        ArrayList<String> existants = listeNomsProjetsExistants();
-                        for (String existant : existants) {
-                            if (existant.equalsIgnoreCase(nouveauNom) && !existant.equalsIgnoreCase(nomFinal)) {
-                                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-                        }
-
-                        try {
-                            StringBuilder sb = new StringBuilder();
-                            Scanner scanner = new Scanner(metaFile);
-                            while (scanner.hasNextLine()) {
-                                sb.append(scanner.nextLine());
-                            }
-                            scanner.close();
-                            
-                            JSONObject metaJson = new JSONObject(sb.toString());
-                            metaJson.put("nom", nouveauNom);
-                            String dateActuelle = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-                            metaJson.put("dateModif", dateActuelle);
-                            
-                            FileWriter fwMeta = new FileWriter(metaFile);
-                            fwMeta.write(metaJson.toString(4));
-                            fwMeta.close();
-
-                            chargerListeProjets(listeProjets);
-                            dialogRenommer.dismiss();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Toast.makeText(this, "Erreur lors du renommage", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else if (which == 1) {
-                    AlertDialog.Builder builderSupprimer = new AlertDialog.Builder(this);
-                    builderSupprimer.setMessage("Supprimer définitivement le projet " + nomFinal + " ? Cette action est irréversible.");
-                    
-                    builderSupprimer.setPositiveButton("Supprimer", (d, w) -> {
-                        supprimerDossierRecursif(dossierChoisi);
-                        chargerListeProjets(listeProjets);
-                    });
-                    builderSupprimer.setNegativeButton("Annuler", (d, w) -> d.cancel());
-                    
-                    AlertDialog dialogSupprimer = builderSupprimer.create();
-                    dialogSupprimer.show();
-                    dialogSupprimer.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
-                }
-            });
-            builder.show();
-            return true;
-        });
+        new AlertDialog.Builder(this)
+                .setTitle("Debug : Test mkdirs")
+                .setMessage(info.toString())
+                .setPositiveButton("OK", null)
+                .show();
     }
 }
 // bas 2
 
+    
