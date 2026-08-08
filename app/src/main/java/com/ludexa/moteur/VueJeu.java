@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public class VueJeu extends View {
-
     private Scene sceneActive;
     private Scene sceneHudActive;
     private Paint peintureObjet;
@@ -24,10 +23,8 @@ public class VueJeu extends View {
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
     private MoteurLogique moteurHud;
-
     private String cheminProjet; 
     
-    // Champs factorisés pour la conversion des coordonnées
     private float echelle = 1f;
     private float decalageX = 0f;
     private float decalageY = 0f;
@@ -94,12 +91,8 @@ public class VueJeu extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (this.moteur != null) {
-            this.moteur.executerDemarrage();
-        }
-        if (this.moteurHud != null) {
-            this.moteurHud.executerDemarrage();
-        }
+        if (this.moteur != null) this.moteur.executerDemarrage();
+        if (this.moteurHud != null) this.moteurHud.executerDemarrage();
         postOnAnimation(boucleDeRendu);
     }
 
@@ -127,8 +120,7 @@ public class VueJeu extends View {
         });
 
         for (ObjetBase obj : objetsTries) {
-            if (!obj.visible) continue;
-            if (!obj.estDeplacable) continue;
+            if (!obj.visible || !obj.estDeplacable) continue;
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
             Matrix inverseMatrix = new Matrix();
             if (absMatrix.invert(inverseMatrix)) {
@@ -152,46 +144,28 @@ public class VueJeu extends View {
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
             
-            // DÉCLENCHEMENT : Début de Glisser
             if (objetEnGlissement != null) {
-                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement)) {
-                    if (this.moteurHud != null) {
-                        this.moteurHud.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
-                    }
-                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement)) {
-                    if (this.moteur != null) {
-                        this.moteur.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
-                    }
+                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement) && this.moteurHud != null) {
+                    this.moteurHud.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
+                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement) && this.moteur != null) {
+                    this.moteur.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
                 }
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (objetEnGlissement != null) {
-                float deltaX = xJeuActuel - lastXJeu;
-                float deltaY = yJeuActuel - lastYJeu;
-                objetEnGlissement.x += deltaX;
-                objetEnGlissement.y += deltaY;
+                objetEnGlissement.x += xJeuActuel - lastXJeu;
+                objetEnGlissement.y += yJeuActuel - lastYJeu;
                 lastXJeu = xJeuActuel;
                 lastYJeu = yJeuActuel;
             }
-        }
-
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-            // Conversion vers les coordonnées du jeu
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
             float xJeu = (event.getX() - decalageX) / echelle;
             float yJeu = (event.getY() - decalageY) / echelle;
-            
             boolean clickIntercepte = false;
 
-            // 1. Hit-testing HUD en priorité
             if (sceneHudActive != null && sceneHudActive.objets != null) {
                 List<ObjetBase> objetsHudTries = new ArrayList<>(sceneHudActive.objets);
-                Collections.sort(objetsHudTries, new Comparator<ObjetBase>() {
-                    @Override
-                    public int compare(ObjetBase o1, ObjetBase o2) {
-                        // Du dessus vers le dessous (zOrder décroissant)
-                        return Integer.compare(o2.zOrder, o1.zOrder); 
-                    }
-                });
+                Collections.sort(objetsHudTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsHudTries) {
                     if (!obj.visible) continue;
@@ -201,26 +175,17 @@ public class VueJeu extends View {
                         float[] ptLocal = new float[]{xJeu, yJeu};
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
-                            if (this.moteurHud != null) {
-                                this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
-                            }
+                            if (this.moteurHud != null) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
                             break;
                         }
                     }
                 }
-                // Si le HUD est ouvert, on intercepte (on ne descend jamais vers la scène de jeu)
                 clickIntercepte = true;
             }
 
-            // 2. Hit-testing Scène Jeu (si HUD inactif)
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
                 List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
-                Collections.sort(objetsJeuTries, new Comparator<ObjetBase>() {
-                    @Override
-                    public int compare(ObjetBase o1, ObjetBase o2) {
-                        return Integer.compare(o2.zOrder, o1.zOrder);
-                    }
-                });
+                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
                     if (!obj.visible) continue;
@@ -230,33 +195,22 @@ public class VueJeu extends View {
                         float[] ptLocal = new float[]{xJeu, yJeu};
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
-                            if (this.moteur != null) {
-                                this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
-                            }
+                            if (this.moteur != null) this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
                             break;
                         }
                     }
                 }
             }
 
-            // 3. Événement global (toujours appelé)
-            if (this.moteur != null) {
-                this.moteur.executerEvenement(NoeudEventFinClic.class);
-            }
+            if (this.moteur != null) this.moteur.executerEvenement(NoeudEventFinClic.class);
 
-            // DÉCLENCHEMENT : Fin de Glisser
             if (objetEnGlissement != null) {
-                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement)) {
-                    if (this.moteurHud != null) {
-                        this.moteurHud.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
-                    }
-                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement)) {
-                    if (this.moteur != null) {
-                        this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
-                    }
+                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement) && this.moteurHud != null) {
+                    this.moteurHud.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
+                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement) && this.moteur != null) {
+                    this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
                 }
             }
-
             objetEnGlissement = null;
         }
         return true;
@@ -270,7 +224,8 @@ public class VueJeu extends View {
         return null;
     }
 
-    private Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
+    // MODIFICATION : Rendue publique pour être accessible par UtilCollision
+    public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
         ObjetBase cur = obj;
@@ -299,13 +254,9 @@ public class VueJeu extends View {
                     java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                        if (bmp != null) {
-                            cacheImages.put(objet.cheminImage, bmp);
-                        }
+                        if (bmp != null) cacheImages.put(objet.cheminImage, bmp);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception e) {}
             }
             if (bmp != null) {
                 if ("rond".equals(objet.type)) {
@@ -325,24 +276,14 @@ public class VueJeu extends View {
 
     private void dessinerListeObjets(Canvas canvas, List<ObjetBase> objets, boolean avecDebugPosition) {
         List<ObjetBase> objetsTries = new ArrayList<>(objets);
-        Collections.sort(objetsTries, new Comparator<ObjetBase>() {
-            @Override
-            public int compare(ObjetBase o1, ObjetBase o2) {
-                return Integer.compare(o1.zOrder, o2.zOrder);
-            }
-        });
+        Collections.sort(objetsTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
 
         for (ObjetBase objet : objetsTries) {
-            if (!objet.visible) {
-                continue; 
-            }
+            if (!objet.visible) continue; 
 
             peintureObjet.setColor(objet.couleur);
             peintureTexte.setColor(objet.couleur);
-            
-            if ("texte".equals(objet.type)) {
-                peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
-            }
+            if ("texte".equals(objet.type)) peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
 
@@ -363,21 +304,15 @@ public class VueJeu extends View {
                 canvas.drawText(texteAAfficher, 0, objet.hauteur - (objet.hauteur * 0.1f), peintureTexte);
                 peintureTexte.setTextScaleX(1.0f);
             } else {
-                if (objet.afficherFondColore || objet.cheminImage == null) {
-                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
-                }
+                if (objet.afficherFondColore || objet.cheminImage == null) canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
                 dessinerImage(canvas, objet);
             }
-
             canvas.restore();
 
             if (avecDebugPosition) {
                 float[] posAbsolue = {0, 0};
                 absMatrix.mapPoints(posAbsolue);
-                canvas.drawText(
-                        objet.nom + " (" + (int) objet.x + ", " + (int) objet.y + ")",
-                        posAbsolue[0], posAbsolue[1] - 10f, peintureDebug
-                );
+                canvas.drawText(objet.nom + " (" + (int) objet.x + ", " + (int) objet.y + ")", posAbsolue[0], posAbsolue[1] - 10f, peintureDebug);
             }
         }
     }
@@ -386,7 +321,14 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        // Calcul et mise en cache des dimensions pour le hit-testing
+        // NOUVEAU : Vérification continue des collisions à chaque frame (~60fps)
+        if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
+            this.moteur.verifierCollisions(this, sceneActive.objets);
+        }
+        if (this.moteurHud != null && sceneHudActive != null && sceneHudActive.objets != null) {
+            this.moteurHud.verifierCollisions(this, sceneHudActive.objets);
+        }
+        
         echelle = Math.min((float) getWidth() / ConfigurationJeu.LARGEUR_JEU, (float) getHeight() / ConfigurationJeu.HAUTEUR_JEU);
         decalageX = (getWidth() - ConfigurationJeu.LARGEUR_JEU * echelle) / 2f;
         decalageY = (getHeight() - ConfigurationJeu.HAUTEUR_JEU * echelle) / 2f;
@@ -394,17 +336,11 @@ public class VueJeu extends View {
         canvas.drawColor(Color.BLACK);
         canvas.translate(decalageX, decalageY);
         canvas.scale(echelle, echelle);
-        
         canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
-        if (sceneActive != null && sceneActive.objets != null) {
-            dessinerListeObjets(canvas, sceneActive.objets, true);
-        }
-
-        if (sceneHudActive != null && sceneHudActive.objets != null) {
-            dessinerListeObjets(canvas, sceneHudActive.objets, false);
-        }
+        if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, true);
+        if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
     }
 }
 // bas 1
-                
+            
