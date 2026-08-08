@@ -1,4 +1,4 @@
-// haut 1 08 08
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -37,6 +37,11 @@ public class InterfaceEditeur extends Activity {
     public Scene sceneHudActive = null;
     
     private VueJeu vueJeu;
+
+    // Ajout du getter public pour accéder à vueJeu sans briser l'encapsulation
+    public VueJeu getVueJeu() {
+        return this.vueJeu;
+    }
     
     // VARIABLES DE SAUVEGARDE POUR L'ISOLEMENT DU PLAY
     private List<Scene> listeScenesBackup;
@@ -241,7 +246,6 @@ public class InterfaceEditeur extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
-
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -432,7 +436,9 @@ public class InterfaceEditeur extends Activity {
             }
         }
     }
+// bas 2
 
+// haut 3
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
         sceneActiveBackup = sceneActive;
@@ -632,4 +638,13 @@ public class InterfaceEditeur extends Activity {
         }
     }
 }
-// bas 2
+// bas 3
+
+
+
+
+
+    
+
+
+        
