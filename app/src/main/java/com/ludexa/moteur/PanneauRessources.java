@@ -166,8 +166,8 @@ public class PanneauRessources extends ScrollView {
         contenu.setOrientation(LinearLayout.VERTICAL);
         contenu.setPadding(20, 10, 10, 20);
 
-        Button btnAjouterCarre = new Button(context);
-        btnAjouterCarre.setText("+ Ajouter un Carré");
+        ImageButton btnAjouterCarre = new ImageButton(context);
+        btnAjouterCarre.setImageResource(R.drawable.square_24px);
         btnAjouterCarre.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
@@ -178,8 +178,8 @@ public class PanneauRessources extends ScrollView {
             Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
         });
 
-        Button btnAjouterTexte = new Button(context);
-        btnAjouterTexte.setText("+ Ajouter un Texte");
+        ImageButton btnAjouterTexte = new ImageButton(context);
+        btnAjouterTexte.setImageResource(R.drawable.title_24px);
         btnAjouterTexte.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
@@ -190,8 +190,8 @@ public class PanneauRessources extends ScrollView {
             Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
         });
 
-        Button btnAjouterRond = new Button(context);
-        btnAjouterRond.setText("+ Ajouter un Rond");
+        ImageButton btnAjouterRond = new ImageButton(context);
+        btnAjouterRond.setImageResource(R.drawable.circle_24px);
         btnAjouterRond.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
@@ -221,6 +221,7 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 1
+
 // haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -241,19 +242,19 @@ public class PanneauRessources extends ScrollView {
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
 
-        Button btnCreer = new Button(context);
-        btnCreer.setText("Créer");
+        ImageButton btnCreer = new ImageButton(context);
+        btnCreer.setImageResource(R.drawable.add_24px);
         btnCreer.setOnClickListener(v -> afficherPopupCreerScene(context));
 
-        Button btnRenommer = new Button(context);
-        btnRenommer.setText("Renommer");
+        ImageButton btnRenommer = new ImageButton(context);
+        btnRenommer.setImageResource(R.drawable.edit_square_24px);
         btnRenommer.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             afficherPopupRenommerScene(context, editeur.sceneActive);
         });
 
-        Button btnSupprimer = new Button(context);
-        btnSupprimer.setText("Supprimer");
+        ImageButton btnSupprimer = new ImageButton(context);
+        btnSupprimer.setImageResource(R.drawable.delete_24px);
         btnSupprimer.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             afficherPopupSupprimerScene(context, editeur.sceneActive);
@@ -332,9 +333,14 @@ public class PanneauRessources extends ScrollView {
         LinearLayout boutonsDossiers = new LinearLayout(context);
         boutonsDossiers.setOrientation(LinearLayout.HORIZONTAL);
         
-        Button btnAddFolder = new Button(context); btnAddFolder.setText("+");
-        Button btnEditFolder = new Button(context); btnEditFolder.setText("✎");
-        Button btnDelFolder = new Button(context); btnDelFolder.setText("🗑");
+        ImageButton btnAddFolder = new ImageButton(context); 
+        btnAddFolder.setImageResource(R.drawable.add_24px);
+        
+        ImageButton btnEditFolder = new ImageButton(context); 
+        btnEditFolder.setImageResource(R.drawable.edit_square_24px);
+        
+        ImageButton btnDelFolder = new ImageButton(context); 
+        btnDelFolder.setImageResource(R.drawable.delete_24px);
 
         btnAddFolder.setOnClickListener(v -> {
             if (currentFolderSelected != null) afficherPopupNouveauDossier(context);
@@ -361,9 +367,14 @@ public class PanneauRessources extends ScrollView {
         LinearLayout boutonsAssets = new LinearLayout(context);
         boutonsAssets.setOrientation(LinearLayout.HORIZONTAL);
 
-        Button btnImportAsset = new Button(context); btnImportAsset.setText("⬆");
-        Button btnEditAsset = new Button(context); btnEditAsset.setText("✎");
-        Button btnDelAsset = new Button(context); btnDelAsset.setText("🗑");
+        ImageButton btnImportAsset = new ImageButton(context); 
+        btnImportAsset.setImageResource(R.drawable.upload_file_24px);
+        
+        ImageButton btnEditAsset = new ImageButton(context); 
+        btnEditAsset.setImageResource(R.drawable.edit_square_24px);
+        
+        ImageButton btnDelAsset = new ImageButton(context); 
+        btnDelAsset.setImageResource(R.drawable.delete_24px);
 
         btnImportAsset.setOnClickListener(v -> {
             if (currentFolderSelected == null) return;
@@ -406,6 +417,8 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
+
+
 // haut 3
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
@@ -423,12 +436,15 @@ public class PanneauRessources extends ScrollView {
 
         if (depth >= 0) {
             TextView tv = new TextView(getContext());
-            StringBuilder prefix = new StringBuilder();
-            for (int i = 0; i < depth; i++) prefix.append("   ");
             
-            tv.setText(prefix.toString() + "📁 " + dir.getName());
+            tv.setText(dir.getName());
+            tv.setCompoundDrawablesWithIntrinsicBounds(R.drawable.folder_open_24px, 0, 0, 0);
+            tv.setCompoundDrawablePadding(15);
+            
             tv.setTextColor(dir.equals(currentFolderSelected) ? Color.YELLOW : Palette.texteNormal);
-            tv.setPadding(0, 10, 0, 10);
+            
+            int paddingLeft = depth * 40;
+            tv.setPadding(paddingLeft, 10, 0, 10);
             tv.setTextSize(14f);
             
             tv.setOnClickListener(v -> {
@@ -564,6 +580,8 @@ public class PanneauRessources extends ScrollView {
         fileOrDirectory.delete();
     }
 // bas 3
+
+
 // haut 4
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -584,18 +602,18 @@ public class PanneauRessources extends ScrollView {
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
 
-        Button btnCreer = new Button(context);
-        btnCreer.setText("Créer");
+        ImageButton btnCreer = new ImageButton(context);
+        btnCreer.setImageResource(R.drawable.add_24px);
         btnCreer.setOnClickListener(v -> afficherPopupCreerVariable(context));
 
-        Button btnRenommer = new Button(context);
-        btnRenommer.setText("Renommer");
+        ImageButton btnRenommer = new ImageButton(context);
+        btnRenommer.setImageResource(R.drawable.edit_square_24px);
         btnRenommer.setOnClickListener(v -> {
             if (variableSelectionnee != null) afficherPopupRenommerVariable(context, variableSelectionnee);
         });
 
-        Button btnSupprimer = new Button(context);
-        btnSupprimer.setText("Supprimer");
+        ImageButton btnSupprimer = new ImageButton(context);
+        btnSupprimer.setImageResource(R.drawable.delete_24px);
         btnSupprimer.setOnClickListener(v -> {
             if (variableSelectionnee != null) afficherPopupSupprimerVariable(context, variableSelectionnee);
         });
@@ -1083,10 +1101,6 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 5
 
-
-
-
-
 // haut 6
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1266,15 +1280,6 @@ public class PanneauRessources extends ScrollView {
 }
 // bas 6
 
-    
-
-    
-
-
-
-
-
-    
 
 
 
@@ -1282,7 +1287,15 @@ public class PanneauRessources extends ScrollView {
     
 
 
+    
 
+
+
+
+    
+
+
+    
 
 
 
