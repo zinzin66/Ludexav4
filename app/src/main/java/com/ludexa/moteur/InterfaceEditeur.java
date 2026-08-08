@@ -116,10 +116,9 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.setPadding(10, 10, 10, 10);
         bandeauHaut.setBackgroundColor(Palette.fondPanneaux);
 
-        Button boutonQuitter = new Button(this);
-        boutonQuitter.setText("Quitter");
+        ImageButton boutonQuitter = new ImageButton(this);
+        boutonQuitter.setImageResource(R.drawable.exit_to_app_24px);
         boutonQuitter.setBackgroundColor(Palette.boutonNormal);
-        boutonQuitter.setTextColor(Palette.texteNormal);
         boutonQuitter.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonQuitter);
 
@@ -149,17 +148,15 @@ public class InterfaceEditeur extends Activity {
         nomProjet.setTextColor(Palette.texteNormal);
         bandeauHaut.addView(nomProjet);
 
-        Button boutonSauvegarde = new Button(this);
-        boutonSauvegarde.setText("Sauvegarde");
+        ImageButton boutonSauvegarde = new ImageButton(this);
+        boutonSauvegarde.setImageResource(R.drawable.save_24px);
         boutonSauvegarde.setBackgroundColor(Palette.boutonNormal);
-        boutonSauvegarde.setTextColor(Palette.texteNormal);
         boutonSauvegarde.setOnClickListener(v -> sauvegarderProjet());
         bandeauHaut.addView(boutonSauvegarde);
 
-        Button boutonUndo = new Button(this);
-        boutonUndo.setText("Undo");
+        ImageButton boutonUndo = new ImageButton(this);
+        boutonUndo.setImageResource(R.drawable.undo_24px);
         boutonUndo.setBackgroundColor(Palette.boutonNormal);
-        boutonUndo.setTextColor(Palette.texteNormal);
         boutonUndo.setOnClickListener(v -> {
             if (!undoStack.isEmpty()) {
                 Commande c = undoStack.pop();
@@ -174,10 +171,9 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonUndo);
 
-        Button boutonRedo = new Button(this);
-        boutonRedo.setText("Redo");
+        ImageButton boutonRedo = new ImageButton(this);
+        boutonRedo.setImageResource(R.drawable.redo_24px);
         boutonRedo.setBackgroundColor(Palette.boutonNormal);
-        boutonRedo.setTextColor(Palette.texteNormal);
         boutonRedo.setOnClickListener(v -> {
             if (!redoStack.isEmpty()) {
                 Commande c = redoStack.pop();
@@ -192,7 +188,6 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonRedo);
 // bas 1
-
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -278,42 +273,37 @@ public class InterfaceEditeur extends Activity {
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         canvasEditeur.setLayoutParams(paramsCentre);
 
-        Button boutonZoomMoins = new Button(this);
-        boutonZoomMoins.setText("[-]");
+        ImageButton boutonZoomMoins = new ImageButton(this);
+        boutonZoomMoins.setImageResource(R.drawable.zoom_out_24px);
         boutonZoomMoins.setBackgroundColor(Palette.boutonNormal);
-        boutonZoomMoins.setTextColor(Palette.texteNormal);
         boutonZoomMoins.setOnClickListener(v -> canvasEditeur.zoomMoins());
         bandeauHaut.addView(boutonZoomMoins);
 
-        Button boutonZoomReset = new Button(this);
-        boutonZoomReset.setText("[[]]");
+        ImageButton boutonZoomReset = new ImageButton(this);
+        boutonZoomReset.setImageResource(R.drawable.center_focus_weak_24px);
         boutonZoomReset.setBackgroundColor(Palette.boutonNormal);
-        boutonZoomReset.setTextColor(Palette.texteNormal);
         boutonZoomReset.setOnClickListener(v -> canvasEditeur.zoomReset());
         bandeauHaut.addView(boutonZoomReset);
 
-        Button boutonZoomPlus = new Button(this);
-        boutonZoomPlus.setText("[+]");
+        ImageButton boutonZoomPlus = new ImageButton(this);
+        boutonZoomPlus.setImageResource(R.drawable.zoom_in_24px);
         boutonZoomPlus.setBackgroundColor(Palette.boutonNormal);
-        boutonZoomPlus.setTextColor(Palette.texteNormal);
         boutonZoomPlus.setOnClickListener(v -> canvasEditeur.zoomPlus());
         bandeauHaut.addView(boutonZoomPlus);
 
-        Button boutonDeplacerScene = new Button(this);
-        boutonDeplacerScene.setText("Déplacer Scène");
+        ImageButton boutonDeplacerScene = new ImageButton(this);
+        boutonDeplacerScene.setImageResource(R.drawable.hand_gesture_24px);
         boutonDeplacerScene.setBackgroundColor(Palette.boutonNormal);
-        boutonDeplacerScene.setTextColor(Palette.texteNormal);
         boutonDeplacerScene.setOnClickListener(v -> {
             boolean nouveauMode = !canvasEditeur.isPanMode();
             canvasEditeur.setPanMode(nouveauMode);
-            boutonDeplacerScene.setText(nouveauMode ? "Mode: Déplacement" : "Déplacer Scène");
+            boutonDeplacerScene.setBackgroundColor(nouveauMode ? Color.LTGRAY : Palette.boutonNormal);
         });
         bandeauHaut.addView(boutonDeplacerScene);
 
-        Button boutonBasculeBlueprint = new Button(this);
-        boutonBasculeBlueprint.setText("Node Editor");
+        ImageButton boutonBasculeBlueprint = new ImageButton(this);
+        boutonBasculeBlueprint.setImageResource(R.drawable.account_tree_24px);
         boutonBasculeBlueprint.setBackgroundColor(Palette.boutonNormal);
-        boutonBasculeBlueprint.setTextColor(Palette.texteNormal);
         boutonBasculeBlueprint.setOnClickListener(v -> {
             InterfaceBlueprint.sceneACharger = this.sceneActive;
             InterfaceBlueprint.variablesGlobalesACharger = this.variablesGlobales; 
@@ -325,16 +315,14 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonBasculeBlueprint);
 
-        Button boutonBuild = new Button(this);
-        boutonBuild.setText("Build");
+        ImageButton boutonBuild = new ImageButton(this);
+        boutonBuild.setImageResource(R.drawable.build_24px);
         boutonBuild.setBackgroundColor(Palette.boutonNormal);
-        boutonBuild.setTextColor(Palette.texteNormal);
         bandeauHaut.addView(boutonBuild);
 
-        Button boutonPlay = new Button(this);
-        boutonPlay.setText("Play");
+        ImageButton boutonPlay = new ImageButton(this);
+        boutonPlay.setImageResource(R.drawable.play_circle_24px);
         boutonPlay.setBackgroundColor(Palette.boutonNormal);
-        boutonPlay.setTextColor(Palette.texteNormal);
         boutonPlay.setOnClickListener(v -> basculerVersJeu());
         bandeauHaut.addView(boutonPlay);
 
@@ -455,10 +443,9 @@ public class InterfaceEditeur extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
 
-        Button boutonStop = new Button(this);
-        boutonStop.setText("⏹ STOP");
+        ImageButton boutonStop = new ImageButton(this);
+        boutonStop.setImageResource(R.drawable.stop_circle_24px);
         boutonStop.setBackgroundColor(Color.RED);
-        boutonStop.setTextColor(Color.WHITE);
         boutonStop.setOnClickListener(v -> revenirAEditeur());
 
         FrameLayout.LayoutParams paramsStop = new FrameLayout.LayoutParams(
