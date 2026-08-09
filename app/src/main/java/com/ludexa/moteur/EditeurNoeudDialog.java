@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -17,17 +16,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.HorizontalScrollView;
 import android.widget.TextView;
-import android.widget.Toast; 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EditeurNoeudDialog extends Dialog {
     
     private String champActif = null;
-    private boolean modeCibleObjet = false;
-    private boolean modeCibleObjetB = false; // NOUVEAU
-    private boolean modeCibleVariable = false;
-    private boolean modeCibleScene = false;
 
     public EditeurNoeudDialog(Context context, NoeudBase noeud, Scene scene, Runnable onValidate) {
         super(context);
@@ -72,11 +68,6 @@ public class EditeurNoeudDialog extends Dialog {
         
         int hauteurChampDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80, context.getResources().getDisplayMetrics());
         champSaisie.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, hauteurChampDp));
-        
-        final Button btnCibleObjet = new Button(context);
-        final Button btnCibleObjetB = new Button(context); // NOUVEAU
-        final Button btnCibleVariable = new Button(context);
-        final Button btnCibleScene = new Button(context);
 
         List<String> params = noeud.getNomsParametres();
         if (params != null && !params.isEmpty()) {
@@ -123,11 +114,10 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         });
-// bas 1
-
-// haut 2
-        // =========================================================
-        // PANNEAU DROIT (Édition)
+        // fin 1
+        // debut 2
+                // =========================================================
+        // PANNEAU DROIT (Édition & Cibles)
         // =========================================================
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -141,6 +131,144 @@ public class EditeurNoeudDialog extends Dialog {
         colonneDroite.setOrientation(LinearLayout.VERTICAL);
         colonneDroite.setPadding(15, 15, 15, 15); 
 
+        // ---------------------------------------------------------
+        // NOUVEAU : RANGÉE HORIZONTALE DES CIBLES (GÉNÉRIQUE)
+        // ---------------------------------------------------------
+        /* 
+         * GARANTIE : Ce mécanisme est désormais GÉNÉRIQUE.
+         * L'ajout d'un futur nœud requérant 1 ou 2 cibles de type existant (Objet, Objet B, Variable, Scène)
+         * construira dynamiquement cette rangée sans jamais avoir besoin de modifier ce fichier.
+         * Seul un tout nouveau TYPE de cible (ex: Cible Fichier) nécessiterait l'ajout d'un nouveau bloc if ici.
+         */
+        HorizontalScrollView scrollCibles = new HorizontalScrollView(context);
+        LinearLayout rangeeCibles = new LinearLayout(context);
+        rangeeCibles.setOrientation(LinearLayout.HORIZONTAL);
+        rangeeCibles.setPadding(0, 0, 0, 20);
+
+        if (noeud.requiertCibleObjet()) {
+            TextView txtAfficheur = creerTextViewAfficheurCible(context);
+            Button btnCible = creerBoutonSelectionCible(context, "Objet A");
+            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
+            
+            btnCible.setOnClickListener(v -> {
+                if (scene != null && scene.objets != null) {
+                    String[] noms = new String[scene.objets.size()];
+                    for (int i = 0; i < scene.objets.size(); i++) noms[i] = scene.objets.get(i).nom;
+                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Objet A")
+                        .setItems(noms, (d, which) -> {
+                            ObjetBase obj = scene.objets.get(which);
+                            noeud.setCibleObjet(obj);
+                            mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            mettreAJourResumeExpression(noeud, txtResumeExpression);
+                        }).show();
+                }
+            });
+            ajouterCoupleALaRangee(context, rangeeCibles, btnCible, txtAfficheur);
+        }
+
+        if (noeud.requiertCibleObjetB()) {
+            TextView txtAfficheur = creerTextViewAfficheurCible(context);
+            Button btnCible = creerBoutonSelectionCible(context, "Objet B");
+            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
+            
+            btnCible.setOnClickListener(v -> {
+                if (scene != null && scene.objets != null) {
+                    String[] noms = new String[scene.objets.size()];
+                    for (int i = 0; i < scene.objets.size(); i++) noms[i] = scene.objets.get(i).nom;
+                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Objet B")
+                        .setItems(noms, (d, which) -> {
+                            ObjetBase obj = scene.objets.get(which);
+                            noeud.setCibleObjetB(obj);
+                            mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            mettreAJourResumeExpression(noeud, txtResumeExpression);
+                        }).show();
+                }
+            });
+            ajouterCoupleALaRangee(context, rangeeCibles, btnCible, txtAfficheur);
+        }
+
+        if (noeud.requiertCibleVariable()) {
+            TextView txtAfficheur = creerTextViewAfficheurCible(context);
+            Button btnCible = creerBoutonSelectionCible(context, "Variable");
+            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : null);
+            
+            btnCible.setOnClickListener(v -> {
+                List<String> nomsVars = new ArrayList<>();
+                List<Variable> refsVars = new ArrayList<>();
+                
+                if (scene != null && scene.variablesLocales != null) {
+                    for (Variable var : scene.variablesLocales) {
+                        nomsVars.add(var.nom + " (Locale)");
+                        refsVars.add(var);
+                    }
+                }
+                List<Variable> globales = null;
+                if (NoeudBase.contexteApplication != null) {
+                    try {
+                        java.lang.reflect.Field globalesField = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
+                        globales = (List<Variable>) globalesField.get(NoeudBase.contexteApplication);
+                    } catch (Exception e) {}
+                }
+                if (globales != null) {
+                    for (Variable var : globales) {
+                        nomsVars.add(var.nom + " (Globale)");
+                        refsVars.add(var);
+                    }
+                }
+                if (!nomsVars.isEmpty()) {
+                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Variable")
+                        .setItems(nomsVars.toArray(new String[0]), (d, which) -> {
+                            Variable var = refsVars.get(which);
+                            noeud.setCibleVariable(var);
+                            mettreAJourAfficheurCible(txtAfficheur, var.nom);
+                            mettreAJourResumeExpression(noeud, txtResumeExpression);
+                        }).show();
+                }
+            });
+            ajouterCoupleALaRangee(context, rangeeCibles, btnCible, txtAfficheur);
+        }
+
+        if (noeud.requiertCibleScene()) {
+            TextView txtAfficheur = creerTextViewAfficheurCible(context);
+            Button btnCible = creerBoutonSelectionCible(context, "Scène");
+            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleScene() != null ? noeud.getCibleScene().nom : null);
+            
+            btnCible.setOnClickListener(v -> {
+                List<Scene> tempScenes = null;
+                if (NoeudBase.contexteApplication != null) {
+                    try {
+                        java.lang.reflect.Field scenesField = NoeudBase.contexteApplication.getClass().getField("listeScenes");
+                        tempScenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
+                    } catch (Exception e) {}
+                }
+                
+                // On crée une référence finale pour la lambda
+                final List<Scene> scenesRecuperees = tempScenes; 
+                
+                if (scenesRecuperees != null && !scenesRecuperees.isEmpty()) {
+                    String[] noms = new String[scenesRecuperees.size()];
+                    for (int i = 0; i < scenesRecuperees.size(); i++) noms[i] = scenesRecuperees.get(i).nom;
+                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Scène")
+                        .setItems(noms, (d, which) -> {
+                            Scene s = scenesRecuperees.get(which);
+                            noeud.setCibleScene(s);
+                            mettreAJourAfficheurCible(txtAfficheur, s.nom);
+                            mettreAJourResumeExpression(noeud, txtResumeExpression);
+                        }).show();
+                }
+            });
+            ajouterCoupleALaRangee(context, rangeeCibles, btnCible, txtAfficheur);
+        }
+
+        scrollCibles.addView(rangeeCibles);
+        colonneDroite.addView(scrollCibles);
+                        
+
+        
+                
+        // haut3
+
+                // Ajout du reste de l'interface droite
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
 
@@ -159,19 +287,10 @@ public class EditeurNoeudDialog extends Dialog {
                 btnParam.setLayoutParams(btnParamsLayout);
 
                 btnParam.setOnClickListener(v -> {
-                    modeCibleObjet = false;
-                    modeCibleObjetB = false; // NOUVEAU
-                    modeCibleVariable = false;
-                    modeCibleScene = false;
                     champActif = paramName;
                     String val = noeud.getValeurParametre(champActif);
                     champSaisie.setText(val != null ? val : "");
                     
-                    if (noeud.requiertCibleObjet()) { btnCibleObjet.setBackgroundColor(Palette.boutonNormal); btnCibleObjet.setTextColor(Color.parseColor("#FFD700")); }
-                    if (noeud.requiertCibleObjetB()) { btnCibleObjetB.setBackgroundColor(Palette.boutonNormal); btnCibleObjetB.setTextColor(Color.parseColor("#FFD700")); } // NOUVEAU
-                    if (noeud.requiertCibleVariable()) { btnCibleVariable.setBackgroundColor(Palette.boutonNormal); btnCibleVariable.setTextColor(Color.parseColor("#FFD700")); }
-                    if (noeud.requiertCibleScene()) { btnCibleScene.setBackgroundColor(Palette.boutonNormal); btnCibleScene.setTextColor(Color.parseColor("#FFD700")); }
-
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
                         if (child instanceof Button && params.contains(((Button)child).getText().toString())) {
@@ -282,10 +401,11 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
-// bas 2
-        // haut 3
+
+// haut 4
+
         // =========================================================
-        // PANNEAU GAUCHE (Listes/Cibles) - Boutons et Items
+        // PANNEAU GAUCHE (Uniquement Insertion Texte)
         // =========================================================
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -296,145 +416,8 @@ public class EditeurNoeudDialog extends Dialog {
         scrollGauche.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         scrollGauche.setFillViewport(true);
 
-        if (noeud.requiertCibleObjet()) {
-            btnCibleObjet.setText("Cible Objet");
-            btnCibleObjet.setTextColor(Color.parseColor("#FFD700"));
-            btnCibleObjet.setBackgroundColor(Palette.boutonNormal);
-            LinearLayout.LayoutParams pObjet = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            pObjet.setMargins(20, 20, 20, 5);
-            btnCibleObjet.setLayoutParams(pObjet);
-            btnCibleObjet.setOnClickListener(v -> {
-                modeCibleObjet = true;
-                modeCibleObjetB = false; // NOUVEAU
-                modeCibleVariable = false;
-                modeCibleScene = false;
-                btnCibleObjet.setBackgroundColor(Color.parseColor("#FFD700"));
-                btnCibleObjet.setTextColor(Color.BLACK);
-                btnCibleObjetB.setBackgroundColor(Palette.boutonNormal); // NOUVEAU
-                btnCibleObjetB.setTextColor(Color.parseColor("#FFD700")); // NOUVEAU
-                btnCibleVariable.setBackgroundColor(Palette.boutonNormal);
-                btnCibleVariable.setTextColor(Color.parseColor("#FFD700"));
-                btnCibleScene.setBackgroundColor(Palette.boutonNormal);
-                btnCibleScene.setTextColor(Color.parseColor("#FFD700"));
-            });
-            listeGauche.addView(btnCibleObjet);
-        }
-
-        // NOUVEAU : Bouton et logique pour Cible Objet B
-        if (noeud.requiertCibleObjetB()) {
-            btnCibleObjetB.setText("Cible Objet B");
-            btnCibleObjetB.setTextColor(Color.parseColor("#FFD700"));
-            btnCibleObjetB.setBackgroundColor(Palette.boutonNormal);
-            LinearLayout.LayoutParams pObjetB = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            pObjetB.setMargins(20, 5, 20, 5);
-            btnCibleObjetB.setLayoutParams(pObjetB);
-            btnCibleObjetB.setOnClickListener(v -> {
-                modeCibleObjetB = true;
-                modeCibleObjet = false;
-                modeCibleVariable = false;
-                modeCibleScene = false;
-                btnCibleObjetB.setBackgroundColor(Color.parseColor("#FFD700"));
-                btnCibleObjetB.setTextColor(Color.BLACK);
-                btnCibleObjet.setBackgroundColor(Palette.boutonNormal);
-                btnCibleObjet.setTextColor(Color.parseColor("#FFD700"));
-                btnCibleVariable.setBackgroundColor(Palette.boutonNormal);
-                btnCibleVariable.setTextColor(Color.parseColor("#FFD700"));
-                btnCibleScene.setBackgroundColor(Palette.boutonNormal);
-                btnCibleScene.setTextColor(Color.parseColor("#FFD700"));
-            });
-            listeGauche.addView(btnCibleObjetB);
-        }
-
-        if (noeud.requiertCibleVariable()) {
-            btnCibleVariable.setText("Cible Variable");
-            btnCibleVariable.setTextColor(Color.parseColor("#FFD700"));
-            btnCibleVariable.setBackgroundColor(Palette.boutonNormal);
-            LinearLayout.LayoutParams pVar = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            pVar.setMargins(20, 5, 20, 5);
-            btnCibleVariable.setLayoutParams(pVar);
-            btnCibleVariable.setOnClickListener(v -> {
-                modeCibleVariable = true;
-                modeCibleObjet = false;
-                modeCibleObjetB = false; // NOUVEAU
-                modeCibleScene = false;
-                btnCibleVariable.setBackgroundColor(Color.parseColor("#FFD700"));
-                btnCibleVariable.setTextColor(Color.BLACK);
-                btnCibleObjet.setBackgroundColor(Palette.boutonNormal);
-                btnCibleObjet.setTextColor(Color.parseColor("#FFD700"));
-                btnCibleObjetB.setBackgroundColor(Palette.boutonNormal); // NOUVEAU
-                btnCibleObjetB.setTextColor(Color.parseColor("#FFD700")); // NOUVEAU
-                btnCibleScene.setBackgroundColor(Palette.boutonNormal);
-                btnCibleScene.setTextColor(Color.parseColor("#FFD700"));
-            });
-            listeGauche.addView(btnCibleVariable);
-        }
-
-        if (noeud.requiertCibleScene()) {
-            btnCibleScene.setText("Cible Scène");
-            btnCibleScene.setTextColor(Color.parseColor("#FFD700"));
-            btnCibleScene.setBackgroundColor(Palette.boutonNormal);
-            LinearLayout.LayoutParams pScene = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            pScene.setMargins(20, 5, 20, 10);
-            btnCibleScene.setLayoutParams(pScene);
-            btnCibleScene.setOnClickListener(v -> {
-                modeCibleScene = true;
-                modeCibleObjet = false;
-                modeCibleObjetB = false; // NOUVEAU
-                modeCibleVariable = false;
-                btnCibleScene.setBackgroundColor(Color.parseColor("#FFD700"));
-                btnCibleScene.setTextColor(Color.BLACK);
-                btnCibleObjet.setBackgroundColor(Palette.boutonNormal);
-                btnCibleObjet.setTextColor(Color.parseColor("#FFD700"));
-                btnCibleObjetB.setBackgroundColor(Palette.boutonNormal); // NOUVEAU
-                btnCibleObjetB.setTextColor(Color.parseColor("#FFD700")); // NOUVEAU
-                btnCibleVariable.setBackgroundColor(Palette.boutonNormal);
-                btnCibleVariable.setTextColor(Color.parseColor("#FFD700"));
-            });
-            listeGauche.addView(btnCibleScene);
-        }
-
-        final TextView txtCibleObjetActuelle = new TextView(context);
-        txtCibleObjetActuelle.setTextColor(Palette.texteSelectionne);
-        txtCibleObjetActuelle.setPadding(20, 0, 20, 10); // Marges ajustées pour la cible B
-        txtCibleObjetActuelle.setTextSize(16);
-        
-        final TextView txtCibleObjetBActuelle = new TextView(context); // NOUVEAU
-        txtCibleObjetBActuelle.setTextColor(Palette.texteSelectionne);
-        txtCibleObjetBActuelle.setPadding(20, 0, 20, 20);
-        txtCibleObjetBActuelle.setTextSize(16);
-
-        final TextView txtCibleVariableActuelle = new TextView(context);
-        txtCibleVariableActuelle.setTextColor(Palette.texteSelectionne);
-        txtCibleVariableActuelle.setPadding(20, 0, 20, 20);
-        txtCibleVariableActuelle.setTextSize(16);
-
-        final TextView txtCibleSceneActuelle = new TextView(context);
-        txtCibleSceneActuelle.setTextColor(Palette.texteSelectionne);
-        txtCibleSceneActuelle.setPadding(20, 0, 20, 20);
-        txtCibleSceneActuelle.setTextSize(16);
-        
-        if (noeud.requiertCibleObjet()) {
-            txtCibleObjetActuelle.setText("Cible Objet : " + (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : "Aucune"));
-            listeGauche.addView(txtCibleObjetActuelle);
-        }
-        
-        if (noeud.requiertCibleObjetB()) { // NOUVEAU
-            txtCibleObjetBActuelle.setText("Cible Objet B : " + (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : "Aucune"));
-            listeGauche.addView(txtCibleObjetBActuelle);
-        }
-
-        if (noeud.requiertCibleVariable()) {
-            txtCibleVariableActuelle.setText("Cible Variable : " + (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : "Aucune"));
-            listeGauche.addView(txtCibleVariableActuelle);
-        }
-
-        if (noeud.requiertCibleScene()) {
-            txtCibleSceneActuelle.setText("Cible Scène : " + (noeud.getCibleScene() != null ? noeud.getCibleScene().nom : "Aucune"));
-            listeGauche.addView(txtCibleSceneActuelle);
-        }
-
         TextView titreItems = new TextView(context);
-        titreItems.setText("Items (Cible Objet / B)"); // NOUVEAU : Texte mis à jour
+        titreItems.setText("Objets (Insertion)");
         titreItems.setTextColor(Palette.texteNormal);
         titreItems.setGravity(Gravity.CENTER);
         titreItems.setBackgroundColor(Palette.enTeteDialogues); 
@@ -449,107 +432,43 @@ public class EditeurNoeudDialog extends Dialog {
                 btnObj.setBackgroundColor(Color.TRANSPARENT);
                 
                 btnObj.setOnClickListener(v -> {
-                    if (modeCibleObjet) {
-                        noeud.setCibleObjet(obj);
-                        txtCibleObjetActuelle.setText("Cible Objet : " + obj.nom);
-                        modeCibleObjet = false; 
-                        
-                        btnCibleObjet.setBackgroundColor(Palette.boutonNormal);
-                        btnCibleObjet.setTextColor(Color.parseColor("#FFD700"));
-                        
-                        if (champActif != null) {
-                            for (int i = 0; i < barreParams.getChildCount(); i++) {
-                                View child = barreParams.getChildAt(i);
-                                if (child instanceof Button && champActif.equals(((Button)child).getText().toString())) {
-                                    child.setBackgroundColor(Color.parseColor("#4CAF50"));
-                                }
-                            }
-                        }
-                        appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
-                        mettreAJourResumeExpression(noeud, txtResumeExpression);
-                        
-                    } else if (modeCibleObjetB) { // NOUVEAU
-                        noeud.setCibleObjetB(obj);
-                        txtCibleObjetBActuelle.setText("Cible Objet B : " + obj.nom);
-                        modeCibleObjetB = false; 
-                        
-                        btnCibleObjetB.setBackgroundColor(Palette.boutonNormal);
-                        btnCibleObjetB.setTextColor(Color.parseColor("#FFD700"));
-                        
-                        if (champActif != null) {
-                            for (int i = 0; i < barreParams.getChildCount(); i++) {
-                                View child = barreParams.getChildAt(i);
-                                if (child instanceof Button && champActif.equals(((Button)child).getText().toString())) {
-                                    child.setBackgroundColor(Color.parseColor("#4CAF50"));
-                                }
-                            }
-                        }
-                        appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
-                        mettreAJourResumeExpression(noeud, txtResumeExpression);
-                        
-                    } else {
-                        int start = Math.max(champSaisie.getSelectionStart(), 0);
-                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
-                        champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), obj.nom, 0, obj.nom.length());
-                    }
+                    int start = Math.max(champSaisie.getSelectionStart(), 0);
+                    int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                    champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), obj.nom, 0, obj.nom.length());
                 });
                 listeGauche.addView(btnObj);
             }
         }
-// bas 3
-// haut 4
-        // =========================================================
-        // PANNEAU GAUCHE - Variables, Scènes et Assemblage final
-        // =========================================================
+
         TextView titreVars = new TextView(context);
-        titreVars.setText("Variables");
+        titreVars.setText("Variables Locales (Insertion)");
         titreVars.setTextColor(Palette.texteNormal);
         titreVars.setGravity(Gravity.CENTER);
         titreVars.setBackgroundColor(Palette.enTeteDialogues);
         titreVars.setPadding(10, 30, 10, 15);
         listeGauche.addView(titreVars);
 
-        View.OnClickListener varClickListener = v -> {
-            Variable var = (Variable) v.getTag();
-            if (modeCibleVariable) {
-                noeud.setCibleVariable(var);
-                txtCibleVariableActuelle.setText("Cible Variable : " + var.nom);
-                modeCibleVariable = false; 
-                
-                btnCibleVariable.setBackgroundColor(Palette.boutonNormal);
-                btnCibleVariable.setTextColor(Color.parseColor("#FFD700"));
-                
-                if (champActif != null) {
-                    for (int i = 0; i < barreParams.getChildCount(); i++) {
-                        View child = barreParams.getChildAt(i);
-                        if (child instanceof Button && champActif.equals(((Button)child).getText().toString())) {
-                            child.setBackgroundColor(Color.parseColor("#4CAF50"));
-                        }
-                    }
-                }
-                appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
-                mettreAJourResumeExpression(noeud, txtResumeExpression);
-            } else {
-                int start = Math.max(champSaisie.getSelectionStart(), 0);
-                int end = Math.max(champSaisie.getSelectionEnd(), 0);
-                champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), var.nom, 0, var.nom.length());
-            }
+        View.OnClickListener insertionListener = v -> {
+            String texteAInserer = v.getTag().toString();
+            int start = Math.max(champSaisie.getSelectionStart(), 0);
+            int end = Math.max(champSaisie.getSelectionEnd(), 0);
+            champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), texteAInserer, 0, texteAInserer.length());
         };
 
         if (scene != null && scene.variablesLocales != null) {
             for (Variable var : scene.variablesLocales) {
                 Button btnVar = new Button(context);
-                btnVar.setText(var.nom + " (Locale)");
+                btnVar.setText(var.nom);
                 btnVar.setTextColor(Palette.texteNormal);
                 btnVar.setBackgroundColor(Color.TRANSPARENT); 
-                btnVar.setTag(var);
-                btnVar.setOnClickListener(varClickListener);
+                btnVar.setTag(var.nom);
+                btnVar.setOnClickListener(insertionListener);
                 listeGauche.addView(btnVar);
             }
         }
 
         TextView titreVarsGlobales = new TextView(context);
-        titreVarsGlobales.setText("Variables Globales");
+        titreVarsGlobales.setText("Variables Globales (Insertion)");
         titreVarsGlobales.setTextColor(Palette.texteNormal);
         titreVarsGlobales.setGravity(Gravity.CENTER);
         titreVarsGlobales.setBackgroundColor(Palette.enTeteDialogues);
@@ -569,17 +488,17 @@ public class EditeurNoeudDialog extends Dialog {
         if (variablesGlobalesRecuperees != null) {
             for (Variable var : variablesGlobalesRecuperees) {
                 Button btnVarGlobale = new Button(context);
-                btnVarGlobale.setText(var.nom + " (Globale)");
+                btnVarGlobale.setText(var.nom);
                 btnVarGlobale.setTextColor(Palette.texteNormal);
                 btnVarGlobale.setBackgroundColor(Color.TRANSPARENT);
-                btnVarGlobale.setTag(var);
-                btnVarGlobale.setOnClickListener(varClickListener);
+                btnVarGlobale.setTag(var.nom);
+                btnVarGlobale.setOnClickListener(insertionListener);
                 listeGauche.addView(btnVarGlobale);
             }
         }
 
         TextView titreScenes = new TextView(context);
-        titreScenes.setText("Scènes");
+        titreScenes.setText("Scènes (Insertion)");
         titreScenes.setTextColor(Palette.texteNormal);
         titreScenes.setGravity(Gravity.CENTER);
         titreScenes.setBackgroundColor(Palette.enTeteDialogues); 
@@ -599,24 +518,11 @@ public class EditeurNoeudDialog extends Dialog {
         if (scenesRecuperees != null) {
             for (Scene s : scenesRecuperees) {
                 Button btnScene = new Button(context);
-                btnScene.setText(s.nom + " (Scène)");
+                btnScene.setText(s.nom);
                 btnScene.setTextColor(Palette.texteNormal);
                 btnScene.setBackgroundColor(Color.TRANSPARENT); 
-                
-                btnScene.setOnClickListener(v -> {
-                    if (modeCibleScene) {
-                        noeud.setCibleScene(s);
-                        txtCibleSceneActuelle.setText("Cible Scène : " + s.nom);
-                        modeCibleScene = false;
-                        btnCibleScene.setBackgroundColor(Palette.boutonNormal);
-                        btnCibleScene.setTextColor(Color.parseColor("#FFD700"));
-                    } else {
-                        int start = Math.max(champSaisie.getSelectionStart(), 0);
-                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
-                        champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), s.nom, 0, s.nom.length());
-                    }
-                });
-                
+                btnScene.setTag(s.nom);
+                btnScene.setOnClickListener(insertionListener);
                 listeGauche.addView(btnScene);
             }
         }
@@ -664,9 +570,49 @@ public class EditeurNoeudDialog extends Dialog {
         appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
         mettreAJourResumeExpression(noeud, txtResumeExpression);
     }
-// bas 4
 
-// haut 5
+
+    // haut 5
+
+    // =========================================================
+    // NOUVELLES MÉTHODES UTILITAIRES POUR LES CIBLES
+    // =========================================================
+    private Button creerBoutonSelectionCible(Context context, String texte) {
+        Button btn = new Button(context);
+        btn.setText(texte);
+        btn.setBackgroundColor(Palette.boutonNormal);
+        btn.setTextColor(Color.parseColor("#FFD700"));
+        return btn;
+    }
+
+    private TextView creerTextViewAfficheurCible(Context context) {
+        TextView txt = new TextView(context);
+        txt.setPadding(15, 0, 30, 0);
+        txt.setTextSize(16);
+        return txt;
+    }
+
+    private void mettreAJourAfficheurCible(TextView txt, String valeur) {
+        if (valeur == null || valeur.trim().isEmpty()) {
+            txt.setText("Aucune");
+            txt.setTextColor(Color.parseColor("#888888")); 
+            txt.setTypeface(null, android.graphics.Typeface.ITALIC);
+        } else {
+            txt.setText(valeur);
+            txt.setTextColor(Palette.texteSelectionne);
+            txt.setTypeface(null, android.graphics.Typeface.BOLD);
+        }
+    }
+
+    private void ajouterCoupleALaRangee(Context context, LinearLayout rangee, Button btn, TextView txt) {
+        LinearLayout couple = new LinearLayout(context);
+        couple.setOrientation(LinearLayout.HORIZONTAL);
+        couple.setGravity(Gravity.CENTER_VERTICAL);
+        couple.addView(btn);
+        couple.addView(txt);
+        rangee.addView(couple);
+    }
+
     // =========================================================
     // MÉTHODES UTILITAIRES DE LA DIALOG
     // =========================================================
@@ -677,7 +623,6 @@ public class EditeurNoeudDialog extends Dialog {
                                    && noeud.getNomsParametres().contains("Valeur de comparaison");
         }
 
-        // NOUVEAU : Logique spécifique pour afficher le nom des deux cibles Objet A et B
         if (noeud instanceof NoeudEventCollisionAB || noeud instanceof NoeudConditionSiObjetToucheZone) {
             txtResume.setVisibility(View.VISIBLE);
             String objNameA = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
@@ -743,36 +688,19 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
     }
-
-    private void majInterfacePourVariable(Variable var, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
-        if (var == null) return;
-        
-        if ("CHIFFRE".equals(var.type)) {
-            champSaisie.setShowSoftInputOnFocus(false);
-            champSaisie.setInputType(InputType.TYPE_NULL);
-            if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
-            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-        } else if ("TEXTE".equals(var.type)) {
-            champSaisie.setShowSoftInputOnFocus(true);
-            champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
-            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-            champSaisie.requestFocus();
-        } else if ("BOOLEEN".equals(var.type)) {
-            champSaisie.setShowSoftInputOnFocus(false);
-            champSaisie.setInputType(InputType.TYPE_NULL);
-            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
-            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.VISIBLE);
-        }
-    }
 }
-// bas 5
-                
 
 
     
+        
+        
+        
+
+
+
 
 
         
-
-    
+        
+        
+        
