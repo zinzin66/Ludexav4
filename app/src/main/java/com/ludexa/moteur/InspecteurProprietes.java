@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 0908
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -357,12 +357,35 @@ public class InspecteurProprietes extends LinearLayout {
         });
         blocTexte.addView(champContenu);
 // bas 1
-
 // haut 2
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
-        champTaille.setOnClickListener(toastListener);
+        champTaille.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Taille de police");
+            
+            final EditText input = new EditText(context);
+            input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            input.setText(String.valueOf(objetCourant.tailleFonte));
+            
+            builder.setView(input);
+            builder.setPositiveButton("Valider", (dialog, which) -> {
+                try {
+                    float nouvelleTaille = Float.parseFloat(input.getText().toString());
+                    objetCourant.tailleFonte = nouvelleTaille;
+                    miseAJourEnCours = true;
+                    champTaille.setText(String.valueOf(nouvelleTaille));
+                    miseAJourEnCours = false;
+                    canvasEditeur.invalidate();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(context, "Valeur invalide", Toast.LENGTH_SHORT).show();
+                }
+            });
+            builder.setNegativeButton("Annuler", null);
+            builder.show();
+        });
         champTaille.setTextColor(Palette.texteNormal);
         champTaille.setBackgroundColor(Palette.canvasFond);
         blocTexte.addView(champTaille);
@@ -375,7 +398,39 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnPolice = new Button(context);
         btnPolice.setText("Police : Sélecteur");
-        btnPolice.setOnClickListener(toastListener);
+        btnPolice.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            
+            if (cheminProjet == null) {
+                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            java.io.File dossierPolices = new java.io.File(cheminProjet, "assets_ludexa/Fonts");
+            List<String> polices = listerPolicesLocales(dossierPolices, "assets_ludexa/Fonts/");
+            
+            if (polices.isEmpty()) {
+                Toast.makeText(context, "Aucune police trouvée dans les assets", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            List<String> options = new ArrayList<>();
+            options.add("Police par défaut");
+            options.addAll(polices);
+
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner une police")
+                .setItems(options.toArray(new String[0]), (dialog, which) -> {
+                    if (which == 0) {
+                        objetCourant.cheminPolice = null;
+                    } else {
+                        objetCourant.cheminPolice = options.get(which);
+                    }
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                })
+                .show();
+        });
         btnPolice.setBackgroundColor(Palette.boutonNormal);
         btnPolice.setTextColor(Palette.texteNormal);
         blocTexte.addView(btnPolice);
@@ -474,7 +529,8 @@ public class InspecteurProprietes extends LinearLayout {
                 this.setLayoutParams(paramsOuvert);
             }
         });
-
+// bas 2
+// haut 3
         champNom.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 verifierEtConfirmerRenommage(context);
@@ -715,6 +771,15 @@ public class InspecteurProprietes extends LinearLayout {
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
                 champContenu.setText(objet.contenuTexte);
+                
+                champTaille.setText(String.valueOf(objet.tailleFonte));
+                if (objet.cheminPolice != null) {
+                    java.io.File f = new java.io.File(objet.cheminPolice);
+                    btnPolice.setText("Police : " + f.getName());
+                } else {
+                    btnPolice.setText("Police : Sélecteur");
+                }
+                
                 blocImage.setVisibility(View.GONE);
             } else {
                 blocTexte.setVisibility(View.GONE);
@@ -754,6 +819,26 @@ public class InspecteurProprietes extends LinearLayout {
         return resultats;
     }
 
+    private List<String> listerPolicesLocales(java.io.File dir, String cheminBase) {
+        List<String> resultats = new ArrayList<>();
+        if (dir != null && dir.exists() && dir.isDirectory()) {
+            java.io.File[] fichiers = dir.listFiles();
+            if (fichiers != null) {
+                for (java.io.File f : fichiers) {
+                    if (f.isDirectory()) {
+                        resultats.addAll(listerPolicesLocales(f, cheminBase + f.getName() + "/"));
+                    } else {
+                        String nom = f.getName().toLowerCase();
+                        if (nom.endsWith(".ttf") || nom.endsWith(".otf")) {
+                            resultats.add(cheminBase + f.getName());
+                        }
+                    }
+                }
+            }
+        }
+        return resultats;
+    }
+
     private TextWatcher creerWatcherSimple(java.util.function.Consumer<String> action) {
         return new TextWatcher() {
             @Override
@@ -771,10 +856,5 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 2
-                                                              
+// bas 3
 
-
-
-
-    

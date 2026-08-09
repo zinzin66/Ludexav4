@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 0908
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -34,6 +34,8 @@ public class VueJeu extends View {
     private float lastYJeu = 0f;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
+    // NOUVEAU : Cache polices pour le jeu
+    private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
     private final Runnable boucleDeRendu = new Runnable() {
         @Override
@@ -224,7 +226,6 @@ public class VueJeu extends View {
         return null;
     }
 
-    // MODIFICATION : Rendue publique pour être accessible par UtilCollision
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -283,7 +284,6 @@ public class VueJeu extends View {
 
             peintureObjet.setColor(objet.couleur);
             peintureTexte.setColor(objet.couleur);
-            if ("texte".equals(objet.type)) peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
 
@@ -298,11 +298,58 @@ public class VueJeu extends View {
                 dessinerImage(canvas, objet);
             } else if ("texte".equals(objet.type)) {
                 String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+                
+                // NOUVEAU : Application de la police au runtime
+                if (objet.cheminPolice != null && cheminProjet != null) {
+                    android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
+                    if (tf == null) {
+                        try {
+                            java.io.File fontFile = new java.io.File(cheminProjet, objet.cheminPolice);
+                            if (fontFile.exists()) {
+                                tf = android.graphics.Typeface.createFromFile(fontFile);
+                                cachePolices.put(objet.cheminPolice, tf);
+                            }
+                        } catch (Exception e) {}
+                    }
+                    peintureTexte.setTypeface(tf != null ? tf : android.graphics.Typeface.DEFAULT);
+                } else {
+                    peintureTexte.setTypeface(android.graphics.Typeface.DEFAULT);
+                }
+
+                // NOUVEAU : Rendu multiligne avec Word Wrap identique à l'éditeur
+                peintureTexte.setTextSize(objet.tailleFonte);
                 peintureTexte.setTextScaleX(1.0f);
-                float tw = peintureTexte.measureText(texteAAfficher);
-                if (tw > 0) peintureTexte.setTextScaleX(objet.largeur / tw);
-                canvas.drawText(texteAAfficher, 0, objet.hauteur - (objet.hauteur * 0.1f), peintureTexte);
-                peintureTexte.setTextScaleX(1.0f);
+                
+                float hauteurLigne = objet.tailleFonte * 1.2f;
+                float currentY = hauteurLigne; 
+                float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
+                
+                String[] paragraphes = texteAAfficher.split("\n", -1);
+                for (String paragraphe : paragraphes) {
+                    if (paragraphe.isEmpty()) {
+                        currentY += hauteurLigne;
+                        continue;
+                    }
+
+                    int start = 0;
+                    while (start < paragraphe.length()) {
+                        int count = peintureTexte.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
+                        if (count <= 0) count = 1;
+                        
+                        int end = start + count;
+                        if (end < paragraphe.length()) {
+                            int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
+                            if (dernierEspace > start) {
+                                end = dernierEspace + 1;
+                            }
+                        }
+                        
+                        String ligne = paragraphe.substring(start, end);
+                        canvas.drawText(ligne, 0, currentY, peintureTexte);
+                        currentY += hauteurLigne;
+                        start = end;
+                    }
+                }
             } else {
                 if (objet.afficherFondColore || objet.cheminImage == null) canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
                 dessinerImage(canvas, objet);
@@ -321,7 +368,6 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        // NOUVEAU : Vérification continue des collisions à chaque frame (~60fps)
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
             this.moteur.verifierCollisions(this, sceneActive.objets);
         }
@@ -343,4 +389,3 @@ public class VueJeu extends View {
     }
 }
 // bas 1
-            
