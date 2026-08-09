@@ -26,6 +26,7 @@ public class CanvasBlueprint extends View {
     private Paint paintSelection;
     private Paint paintBoutonEdition;
     private Paint paintTexteBouton;
+    private Paint paintResume;
     
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
@@ -111,6 +112,11 @@ public class CanvasBlueprint extends View {
         paintTexteBouton.setTextSize(16);
         paintTexteBouton.setTextAlign(Paint.Align.CENTER);
         paintTexteBouton.setAntiAlias(true);
+        
+        paintResume = new Paint();
+        paintResume.setColor(Palette.texteSelectionne);
+        paintResume.setTextSize(18);
+        paintResume.setAntiAlias(true);
         
         setBackgroundColor(Palette.canvasFond); 
 
@@ -205,8 +211,6 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
-
-
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -288,7 +292,7 @@ public class CanvasBlueprint extends View {
         float x = xObj;
         float y = yObj;
         float startY = y + 70;
-        float largeur = 260;
+        float largeur = getLargeurNoeud(noeud);
 
         for (int i = 0; i < noeud.portsEntree.size(); i++) {
             if (noeud.portsEntree.get(i).nom.equals(port.nom)) {
@@ -303,14 +307,15 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
- // haut 3
+// haut 3
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
         if (noeud.requiertCibleObjet()) count++;
+        if (noeud.requiertCibleObjetB()) count++;
         if (noeud.requiertCibleVariable()) count++;
         if (noeud.requiertCibleScene()) count++;
         if (noeud.getNomsParametres() != null) count += noeud.getNomsParametres().size();
-        return count * 22f;
+        return count * 28f;
     }
 
     private float calculerHauteurBase(NoeudBase noeud) {
@@ -321,6 +326,57 @@ public class CanvasBlueprint extends View {
     private float calculerHauteurTotale(NoeudBase noeud) {
         return calculerHauteurBase(noeud) + (noeud.aDesParametresEditables() ? 50 : 0);
     }
+    
+    private float getLargeurNoeud(NoeudBase noeud) {
+        float max = 220f;
+        
+        float wTitre = paintTexteTitre.measureText(noeud.nom) + 40f;
+        if (wTitre > max) max = wTitre;
+        
+        int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
+        for (int i = 0; i < maxPorts; i++) {
+            float rowWidth = 60f; 
+            if (i < noeud.portsEntree.size()) {
+                rowWidth += paintTextePort.measureText(noeud.portsEntree.get(i).nom);
+            }
+            if (i < noeud.portsSortie.size()) {
+                rowWidth += paintTextePort.measureText(noeud.portsSortie.get(i).nom);
+            }
+            if (rowWidth > max) max = rowWidth;
+        }
+
+        if (noeud.requiertCibleObjet()) {
+            String nom = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "Aucune";
+            float w = paintResume.measureText("Objet : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.requiertCibleObjetB()) {
+            String nom = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "Aucune";
+            float w = paintResume.measureText("Objet B : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.requiertCibleVariable()) {
+            String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "Aucune";
+            float w = paintResume.measureText("Variable : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.requiertCibleScene()) {
+            String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : "Aucune";
+            float w = paintResume.measureText("Scène : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.getNomsParametres() != null) {
+            for (String param : noeud.getNomsParametres()) {
+                String val = noeud.getValeurParametre(param);
+                if (val == null) val = "";
+                String ligne = param + " : " + val;
+                float w = paintResume.measureText(ligne) + 30f;
+                if (w > max) max = w;
+            }
+        }
+        
+        return max;
+    }
 
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
@@ -329,7 +385,7 @@ public class CanvasBlueprint extends View {
         
         float x = xObj;
         float y = yObj;
-        float largeur = 260;
+        float largeur = getLargeurNoeud(noeud);
         int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
         
         boolean estEditable = noeud.aDesParametresEditables();
@@ -370,34 +426,34 @@ public class CanvasBlueprint extends View {
         
         // Résumé des paramètres
         float currentY = y + 60 + (maxPorts * 40) + 15;
-        Paint paintResume = new Paint();
-        paintResume.setColor(Palette.texteSelectionne);
-        paintResume.setTextSize(14);
-        paintResume.setAntiAlias(true);
         
         if (noeud.requiertCibleObjet()) {
             String nom = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "Aucune";
             canvas.drawText("Objet : " + nom, x + 15, currentY, paintResume);
-            currentY += 22;
+            currentY += 28;
+        }
+        if (noeud.requiertCibleObjetB()) {
+            String nom = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "Aucune";
+            canvas.drawText("Objet B : " + nom, x + 15, currentY, paintResume);
+            currentY += 28;
         }
         if (noeud.requiertCibleVariable()) {
             String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "Aucune";
             canvas.drawText("Variable : " + nom, x + 15, currentY, paintResume);
-            currentY += 22;
+            currentY += 28;
         }
         if (noeud.requiertCibleScene()) {
             String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : "Aucune";
             canvas.drawText("Scène : " + nom, x + 15, currentY, paintResume);
-            currentY += 22;
+            currentY += 28;
         }
         if (noeud.getNomsParametres() != null) {
             for (String param : noeud.getNomsParametres()) {
                 String val = noeud.getValeurParametre(param);
                 if (val == null) val = "";
                 String ligne = param + " : " + val;
-                if (ligne.length() > 25) ligne = ligne.substring(0, 22) + "...";
                 canvas.drawText(ligne, x + 15, currentY, paintResume);
-                currentY += 22;
+                currentY += 28;
             }
         }
 
@@ -428,7 +484,7 @@ public class CanvasBlueprint extends View {
             if (nx == null || ny == null) continue;
 
             float startY = ny + 70;
-            float largeur = 260;
+            float largeur = getLargeurNoeud(noeud);
 
             for (int j = 0; j < noeud.portsEntree.size(); j++) {
                 float py = startY + (j * 40);
@@ -456,7 +512,7 @@ public class CanvasBlueprint extends View {
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             
             if (nx != null && ny != null) {
-                float largeur = 260;
+                float largeur = getLargeurNoeud(noeud);
                 float hauteurBase = calculerHauteurBase(noeud);
                 float btnY = ny + hauteurBase;
                 
@@ -476,7 +532,7 @@ public class CanvasBlueprint extends View {
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             
             if (nx != null && ny != null) {
-                float largeur = 260;
+                float largeur = getLargeurNoeud(noeud);
                 float hauteur = calculerHauteurTotale(noeud);
                 
                 if (sceneX >= nx && sceneX <= nx + largeur && sceneY >= ny && sceneY <= ny + hauteur) {
@@ -534,8 +590,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-    
-// haut 4
+ // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();

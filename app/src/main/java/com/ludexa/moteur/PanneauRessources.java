@@ -1,4 +1,4 @@
-// haut 1 8 08
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -51,8 +51,10 @@ public class PanneauRessources extends ScrollView {
         
         File dirImages = new File(rootAssetsDir, "Images");
         File dirSons = new File(rootAssetsDir, "Sons");
+        File dirFonts = new File(rootAssetsDir, "Fonts");
         if (!dirImages.exists()) dirImages.mkdirs();
         if (!dirSons.exists()) dirSons.mkdirs();
+        if (!dirFonts.exists()) dirFonts.mkdirs();
         
         currentFolderSelected = dirImages;
 
@@ -325,7 +327,7 @@ public class PanneauRessources extends ScrollView {
         if (dir == null) return false;
         String nom = dir.getName();
         return (dir.getParentFile() != null && dir.getParentFile().equals(rootAssetsDir)) &&
-               (nom.equals("Images") || nom.equals("Sons"));
+               (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts"));
     }
 
     private View creerSectionAssets(Context context) {
@@ -403,6 +405,7 @@ public class PanneauRessources extends ScrollView {
         btnImportAsset.setOnClickListener(v -> {
             if (currentFolderSelected == null) return;
             String chemin = currentFolderSelected.getAbsolutePath();
+            // Le dossier Fonts utilisera le type MIME par défaut "*/*", ce qui est préférable car les sélecteurs Android gèrent parfois mal ".ttf" ou ".otf"
             String mime = chemin.contains("/Images") ? "image/*" : "*/*";
             ((InterfaceEditeur)context).lancerImportAsset(mime);
         });
@@ -440,6 +443,8 @@ public class PanneauRessources extends ScrollView {
         return section;
     }
 // bas 2
+
+
 // haut 3
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
@@ -858,6 +863,8 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 4
+
+
 // haut 5
     private void afficherPopupSupprimerScene(Context context, Scene scene) {
         Dialog dialog = new Dialog(context);
@@ -1111,6 +1118,7 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 // bas 5
+
 
 // haut 6
     private void afficherPopupSupprimerVariable(Context context, Variable var) {
@@ -1374,6 +1382,7 @@ public class PanneauRessources extends ScrollView {
     
 
 
+    
 
 
 
@@ -1381,7 +1390,6 @@ public class PanneauRessources extends ScrollView {
 
 
     
-
 
     
 
