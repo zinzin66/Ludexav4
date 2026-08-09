@@ -1375,12 +1375,6 @@ public class PanneauRessources extends ScrollView {
 
 
 
-
-
-
-    
-
-
     
 
 
@@ -1388,7 +1382,14 @@ public class PanneauRessources extends ScrollView {
     
 
 
+    
 
+
+
+    
+
+
+    
 
     
 
