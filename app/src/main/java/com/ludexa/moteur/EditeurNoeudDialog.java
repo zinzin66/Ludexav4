@@ -115,6 +115,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
         // fin 1
+        // debut 2
                 // =========================================================
         // PANNEAU DROIT (Édition & Cibles)
         // =========================================================
@@ -233,13 +234,17 @@ public class EditeurNoeudDialog extends Dialog {
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleScene() != null ? noeud.getCibleScene().nom : null);
             
             btnCible.setOnClickListener(v -> {
-                List<Scene> scenesRecuperees = null;
+                List<Scene> tempScenes = null;
                 if (NoeudBase.contexteApplication != null) {
                     try {
                         java.lang.reflect.Field scenesField = NoeudBase.contexteApplication.getClass().getField("listeScenes");
-                        scenesRecuperees = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
+                        tempScenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
                     } catch (Exception e) {}
                 }
+                
+                // On crée une référence finale pour la lambda
+                final List<Scene> scenesRecuperees = tempScenes; 
+                
                 if (scenesRecuperees != null && !scenesRecuperees.isEmpty()) {
                     String[] noms = new String[scenesRecuperees.size()];
                     for (int i = 0; i < scenesRecuperees.size(); i++) noms[i] = scenesRecuperees.get(i).nom;
@@ -257,8 +262,10 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
+                        
+
         
-        
+                
         // haut3
 
                 // Ajout du reste de l'interface droite
