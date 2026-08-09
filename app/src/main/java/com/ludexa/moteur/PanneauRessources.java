@@ -1,48 +1,79 @@
-// haut 1 nouvelle interface 
+// haut 1
 package com.ludexa.moteur;
 
-import android.app.Dialog;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
-import android.net.Uri;
-import android.provider.OpenableColumns;
-import android.database.Cursor;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.FileOutputStream;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import java.util.ArrayList;
+import java.util.List;
 
-public class PanneauRessources extends ScrollView {
+public class InspecteurProprietes extends LinearLayout {
 
+    private ScrollView scrollInspecteur;
+    private TextView titreInspecteur;
+    private Button boutonMasquer;
+    private LinearLayout.LayoutParams paramsOuvert;
+    private LinearLayout.LayoutParams paramsFerme;
+
+    private TextView texteInfo;
+    private LinearLayout blocProprietes;
+    private EditText champNom;
+    private Button btnValiderNom;
+    private EditText champX;
+    private EditText champY;
+    private Button boutonSupprimer;
+
+    private TextView valeurType;
+    private EditText champLargeur, champHauteur, champRotation, champAlpha, champZOrder;
+    // FIX 2: Ajout des champs d'Echelle pour refléter le redimensionnement dynamique
+    private EditText champScaleX, champScaleY;
+    private CheckBox cbVisible, cbVerrouille;
+    private Button btnCouleur;
+    private Button btnParent;
+
+    private LinearLayout blocTexte;
+    private EditText champContenu, champTaille;
+    private Button btnCouleurTexte, btnPolice;
+
+    // Composants pour l'image
+    private LinearLayout blocImage;
+    private Button btnChargerImage, btnSupprimerImage;
+    private CheckBox cbFondColore;
+    private CheckBox cbRamassable, cbZoneDeClic, cbDeplacable;
+
+    private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
-    private LinearLayout conteneurScenes;
-    private LinearLayout conteneurArborescence;
-    private LinearLayout conteneurVariables;
-    private Variable variableSelectionnee;
-    private ObjetBase objetSelectionne;
+    private ObjetBase objetCourant;
+    private boolean miseAJourEnCours = false;
 
-    private File rootAssetsDir;
-    private File currentFolderSelected;
-    private File currentAssetSelected;
-    
-    private LinearLayout conteneurArborescenceDossiers;
-    private LinearLayout conteneurListeAssets;
-    
+    // NOUVEAU CHAMP
     private String cheminProjet;
 
-    public PanneauRessources(Context context, CanvasEditeur canvas, String cheminProjet) {
+    public InspecteurProprietes(Context context, Scene scene, CanvasEditeur canvas) {
         super(context);
+        this.sceneActive = scene;
         this.canvasEditeur = canvas;
-        this.cheminProjet = cheminProjet;
-        init(context);
+        initialiserInterface(context);
     }
 
-    // ---------- Helpers visuels (esthétique uniquement) ----------
+    // NOUVEAU SETTER
+    public void setCheminProjet(String cheminProjet) {
+        this.cheminProjet = cheminProjet;
+    }
+
+    // AJOUT: Setter pour mettre à jour la scène active dynamiquement
+    public void setSceneActive(Scene scene) {
+        this.sceneActive = scene;
+    }
+
+    // ---------- Helpers visuels (esthétique uniquement, repris de PanneauRessources) ----------
 
     private int dp(int valeur) {
         return (int) (valeur * getResources().getDisplayMetrics().density);
@@ -56,1387 +87,855 @@ public class PanneauRessources extends ScrollView {
         return g;
     }
 
-    private void styliserTitreSection(Button b) {
-        b.setAllCaps(false);
-        b.setTextColor(Palette.texteSelectionne);
-        b.setTextSize(15f);
-        b.setTypeface(null, android.graphics.Typeface.BOLD);
-        b.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        b.setPadding(dp(14), dp(10), dp(14), dp(10));
-        b.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 10));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(dp(8), dp(8), dp(8), dp(4));
-        b.setLayoutParams(lp);
-    }
-
-    private void styliserContenuSection(LinearLayout contenu) {
+    private void styliserSection(LinearLayout contenu) {
         contenu.setBackground(fond(Palette.fondNormal, Palette.bordure, 10));
         contenu.setPadding(dp(10), dp(10), dp(10), dp(10));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(dp(8), 0, dp(8), dp(10));
+        lp.setMargins(0, dp(6), 0, dp(10));
         contenu.setLayoutParams(lp);
     }
 
-    private void styliserBoutonIcone(ImageButton b) {
-        b.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
-        b.setColorFilter(Palette.iconeNormal);
-        b.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        b.setPadding(dp(7), dp(7), dp(7), dp(7));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(40), dp(40));
-        lp.setMargins(dp(4), dp(4), dp(4), dp(4));
-        b.setLayoutParams(lp);
+    private void styliserSousTitre(TextView t) {
+        t.setTextColor(Palette.texteSelectionne);
+        t.setTextSize(15f);
+        t.setTypeface(null, android.graphics.Typeface.BOLD);
+        t.setPadding(dp(12), dp(9), dp(12), dp(9));
+        t.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 10));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(8), 0, dp(2));
+        t.setLayoutParams(lp);
     }
 
-    private void styliserChampDialogue(EditText champ) {
+    private void styliserLabel(TextView t) {
+        t.setTextColor(Palette.texteNormal);
+        t.setTextSize(13f);
+        t.setPadding(dp(2), dp(8), dp(2), dp(4));
+    }
+
+    private void styliserChamp(EditText champ) {
         champ.setTextColor(Palette.texteNormal);
         champ.setHintTextColor(Palette.bordure);
         champ.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
         champ.setPadding(dp(12), dp(10), dp(12), dp(10));
         champ.setTextSize(15f);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(3), dp(3), dp(3), dp(3));
+        champ.setLayoutParams(lp);
     }
 
-    private void styliserDialogue(LinearLayout layoutDialog) {
-        layoutDialog.setBackground(fond(Palette.fondPanneaux, Palette.bordure, 12));
-        layoutDialog.setPadding(dp(20), dp(20), dp(20), dp(20));
+    private void styliserChampFlexible(EditText champ) {
+        styliserChamp(champ);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(dp(3), dp(3), dp(3), dp(3));
+        champ.setLayoutParams(lp);
     }
 
-    // -------------------------------------------------------------
-
-    private void init(Context context) {
-        setBackgroundColor(Palette.fondPanneaux);
-        setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
-
-        rootAssetsDir = new File(cheminProjet, "assets_ludexa");
-        if (!rootAssetsDir.exists()) rootAssetsDir.mkdirs();
-        
-        File dirImages = new File(rootAssetsDir, "Images");
-        File dirSons = new File(rootAssetsDir, "Sons");
-        File dirFonts = new File(rootAssetsDir, "Fonts");
-        if (!dirImages.exists()) dirImages.mkdirs();
-        if (!dirSons.exists()) dirSons.mkdirs();
-        if (!dirFonts.exists()) dirFonts.mkdirs();
-        
-        currentFolderSelected = dirImages;
-
-        LinearLayout layoutPrincipal = new LinearLayout(context);
-        layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
-        layoutPrincipal.setPadding(0, dp(4), 0, dp(12));
-
-        layoutPrincipal.addView(creerSectionScenes(context));
-        layoutPrincipal.addView(creerSectionObjets(context));
-        layoutPrincipal.addView(creerSectionArborescence(context));
-        layoutPrincipal.addView(creerSectionAssets(context));
-        layoutPrincipal.addView(creerSectionVariables(context));
-
-        addView(layoutPrincipal);
+    private void styliserBouton(Button b) {
+        b.setAllCaps(false);
+        b.setTextColor(Palette.texteNormal);
+        b.setTextSize(14f);
+        b.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        b.setPadding(dp(14), dp(9), dp(14), dp(9));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(3), dp(4), dp(3), dp(4));
+        b.setLayoutParams(lp);
     }
 
-    private View creerSectionArborescence(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
-
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Arborescence ▼");
-        styliserTitreSection(btnTitre);
-
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        styliserContenuSection(contenu);
-
-        conteneurArborescence = new LinearLayout(context);
-        conteneurArborescence.setOrientation(LinearLayout.VERTICAL);
-        contenu.addView(conteneurArborescence);
-
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Arborescence ▶");
-            } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Arborescence ▼");
-                rafraichirArborescence();
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
+    private void styliserCase(CheckBox cb) {
+        cb.setTextColor(Palette.texteNormal);
+        cb.setTextSize(14f);
+        cb.setButtonTintList(android.content.res.ColorStateList.valueOf(Palette.texteSelectionne));
+        cb.setPadding(dp(8), dp(6), dp(8), dp(6));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(3), dp(2), dp(3), dp(2));
+        cb.setLayoutParams(lp);
     }
 
-    public void setObjetSelectionne(ObjetBase objet) {
-        this.objetSelectionne = objet;
-        rafraichirArborescence();
-    }
+    // ------------------------------------------------------------------------
 
-    public void rafraichirArborescence() {
-        if (conteneurArborescence == null) return;
-        conteneurArborescence.removeAllViews();
-        
-        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-        if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-            for (int i = 0; i < editeur.sceneActive.objets.size(); i++) {
-                ObjetBase obj = editeur.sceneActive.objets.get(i);
-                
-                TextView txtObjet = new TextView(getContext());
-                txtObjet.setText("• " + obj.nom);
-                txtObjet.setTextColor(obj == objetSelectionne ? Palette.texteSelectionne : Palette.texteNormal);
-                txtObjet.setPadding(dp(10), dp(9), dp(10), dp(9));
-                txtObjet.setTextSize(14f);
-                if (obj == objetSelectionne) {
-                    txtObjet.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
-                }
-                
-                txtObjet.setOnClickListener(v -> {
-                    objetSelectionne = obj;
-                    canvasEditeur.setObjetSelectionne(obj);
-                    rafraichirArborescence();
-                });
-                
-                conteneurArborescence.addView(txtObjet);
-            }
-        }
-        
-        if (conteneurArborescence.getChildCount() == 0) {
-            TextView txtVide = new TextView(getContext());
-            txtVide.setText("Aucun objet dans la scène");
-            txtVide.setTextColor(Palette.bordure);
-            txtVide.setTextSize(13f);
-            txtVide.setPadding(dp(10), dp(10), dp(10), dp(10));
-            conteneurArborescence.addView(txtVide);
-        }
-    }
+    private void initialiserInterface(Context context) {
+        this.setOrientation(LinearLayout.VERTICAL);
+        this.setBackgroundColor(Palette.fondPanneaux);
 
-    private String genererNomUnique(String prefixe, Scene scene) {
-        if (scene == null || scene.objets == null) return prefixe + "1";
-        int index = 1;
-        while (true) {
-            String testNom = prefixe + index;
-            boolean existe = false;
-            for (ObjetBase obj : scene.objets) {
-                if (obj.nom.equals(testNom)) {
-                    existe = true;
-                    break;
-                }
-            }
-            if (!existe) return testNom;
-            index++;
-        }
-    }
+        paramsOuvert = new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT);
+        paramsFerme = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        this.setLayoutParams(paramsOuvert);
+
+        LinearLayout enteteInspecteur = new LinearLayout(context);
+        enteteInspecteur.setOrientation(LinearLayout.HORIZONTAL);
+        enteteInspecteur.setPadding(dp(12), dp(10), dp(12), dp(10));
+        enteteInspecteur.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 0));
+        enteteInspecteur.setGravity(Gravity.CENTER_VERTICAL);
+
+        titreInspecteur = new TextView(context);
+        titreInspecteur.setText("INSPECTEUR");
+        titreInspecteur.setTextSize(17f);
+        titreInspecteur.setLetterSpacing(0.08f);
+        titreInspecteur.setTypeface(null, android.graphics.Typeface.BOLD);
+        titreInspecteur.setGravity(Gravity.CENTER_VERTICAL);
+        titreInspecteur.setTextColor(Palette.texteSelectionne);
+        LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        titreInspecteur.setLayoutParams(paramsTitre);
+
+        boutonMasquer = new Button(context);
+        boutonMasquer.setText(">");
+        boutonMasquer.setAllCaps(false);
+        boutonMasquer.setTextColor(Palette.iconeNormal);
+        boutonMasquer.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        boutonMasquer.setPadding(dp(10), dp(6), dp(10), dp(6));
+        LinearLayout.LayoutParams paramsMasquer = new LinearLayout.LayoutParams(dp(44), dp(40));
+        boutonMasquer.setLayoutParams(paramsMasquer);
+
+        enteteInspecteur.addView(titreInspecteur);
+        enteteInspecteur.addView(boutonMasquer);
+        this.addView(enteteInspecteur);
+
+        scrollInspecteur = new ScrollView(context);
+        LinearLayout contenuInspecteur = new LinearLayout(context);
+        contenuInspecteur.setOrientation(LinearLayout.VERTICAL);
+        contenuInspecteur.setPadding(dp(10), dp(8), dp(10), dp(16));
+
+        texteInfo = new TextView(context);
+        texteInfo.setText("Sélectionnez un objet sur la scène pour afficher et modifier ses propriétés.");
+        texteInfo.setPadding(dp(12), dp(14), dp(12), dp(14));
+        texteInfo.setTextSize(13f);
+        texteInfo.setTextColor(Palette.texteNormal);
+        texteInfo.setBackground(fond(Palette.fondNormal, Palette.bordure, 10));
+        contenuInspecteur.addView(texteInfo);
+
+        blocProprietes = new LinearLayout(context);
+        blocProprietes.setOrientation(LinearLayout.VERTICAL);
+        blocProprietes.setVisibility(View.GONE);
+
+        valeurType = new TextView(context);
+        valeurType.setPadding(dp(12), dp(10), dp(12), dp(10));
+        valeurType.setTextColor(Palette.texteSelectionne);
+        valeurType.setTextSize(14f);
+        valeurType.setTypeface(null, android.graphics.Typeface.BOLD);
+        valeurType.setBackground(fond(Palette.fondListe, Palette.bordure, 10));
+        blocProprietes.addView(valeurType);
+
+        TextView labelNom = new TextView(context);
+        labelNom.setText("Nom");
+        styliserLabel(labelNom);
+        blocProprietes.addView(labelNom);
+
+        LinearLayout layoutNom = new LinearLayout(context);
+        layoutNom.setOrientation(LinearLayout.HORIZONTAL);
+        layoutNom.setGravity(Gravity.CENTER_VERTICAL);
+
+        champNom = new EditText(context);
+        champNom.setSingleLine(true);
+        champNom.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        styliserChampFlexible(champNom);
+        layoutNom.addView(champNom);
+
+        btnValiderNom = new Button(context);
+        btnValiderNom.setText("OK");
+        styliserBouton(btnValiderNom);
+        btnValiderNom.setLayoutParams(new LinearLayout.LayoutParams(dp(64), LinearLayout.LayoutParams.WRAP_CONTENT));
+        layoutNom.addView(btnValiderNom);
+
+        blocProprietes.addView(layoutNom);
+
+        TextView labelPos = new TextView(context);
+        labelPos.setText("Position X / Y");
+        styliserLabel(labelPos);
+        blocProprietes.addView(labelPos);
+
+        LinearLayout layoutPos = new LinearLayout(context);
+        layoutPos.setOrientation(LinearLayout.HORIZONTAL);
+
+        champX = new EditText(context);
+        champX.setHint("X");
+        champX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChampFlexible(champX);
+
+        champY = new EditText(context);
+        champY.setHint("Y");
+        champY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChampFlexible(champY);
+
+        layoutPos.addView(champX);
+        layoutPos.addView(champY);
+        blocProprietes.addView(layoutPos);
+
+        View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
+
+        TextView labelDim = new TextView(context);
+        labelDim.setText("Largeur / Hauteur");
+        styliserLabel(labelDim);
+        blocProprietes.addView(labelDim);
+
+        LinearLayout layoutDim = new LinearLayout(context);
+        layoutDim.setOrientation(LinearLayout.HORIZONTAL);
+
+        champLargeur = new EditText(context);
+        champLargeur.setHint("Largeur");
+        champLargeur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        styliserChampFlexible(champLargeur);
+
+        champHauteur = new EditText(context);
+        champHauteur.setHint("Hauteur");
+        champHauteur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        styliserChampFlexible(champHauteur);
+
+        layoutDim.addView(champLargeur);
+        layoutDim.addView(champHauteur);
+        blocProprietes.addView(layoutDim);
+
+        // FIX 2: Ajout section Echelle
+        TextView labelScale = new TextView(context);
+        labelScale.setText("Echelle X / Y (Scale)");
+        styliserLabel(labelScale);
+        blocProprietes.addView(labelScale);
+
+        LinearLayout layoutScale = new LinearLayout(context);
+        layoutScale.setOrientation(LinearLayout.HORIZONTAL);
+
+        champScaleX = new EditText(context);
+        champScaleX.setHint("Scale X");
+        champScaleX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChampFlexible(champScaleX);
+
+        champScaleY = new EditText(context);
+        champScaleY.setHint("Scale Y");
+        champScaleY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChampFlexible(champScaleY);
+
+        layoutScale.addView(champScaleX);
+        layoutScale.addView(champScaleY);
+        blocProprietes.addView(layoutScale);
+
+        TextView labelRotation = new TextView(context);
+        labelRotation.setText("Rotation");
+        styliserLabel(labelRotation);
+        blocProprietes.addView(labelRotation);
+
+        champRotation = new EditText(context);
+        champRotation.setHint("Rotation (°)");
+        champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChamp(champRotation);
+        blocProprietes.addView(champRotation);
+
+        btnCouleur = new Button(context);
+        btnCouleur.setText("Couleur : Sélecteur");
+        styliserBouton(btnCouleur);
+        blocProprietes.addView(btnCouleur);
+
+        champAlpha = new EditText(context);
+        champAlpha.setHint("Transparence (0-1)");
+        champAlpha.setFocusable(false);
+        champAlpha.setOnClickListener(toastListener);
+        styliserChamp(champAlpha);
+        blocProprietes.addView(champAlpha);
+
+        cbVisible = new CheckBox(context);
+        cbVisible.setText("Visible");
+        styliserCase(cbVisible);
+        blocProprietes.addView(cbVisible);
+
+        cbVerrouille = new CheckBox(context);
+        cbVerrouille.setText("Verrouillé (empêche l'édition)");
+        cbVerrouille.setOnClickListener(toastListener);
+        styliserCase(cbVerrouille);
+        blocProprietes.addView(cbVerrouille);
+
+        TextView labelZOrder = new TextView(context);
+        labelZOrder.setText("Calque (Z-Order)");
+        styliserLabel(labelZOrder);
+        blocProprietes.addView(labelZOrder);
+
+        champZOrder = new EditText(context);
+        champZOrder.setHint("Calque (Z-Order)");
+        champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChamp(champZOrder);
+        blocProprietes.addView(champZOrder);
+
+        TextView labelParent = new TextView(context);
+        labelParent.setText("Objet Parent");
+        styliserLabel(labelParent);
+        blocProprietes.addView(labelParent);
+
+        btnParent = new Button(context);
+        btnParent.setText("Parent : Aucun");
+        styliserBouton(btnParent);
+        blocProprietes.addView(btnParent);
 // bas 1
+   // haut 2
+        btnParent.setOnClickListener(v -> {
+            if (objetCourant == null) return;
 
-// haut 2
-    private View creerSectionObjets(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
+            List<String> noms = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
 
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Objets à placer ▼");
-        styliserTitreSection(btnTitre);
+            noms.add("Aucun");
+            ids.add(null);
 
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.HORIZONTAL);
-        styliserContenuSection(contenu);
-
-        ImageButton btnAjouterCarre = new ImageButton(context);
-        btnAjouterCarre.setImageResource(R.drawable.square_24px);
-        styliserBoutonIcone(btnAjouterCarre);
-        btnAjouterCarre.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
-            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
-            editeur.sceneActive.ajouterObjet(nouveau);
-            canvasEditeur.invalidate();
-            rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
-        });
-
-        ImageButton btnAjouterTexte = new ImageButton(context);
-        btnAjouterTexte.setImageResource(R.drawable.title_24px);
-        styliserBoutonIcone(btnAjouterTexte);
-        btnAjouterTexte.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
-            ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
-            editeur.sceneActive.ajouterObjet(nouveau);
-            canvasEditeur.invalidate();
-            rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
-        });
-
-        ImageButton btnAjouterRond = new ImageButton(context);
-        btnAjouterRond.setImageResource(R.drawable.circle_24px);
-        styliserBoutonIcone(btnAjouterRond);
-        btnAjouterRond.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
-            ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
-            editeur.sceneActive.ajouterObjet(nouveau);
-            canvasEditeur.invalidate();
-            rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
-        });
-
-        contenu.addView(btnAjouterCarre);
-        contenu.addView(btnAjouterTexte);
-        contenu.addView(btnAjouterRond);
-
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Objets à placer ▶");
-            } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Objets à placer ▼");
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
-    }
-
-    private View creerSectionScenes(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
-
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Scènes ▼");
-        styliserTitreSection(btnTitre);
-
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        styliserContenuSection(contenu);
-
-        conteneurScenes = new LinearLayout(context);
-        conteneurScenes.setOrientation(LinearLayout.VERTICAL);
-        conteneurScenes.setPadding(0, 0, 0, dp(8));
-        contenu.addView(conteneurScenes);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnCreer = new ImageButton(context);
-        btnCreer.setImageResource(R.drawable.add_24px);
-        styliserBoutonIcone(btnCreer);
-        btnCreer.setOnClickListener(v -> afficherPopupCreerScene(context));
-
-        ImageButton btnRenommer = new ImageButton(context);
-        btnRenommer.setImageResource(R.drawable.edit_square_24px);
-        styliserBoutonIcone(btnRenommer);
-        btnRenommer.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            afficherPopupRenommerScene(context, editeur.sceneActive);
-        });
-
-        ImageButton btnSupprimer = new ImageButton(context);
-        btnSupprimer.setImageResource(R.drawable.delete_24px);
-        styliserBoutonIcone(btnSupprimer);
-        btnSupprimer.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            afficherPopupSupprimerScene(context, editeur.sceneActive);
-        });
-
-        zoneBoutons.addView(btnCreer);
-        zoneBoutons.addView(btnRenommer);
-        zoneBoutons.addView(btnSupprimer);
-
-        contenu.addView(zoneBoutons);
-        rafraichirScenes();
-
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Scènes ▶");
-            } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Scènes ▼");
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
-    }
-
-    public void rafraichirScenes() {
-        if (conteneurScenes == null) return;
-        conteneurScenes.removeAllViews();
-        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-
-        if (editeur.listeScenes != null) {
-            for (Scene s : editeur.listeScenes) {
-                TextView nomScene = new TextView(getContext());
-                nomScene.setText(s.nom);
-                if (s == editeur.sceneActive) {
-                    nomScene.setTextColor(Palette.texteSelectionne);
-                    nomScene.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
-                } else {
-                    nomScene.setTextColor(Palette.texteNormal);
+            for (ObjetBase o : sceneActive.objets) {
+                if (o != objetCourant) {
+                    noms.add(o.nom != null ? o.nom : "Objet sans nom");
+                    ids.add(o.id);
                 }
-                nomScene.setPadding(dp(10), dp(10), dp(10), dp(10));
-                nomScene.setTextSize(15f);
-                
-                nomScene.setOnClickListener(v -> {
-                    editeur.changerScene(s);
-                    rafraichirArborescence();
-                });
-
-                conteneurScenes.addView(nomScene);
             }
-        }
-    }
 
-    private boolean isRacineIndestructible(File dir) {
-        if (dir == null) return false;
-        String nom = dir.getName();
-        return (dir.getParentFile() != null && dir.getParentFile().equals(rootAssetsDir)) &&
-               (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts"));
-    }
-// bas 2
-
-// haut 3
-    private View creerSectionAssets(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
-
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Assets ▼");
-        styliserTitreSection(btnTitre);
-
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        styliserContenuSection(contenu);
-
-        conteneurArborescenceDossiers = new LinearLayout(context);
-        conteneurArborescenceDossiers.setOrientation(LinearLayout.VERTICAL);
-
-        LinearLayout boutonsDossiers = new LinearLayout(context);
-        boutonsDossiers.setOrientation(LinearLayout.HORIZONTAL);
-        
-        ImageButton btnAddFolder = new ImageButton(context);
-        btnAddFolder.setImageResource(R.drawable.add_24px);
-        styliserBoutonIcone(btnAddFolder);
-        
-        ImageButton btnEditFolder = new ImageButton(context);
-        btnEditFolder.setImageResource(R.drawable.edit_square_24px);
-        styliserBoutonIcone(btnEditFolder);
-        
-        ImageButton btnDelFolder = new ImageButton(context);
-        btnDelFolder.setImageResource(R.drawable.delete_24px);
-        styliserBoutonIcone(btnDelFolder);
-
-        btnAddFolder.setOnClickListener(v -> {
-            if (currentFolderSelected != null) afficherPopupNouveauDossier(context);
-        });
-        btnEditFolder.setOnClickListener(v -> {
-            if (currentFolderSelected != null && !isRacineIndestructible(currentFolderSelected)) {
-                afficherPopupRenommerDossier(context, currentFolderSelected);
-            }
-        });
-        btnDelFolder.setOnClickListener(v -> {
-            if (currentFolderSelected != null && !isRacineIndestructible(currentFolderSelected)) {
-                afficherPopupSupprimerDossier(context, currentFolderSelected);
-            }
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner un parent")
+                .setItems(noms.toArray(new String[0]), (dialog, which) -> {
+                    String idChoisi = ids.get(which);
+                    if (ObjetBase.verifierBoucleParent(objetCourant.id, idChoisi, sceneActive.objets)) {
+                        objetCourant.parentId = idChoisi;
+                        canvasEditeur.invalidate();
+                        afficherObjet(objetCourant);
+                    } else {
+                        Toast.makeText(context, "Erreur : Boucle hiérarchique détectée", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
         });
 
-        boutonsDossiers.addView(btnAddFolder);
-        boutonsDossiers.addView(btnEditFolder);
-        boutonsDossiers.addView(btnDelFolder);
+        blocTexte = new LinearLayout(context);
+        blocTexte.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocTexte);
 
-        conteneurListeAssets = new LinearLayout(context);
-        conteneurListeAssets.setOrientation(LinearLayout.VERTICAL);
-        conteneurListeAssets.setPadding(0, dp(10), 0, 0);
+        TextView sepTexte = new TextView(context);
+        sepTexte.setText("Propriétés Texte");
+        styliserSousTitre(sepTexte);
+        blocTexte.addView(sepTexte);
 
-        LinearLayout boutonsAssets = new LinearLayout(context);
-        boutonsAssets.setOrientation(LinearLayout.HORIZONTAL);
+        champContenu = new EditText(context);
+        champContenu.setHint("Contenu du texte");
+        champContenu.setFocusable(false);
+        styliserChamp(champContenu);
+        champContenu.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Modifier le texte");
 
-        ImageButton btnImportAsset = new ImageButton(context);
-        btnImportAsset.setImageResource(R.drawable.upload_file_24px);
-        styliserBoutonIcone(btnImportAsset);
-        
-        ImageButton btnEditAsset = new ImageButton(context);
-        btnEditAsset.setImageResource(R.drawable.edit_square_24px);
-        styliserBoutonIcone(btnEditAsset);
-        
-        ImageButton btnDelAsset = new ImageButton(context);
-        btnDelAsset.setImageResource(R.drawable.delete_24px);
-        styliserBoutonIcone(btnDelAsset);
+            final EditText input = new EditText(context);
+            input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            input.setSingleLine(false);
+            input.setLines(5);
+            input.setGravity(Gravity.TOP | Gravity.START);
+            input.setText(objetCourant.contenuTexte);
+            styliserChamp(input);
 
-        btnImportAsset.setOnClickListener(v -> {
-            if (currentFolderSelected == null) return;
-            String chemin = currentFolderSelected.getAbsolutePath();
-            // Le dossier Fonts utilisera le type MIME par défaut "*/*", ce qui est préférable car les sélecteurs Android gèrent parfois mal ".ttf" ou ".otf"
-            String mime = chemin.contains("/Images") ? "image/*" : "*/*";
-            ((InterfaceEditeur)context).lancerImportAsset(mime);
-        });
-        btnEditAsset.setOnClickListener(v -> {
-            if (currentAssetSelected != null) afficherPopupRenommerAsset(context, currentAssetSelected);
-        });
-        btnDelAsset.setOnClickListener(v -> {
-            if (currentAssetSelected != null) afficherPopupSupprimerAsset(context, currentAssetSelected);
-        });
-
-        boutonsAssets.addView(btnImportAsset);
-        boutonsAssets.addView(btnEditAsset);
-        boutonsAssets.addView(btnDelAsset);
-
-        contenu.addView(conteneurArborescenceDossiers);
-        contenu.addView(boutonsDossiers);
-        contenu.addView(conteneurListeAssets);
-        contenu.addView(boutonsAssets);
-
-        rafraichirSectionAssetsTotale();
-
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Assets ▶");
-            } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Assets ▼");
-                rafraichirSectionAssetsTotale();
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
-    }
-
-    public void rafraichirSectionAssetsTotale() {
-        rafraichirArborescenceDossiers();
-        rafraichirListeAssets();
-    }
-
-    private void rafraichirArborescenceDossiers() {
-        if (conteneurArborescenceDossiers == null) return;
-        conteneurArborescenceDossiers.removeAllViews();
-        construireArbreDossiers(rootAssetsDir, -1);
-    }
-
-    private void construireArbreDossiers(File dir, int depth) {
-        if (dir == null || !dir.exists()) return;
-
-        if (depth >= 0) {
-            LinearLayout layoutDossier = new LinearLayout(getContext());
-            layoutDossier.setOrientation(LinearLayout.HORIZONTAL);
-            layoutDossier.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            layoutDossier.setPadding(dp(6), dp(4), dp(6), dp(4));
-            if (dir.equals(currentFolderSelected)) {
-                layoutDossier.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
-            }
-            
-            if (depth > 0) {
-                TextView tvPrefix = new TextView(getContext());
-                StringBuilder prefix = new StringBuilder();
-                for (int i = 0; i < depth; i++) prefix.append("   ");
-                tvPrefix.setText(prefix.toString());
-                layoutDossier.addView(tvPrefix);
-            }
-            
-            ImageView iconeDossier = new ImageView(getContext());
-            iconeDossier.setImageResource(R.drawable.folder_open_24px);
-            iconeDossier.setColorFilter(dir.equals(currentFolderSelected) ? Palette.iconeSurvol : Palette.iconeNormal);
-            iconeDossier.setPadding(0, 0, dp(8), 0);
-            
-            TextView tv = new TextView(getContext());
-            tv.setText(dir.getName());
-            tv.setTextColor(dir.equals(currentFolderSelected) ? Palette.texteSelectionne : Palette.texteNormal);
-            tv.setPadding(0, dp(6), 0, dp(6));
-            tv.setTextSize(14f);
-            
-            layoutDossier.addView(iconeDossier);
-            layoutDossier.addView(tv);
-            
-            layoutDossier.setOnClickListener(v -> {
-                currentFolderSelected = dir;
-                currentAssetSelected = null;
-                rafraichirSectionAssetsTotale();
+            builder.setView(input);
+            builder.setPositiveButton("Valider", (dialog, which) -> {
+                String nouveauTexte = input.getText().toString();
+                objetCourant.contenuTexte = nouveauTexte;
+                miseAJourEnCours = true;
+                champContenu.setText(nouveauTexte);
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
             });
-            conteneurArborescenceDossiers.addView(layoutDossier);
-        }
-
-        File[] enfants = dir.listFiles();
-        if (enfants != null) {
-            java.util.Arrays.sort(enfants, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
-            for (File f : enfants) {
-                if (f.isDirectory()) construireArbreDossiers(f, depth + 1);
-            }
-        }
-    }
-
-    private void rafraichirListeAssets() {
-        if (conteneurListeAssets == null || currentFolderSelected == null) return;
-        conteneurListeAssets.removeAllViews();
-        
-        File[] fichiers = currentFolderSelected.listFiles();
-        if (fichiers != null) {
-            java.util.Arrays.sort(fichiers, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
-            for (File f : fichiers) {
-                if (!f.isDirectory()) ajouterVueAsset(f);
-            }
-        }
-    }
-
-    private void ajouterVueAsset(File f) {
-        Context context = getContext();
-        LinearLayout itemLayout = new LinearLayout(context);
-        itemLayout.setOrientation(LinearLayout.HORIZONTAL);
-        itemLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
-        itemLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        if (f.equals(currentAssetSelected)) {
-            itemLayout.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
-        }
-        
-        boolean isImage = f.getAbsolutePath().contains("/Images/");
-        
-        if (isImage) {
-            ImageView miniature = new ImageView(context);
-            miniature.setLayoutParams(new LinearLayout.LayoutParams(dp(36), dp(36)));
-            try {
-                Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath());
-                miniature.setImageBitmap(bmp);
-            } catch (Exception e) {}
-            miniature.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            miniature.setPadding(0, 0, dp(8), 0);
-            itemLayout.addView(miniature);
-        }
-        
-        TextView nom = new TextView(context);
-        nom.setText(f.getName());
-        nom.setTextSize(14f);
-        nom.setTextColor(f.equals(currentAssetSelected) ? Palette.texteSelectionne : Palette.texteNormal);
-        nom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        
-        itemLayout.setOnClickListener(v -> {
-            currentAssetSelected = f;
-            rafraichirListeAssets();
+            builder.setNegativeButton("Annuler", null);
+            builder.show();
         });
-        
-        itemLayout.addView(nom);
-        conteneurListeAssets.addView(itemLayout);
-    }
-// bas 3
+        blocTexte.addView(champContenu);
 
-// haut 4
-    public void traiterImportAsset(Uri uri) {
-        Context context = getContext();
-        String nomOriginal = getFileNameFromUri(context, uri);
-        if (nomOriginal == null) nomOriginal = "asset_import";
-        
-        String nomBase = nomOriginal;
-        String extension = "";
-        int dotIdx = nomOriginal.lastIndexOf('.');
-        if (dotIdx > 0) {
-            nomBase = nomOriginal.substring(0, dotIdx);
-            extension = nomOriginal.substring(dotIdx);
-        }
-        
-        File fichierCible = genererNomFichierUnique(currentFolderSelected, nomBase, extension);
-        
-        try (InputStream in = context.getContentResolver().openInputStream(uri);
-             OutputStream out = new FileOutputStream(fichierCible)) {
-            byte[] buffer = new byte[1024];
-            int lu;
-            while ((lu = in.read(buffer)) != -1) {
-                out.write(buffer, 0, lu);
+        champTaille = new EditText(context);
+        champTaille.setHint("Taille de police");
+        champTaille.setFocusable(false);
+        champTaille.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Taille de police");
+
+            final EditText input = new EditText(context);
+            input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            input.setText(String.valueOf(objetCourant.tailleFonte));
+            styliserChamp(input);
+
+            builder.setView(input);
+            builder.setPositiveButton("Valider", (dialog, which) -> {
+                try {
+                    float nouvelleTaille = Float.parseFloat(input.getText().toString());
+                    objetCourant.tailleFonte = nouvelleTaille;
+                    miseAJourEnCours = true;
+                    champTaille.setText(String.valueOf(nouvelleTaille));
+                    miseAJourEnCours = false;
+                    canvasEditeur.invalidate();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(context, "Valeur invalide", Toast.LENGTH_SHORT).show();
+                }
+            });
+            builder.setNegativeButton("Annuler", null);
+            builder.show();
+        });
+        styliserChamp(champTaille);
+        blocTexte.addView(champTaille);
+
+        btnCouleurTexte = new Button(context);
+        btnCouleurTexte.setText("Couleur du texte");
+        styliserBouton(btnCouleurTexte);
+        blocTexte.addView(btnCouleurTexte);
+
+        btnPolice = new Button(context);
+        btnPolice.setText("Police : Sélecteur");
+        btnPolice.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+
+            if (cheminProjet == null) {
+                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
+                return;
             }
-            rafraichirSectionAssetsTotale();
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            java.io.File dossierPolices = new java.io.File(cheminProjet, "assets_ludexa/Fonts");
+            List<String> polices = listerPolicesLocales(dossierPolices, "assets_ludexa/Fonts/");
+
+            if (polices.isEmpty()) {
+                Toast.makeText(context, "Aucune police trouvée dans les assets", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            List<String> options = new ArrayList<>();
+            options.add("Police par défaut");
+            options.addAll(polices);
+
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner une police")
+                .setItems(options.toArray(new String[0]), (dialog, which) -> {
+                    if (which == 0) {
+                        objetCourant.cheminPolice = null;
+                    } else {
+                        objetCourant.cheminPolice = options.get(which);
+                    }
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                })
+                .show();
+        });
+        styliserBouton(btnPolice);
+        blocTexte.addView(btnPolice);
+
+        blocProprietes.addView(blocTexte);
+
+        // --- BLOC IMAGE ---
+        blocImage = new LinearLayout(context);
+        blocImage.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocImage);
+
+        TextView sepImage = new TextView(context);
+        sepImage.setText("Propriétés Image");
+        styliserSousTitre(sepImage);
+        blocImage.addView(sepImage);
+
+        btnChargerImage = new Button(context);
+        btnChargerImage.setText("Charger une image (Assets)");
+        styliserBouton(btnChargerImage);
+        blocImage.addView(btnChargerImage);
+
+        btnSupprimerImage = new Button(context);
+        btnSupprimerImage.setText("Supprimer l'image");
+        styliserBouton(btnSupprimerImage);
+        blocImage.addView(btnSupprimerImage);
+
+        cbFondColore = new CheckBox(context);
+        cbFondColore.setText("Afficher le fond coloré");
+        styliserCase(cbFondColore);
+        blocImage.addView(cbFondColore);
+
+        cbRamassable = new CheckBox(context);
+        cbRamassable.setText("Ramassable (peut aller dans l'inventaire)");
+        styliserCase(cbRamassable);
+        blocProprietes.addView(cbRamassable);
+
+        cbZoneDeClic = new CheckBox(context);
+        cbZoneDeClic.setText("Zone de clic (hitbox invisible)");
+        styliserCase(cbZoneDeClic);
+        blocProprietes.addView(cbZoneDeClic);
+
+        cbDeplacable = new CheckBox(context);
+        cbDeplacable.setText("Déplaçable (glissable en mode Play)");
+        styliserCase(cbDeplacable);
+        blocProprietes.addView(cbDeplacable);
+
+        blocProprietes.addView(blocImage);
+
+        contenuInspecteur.addView(blocProprietes);
+
+        boutonSupprimer = new Button(context);
+        boutonSupprimer.setText("Supprimer l'objet");
+        boutonSupprimer.setAllCaps(false);
+        boutonSupprimer.setTextSize(15f);
+        boutonSupprimer.setTextColor(Palette.texteNormal);
+        boutonSupprimer.setBackground(fond(Color.parseColor("#8B3A3A"), Palette.bordure, 10));
+        boutonSupprimer.setPadding(dp(14), dp(11), dp(14), dp(11));
+        boutonSupprimer.setOnClickListener(v -> {
+            if (objetCourant == null) {
+                Toast.makeText(context, "Aucun objet sélectionné", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            new AlertDialog.Builder(context)
+                    .setTitle("Confirmation de suppression")
+                    .setMessage("Voulez-vous vraiment supprimer cet objet de la scène ?")
+                    .setPositiveButton("Supprimer", (dialog, which) -> {
+                        sceneActive.objets.remove(objetCourant);
+                        canvasEditeur.deselectionner();
+                        afficherObjet(null);
+                        canvasEditeur.invalidate();
+                        Toast.makeText(context, "Objet supprimé", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Annuler", null)
+                    .show();
+        });
+
+        LinearLayout.LayoutParams paramsBtn = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        paramsBtn.setMargins(dp(3), dp(22), dp(3), dp(6));
+        boutonSupprimer.setLayoutParams(paramsBtn);
+
+        contenuInspecteur.addView(boutonSupprimer);
+        scrollInspecteur.addView(contenuInspecteur);
+        this.addView(scrollInspecteur);
+
+        boutonMasquer.setOnClickListener(v -> {
+            if (scrollInspecteur.getVisibility() == View.VISIBLE) {
+                scrollInspecteur.setVisibility(View.GONE);
+                titreInspecteur.setVisibility(View.GONE);
+                boutonMasquer.setText("<");
+                this.setLayoutParams(paramsFerme);
+            } else {
+                scrollInspecteur.setVisibility(View.VISIBLE);
+                titreInspecteur.setVisibility(View.VISIBLE);
+                boutonMasquer.setText(">");
+                this.setLayoutParams(paramsOuvert);
+            }
+        });
+// bas 2
+    // haut 3
+        champNom.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                verifierEtConfirmerRenommage(context);
+                cacherClavier(context, v);
+                return true;
+            }
+            return false;
+        });
+
+        btnValiderNom.setOnClickListener(v -> {
+            verifierEtConfirmerRenommage(context);
+            cacherClavier(context, champNom);
+        });
+
+        btnChargerImage.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+
+            if (cheminProjet == null) {
+                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
+            List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
+
+            if (images.isEmpty()) {
+                Toast.makeText(context, "Aucune image trouvée dans les assets", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner une image")
+                .setItems(images.toArray(new String[0]), (dialog, which) -> {
+                    objetCourant.cheminImage = images.get(which);
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                })
+                .show();
+        });
+
+        btnSupprimerImage.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.cheminImage = null;
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        cbFondColore.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.afficherFondColore = isChecked;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.estRamassable = isChecked;
+            }
+        });
+
+        cbZoneDeClic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.estZoneDeClic = isChecked;
+            }
+        });
+
+        cbDeplacable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.estDeplacable = isChecked;
+            }
+        });
+
+        champX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.y = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champLargeur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.largeur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champHauteur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+        champZOrder.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try { objetCourant.zOrder = Integer.parseInt(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        cbVisible.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.visible = isChecked;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        View.OnClickListener selecteurCouleurListener = v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Sélectionner une couleur");
+            String[] couleursNoms = {"Bleu (Défaut)", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+            int[] couleursValeurs = {Color.BLUE, Color.RED, Color.GREEN, Color.BLACK, Color.WHITE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
+
+            builder.setItems(couleursNoms, (dialog, which) -> {
+                objetCourant.couleur = couleursValeurs[which];
+                canvasEditeur.invalidate();
+            });
+            builder.show();
+        };
+
+        btnCouleur.setOnClickListener(selecteurCouleurListener);
+        btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
+    }
+
+    private void cacherClavier(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
-    
-    private String getFileNameFromUri(Context context, Uri uri) {
-        String result = null;
-        if (uri.getScheme() != null && uri.getScheme().equals("content")) {
-            try (Cursor cursor = context.getContentResolver().query(uri, null, null, null, null)) {
-                if (cursor != null && cursor.moveToFirst()) {
-                    int idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    if(idx >= 0) result = cursor.getString(idx);
+
+    private void verifierEtConfirmerRenommage(Context context) {
+        if (objetCourant == null) return;
+        String nouveauNom = champNom.getText().toString().trim();
+        String ancienNom = objetCourant.nom != null ? objetCourant.nom : "";
+
+        if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
+
+            // ANTI-DOUBLON STRICT
+            if (sceneActive != null && sceneActive.objets != null) {
+                for (ObjetBase obj : sceneActive.objets) {
+                    if (!obj.id.equals(objetCourant.id) && obj.nom != null && obj.nom.trim().equalsIgnoreCase(nouveauNom)) {
+                        new AlertDialog.Builder(context)
+                                .setTitle("Impossible")
+                                .setMessage("Un objet nommé '" + nouveauNom + "' existe déjà dans cette scène.")
+                                .setPositiveButton("OK", null)
+                                .show();
+
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                        return; // Bloque la suite
+                    }
+                }
+            }
+
+            new AlertDialog.Builder(context)
+                    .setTitle("Confirmation")
+                    .setMessage("Renommer " + ancienNom + " en " + nouveauNom + " ?")
+                    .setPositiveButton("Oui", (dialog, which) -> {
+                        objetCourant.nom = nouveauNom;
+                        canvasEditeur.invalidate();
+                    })
+                    .setNegativeButton("Non", (dialog, which) -> {
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                    })
+                    .setOnCancelListener(dialog -> {
+                        miseAJourEnCours = true;
+                        champNom.setText(ancienNom);
+                        miseAJourEnCours = false;
+                    })
+                    .show();
+        }
+    }
+
+    public void afficherObjet(ObjetBase objet) {
+        this.objetCourant = objet;
+        miseAJourEnCours = true;
+
+        if (objet == null) {
+            texteInfo.setVisibility(View.VISIBLE);
+            blocProprietes.setVisibility(View.GONE);
+            boutonSupprimer.setVisibility(View.GONE);
+        } else {
+            texteInfo.setVisibility(View.GONE);
+            blocProprietes.setVisibility(View.VISIBLE);
+            boutonSupprimer.setVisibility(View.VISIBLE);
+
+            champNom.setText(objet.nom);
+            champX.setText(String.valueOf((int) objet.x));
+            champY.setText(String.valueOf((int) objet.y));
+
+            String nomType = objet.type != null ? objet.type.substring(0, 1).toUpperCase() + objet.type.substring(1) : "Inconnu";
+            valeurType.setText("Type : " + nomType);
+
+            champLargeur.setText(String.valueOf((int) objet.largeur));
+            champHauteur.setText(String.valueOf((int) objet.hauteur));
+
+            champScaleX.setText(String.valueOf(objet.scaleX));
+            champScaleY.setText(String.valueOf(objet.scaleY));
+
+            champRotation.setText(String.valueOf((int) objet.rotation));
+            champZOrder.setText(String.valueOf(objet.zOrder));
+            cbVisible.setChecked(objet.visible);
+
+            String nomParent = "Aucun";
+            if (objet.parentId != null) {
+                for (ObjetBase o : sceneActive.objets) {
+                    if (o.id.equals(objet.parentId)) {
+                        nomParent = o.nom != null ? o.nom : "Objet sans nom";
+                        break;
+                    }
+                }
+            }
+            btnParent.setText("Parent : " + nomParent);
+
+            cbRamassable.setChecked(objet.estRamassable);
+            cbZoneDeClic.setChecked(objet.estZoneDeClic);
+            cbDeplacable.setChecked(objet.estDeplacable);
+
+            if ("texte".equals(objet.type)) {
+                blocTexte.setVisibility(View.VISIBLE);
+                champContenu.setText(objet.contenuTexte);
+
+                champTaille.setText(String.valueOf(objet.tailleFonte));
+                if (objet.cheminPolice != null) {
+                    java.io.File f = new java.io.File(objet.cheminPolice);
+                    btnPolice.setText("Police : " + f.getName());
+                } else {
+                    btnPolice.setText("Police : Sélecteur");
+                }
+
+                blocImage.setVisibility(View.GONE);
+            } else {
+                blocTexte.setVisibility(View.GONE);
+                blocImage.setVisibility(View.VISIBLE);
+
+                if (objet.cheminImage != null) {
+                    btnSupprimerImage.setVisibility(View.VISIBLE);
+                    cbFondColore.setVisibility(View.VISIBLE);
+                    cbFondColore.setChecked(objet.afficherFondColore);
+                } else {
+                    btnSupprimerImage.setVisibility(View.GONE);
+                    cbFondColore.setVisibility(View.GONE);
                 }
             }
         }
-        if (result == null) {
-            result = uri.getPath();
-            int cut = result != null ? result.lastIndexOf('/') : -1;
-            if (cut != -1) result = result.substring(cut + 1);
-        }
-        return result;
-    }
-    
-    private File genererNomFichierUnique(File dossier, String base, String extension) {
-        File f = new File(dossier, base + extension);
-        if (!f.exists()) return f;
-        
-        int index = 1;
-        while (true) {
-            f = new File(dossier, base + "_" + index + extension);
-            if (!f.exists()) return f;
-            index++;
-        }
-    }
-    
-    private void supprimerRecursif(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory()) {
-            File[] files = fileOrDirectory.listFiles();
-            if(files != null) {
-                for (File child : files) supprimerRecursif(child);
-            }
-        }
-        fileOrDirectory.delete();
+
+        miseAJourEnCours = false;
     }
 
-    private View creerSectionVariables(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
-
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Variables ▼");
-        styliserTitreSection(btnTitre);
-
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        styliserContenuSection(contenu);
-
-        conteneurVariables = new LinearLayout(context);
-        conteneurVariables.setOrientation(LinearLayout.VERTICAL);
-        conteneurVariables.setPadding(0, 0, 0, dp(8));
-        contenu.addView(conteneurVariables);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnCreer = new ImageButton(context);
-        btnCreer.setImageResource(R.drawable.add_24px);
-        styliserBoutonIcone(btnCreer);
-        btnCreer.setOnClickListener(v -> afficherPopupCreerVariable(context));
-
-        ImageButton btnRenommer = new ImageButton(context);
-        btnRenommer.setImageResource(R.drawable.edit_square_24px);
-        styliserBoutonIcone(btnRenommer);
-        btnRenommer.setOnClickListener(v -> {
-            if (variableSelectionnee != null) afficherPopupRenommerVariable(context, variableSelectionnee);
-        });
-
-        ImageButton btnSupprimer = new ImageButton(context);
-        btnSupprimer.setImageResource(R.drawable.delete_24px);
-        styliserBoutonIcone(btnSupprimer);
-        btnSupprimer.setOnClickListener(v -> {
-            if (variableSelectionnee != null) afficherPopupSupprimerVariable(context, variableSelectionnee);
-        });
-
-        zoneBoutons.addView(btnCreer);
-        zoneBoutons.addView(btnRenommer);
-        zoneBoutons.addView(btnSupprimer);
-
-        contenu.addView(zoneBoutons);
-        rafraichirVariables();
-
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Variables ▶");
-            } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Variables ▼");
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
-    }
-
-    public void rafraichirVariables() {
-        if (conteneurVariables == null) return;
-        conteneurVariables.removeAllViews();
-        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-
-        if (editeur.variablesGlobales != null) {
-            for (Variable var : editeur.variablesGlobales) ajouterVueVariable(var);
-        }
-        if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
-            for (Variable var : editeur.sceneActive.variablesLocales) ajouterVueVariable(var);
-        }
-    }
-
-    private void ajouterVueVariable(Variable var) {
-        Context context = getContext();
-        LinearLayout conteneurLigne = new LinearLayout(context);
-        conteneurLigne.setOrientation(LinearLayout.VERTICAL);
-        conteneurLigne.setPadding(0, dp(3), 0, dp(3));
-        
-        TextView nomVariable = new TextView(context);
-        
-        String labelType;
-        switch (var.type) {
-            case "BOOLEEN": labelType = "Oui/Non"; break;
-            case "CHIFFRE": labelType = "Chiffre"; break;
-            case "ENTIER": labelType = "Entier"; break;
-            case "LISTE_INVENTAIRE": labelType = "Liste d'Inventaire"; break;
-            default: labelType = "Texte"; break;
-        }
-        
-        String labelScope = var.scope.equals("GLOBALE") ? "Globale" : "Locale";
-        
-        String texteValeur;
-        if (var.type.equals("LISTE_INVENTAIRE") && var.valeur instanceof java.util.List) {
-            texteValeur = ((java.util.List<?>) var.valeur).size() + " objet(s)";
-        } else {
-            texteValeur = String.valueOf(var.valeur);
-        }
-        
-        nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "] = " + texteValeur);
-        
-        if (var == variableSelectionnee) {
-            nomVariable.setTextColor(Palette.texteSelectionne);
-            nomVariable.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
-        } else {
-            nomVariable.setTextColor(var.scope.equals("GLOBALE") ? Color.parseColor("#ADD8E6") : Color.parseColor("#90EE90"));
-        }
-        
-        nomVariable.setPadding(dp(10), dp(8), dp(10), dp(8));
-        nomVariable.setTextSize(14f);
-
-        nomVariable.setOnClickListener(v -> {
-            variableSelectionnee = var;
-            rafraichirVariables();
-        });
-
-        conteneurLigne.addView(nomVariable);
-        conteneurVariables.addView(conteneurLigne);
-    }
-// bas 4
-
-// haut 5
-    private void afficherPopupCreerScene(Context context) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Créer une scène");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setHint("Entrez le nom...");
-        styliserChampDialogue(champTexte);
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnValider);
-        btnValider.setOnClickListener(v -> {
-            String nom = champTexte.getText().toString().trim();
-            if(!nom.isEmpty()) {
-                
-                // ANTI-DOUBLON POUR LA CRÉATION DE SCÈNE
-                InterfaceEditeur editeur = (InterfaceEditeur) context;
-                if (editeur.listeScenes != null) {
-                    for (Scene s : editeur.listeScenes) {
-                        if (s.nom != null && s.nom.trim().equalsIgnoreCase(nom)) {
-                            new AlertDialog.Builder(context)
-                                    .setTitle("Impossible")
-                                    .setMessage("Une scène avec ce nom existe déjà dans le projet.")
-                                    .setPositiveButton("OK", null)
-                                    .show();
-                            return; // Bloque la création
+    private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
+        List<String> resultats = new ArrayList<>();
+        if (dir != null && dir.exists() && dir.isDirectory()) {
+            java.io.File[] fichiers = dir.listFiles();
+            if (fichiers != null) {
+                for (java.io.File f : fichiers) {
+                    if (f.isDirectory()) {
+                        resultats.addAll(listerImagesLocales(f, cheminBase + f.getName() + "/"));
+                    } else {
+                        String nom = f.getName().toLowerCase();
+                        if (nom.endsWith(".png") || nom.endsWith(".jpg") || nom.endsWith(".jpeg") || nom.endsWith(".webp")) {
+                            resultats.add(cheminBase + f.getName());
                         }
                     }
                 }
-
-                editeur.creerScene(nom);
-                Toast.makeText(context, "Scène créée : " + nom, Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
             }
-        });
-
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnAnnuler);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
+        }
+        return resultats;
     }
 
-    private void afficherPopupRenommerScene(Context context, Scene scene) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer la scène");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setText(scene.nom);
-        styliserChampDialogue(champTexte);
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnValider);
-        btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString().trim();
-            if(nouveauNom.isEmpty()) {
-                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // ANTI-DOUBLON STRICT POUR LE RENOMMAGE DE SCÈNE
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            if (editeur.listeScenes != null) {
-                for (Scene s : editeur.listeScenes) {
-                    if (s != scene && s.nom != null && s.nom.trim().equalsIgnoreCase(nouveauNom)) {
-                        new AlertDialog.Builder(context)
-                                .setTitle("Impossible")
-                                .setMessage("Une scène avec ce nom existe déjà dans le projet.")
-                                .setPositiveButton("OK", null)
-                                .show();
-                        return; // Bloque le renommage, laisse le dialogue ouvert
+    private List<String> listerPolicesLocales(java.io.File dir, String cheminBase) {
+        List<String> resultats = new ArrayList<>();
+        if (dir != null && dir.exists() && dir.isDirectory()) {
+            java.io.File[] fichiers = dir.listFiles();
+            if (fichiers != null) {
+                for (java.io.File f : fichiers) {
+                    if (f.isDirectory()) {
+                        resultats.addAll(listerPolicesLocales(f, cheminBase + f.getName() + "/"));
+                    } else {
+                        String nom = f.getName().toLowerCase();
+                        if (nom.endsWith(".ttf") || nom.endsWith(".otf")) {
+                            resultats.add(cheminBase + f.getName());
+                        }
                     }
                 }
             }
-
-            scene.nom = nouveauNom;
-            rafraichirScenes();
-            Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnAnnuler);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
+        }
+        return resultats;
     }
 
-    private void afficherPopupSupprimerScene(Context context, Scene scene) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Supprimer la scène");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        TextView txtMessage = new TextView(context);
-        txtMessage.setText("Voulez-vous vraiment supprimer la scène '" + scene.nom + "' ?");
-        txtMessage.setTextColor(Palette.texteNormal);
-        txtMessage.setTextSize(15f);
-        txtMessage.setPadding(0, 0, 0, dp(14));
-        layoutDialog.addView(txtMessage);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnOui = new ImageButton(context);
-        btnOui.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnOui);
-        btnOui.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            
-            if (editeur.listeScenes.size() <= 1) {
-                Toast.makeText(context, "Impossible de supprimer la seule scène du projet.", Toast.LENGTH_SHORT).show();
-            } else {
-                editeur.listeScenes.remove(scene);
-                if (editeur.sceneActive == scene) {
-                    editeur.changerScene(editeur.listeScenes.get(0));
-                } else {
-                    rafraichirScenes();
-                }
-                rafraichirArborescence();
-                Toast.makeText(context, "Scène supprimée", Toast.LENGTH_SHORT).show();
-            }
-            dialog.dismiss();
-        });
-
-        ImageButton btnNon = new ImageButton(context);
-        btnNon.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnNon);
-        btnNon.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnOui);
-        zoneBoutons.addView(btnNon);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-// bas 5
-
-// haut 6
-    private void afficherPopupCreerVariable(Context context) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Créer une variable");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setHint("Nom de la variable");
-        styliserChampDialogue(champTexte);
-        layoutDialog.addView(champTexte);
-
-        TextView txtScope = new TextView(context);
-        txtScope.setText("Portée (Scope) :");
-        txtScope.setTextColor(Palette.texteSelectionne);
-        txtScope.setPadding(0, dp(12), 0, dp(4));
-        layoutDialog.addView(txtScope);
-        
-        Spinner spinnerScope = new Spinner(context);
-        ArrayAdapter<String> adapterScope = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Locale", "Globale"});
-        adapterScope.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerScope.setAdapter(adapterScope);
-        spinnerScope.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
-        layoutDialog.addView(spinnerScope);
-
-        TextView txtType = new TextView(context);
-        txtType.setText("Type :");
-        txtType.setTextColor(Palette.texteSelectionne);
-        txtType.setPadding(0, dp(12), 0, dp(4));
-        layoutDialog.addView(txtType);
-
-        Spinner spinnerType = new Spinner(context);
-        ArrayAdapter<String> adapterType = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Entier", "Texte", "Oui/Non", "Liste d'Inventaire"});
-        adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerType.setAdapter(adapterType);
-        spinnerType.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
-        layoutDialog.addView(spinnerType);
-
-        EditText champValeurInit = new EditText(context);
-        champValeurInit.setHint("Valeur initiale (optionnel)");
-        styliserChampDialogue(champValeurInit);
-        layoutDialog.addView(champValeurInit);
-        
-        spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+    private TextWatcher creerWatcherSimple(java.util.function.Consumer<String> action) {
+        return new TextWatcher() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (spinnerType.getSelectedItem().toString().equals("Liste d'Inventaire")) {
-                    champValeurInit.setVisibility(View.GONE);
-                } else {
-                    champValeurInit.setVisibility(View.VISIBLE);
-                }
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnValider);
-        btnValider.setOnClickListener(v -> {
-            String nom = champTexte.getText().toString().trim();
-            if(nom.isEmpty()) {
-                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String scopeSelect = spinnerScope.getSelectedItem().toString().equals("Globale") ? "GLOBALE" : "LOCALE";
-            String typeSelectText = spinnerType.getSelectedItem().toString();
-            String typeSelect = "CHIFFRE";
-            if (typeSelectText.equals("Texte")) typeSelect = "TEXTE";
-            if (typeSelectText.equals("Oui/Non")) typeSelect = "BOOLEEN";
-            if (typeSelectText.equals("Entier")) typeSelect = "ENTIER";
-            if (typeSelectText.equals("Liste d'Inventaire")) typeSelect = "LISTE_INVENTAIRE";
-
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            
-            if (scopeSelect.equals("GLOBALE")) {
-                for (Variable vExistant : editeur.variablesGlobales) {
-                    if (vExistant.nom.equals(nom)) {
-                        Toast.makeText(context, "Une variable globale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-            } else {
-                for (Variable vExistant : editeur.sceneActive.variablesLocales) {
-                    if (vExistant.nom.equals(nom)) {
-                        Toast.makeText(context, "Une variable locale avec ce nom existe déjà dans cette scène", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!miseAJourEnCours) {
+                    action.accept(s.toString());
                 }
             }
-
-            Variable nouvelleVar = new Variable(nom, scopeSelect, typeSelect);
-            
-            String valInitTexte = champValeurInit.getText().toString().trim();
-            if (!valInitTexte.isEmpty()) {
-                if (typeSelect.equals("CHIFFRE")) {
-                    try {
-                        nouvelleVar.valeur = Float.parseFloat(valInitTexte);
-                    } catch (NumberFormatException e) {
-                        nouvelleVar.valeur = 0f;
-                    }
-                } else if (typeSelect.equals("TEXTE")) {
-                    nouvelleVar.valeur = valInitTexte;
-                } else if (typeSelect.equals("BOOLEEN")) {
-                    String cleanVal = valInitTexte.toLowerCase();
-                    nouvelleVar.valeur = (cleanVal.equals("oui") || cleanVal.equals("vrai") || cleanVal.equals("true"));
-                } else if (typeSelect.equals("ENTIER")) {
-                    try {
-                        nouvelleVar.valeur = Integer.parseInt(valInitTexte);
-                    } catch (NumberFormatException e) {
-                        nouvelleVar.valeur = 0;
-                    }
-                }
-            }
-
-            if (scopeSelect.equals("GLOBALE")) {
-                editeur.variablesGlobales.add(nouvelleVar);
-            } else {
-                editeur.sceneActive.variablesLocales.add(nouvelleVar);
-            }
-
-            rafraichirVariables();
-            dialog.dismiss();
-        });
-
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnAnnuler);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-// bas 6
-
-// haut 7
-    private void afficherPopupRenommerVariable(Context context, Variable var) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer la variable");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setText(var.nom);
-        styliserChampDialogue(champTexte);
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnValider);
-        btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString().trim();
-            if(nouveauNom.isEmpty()) {
-                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            
-            if (var.scope.equals("GLOBALE")) {
-                for (Variable vExistant : editeur.variablesGlobales) {
-                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) {
-                        Toast.makeText(context, "Une variable globale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-            } else {
-                for (Variable vExistant : editeur.sceneActive.variablesLocales) {
-                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) {
-                        Toast.makeText(context, "Une variable locale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-            }
-
-            var.nom = nouveauNom;
-            rafraichirVariables();
-            dialog.dismiss();
-        });
-
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnAnnuler);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupSupprimerVariable(Context context, Variable var) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Supprimer la variable");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        TextView txtMessage = new TextView(context);
-        txtMessage.setText("Voulez-vous vraiment supprimer la variable '" + var.nom + "' ?");
-        txtMessage.setTextColor(Palette.texteNormal);
-        txtMessage.setTextSize(15f);
-        txtMessage.setPadding(0, 0, 0, dp(14));
-        layoutDialog.addView(txtMessage);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnOui = new ImageButton(context);
-        btnOui.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnOui);
-        btnOui.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            if (var.scope.equals("GLOBALE")) {
-                editeur.variablesGlobales.remove(var);
-            } else {
-                editeur.sceneActive.variablesLocales.remove(var);
-            }
-            
-            if (var == variableSelectionnee) {
-                variableSelectionnee = null;
-            }
-            
-            rafraichirVariables();
-            dialog.dismiss();
-        });
-
-        ImageButton btnNon = new ImageButton(context);
-        btnNon.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnNon);
-        btnNon.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnOui);
-        zoneBoutons.addView(btnNon);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-// bas 7
-
-// haut 8
-    private void afficherPopupNouveauDossier(Context context) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Nouveau dossier");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setHint("Nom du dossier");
-        styliserChampDialogue(champTexte);
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnValider);
-        btnValider.setOnClickListener(v -> {
-            String nom = champTexte.getText().toString().trim();
-            if (!nom.isEmpty()) {
-                File nouveauDossier = new File(currentFolderSelected, nom);
-                if (!nouveauDossier.exists()) nouveauDossier.mkdirs();
-                rafraichirSectionAssetsTotale();
-            }
-            dialog.dismiss();
-        });
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnAnnuler);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupRenommerDossier(Context context, File dir) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer dossier");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setText(dir.getName());
-        styliserChampDialogue(champTexte);
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnValider);
-        btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString().trim();
-            if (!nouveauNom.isEmpty()) {
-                File newFile = new File(dir.getParentFile(), nouveauNom);
-                if (!newFile.exists()) {
-                    dir.renameTo(newFile);
-                    currentFolderSelected = newFile;
-                    rafraichirSectionAssetsTotale();
-                }
-            }
-            dialog.dismiss();
-        });
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnAnnuler);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupSupprimerDossier(Context context, File dir) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Confirmer");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        TextView txtMessage = new TextView(context);
-        txtMessage.setText("Supprimer le dossier (et tout son contenu) ?");
-        txtMessage.setTextColor(Palette.texteNormal);
-        txtMessage.setTextSize(15f);
-        txtMessage.setPadding(0, 0, 0, dp(14));
-        layoutDialog.addView(txtMessage);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnOui = new ImageButton(context);
-        btnOui.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnOui);
-        btnOui.setOnClickListener(v -> {
-            supprimerRecursif(dir);
-            currentFolderSelected = new File(rootAssetsDir, "Images");
-            currentAssetSelected = null;
-            rafraichirSectionAssetsTotale();
-            dialog.dismiss();
-        });
-        ImageButton btnNon = new ImageButton(context);
-        btnNon.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnNon);
-        btnNon.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnOui);
-        zoneBoutons.addView(btnNon);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-// bas 8
-
-// haut 9
-    private void afficherPopupRenommerAsset(Context context, File f) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setText(f.getName());
-        styliserChampDialogue(champTexte);
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnValider);
-        btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString().trim();
-            if (!nouveauNom.isEmpty()) {
-                File newFile = new File(f.getParentFile(), nouveauNom);
-                if (!newFile.exists()) {
-                    f.renameTo(newFile);
-                    currentAssetSelected = newFile;
-                    rafraichirSectionAssetsTotale();
-                }
-            }
-            dialog.dismiss();
-        });
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnAnnuler);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupSupprimerAsset(Context context, File f) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Confirmer");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        styliserDialogue(layoutDialog);
-
-        TextView txtMessage = new TextView(context);
-        txtMessage.setText("Supprimer cet asset ?");
-        txtMessage.setTextColor(Palette.texteNormal);
-        txtMessage.setTextSize(15f);
-        txtMessage.setPadding(0, 0, 0, dp(14));
-        layoutDialog.addView(txtMessage);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnOui = new ImageButton(context);
-        btnOui.setImageResource(R.drawable.save_24px);
-        styliserBoutonIcone(btnOui);
-        btnOui.setOnClickListener(v -> {
-            f.delete();
-            currentAssetSelected = null;
-            rafraichirSectionAssetsTotale();
-            dialog.dismiss();
-        });
-        ImageButton btnNon = new ImageButton(context);
-        btnNon.setImageResource(R.drawable.undo_24px);
-        styliserBoutonIcone(btnNon);
-        btnNon.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnOui);
-        zoneBoutons.addView(btnNon);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
+        };
     }
 }
-// bas 9
+// bas 3
+
