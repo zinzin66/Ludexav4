@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 0908
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -27,7 +27,7 @@ public class CanvasEditeur extends View {
     private InspecteurProprietes inspecteurLie;
     private InterfaceEditeur editeurLie;
     
-    private String cheminProjet; // Nouveau champ pour le chemin du projet
+    private String cheminProjet; 
 
     private int currentMode = 0; 
     private float dragStartX, dragStartY;
@@ -37,6 +37,8 @@ public class CanvasEditeur extends View {
     private ScaleGestureDetector scaleGestureDetector;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
+    // NOUVEAU : Cache pour les polices
+    private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -63,7 +65,6 @@ public class CanvasEditeur extends View {
         return objetSelectionne;
     }
 
-    // FIX 1: Ajout méthode pour synchroniser et notifier explicitement un changement de sélection depuis la liste
     public void setObjetSelectionne(ObjetBase obj) {
         this.objetSelectionne = obj;
         if (inspecteurLie != null) {
@@ -200,7 +201,6 @@ public class CanvasEditeur extends View {
         return pts;
     }
 // bas 1
-
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -251,12 +251,63 @@ public class CanvasEditeur extends View {
                 } else if ("texte".equals(objet.type)) {
                     paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                     String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                    paintTexte.setTextSize(objet.hauteur * 0.8f);
+                    
+                    // NOUVEAU : Chargement et application de la police custom
+                    if (objet.cheminPolice != null && cheminProjet != null) {
+                        android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
+                        if (tf == null) {
+                            try {
+                                java.io.File fontFile = new java.io.File(cheminProjet, objet.cheminPolice);
+                                if (fontFile.exists()) {
+                                    tf = android.graphics.Typeface.createFromFile(fontFile);
+                                    cachePolices.put(objet.cheminPolice, tf);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        paintTexte.setTypeface(tf != null ? tf : android.graphics.Typeface.DEFAULT);
+                    } else {
+                        paintTexte.setTypeface(android.graphics.Typeface.DEFAULT);
+                    }
+
+                    // NOUVEAU : Configuration correcte de la taille et suppression du scale horizontal artificiel
+                    paintTexte.setTextSize(objet.tailleFonte);
                     paintTexte.setTextScaleX(1.0f);
-                    float tw = paintTexte.measureText(txt);
-                    if (tw > 0) paintTexte.setTextScaleX(objet.largeur / tw);
-                    canvas.drawText(txt, 0, objet.hauteur - (objet.hauteur * 0.1f), paintTexte);
-                    paintTexte.setTextScaleX(1.0f);
+                    
+                    // NOUVEAU : Rendu multiligne avec Word Wrap
+                    float hauteurLigne = objet.tailleFonte * 1.2f;
+                    float currentY = hauteurLigne; // Débute en haut de la boîte
+                    float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
+                    
+                    String[] paragraphes = txt.split("\n", -1);
+                    for (String paragraphe : paragraphes) {
+                        if (paragraphe.isEmpty()) {
+                            currentY += hauteurLigne;
+                            continue;
+                        }
+
+                        int start = 0;
+                        while (start < paragraphe.length()) {
+                            int count = paintTexte.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
+                            if (count <= 0) count = 1; // Sécurité anti-boucle infinie
+                            
+                            int end = start + count;
+                            // Si la coupure tombe au milieu d'un mot et qu'on n'est pas à la fin
+                            if (end < paragraphe.length()) {
+                                int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
+                                // On coupe à l'espace si possible pour le word wrap
+                                if (dernierEspace > start) {
+                                    end = dernierEspace + 1;
+                                }
+                            }
+                            
+                            String ligne = paragraphe.substring(start, end);
+                            canvas.drawText(ligne, 0, currentY, paintTexte);
+                            currentY += hauteurLigne;
+                            start = end;
+                        }
+                    }
                 } else {
                     if (objet.afficherFondColore || objet.cheminImage == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
@@ -299,7 +350,6 @@ public class CanvasEditeur extends View {
             android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
             if (bmp == null) {
                 try {
-                    // Utilisation de cheminProjet au lieu de getFilesDir()
                     java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
@@ -392,7 +442,6 @@ public class CanvasEditeur extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // Traitement du Pinch-to-zoom AVANT le switch
         scaleGestureDetector.onTouchEvent(event);
 
         float x = event.getX();
@@ -405,7 +454,6 @@ public class CanvasEditeur extends View {
                 } else {
                     currentMode = getTouchTarget(x, y);
                     
-                    // Pan direct sur zone vide
                     if (currentMode == 0) {
                         currentMode = 1;
                     }
@@ -425,7 +473,6 @@ public class CanvasEditeur extends View {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                // Ignore le traitement de pan/déplacement si un pincement est en cours
                 if (scaleGestureDetector.isInProgress()) {
                     lastTouchX = x;
                     lastTouchY = y;
@@ -516,12 +563,10 @@ public class CanvasEditeur extends View {
         return super.onTouchEvent(event);
     }
 
-    // Listener interne pour la gestion du zoom à deux doigts
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             niveauZoom *= detector.getScaleFactor();
-            // Limitation raisonnable du zoom entre 0.2f et 5.0f
             niveauZoom = Math.max(0.2f, Math.min(niveauZoom, 5.0f));
             invalidate();
             return true;
@@ -529,14 +574,3 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 2
-
-
-
-
-
-
-
-
-
-
-

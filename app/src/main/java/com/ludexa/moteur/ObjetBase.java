@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 0908
 package com.ludexa.moteur;
 
 import android.graphics.Color;
@@ -20,6 +20,10 @@ public class ObjetBase {
     
     public float scaleX = 1f;
     public float scaleY = 1f;
+
+    // NOUVEAU : Propriétés spécifiques au texte
+    public float tailleFonte = 40f;
+    public String cheminPolice = null;
 
     public int couleur = Color.BLUE; 
     public int zOrder;           
@@ -45,6 +49,9 @@ public class ObjetBase {
         this.rotation = 0f; 
         this.scaleX = 1f;
         this.scaleY = 1f;
+        
+        this.tailleFonte = 40f;
+        this.cheminPolice = null;
         
         this.zOrder = compteurZOrderGlobal++;
         
@@ -74,6 +81,10 @@ public class ObjetBase {
         copie.rotation = this.rotation; 
         copie.scaleX = this.scaleX;
         copie.scaleY = this.scaleY;
+        
+        // NOUVEAU : Clonage des propriétés de texte
+        copie.tailleFonte = this.tailleFonte;
+        copie.cheminPolice = this.cheminPolice;
         
         copie.couleur = this.couleur;
         copie.zOrder = this.zOrder;
