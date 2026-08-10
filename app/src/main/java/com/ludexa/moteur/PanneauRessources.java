@@ -1,4 +1,4 @@
-// haut 1 nouvelle interface 
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -41,8 +41,6 @@ public class PanneauRessources extends ScrollView {
         this.cheminProjet = cheminProjet;
         init(context);
     }
-
-    // ---------- Helpers visuels (esthétique uniquement) ----------
 
     private int dp(int valeur) {
         return (int) (valeur * getResources().getDisplayMetrics().density);
@@ -101,8 +99,6 @@ public class PanneauRessources extends ScrollView {
         layoutDialog.setBackground(fond(Palette.fondPanneaux, Palette.bordure, 12));
         layoutDialog.setPadding(dp(20), dp(20), dp(20), dp(20));
     }
-
-    // -------------------------------------------------------------
 
     private void init(Context context) {
         setBackgroundColor(Palette.fondPanneaux);
@@ -226,6 +222,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 1
 
+
 // haut 2
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -246,6 +243,7 @@ public class PanneauRessources extends ScrollView {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
@@ -259,6 +257,7 @@ public class PanneauRessources extends ScrollView {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
@@ -272,6 +271,7 @@ public class PanneauRessources extends ScrollView {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
@@ -396,6 +396,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 2
 
+
 // haut 3
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -467,7 +468,6 @@ public class PanneauRessources extends ScrollView {
         btnImportAsset.setOnClickListener(v -> {
             if (currentFolderSelected == null) return;
             String chemin = currentFolderSelected.getAbsolutePath();
-            // Le dossier Fonts utilisera le type MIME par défaut "*/*", ce qui est préférable car les sélecteurs Android gèrent parfois mal ".ttf" ou ".otf"
             String mime = chemin.contains("/Images") ? "image/*" : "*/*";
             ((InterfaceEditeur)context).lancerImportAsset(mime);
         });
@@ -811,6 +811,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 4
 
+
 // haut 5
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
@@ -834,8 +835,6 @@ public class PanneauRessources extends ScrollView {
         btnValider.setOnClickListener(v -> {
             String nom = champTexte.getText().toString().trim();
             if(!nom.isEmpty()) {
-                
-                // ANTI-DOUBLON POUR LA CRÉATION DE SCÈNE
                 InterfaceEditeur editeur = (InterfaceEditeur) context;
                 if (editeur.listeScenes != null) {
                     for (Scene s : editeur.listeScenes) {
@@ -845,7 +844,7 @@ public class PanneauRessources extends ScrollView {
                                     .setMessage("Une scène avec ce nom existe déjà dans le projet.")
                                     .setPositiveButton("OK", null)
                                     .show();
-                            return; // Bloque la création
+                            return;
                         }
                     }
                 }
@@ -895,7 +894,6 @@ public class PanneauRessources extends ScrollView {
                 return;
             }
 
-            // ANTI-DOUBLON STRICT POUR LE RENOMMAGE DE SCÈNE
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             if (editeur.listeScenes != null) {
                 for (Scene s : editeur.listeScenes) {
@@ -905,7 +903,7 @@ public class PanneauRessources extends ScrollView {
                                 .setMessage("Une scène avec ce nom existe déjà dans le projet.")
                                 .setPositiveButton("OK", null)
                                 .show();
-                        return; // Bloque le renommage, laisse le dialogue ouvert
+                        return;
                     }
                 }
             }
@@ -1241,6 +1239,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 7
 
+
 // haut 8
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1360,6 +1359,7 @@ public class PanneauRessources extends ScrollView {
     }
 // bas 8
 
+
 // haut 9
     private void afficherPopupRenommerAsset(Context context, File f) {
         Dialog dialog = new Dialog(context);
@@ -1440,3 +1440,38 @@ public class PanneauRessources extends ScrollView {
     }
 }
 // bas 9
+
+
+
+
+
+    
+
+
+    
+
+
+
+
+    
+
+
+
+
+
+    
+
+
+    
+
+
+
+
+    
+
+
+
+    
+
+
+
