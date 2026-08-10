@@ -1,5 +1,5 @@
-// haut 1 1008
-package com.ludexa.moteur;
+/ debut 1 10 08
+    package com.ludexa.moteur;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -34,7 +34,6 @@ public class VueJeu extends View {
     private float lastYJeu = 0f;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
-    // NOUVEAU : Cache polices pour le jeu
     private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
     private final Runnable boucleDeRendu = new Runnable() {
@@ -78,16 +77,14 @@ public class VueJeu extends View {
 
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
-        // CORRECTION : Nettoyer le moteur logique du HUD s'il est fermé
         if (scene == null) {
             this.moteurHud = null;
         }
     }
 
     public void ouvrirHudDynamique(Scene scene, Blueprint blueprintHud) {
-        // CORRECTION : Rendre la fonction idempotente
         if (this.sceneHudActive != null && this.sceneHudActive == scene && this.moteurHud != null) {
-            this.sceneHudActive = scene; // Par sécurité
+            this.sceneHudActive = scene; 
             return;
         }
 
@@ -188,11 +185,12 @@ public class VueJeu extends View {
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
                             if (this.moteurHud != null) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            // CORRECTION BUG 2 : On n'intercepte le clic que si on a réellement cliqué sur un objet du HUD.
+                            clickIntercepte = true;
                             break;
                         }
                     }
                 }
-                clickIntercepte = true;
             }
 
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
@@ -309,7 +307,6 @@ public class VueJeu extends View {
             } else if ("texte".equals(objet.type)) {
                 String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
                 
-                // NOUVEAU : Application de la police au runtime
                 if (objet.cheminPolice != null && cheminProjet != null) {
                     android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
                     if (tf == null) {
@@ -326,7 +323,6 @@ public class VueJeu extends View {
                     peintureTexte.setTypeface(android.graphics.Typeface.DEFAULT);
                 }
 
-                // NOUVEAU : Rendu multiligne avec Word Wrap identique à l'éditeur
                 peintureTexte.setTextSize(objet.tailleFonte);
                 peintureTexte.setTextScaleX(1.0f);
                 
@@ -398,4 +394,3 @@ public class VueJeu extends View {
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
     }
 }
-// bas 1
