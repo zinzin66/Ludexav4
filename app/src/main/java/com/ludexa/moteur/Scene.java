@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
@@ -11,6 +10,8 @@ public class Scene {
     public List<ObjetBase> objets;
     public List<NoeudBase> noeudsLogique;
     public List<Variable> variablesLocales;
+    
+    private int compteurZOrderLocal = 0;
 
     public Scene(String nom) {
         this.id = java.util.UUID.randomUUID().toString();
@@ -28,12 +29,23 @@ public class Scene {
         this.noeudsLogique.add(noeud);
     }
 
-    // NOUVEAU : Méthode de clonage profond
+    public int prochainZOrder() {
+        return compteurZOrderLocal++;
+    }
+
+    public void resynchroniserCompteurZOrder(int min) {
+        if (min > compteurZOrderLocal) {
+            compteurZOrderLocal = min;
+        }
+    }
+
+    // Méthode de clonage profond
     public Scene clonerProfond() {
         Scene copie = new Scene(this.nom);
         
         // Le clone doit garder le même id que l'original (Sandbox Play)
         copie.id = this.id;
+        copie.compteurZOrderLocal = this.compteurZOrderLocal;
         
         // Clonage des objets
         for (ObjetBase obj : this.objets) {
@@ -45,13 +57,12 @@ public class Scene {
             copie.variablesLocales.add(var.clonerProfond());
         }
         
-        // Copie des références des noeuds (le Blueprint reste partagé et non altéré par l'exécution)
+        // Copie des références des noeuds
         copie.noeudsLogique.addAll(this.noeudsLogique);
         
         return copie;
     }
 }
-// bas 1
-
+//fin 1
 
 
