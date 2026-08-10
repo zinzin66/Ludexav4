@@ -1,4 +1,4 @@
-// haut 1 0908
+// haut 1 1008
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -78,9 +78,19 @@ public class VueJeu extends View {
 
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
+        // CORRECTION : Nettoyer le moteur logique du HUD s'il est fermé
+        if (scene == null) {
+            this.moteurHud = null;
+        }
     }
 
     public void ouvrirHudDynamique(Scene scene, Blueprint blueprintHud) {
+        // CORRECTION : Rendre la fonction idempotente
+        if (this.sceneHudActive != null && this.sceneHudActive == scene && this.moteurHud != null) {
+            this.sceneHudActive = scene; // Par sécurité
+            return;
+        }
+
         this.sceneHudActive = scene;
         if (blueprintHud != null) {
             this.moteurHud = new MoteurLogique(blueprintHud);
