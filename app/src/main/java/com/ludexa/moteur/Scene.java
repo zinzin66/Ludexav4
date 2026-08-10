@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
@@ -39,30 +40,23 @@ public class Scene {
         }
     }
 
-    // Méthode de clonage profond
     public Scene clonerProfond() {
         Scene copie = new Scene(this.nom);
         
-        // Le clone doit garder le même id que l'original (Sandbox Play)
         copie.id = this.id;
         copie.compteurZOrderLocal = this.compteurZOrderLocal;
         
-        // Clonage des objets
         for (ObjetBase obj : this.objets) {
             copie.ajouterObjet(obj.clonerProfond());
         }
         
-        // Clonage des variables locales
         for (Variable var : this.variablesLocales) {
             copie.variablesLocales.add(var.clonerProfond());
         }
         
-        // Copie des références des noeuds
         copie.noeudsLogique.addAll(this.noeudsLogique);
         
         return copie;
     }
 }
-//fin 1
-
-
+// bas 1
