@@ -1,4 +1,4 @@
-// haut 1 0908
+// haut 1
 package com.ludexa.moteur;
 
 import android.graphics.Color;
@@ -7,6 +7,13 @@ import java.util.List;
 
 public class ObjetBase {
     private static int compteurZOrderGlobal = 0;
+
+    // NOUVEAU : Méthode de resynchronisation du zOrder pour le chargement Gson
+    public static void resynchroniserCompteurZOrder(int nouvelleValeurMin) {
+        if (nouvelleValeurMin > compteurZOrderGlobal) {
+            compteurZOrderGlobal = nouvelleValeurMin;
+        }
+    }
 
     public String id;
     public String type;
@@ -126,3 +133,8 @@ public class ObjetBase {
     }
 }
 // bas 1
+
+
+
+
+
