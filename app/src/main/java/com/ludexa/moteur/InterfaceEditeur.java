@@ -267,6 +267,19 @@ public class InterfaceEditeur extends Activity {
                             }
                         }
                         
+                        // CORRECTION : Recalcul du zOrder maximum parmi toutes les scènes et objets chargés
+                        int zOrderMax = -1;
+                        for (Scene scene : listeScenes) {
+                            if (scene.objets != null) {
+                                for (ObjetBase obj : scene.objets) {
+                                    if (obj.zOrder > zOrderMax) {
+                                        zOrderMax = obj.zOrder;
+                                    }
+                                }
+                            }
+                        }
+                        ObjetBase.resynchroniserCompteurZOrder(zOrderMax + 1);
+                        
                         sceneActive = listeScenes.get(0);
                         
                         // DÉBUT DE LA CORRECTION : Compatibilité ascendante pour Scene.id
@@ -437,6 +450,7 @@ public class InterfaceEditeur extends Activity {
         }
     }
 // bas 2
+
 
 // haut 3
     private void basculerVersJeu() {
@@ -643,8 +657,10 @@ public class InterfaceEditeur extends Activity {
 
 
 
-
     
 
 
-        
+
+
+
+    
