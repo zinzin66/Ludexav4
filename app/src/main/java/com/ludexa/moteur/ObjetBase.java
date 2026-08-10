@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.graphics.Color;
@@ -19,7 +20,6 @@ public class ObjetBase {
     public float scaleX = 1f;
     public float scaleY = 1f;
 
-    // Propriétés spécifiques au texte
     public float tailleFonte = 40f;
     public String cheminPolice = null;
 
@@ -29,7 +29,6 @@ public class ObjetBase {
     
     public String parentId; 
     
-    // Champs pour l'image
     public String cheminImage = null;
     public boolean afficherFondColore = true;
     public boolean estRamassable = false;
@@ -78,7 +77,6 @@ public class ObjetBase {
         copie.scaleX = this.scaleX;
         copie.scaleY = this.scaleY;
         
-        // Clonage des propriétés de texte
         copie.tailleFonte = this.tailleFonte;
         copie.cheminPolice = this.cheminPolice;
         
@@ -87,7 +85,6 @@ public class ObjetBase {
         copie.visible = this.visible;
         copie.parentId = this.parentId; 
         
-        // Copie des propriétés d'image
         copie.cheminImage = this.cheminImage;
         copie.afficherFondColore = this.afficherFondColore;
         copie.estRamassable = this.estRamassable;
@@ -121,3 +118,4 @@ public class ObjetBase {
         return true;
     }
 }
+// bas 1
