@@ -1,4 +1,3 @@
-// haut 1
 package com.ludexa.moteur;
 
 import android.graphics.Color;
@@ -6,14 +5,6 @@ import java.util.UUID;
 import java.util.List;
 
 public class ObjetBase {
-    private static int compteurZOrderGlobal = 0;
-
-    // NOUVEAU : Méthode de resynchronisation du zOrder pour le chargement Gson
-    public static void resynchroniserCompteurZOrder(int nouvelleValeurMin) {
-        if (nouvelleValeurMin > compteurZOrderGlobal) {
-            compteurZOrderGlobal = nouvelleValeurMin;
-        }
-    }
 
     public String id;
     public String type;
@@ -28,7 +19,7 @@ public class ObjetBase {
     public float scaleX = 1f;
     public float scaleY = 1f;
 
-    // NOUVEAU : Propriétés spécifiques au texte
+    // Propriétés spécifiques au texte
     public float tailleFonte = 40f;
     public String cheminPolice = null;
 
@@ -38,7 +29,7 @@ public class ObjetBase {
     
     public String parentId; 
     
-    // Nouveaux champs pour l'image
+    // Champs pour l'image
     public String cheminImage = null;
     public boolean afficherFondColore = true;
     public boolean estRamassable = false;
@@ -59,8 +50,6 @@ public class ObjetBase {
         
         this.tailleFonte = 40f;
         this.cheminPolice = null;
-        
-        this.zOrder = compteurZOrderGlobal++;
         
         if (nom != null) {
             String nomMinuscule = nom.toLowerCase();
@@ -89,7 +78,7 @@ public class ObjetBase {
         copie.scaleX = this.scaleX;
         copie.scaleY = this.scaleY;
         
-        // NOUVEAU : Clonage des propriétés de texte
+        // Clonage des propriétés de texte
         copie.tailleFonte = this.tailleFonte;
         copie.cheminPolice = this.cheminPolice;
         
@@ -98,7 +87,7 @@ public class ObjetBase {
         copie.visible = this.visible;
         copie.parentId = this.parentId; 
         
-        // Copie des nouvelles propriétés d'image
+        // Copie des propriétés d'image
         copie.cheminImage = this.cheminImage;
         copie.afficherFondColore = this.afficherFondColore;
         copie.estRamassable = this.estRamassable;
@@ -132,9 +121,3 @@ public class ObjetBase {
         return true;
     }
 }
-// bas 1
-
-
-
-
-
