@@ -1,4 +1,4 @@
-// haut 1 0908
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -37,7 +37,7 @@ public class InspecteurProprietes extends LinearLayout {
     private CheckBox cbVisible, cbVerrouille;
     private Button btnCouleur;
     private Button btnParent;
-    
+
     private LinearLayout blocTexte;
     private EditText champContenu, champTaille;
     private Button btnCouleurTexte, btnPolice;
@@ -73,46 +73,141 @@ public class InspecteurProprietes extends LinearLayout {
         this.sceneActive = scene;
     }
 
+    // ---------- Helpers visuels (esthétique uniquement, repris de PanneauRessources) ----------
+
+    private int dp(int valeur) {
+        return (int) (valeur * getResources().getDisplayMetrics().density);
+    }
+
+    private android.graphics.drawable.GradientDrawable fond(int couleurFond, int couleurBordure, int rayon) {
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setColor(couleurFond);
+        g.setCornerRadius(dp(rayon));
+        g.setStroke(dp(1), couleurBordure);
+        return g;
+    }
+
+    private void styliserSection(LinearLayout contenu) {
+        contenu.setBackground(fond(Palette.fondNormal, Palette.bordure, 10));
+        contenu.setPadding(dp(10), dp(10), dp(10), dp(10));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(6), 0, dp(10));
+        contenu.setLayoutParams(lp);
+    }
+
+    private void styliserSousTitre(TextView t) {
+        t.setTextColor(Palette.texteSelectionne);
+        t.setTextSize(15f);
+        t.setTypeface(null, android.graphics.Typeface.BOLD);
+        t.setPadding(dp(12), dp(9), dp(12), dp(9));
+        t.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 10));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(8), 0, dp(2));
+        t.setLayoutParams(lp);
+    }
+
+    private void styliserLabel(TextView t) {
+        t.setTextColor(Palette.texteNormal);
+        t.setTextSize(13f);
+        t.setPadding(dp(2), dp(8), dp(2), dp(4));
+    }
+
+    private void styliserChamp(EditText champ) {
+        champ.setTextColor(Palette.texteNormal);
+        champ.setHintTextColor(Palette.bordure);
+        champ.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
+        champ.setPadding(dp(12), dp(10), dp(12), dp(10));
+        champ.setTextSize(15f);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(3), dp(3), dp(3), dp(3));
+        champ.setLayoutParams(lp);
+    }
+
+    private void styliserChampFlexible(EditText champ) {
+        styliserChamp(champ);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(dp(3), dp(3), dp(3), dp(3));
+        champ.setLayoutParams(lp);
+    }
+
+    private void styliserBouton(Button b) {
+        b.setAllCaps(false);
+        b.setTextColor(Palette.texteNormal);
+        b.setTextSize(14f);
+        b.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        b.setPadding(dp(14), dp(9), dp(14), dp(9));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(3), dp(4), dp(3), dp(4));
+        b.setLayoutParams(lp);
+    }
+
+    private void styliserCase(CheckBox cb) {
+        cb.setTextColor(Palette.texteNormal);
+        cb.setTextSize(14f);
+        cb.setButtonTintList(android.content.res.ColorStateList.valueOf(Palette.texteSelectionne));
+        cb.setPadding(dp(8), dp(6), dp(8), dp(6));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(3), dp(2), dp(3), dp(2));
+        cb.setLayoutParams(lp);
+    }
+
+    // ------------------------------------------------------------------------
+
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
         this.setBackgroundColor(Palette.fondPanneaux);
 
-        paramsOuvert = new LinearLayout.LayoutParams(450, LinearLayout.LayoutParams.MATCH_PARENT);
+        paramsOuvert = new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT);
         paramsFerme = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
         this.setLayoutParams(paramsOuvert);
 
         LinearLayout enteteInspecteur = new LinearLayout(context);
         enteteInspecteur.setOrientation(LinearLayout.HORIZONTAL);
-        enteteInspecteur.setPadding(10, 10, 10, 10);
-        enteteInspecteur.setBackgroundColor(Palette.enTeteDialogues);
+        enteteInspecteur.setPadding(dp(12), dp(10), dp(12), dp(10));
+        enteteInspecteur.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 0));
+        enteteInspecteur.setGravity(Gravity.CENTER_VERTICAL);
 
         titreInspecteur = new TextView(context);
         titreInspecteur.setText("INSPECTEUR");
-        titreInspecteur.setTextSize(18f);
+        titreInspecteur.setTextSize(17f);
+        titreInspecteur.setLetterSpacing(0.08f);
+        titreInspecteur.setTypeface(null, android.graphics.Typeface.BOLD);
         titreInspecteur.setGravity(Gravity.CENTER_VERTICAL);
-        titreInspecteur.setTextColor(Palette.texteNormal);
+        titreInspecteur.setTextColor(Palette.texteSelectionne);
         LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         titreInspecteur.setLayoutParams(paramsTitre);
 
         boutonMasquer = new Button(context);
         boutonMasquer.setText(">");
-        boutonMasquer.setBackgroundColor(Palette.boutonNormal);
-        boutonMasquer.setTextColor(Palette.texteNormal);
+        boutonMasquer.setAllCaps(false);
+        boutonMasquer.setTextColor(Palette.iconeNormal);
+        boutonMasquer.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        boutonMasquer.setPadding(dp(10), dp(6), dp(10), dp(6));
+        LinearLayout.LayoutParams paramsMasquer = new LinearLayout.LayoutParams(dp(44), dp(40));
+        boutonMasquer.setLayoutParams(paramsMasquer);
 
         enteteInspecteur.addView(titreInspecteur);
         enteteInspecteur.addView(boutonMasquer);
-        this.addView(enteteInspecteur); 
+        this.addView(enteteInspecteur);
 
         scrollInspecteur = new ScrollView(context);
         LinearLayout contenuInspecteur = new LinearLayout(context);
         contenuInspecteur.setOrientation(LinearLayout.VERTICAL);
-        contenuInspecteur.setPadding(15, 15, 15, 15);
+        contenuInspecteur.setPadding(dp(10), dp(8), dp(10), dp(16));
 
         texteInfo = new TextView(context);
         texteInfo.setText("Sélectionnez un objet sur la scène pour afficher et modifier ses propriétés.");
-        texteInfo.setPadding(0, 0, 0, 30);
+        texteInfo.setPadding(dp(12), dp(14), dp(12), dp(14));
+        texteInfo.setTextSize(13f);
         texteInfo.setTextColor(Palette.texteNormal);
+        texteInfo.setBackground(fond(Palette.fondNormal, Palette.bordure, 10));
         contenuInspecteur.addView(texteInfo);
 
         blocProprietes = new LinearLayout(context);
@@ -120,57 +215,54 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.setVisibility(View.GONE);
 
         valeurType = new TextView(context);
-        valeurType.setPadding(0, 0, 0, 15);
-        valeurType.setTextColor(Palette.texteNormal);
+        valeurType.setPadding(dp(12), dp(10), dp(12), dp(10));
+        valeurType.setTextColor(Palette.texteSelectionne);
         valeurType.setTextSize(14f);
+        valeurType.setTypeface(null, android.graphics.Typeface.BOLD);
+        valeurType.setBackground(fond(Palette.fondListe, Palette.bordure, 10));
         blocProprietes.addView(valeurType);
 
         TextView labelNom = new TextView(context);
         labelNom.setText("Nom");
-        labelNom.setTextColor(Palette.texteNormal);
+        styliserLabel(labelNom);
         blocProprietes.addView(labelNom);
 
         LinearLayout layoutNom = new LinearLayout(context);
         layoutNom.setOrientation(LinearLayout.HORIZONTAL);
-        
+        layoutNom.setGravity(Gravity.CENTER_VERTICAL);
+
         champNom = new EditText(context);
         champNom.setSingleLine(true);
-        champNom.setImeOptions(EditorInfo.IME_ACTION_DONE); 
-        champNom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        champNom.setTextColor(Palette.texteNormal);
-        champNom.setBackgroundColor(Palette.canvasFond);
+        champNom.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        styliserChampFlexible(champNom);
         layoutNom.addView(champNom);
-        
+
         btnValiderNom = new Button(context);
         btnValiderNom.setText("OK");
-        btnValiderNom.setBackgroundColor(Palette.boutonNormal);
-        btnValiderNom.setTextColor(Palette.texteNormal);
+        styliserBouton(btnValiderNom);
+        btnValiderNom.setLayoutParams(new LinearLayout.LayoutParams(dp(64), LinearLayout.LayoutParams.WRAP_CONTENT));
         layoutNom.addView(btnValiderNom);
-        
+
         blocProprietes.addView(layoutNom);
 
         TextView labelPos = new TextView(context);
         labelPos.setText("Position X / Y");
-        labelPos.setTextColor(Palette.texteNormal);
+        styliserLabel(labelPos);
         blocProprietes.addView(labelPos);
 
         LinearLayout layoutPos = new LinearLayout(context);
         layoutPos.setOrientation(LinearLayout.HORIZONTAL);
-        
+
         champX = new EditText(context);
         champX.setHint("X");
         champX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        champX.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        champX.setTextColor(Palette.texteNormal);
-        champX.setBackgroundColor(Palette.canvasFond);
-        
+        styliserChampFlexible(champX);
+
         champY = new EditText(context);
         champY.setHint("Y");
         champY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        champY.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        champY.setTextColor(Palette.texteNormal);
-        champY.setBackgroundColor(Palette.canvasFond);
-        
+        styliserChampFlexible(champY);
+
         layoutPos.addView(champX);
         layoutPos.addView(champY);
         blocProprietes.addView(layoutPos);
@@ -179,128 +271,121 @@ public class InspecteurProprietes extends LinearLayout {
 
         TextView labelDim = new TextView(context);
         labelDim.setText("Largeur / Hauteur");
-        labelDim.setTextColor(Palette.texteNormal);
+        styliserLabel(labelDim);
         blocProprietes.addView(labelDim);
 
         LinearLayout layoutDim = new LinearLayout(context);
         layoutDim.setOrientation(LinearLayout.HORIZONTAL);
-        
+
         champLargeur = new EditText(context);
         champLargeur.setHint("Largeur");
         champLargeur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        champLargeur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        champLargeur.setTextColor(Palette.texteNormal);
-        champLargeur.setBackgroundColor(Palette.canvasFond);
-        
+        styliserChampFlexible(champLargeur);
+
         champHauteur = new EditText(context);
         champHauteur.setHint("Hauteur");
         champHauteur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        champHauteur.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        champHauteur.setTextColor(Palette.texteNormal);
-        champHauteur.setBackgroundColor(Palette.canvasFond);
-        
+        styliserChampFlexible(champHauteur);
+
         layoutDim.addView(champLargeur);
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
-        
+
         // FIX 2: Ajout section Echelle
         TextView labelScale = new TextView(context);
         labelScale.setText("Echelle X / Y (Scale)");
-        labelScale.setTextColor(Palette.texteNormal);
+        styliserLabel(labelScale);
         blocProprietes.addView(labelScale);
 
         LinearLayout layoutScale = new LinearLayout(context);
         layoutScale.setOrientation(LinearLayout.HORIZONTAL);
-        
+
         champScaleX = new EditText(context);
         champScaleX.setHint("Scale X");
         champScaleX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        champScaleX.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        champScaleX.setTextColor(Palette.texteNormal);
-        champScaleX.setBackgroundColor(Palette.canvasFond);
-        
+        styliserChampFlexible(champScaleX);
+
         champScaleY = new EditText(context);
         champScaleY.setHint("Scale Y");
         champScaleY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        champScaleY.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        champScaleY.setTextColor(Palette.texteNormal);
-        champScaleY.setBackgroundColor(Palette.canvasFond);
-        
+        styliserChampFlexible(champScaleY);
+
         layoutScale.addView(champScaleX);
         layoutScale.addView(champScaleY);
         blocProprietes.addView(layoutScale);
 
+        TextView labelRotation = new TextView(context);
+        labelRotation.setText("Rotation");
+        styliserLabel(labelRotation);
+        blocProprietes.addView(labelRotation);
+
         champRotation = new EditText(context);
         champRotation.setHint("Rotation (°)");
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        champRotation.setTextColor(Palette.texteNormal);
-        champRotation.setBackgroundColor(Palette.canvasFond);
+        styliserChamp(champRotation);
         blocProprietes.addView(champRotation);
 
         btnCouleur = new Button(context);
         btnCouleur.setText("Couleur : Sélecteur");
-        btnCouleur.setBackgroundColor(Palette.boutonNormal);
-        btnCouleur.setTextColor(Palette.texteNormal);
+        styliserBouton(btnCouleur);
         blocProprietes.addView(btnCouleur);
 
         champAlpha = new EditText(context);
         champAlpha.setHint("Transparence (0-1)");
         champAlpha.setFocusable(false);
         champAlpha.setOnClickListener(toastListener);
-        champAlpha.setTextColor(Palette.texteNormal);
-        champAlpha.setBackgroundColor(Palette.canvasFond);
+        styliserChamp(champAlpha);
         blocProprietes.addView(champAlpha);
 
         cbVisible = new CheckBox(context);
         cbVisible.setText("Visible");
-        cbVisible.setTextColor(Palette.texteNormal);
+        styliserCase(cbVisible);
         blocProprietes.addView(cbVisible);
 
         cbVerrouille = new CheckBox(context);
         cbVerrouille.setText("Verrouillé (empêche l'édition)");
         cbVerrouille.setOnClickListener(toastListener);
-        cbVerrouille.setTextColor(Palette.texteNormal);
+        styliserCase(cbVerrouille);
         blocProprietes.addView(cbVerrouille);
 
         TextView labelZOrder = new TextView(context);
         labelZOrder.setText("Calque (Z-Order)");
-        labelZOrder.setTextColor(Palette.texteNormal);
+        styliserLabel(labelZOrder);
         blocProprietes.addView(labelZOrder);
 
         champZOrder = new EditText(context);
         champZOrder.setHint("Calque (Z-Order)");
         champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        champZOrder.setTextColor(Palette.texteNormal);
-        champZOrder.setBackgroundColor(Palette.canvasFond);
+        styliserChamp(champZOrder);
         blocProprietes.addView(champZOrder);
 
         TextView labelParent = new TextView(context);
         labelParent.setText("Objet Parent");
-        labelParent.setTextColor(Palette.texteNormal);
+        styliserLabel(labelParent);
         blocProprietes.addView(labelParent);
 
         btnParent = new Button(context);
         btnParent.setText("Parent : Aucun");
-        btnParent.setBackgroundColor(Palette.boutonNormal);
-        btnParent.setTextColor(Palette.texteNormal);
+        styliserBouton(btnParent);
         blocProprietes.addView(btnParent);
-
+// bas 1
+   // haut 2
         btnParent.setOnClickListener(v -> {
             if (objetCourant == null) return;
-            
+
             List<String> noms = new ArrayList<>();
             List<String> ids = new ArrayList<>();
-            
+
             noms.add("Aucun");
             ids.add(null);
-            
+
             for (ObjetBase o : sceneActive.objets) {
                 if (o != objetCourant) {
                     noms.add(o.nom != null ? o.nom : "Objet sans nom");
                     ids.add(o.id);
                 }
             }
-            
+
             new AlertDialog.Builder(context)
                 .setTitle("Sélectionner un parent")
                 .setItems(noms.toArray(new String[0]), (dialog, which) -> {
@@ -318,31 +403,30 @@ public class InspecteurProprietes extends LinearLayout {
 
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
-        blocTexte.setPadding(0, 15, 0, 0);
+        styliserSection(blocTexte);
 
         TextView sepTexte = new TextView(context);
-        sepTexte.setText("--- Propriétés Spécifiques Texte ---");
-        sepTexte.setTextColor(Palette.texteNormal);
-        sepTexte.setPadding(0, 10, 0, 10);
+        sepTexte.setText("Propriétés Texte");
+        styliserSousTitre(sepTexte);
         blocTexte.addView(sepTexte);
 
         champContenu = new EditText(context);
         champContenu.setHint("Contenu du texte");
         champContenu.setFocusable(false);
-        champContenu.setTextColor(Palette.texteNormal);
-        champContenu.setBackgroundColor(Palette.canvasFond);
+        styliserChamp(champContenu);
         champContenu.setOnClickListener(v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("Modifier le texte");
-            
+
             final EditText input = new EditText(context);
             input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
             input.setSingleLine(false);
             input.setLines(5);
             input.setGravity(Gravity.TOP | Gravity.START);
             input.setText(objetCourant.contenuTexte);
-            
+            styliserChamp(input);
+
             builder.setView(input);
             builder.setPositiveButton("Valider", (dialog, which) -> {
                 String nouveauTexte = input.getText().toString();
@@ -356,8 +440,7 @@ public class InspecteurProprietes extends LinearLayout {
             builder.show();
         });
         blocTexte.addView(champContenu);
-// bas 1
-// haut 2
+
         champTaille = new EditText(context);
         champTaille.setHint("Taille de police");
         champTaille.setFocusable(false);
@@ -365,11 +448,12 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("Taille de police");
-            
+
             final EditText input = new EditText(context);
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
             input.setText(String.valueOf(objetCourant.tailleFonte));
-            
+            styliserChamp(input);
+
             builder.setView(input);
             builder.setPositiveButton("Valider", (dialog, which) -> {
                 try {
@@ -386,34 +470,32 @@ public class InspecteurProprietes extends LinearLayout {
             builder.setNegativeButton("Annuler", null);
             builder.show();
         });
-        champTaille.setTextColor(Palette.texteNormal);
-        champTaille.setBackgroundColor(Palette.canvasFond);
+        styliserChamp(champTaille);
         blocTexte.addView(champTaille);
 
         btnCouleurTexte = new Button(context);
         btnCouleurTexte.setText("Couleur du texte");
-        btnCouleurTexte.setBackgroundColor(Palette.boutonNormal);
-        btnCouleurTexte.setTextColor(Palette.texteNormal);
+        styliserBouton(btnCouleurTexte);
         blocTexte.addView(btnCouleurTexte);
 
         btnPolice = new Button(context);
         btnPolice.setText("Police : Sélecteur");
         btnPolice.setOnClickListener(v -> {
             if (objetCourant == null) return;
-            
+
             if (cheminProjet == null) {
                 Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
+
             java.io.File dossierPolices = new java.io.File(cheminProjet, "assets_ludexa/Fonts");
             List<String> polices = listerPolicesLocales(dossierPolices, "assets_ludexa/Fonts/");
-            
+
             if (polices.isEmpty()) {
                 Toast.makeText(context, "Aucune police trouvée dans les assets", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
+
             List<String> options = new ArrayList<>();
             options.add("Police par défaut");
             options.addAll(polices);
@@ -431,53 +513,49 @@ public class InspecteurProprietes extends LinearLayout {
                 })
                 .show();
         });
-        btnPolice.setBackgroundColor(Palette.boutonNormal);
-        btnPolice.setTextColor(Palette.texteNormal);
+        styliserBouton(btnPolice);
         blocTexte.addView(btnPolice);
-        
+
         blocProprietes.addView(blocTexte);
 
         // --- BLOC IMAGE ---
         blocImage = new LinearLayout(context);
         blocImage.setOrientation(LinearLayout.VERTICAL);
-        blocImage.setPadding(0, 15, 0, 0);
+        styliserSection(blocImage);
 
         TextView sepImage = new TextView(context);
-        sepImage.setText("--- Propriétés Image ---");
-        sepImage.setTextColor(Palette.texteNormal);
-        sepImage.setPadding(0, 10, 0, 10);
+        sepImage.setText("Propriétés Image");
+        styliserSousTitre(sepImage);
         blocImage.addView(sepImage);
 
         btnChargerImage = new Button(context);
         btnChargerImage.setText("Charger une image (Assets)");
-        btnChargerImage.setBackgroundColor(Palette.boutonNormal);
-        btnChargerImage.setTextColor(Palette.texteNormal);
+        styliserBouton(btnChargerImage);
         blocImage.addView(btnChargerImage);
 
         btnSupprimerImage = new Button(context);
         btnSupprimerImage.setText("Supprimer l'image");
-        btnSupprimerImage.setBackgroundColor(Palette.boutonNormal);
-        btnSupprimerImage.setTextColor(Palette.texteNormal);
+        styliserBouton(btnSupprimerImage);
         blocImage.addView(btnSupprimerImage);
 
         cbFondColore = new CheckBox(context);
         cbFondColore.setText("Afficher le fond coloré");
-        cbFondColore.setTextColor(Palette.texteNormal);
+        styliserCase(cbFondColore);
         blocImage.addView(cbFondColore);
 
         cbRamassable = new CheckBox(context);
         cbRamassable.setText("Ramassable (peut aller dans l'inventaire)");
-        cbRamassable.setTextColor(Palette.texteNormal);
+        styliserCase(cbRamassable);
         blocProprietes.addView(cbRamassable);
 
         cbZoneDeClic = new CheckBox(context);
         cbZoneDeClic.setText("Zone de clic (hitbox invisible)");
-        cbZoneDeClic.setTextColor(Palette.texteNormal);
+        styliserCase(cbZoneDeClic);
         blocProprietes.addView(cbZoneDeClic);
 
         cbDeplacable = new CheckBox(context);
         cbDeplacable.setText("Déplaçable (glissable en mode Play)");
-        cbDeplacable.setTextColor(Palette.texteNormal);
+        styliserCase(cbDeplacable);
         blocProprietes.addView(cbDeplacable);
 
         blocProprietes.addView(blocImage);
@@ -486,8 +564,11 @@ public class InspecteurProprietes extends LinearLayout {
 
         boutonSupprimer = new Button(context);
         boutonSupprimer.setText("Supprimer l'objet");
-        boutonSupprimer.setBackgroundColor(Color.parseColor("#8B3A3A"));
+        boutonSupprimer.setAllCaps(false);
+        boutonSupprimer.setTextSize(15f);
         boutonSupprimer.setTextColor(Palette.texteNormal);
+        boutonSupprimer.setBackground(fond(Color.parseColor("#8B3A3A"), Palette.bordure, 10));
+        boutonSupprimer.setPadding(dp(14), dp(11), dp(14), dp(11));
         boutonSupprimer.setOnClickListener(v -> {
             if (objetCourant == null) {
                 Toast.makeText(context, "Aucun objet sélectionné", Toast.LENGTH_SHORT).show();
@@ -506,12 +587,12 @@ public class InspecteurProprietes extends LinearLayout {
                     .setNegativeButton("Annuler", null)
                     .show();
         });
-        
+
         LinearLayout.LayoutParams paramsBtn = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        paramsBtn.setMargins(0, 30, 0, 0);
+        paramsBtn.setMargins(dp(3), dp(22), dp(3), dp(6));
         boutonSupprimer.setLayoutParams(paramsBtn);
-        
+
         contenuInspecteur.addView(boutonSupprimer);
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
@@ -530,7 +611,7 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 // bas 2
-// haut 3
+    // haut 3
         champNom.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 verifierEtConfirmerRenommage(context);
@@ -547,15 +628,15 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
-            
+
             if (cheminProjet == null) {
                 Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
                 return;
             }
-            
+
             java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
             List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
-            
+
             if (images.isEmpty()) {
                 Toast.makeText(context, "Aucune image trouvée dans les assets", Toast.LENGTH_SHORT).show();
                 return;
@@ -622,7 +703,7 @@ public class InspecteurProprietes extends LinearLayout {
                 try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
             }
         }));
-        
+
         champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
@@ -658,7 +739,7 @@ public class InspecteurProprietes extends LinearLayout {
             builder.setTitle("Sélectionner une couleur");
             String[] couleursNoms = {"Bleu (Défaut)", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
             int[] couleursValeurs = {Color.BLUE, Color.RED, Color.GREEN, Color.BLACK, Color.WHITE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
-            
+
             builder.setItems(couleursNoms, (dialog, which) -> {
                 objetCourant.couleur = couleursValeurs[which];
                 canvasEditeur.invalidate();
@@ -681,9 +762,9 @@ public class InspecteurProprietes extends LinearLayout {
         if (objetCourant == null) return;
         String nouveauNom = champNom.getText().toString().trim();
         String ancienNom = objetCourant.nom != null ? objetCourant.nom : "";
-        
+
         if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
-            
+
             // ANTI-DOUBLON STRICT
             if (sceneActive != null && sceneActive.objets != null) {
                 for (ObjetBase obj : sceneActive.objets) {
@@ -693,7 +774,7 @@ public class InspecteurProprietes extends LinearLayout {
                                 .setMessage("Un objet nommé '" + nouveauNom + "' existe déjà dans cette scène.")
                                 .setPositiveButton("OK", null)
                                 .show();
-                        
+
                         miseAJourEnCours = true;
                         champNom.setText(ancienNom);
                         miseAJourEnCours = false;
@@ -735,24 +816,24 @@ public class InspecteurProprietes extends LinearLayout {
             texteInfo.setVisibility(View.GONE);
             blocProprietes.setVisibility(View.VISIBLE);
             boutonSupprimer.setVisibility(View.VISIBLE);
-            
+
             champNom.setText(objet.nom);
             champX.setText(String.valueOf((int) objet.x));
             champY.setText(String.valueOf((int) objet.y));
-            
+
             String nomType = objet.type != null ? objet.type.substring(0, 1).toUpperCase() + objet.type.substring(1) : "Inconnu";
             valeurType.setText("Type : " + nomType);
-            
+
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
-            
+
             champScaleX.setText(String.valueOf(objet.scaleX));
             champScaleY.setText(String.valueOf(objet.scaleY));
-            
+
             champRotation.setText(String.valueOf((int) objet.rotation));
             champZOrder.setText(String.valueOf(objet.zOrder));
             cbVisible.setChecked(objet.visible);
-            
+
             String nomParent = "Aucun";
             if (objet.parentId != null) {
                 for (ObjetBase o : sceneActive.objets) {
@@ -763,15 +844,15 @@ public class InspecteurProprietes extends LinearLayout {
                 }
             }
             btnParent.setText("Parent : " + nomParent);
-            
+
             cbRamassable.setChecked(objet.estRamassable);
             cbZoneDeClic.setChecked(objet.estZoneDeClic);
             cbDeplacable.setChecked(objet.estDeplacable);
-            
+
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
                 champContenu.setText(objet.contenuTexte);
-                
+
                 champTaille.setText(String.valueOf(objet.tailleFonte));
                 if (objet.cheminPolice != null) {
                     java.io.File f = new java.io.File(objet.cheminPolice);
@@ -779,12 +860,12 @@ public class InspecteurProprietes extends LinearLayout {
                 } else {
                     btnPolice.setText("Police : Sélecteur");
                 }
-                
+
                 blocImage.setVisibility(View.GONE);
             } else {
                 blocTexte.setVisibility(View.GONE);
                 blocImage.setVisibility(View.VISIBLE);
-                
+
                 if (objet.cheminImage != null) {
                     btnSupprimerImage.setVisibility(View.VISIBLE);
                     cbFondColore.setVisibility(View.VISIBLE);
