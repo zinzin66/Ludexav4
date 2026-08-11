@@ -1,4 +1,4 @@
-// haut 1 0908
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.Context;
@@ -74,32 +74,46 @@ public class CanvasEditeur extends View {
     }
 
     private void init() {
+        // ---- ESTHETIQUE : grille fine harmonisee avec la palette ----
         paintGrille = new Paint();
         paintGrille.setColor(Palette.canvasGrille);
+        paintGrille.setStyle(Paint.Style.STROKE);
         paintGrille.setStrokeWidth(1);
-        
+        paintGrille.setAntiAlias(false);
+        paintGrille.setAlpha(180);
+
         setBackgroundColor(Palette.canvasFond);
 
+        // ---- ESTHETIQUE : cadre camera en pointilles bleu clair ----
         paintCamera = new Paint();
-        paintCamera.setColor(Color.RED);
+        paintCamera.setColor(Palette.texteSelectionne);
         paintCamera.setStyle(Paint.Style.STROKE);
-        paintCamera.setStrokeWidth(5);
+        paintCamera.setStrokeWidth(3);
+        paintCamera.setAntiAlias(true);
+        paintCamera.setPathEffect(new android.graphics.DashPathEffect(new float[]{18f, 12f}, 0f));
 
         paintObjet = new Paint();
         paintObjet.setAntiAlias(true);
+        paintObjet.setFilterBitmap(true);
+        paintObjet.setDither(true);
 
         paintTexte = new Paint();
         paintTexte.setAntiAlias(true);
+        paintTexte.setSubpixelText(true);
 
+        // ---- ESTHETIQUE : contour de selection bleu clair ----
         paintSelection = new Paint();
-        paintSelection.setColor(Color.parseColor("#CC8844"));
+        paintSelection.setColor(Palette.texteSelectionne);
         paintSelection.setStyle(Paint.Style.STROKE);
-        
+        paintSelection.setAntiAlias(true);
+        paintSelection.setStrokeCap(Paint.Cap.ROUND);
+
+        // ---- ESTHETIQUE : poignees bleu bouton ----
         paintPoignee = new Paint();
-        paintPoignee.setColor(Color.parseColor("#E53935"));
+        paintPoignee.setColor(Palette.boutonSurvol);
         paintPoignee.setStyle(Paint.Style.FILL);
         paintPoignee.setAntiAlias(true);
-        
+
         scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
     }
 
@@ -201,6 +215,7 @@ public class CanvasEditeur extends View {
         return pts;
     }
 // bas 1
+
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -329,10 +344,12 @@ public class CanvasEditeur extends View {
                     canvas.drawRect(l, t, r, b, paintSelection);
                     
                     float hs = 12f / scaleFactor;
-                    canvas.drawRect(l - hs, t - hs, l + hs, t + hs, paintPoignee); 
-                    canvas.drawRect(r - hs, t - hs, r + hs, t + hs, paintPoignee); 
-                    canvas.drawRect(l - hs, b - hs, l + hs, b + hs, paintPoignee); 
-                    canvas.drawRect(r - hs, b - hs, r + hs, b + hs, paintPoignee); 
+                    // ESTHETIQUE : poignees arrondies
+                    float rc = 4f / scaleFactor;
+                    canvas.drawRoundRect(new android.graphics.RectF(l - hs, t - hs, l + hs, t + hs), rc, rc, paintPoignee);
+                    canvas.drawRoundRect(new android.graphics.RectF(r - hs, t - hs, r + hs, t + hs), rc, rc, paintPoignee);
+                    canvas.drawRoundRect(new android.graphics.RectF(l - hs, b - hs, l + hs, b + hs), rc, rc, paintPoignee);
+                    canvas.drawRoundRect(new android.graphics.RectF(r - hs, b - hs, r + hs, b + hs), rc, rc, paintPoignee);
                     
                     float cx = objet.largeur / 2f;
                     float rotY = t - (50f / scaleFactor);
@@ -404,7 +421,9 @@ public class CanvasEditeur extends View {
         }
         return null;
     }
+// bas 2
 
+// haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
         float sx = scenePos[0], sy = scenePos[1];
@@ -573,4 +592,12 @@ public class CanvasEditeur extends View {
         }
     }
 }
-// bas 2
+// bas 3
+
+
+
+
+    
+
+
+

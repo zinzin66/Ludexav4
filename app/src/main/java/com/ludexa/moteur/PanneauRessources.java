@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
 import android.net.Uri;
@@ -35,6 +36,13 @@ public class PanneauRessources extends ScrollView {
     
     private String cheminProjet;
 
+    // AJOUT : masquage du panneau (modèle InspecteurProprietes)
+    private TextView titreRessources;
+    private Button boutonMasquer;
+    private LinearLayout conteneurSections;
+    private LinearLayout.LayoutParams paramsOuvert;
+    private LinearLayout.LayoutParams paramsFerme;
+
     public PanneauRessources(Context context, CanvasEditeur canvas, String cheminProjet) {
         super(context);
         this.canvasEditeur = canvas;
@@ -42,9 +50,71 @@ public class PanneauRessources extends ScrollView {
         init(context);
     }
 
+    private int dp(int valeur) {
+        return (int) (valeur * getResources().getDisplayMetrics().density);
+    }
+
+    private android.graphics.drawable.GradientDrawable fond(int couleurFond, int couleurBordure, int rayon) {
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setColor(couleurFond);
+        g.setCornerRadius(dp(rayon));
+        g.setStroke(dp(1), couleurBordure);
+        return g;
+    }
+
+    private void styliserTitreSection(Button b) {
+        b.setAllCaps(false);
+        b.setTextColor(Palette.texteSelectionne);
+        b.setTextSize(15f);
+        b.setTypeface(null, android.graphics.Typeface.BOLD);
+        b.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        b.setPadding(dp(14), dp(10), dp(14), dp(10));
+        b.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 10));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(8), dp(8), dp(8), dp(4));
+        b.setLayoutParams(lp);
+    }
+
+    private void styliserContenuSection(LinearLayout contenu) {
+        contenu.setBackground(fond(Palette.fondNormal, Palette.bordure, 10));
+        contenu.setPadding(dp(10), dp(10), dp(10), dp(10));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(8), 0, dp(8), dp(10));
+        contenu.setLayoutParams(lp);
+    }
+
+    private void styliserBoutonIcone(ImageButton b) {
+        b.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        b.setColorFilter(Palette.iconeNormal);
+        b.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        b.setPadding(dp(7), dp(7), dp(7), dp(7));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(40), dp(40));
+        lp.setMargins(dp(4), dp(4), dp(4), dp(4));
+        b.setLayoutParams(lp);
+    }
+
+    private void styliserChampDialogue(EditText champ) {
+        champ.setTextColor(Palette.texteNormal);
+        champ.setHintTextColor(Palette.bordure);
+        champ.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
+        champ.setPadding(dp(12), dp(10), dp(12), dp(10));
+        champ.setTextSize(15f);
+    }
+
+    private void styliserDialogue(LinearLayout layoutDialog) {
+        layoutDialog.setBackground(fond(Palette.fondPanneaux, Palette.bordure, 12));
+        layoutDialog.setPadding(dp(20), dp(20), dp(20), dp(20));
+    }
+
     private void init(Context context) {
         setBackgroundColor(Palette.fondPanneaux);
-        setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
+
+        // AJOUT : gabarits ouvert / fermé
+        paramsOuvert = new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT);
+        paramsFerme = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        setLayoutParams(paramsOuvert);
 
         rootAssetsDir = new File(cheminProjet, "assets_ludexa");
         if (!rootAssetsDir.exists()) rootAssetsDir.mkdirs();
@@ -60,12 +130,64 @@ public class PanneauRessources extends ScrollView {
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
+        layoutPrincipal.setPadding(0, dp(4), 0, dp(12));
 
-        layoutPrincipal.addView(creerSectionScenes(context));
-        layoutPrincipal.addView(creerSectionObjets(context));
-        layoutPrincipal.addView(creerSectionArborescence(context));
-        layoutPrincipal.addView(creerSectionAssets(context));
-        layoutPrincipal.addView(creerSectionVariables(context));
+        // AJOUT : en-tête avec bouton de masquage (même style que l'Inspecteur)
+        LinearLayout enteteRessources = new LinearLayout(context);
+        enteteRessources.setOrientation(LinearLayout.HORIZONTAL);
+        enteteRessources.setPadding(dp(12), dp(10), dp(12), dp(10));
+        enteteRessources.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 0));
+        enteteRessources.setGravity(Gravity.CENTER_VERTICAL);
+
+        titreRessources = new TextView(context);
+        titreRessources.setText("RESSOURCES");
+        titreRessources.setTextSize(17f);
+        titreRessources.setLetterSpacing(0.08f);
+        titreRessources.setTypeface(null, android.graphics.Typeface.BOLD);
+        titreRessources.setGravity(Gravity.CENTER_VERTICAL);
+        titreRessources.setTextColor(Palette.texteSelectionne);
+        LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        titreRessources.setLayoutParams(paramsTitre);
+
+        boutonMasquer = new Button(context);
+        boutonMasquer.setText("<");
+        boutonMasquer.setAllCaps(false);
+        boutonMasquer.setTextColor(Palette.iconeNormal);
+        boutonMasquer.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        boutonMasquer.setPadding(dp(10), dp(6), dp(10), dp(6));
+        LinearLayout.LayoutParams paramsMasquer = new LinearLayout.LayoutParams(dp(44), dp(40));
+        boutonMasquer.setLayoutParams(paramsMasquer);
+
+        enteteRessources.addView(titreRessources);
+        enteteRessources.addView(boutonMasquer);
+        layoutPrincipal.addView(enteteRessources);
+
+        // AJOUT : toutes les sections existantes regroupées pour être masquées d'un coup
+        conteneurSections = new LinearLayout(context);
+        conteneurSections.setOrientation(LinearLayout.VERTICAL);
+
+        conteneurSections.addView(creerSectionScenes(context));
+        conteneurSections.addView(creerSectionObjets(context));
+        conteneurSections.addView(creerSectionArborescence(context));
+        conteneurSections.addView(creerSectionAssets(context));
+        conteneurSections.addView(creerSectionVariables(context));
+
+        layoutPrincipal.addView(conteneurSections);
+
+        boutonMasquer.setOnClickListener(v -> {
+            if (conteneurSections.getVisibility() == View.VISIBLE) {
+                conteneurSections.setVisibility(View.GONE);
+                titreRessources.setVisibility(View.GONE);
+                boutonMasquer.setText(">");
+                this.setLayoutParams(paramsFerme);
+            } else {
+                conteneurSections.setVisibility(View.VISIBLE);
+                titreRessources.setVisibility(View.VISIBLE);
+                boutonMasquer.setText("<");
+                this.setLayoutParams(paramsOuvert);
+            }
+        });
 
         addView(layoutPrincipal);
     }
@@ -76,10 +198,11 @@ public class PanneauRessources extends ScrollView {
 
         Button btnTitre = new Button(context);
         btnTitre.setText("Arborescence ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        styliserContenuSection(contenu);
 
         conteneurArborescence = new LinearLayout(context);
         conteneurArborescence.setOrientation(LinearLayout.VERTICAL);
@@ -118,8 +241,11 @@ public class PanneauRessources extends ScrollView {
                 TextView txtObjet = new TextView(getContext());
                 txtObjet.setText("• " + obj.nom);
                 txtObjet.setTextColor(obj == objetSelectionne ? Palette.texteSelectionne : Palette.texteNormal);
-                txtObjet.setPadding(10, 10, 10, 10);
+                txtObjet.setPadding(dp(10), dp(9), dp(10), dp(9));
                 txtObjet.setTextSize(14f);
+                if (obj == objetSelectionne) {
+                    txtObjet.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+                }
                 
                 txtObjet.setOnClickListener(v -> {
                     objetSelectionne = obj;
@@ -134,8 +260,9 @@ public class PanneauRessources extends ScrollView {
         if (conteneurArborescence.getChildCount() == 0) {
             TextView txtVide = new TextView(getContext());
             txtVide.setText("Aucun objet dans la scène");
-            txtVide.setTextColor(Palette.texteNormal);
-            txtVide.setPadding(10, 10, 10, 10);
+            txtVide.setTextColor(Palette.bordure);
+            txtVide.setTextSize(13f);
+            txtVide.setPadding(dp(10), dp(10), dp(10), dp(10));
             conteneurArborescence.addView(txtVide);
         }
     }
@@ -156,26 +283,30 @@ public class PanneauRessources extends ScrollView {
             index++;
         }
     }
+// bas 1
+    
 
+// haut 2
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
         btnTitre.setText("Objets à placer ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        contenu.setOrientation(LinearLayout.HORIZONTAL);
+        styliserContenuSection(contenu);
 
         ImageButton btnAjouterCarre = new ImageButton(context);
         btnAjouterCarre.setImageResource(R.drawable.square_24px);
-        btnAjouterCarre.setColorFilter(Palette.texteNormal);
-        btnAjouterCarre.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAjouterCarre);
         btnAjouterCarre.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
@@ -184,12 +315,12 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnAjouterTexte = new ImageButton(context);
         btnAjouterTexte.setImageResource(R.drawable.title_24px);
-        btnAjouterTexte.setColorFilter(Palette.texteNormal);
-        btnAjouterTexte.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAjouterTexte);
         btnAjouterTexte.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
@@ -198,12 +329,12 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnAjouterRond = new ImageButton(context);
         btnAjouterRond.setImageResource(R.drawable.circle_24px);
-        btnAjouterRond.setColorFilter(Palette.texteNormal);
-        btnAjouterRond.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAjouterRond);
         btnAjouterRond.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
@@ -228,23 +359,22 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 1
 
-// haut 2
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
         btnTitre.setText("Scènes ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        styliserContenuSection(contenu);
 
         conteneurScenes = new LinearLayout(context);
         conteneurScenes.setOrientation(LinearLayout.VERTICAL);
-        conteneurScenes.setPadding(0, 0, 0, 20);
+        conteneurScenes.setPadding(0, 0, 0, dp(8));
         contenu.addView(conteneurScenes);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -252,14 +382,12 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnCreer = new ImageButton(context);
         btnCreer.setImageResource(R.drawable.add_24px);
-        btnCreer.setColorFilter(Palette.texteNormal);
-        btnCreer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnCreer);
         btnCreer.setOnClickListener(v -> afficherPopupCreerScene(context));
 
         ImageButton btnRenommer = new ImageButton(context);
         btnRenommer.setImageResource(R.drawable.edit_square_24px);
-        btnRenommer.setColorFilter(Palette.texteNormal);
-        btnRenommer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnRenommer);
         btnRenommer.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             afficherPopupRenommerScene(context, editeur.sceneActive);
@@ -267,8 +395,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnSupprimer = new ImageButton(context);
         btnSupprimer.setImageResource(R.drawable.delete_24px);
-        btnSupprimer.setColorFilter(Palette.texteNormal);
-        btnSupprimer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnSupprimer);
         btnSupprimer.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             afficherPopupSupprimerScene(context, editeur.sceneActive);
@@ -307,11 +434,12 @@ public class PanneauRessources extends ScrollView {
                 nomScene.setText(s.nom);
                 if (s == editeur.sceneActive) {
                     nomScene.setTextColor(Palette.texteSelectionne);
+                    nomScene.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
                 } else {
                     nomScene.setTextColor(Palette.texteNormal);
                 }
-                nomScene.setPadding(10, 15, 10, 15);
-                nomScene.setTextSize(16f);
+                nomScene.setPadding(dp(10), dp(10), dp(10), dp(10));
+                nomScene.setTextSize(15f);
                 
                 nomScene.setOnClickListener(v -> {
                     editeur.changerScene(s);
@@ -329,17 +457,21 @@ public class PanneauRessources extends ScrollView {
         return (dir.getParentFile() != null && dir.getParentFile().equals(rootAssetsDir)) &&
                (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts"));
     }
+// bas 2
 
+
+// haut 3
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
         btnTitre.setText("Assets ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        styliserContenuSection(contenu);
 
         conteneurArborescenceDossiers = new LinearLayout(context);
         conteneurArborescenceDossiers.setOrientation(LinearLayout.VERTICAL);
@@ -349,18 +481,15 @@ public class PanneauRessources extends ScrollView {
         
         ImageButton btnAddFolder = new ImageButton(context);
         btnAddFolder.setImageResource(R.drawable.add_24px);
-        btnAddFolder.setColorFilter(Palette.texteNormal);
-        btnAddFolder.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAddFolder);
         
         ImageButton btnEditFolder = new ImageButton(context);
         btnEditFolder.setImageResource(R.drawable.edit_square_24px);
-        btnEditFolder.setColorFilter(Palette.texteNormal);
-        btnEditFolder.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnEditFolder);
         
         ImageButton btnDelFolder = new ImageButton(context);
         btnDelFolder.setImageResource(R.drawable.delete_24px);
-        btnDelFolder.setColorFilter(Palette.texteNormal);
-        btnDelFolder.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnDelFolder);
 
         btnAddFolder.setOnClickListener(v -> {
             if (currentFolderSelected != null) afficherPopupNouveauDossier(context);
@@ -382,30 +511,26 @@ public class PanneauRessources extends ScrollView {
 
         conteneurListeAssets = new LinearLayout(context);
         conteneurListeAssets.setOrientation(LinearLayout.VERTICAL);
-        conteneurListeAssets.setPadding(0, 20, 0, 0);
+        conteneurListeAssets.setPadding(0, dp(10), 0, 0);
 
         LinearLayout boutonsAssets = new LinearLayout(context);
         boutonsAssets.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageButton btnImportAsset = new ImageButton(context);
         btnImportAsset.setImageResource(R.drawable.upload_file_24px);
-        btnImportAsset.setColorFilter(Palette.texteNormal);
-        btnImportAsset.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnImportAsset);
         
         ImageButton btnEditAsset = new ImageButton(context);
         btnEditAsset.setImageResource(R.drawable.edit_square_24px);
-        btnEditAsset.setColorFilter(Palette.texteNormal);
-        btnEditAsset.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnEditAsset);
         
         ImageButton btnDelAsset = new ImageButton(context);
         btnDelAsset.setImageResource(R.drawable.delete_24px);
-        btnDelAsset.setColorFilter(Palette.texteNormal);
-        btnDelAsset.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnDelAsset);
 
         btnImportAsset.setOnClickListener(v -> {
             if (currentFolderSelected == null) return;
             String chemin = currentFolderSelected.getAbsolutePath();
-            // Le dossier Fonts utilisera le type MIME par défaut "*/*", ce qui est préférable car les sélecteurs Android gèrent parfois mal ".ttf" ou ".otf"
             String mime = chemin.contains("/Images") ? "image/*" : "*/*";
             ((InterfaceEditeur)context).lancerImportAsset(mime);
         });
@@ -442,10 +567,7 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 2
 
-
-// haut 3
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
         rafraichirListeAssets();
@@ -464,6 +586,10 @@ public class PanneauRessources extends ScrollView {
             LinearLayout layoutDossier = new LinearLayout(getContext());
             layoutDossier.setOrientation(LinearLayout.HORIZONTAL);
             layoutDossier.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            layoutDossier.setPadding(dp(6), dp(4), dp(6), dp(4));
+            if (dir.equals(currentFolderSelected)) {
+                layoutDossier.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+            }
             
             if (depth > 0) {
                 TextView tvPrefix = new TextView(getContext());
@@ -475,13 +601,13 @@ public class PanneauRessources extends ScrollView {
             
             ImageView iconeDossier = new ImageView(getContext());
             iconeDossier.setImageResource(R.drawable.folder_open_24px);
-            iconeDossier.setColorFilter(Palette.texteNormal);
-            iconeDossier.setPadding(0, 0, 15, 0);
+            iconeDossier.setColorFilter(dir.equals(currentFolderSelected) ? Palette.iconeSurvol : Palette.iconeNormal);
+            iconeDossier.setPadding(0, 0, dp(8), 0);
             
             TextView tv = new TextView(getContext());
             tv.setText(dir.getName());
             tv.setTextColor(dir.equals(currentFolderSelected) ? Palette.texteSelectionne : Palette.texteNormal);
-            tv.setPadding(0, 10, 0, 10);
+            tv.setPadding(0, dp(6), 0, dp(6));
             tv.setTextSize(14f);
             
             layoutDossier.addView(iconeDossier);
@@ -521,25 +647,29 @@ public class PanneauRessources extends ScrollView {
         Context context = getContext();
         LinearLayout itemLayout = new LinearLayout(context);
         itemLayout.setOrientation(LinearLayout.HORIZONTAL);
-        itemLayout.setPadding(0, 10, 0, 10);
+        itemLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
         itemLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        if (f.equals(currentAssetSelected)) {
+            itemLayout.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+        }
         
         boolean isImage = f.getAbsolutePath().contains("/Images/");
         
         if (isImage) {
             ImageView miniature = new ImageView(context);
-            miniature.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
+            miniature.setLayoutParams(new LinearLayout.LayoutParams(dp(36), dp(36)));
             try {
                 Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath());
                 miniature.setImageBitmap(bmp);
             } catch (Exception e) {}
             miniature.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            miniature.setPadding(0, 0, 15, 0);
+            miniature.setPadding(0, 0, dp(8), 0);
             itemLayout.addView(miniature);
         }
         
         TextView nom = new TextView(context);
         nom.setText(f.getName());
+        nom.setTextSize(14f);
         nom.setTextColor(f.equals(currentAssetSelected) ? Palette.texteSelectionne : Palette.texteNormal);
         nom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         
@@ -551,7 +681,9 @@ public class PanneauRessources extends ScrollView {
         itemLayout.addView(nom);
         conteneurListeAssets.addView(itemLayout);
     }
+// bas 3
 
+// haut 4
     public void traiterImportAsset(Uri uri) {
         Context context = getContext();
         String nomOriginal = getFileNameFromUri(context, uri);
@@ -619,23 +751,22 @@ public class PanneauRessources extends ScrollView {
         }
         fileOrDirectory.delete();
     }
-// bas 3
 
-// haut 4
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
         btnTitre.setText("Variables ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        styliserContenuSection(contenu);
 
         conteneurVariables = new LinearLayout(context);
         conteneurVariables.setOrientation(LinearLayout.VERTICAL);
-        conteneurVariables.setPadding(0, 0, 0, 20);
+        conteneurVariables.setPadding(0, 0, 0, dp(8));
         contenu.addView(conteneurVariables);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -643,22 +774,19 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnCreer = new ImageButton(context);
         btnCreer.setImageResource(R.drawable.add_24px);
-        btnCreer.setColorFilter(Palette.texteNormal);
-        btnCreer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnCreer);
         btnCreer.setOnClickListener(v -> afficherPopupCreerVariable(context));
 
         ImageButton btnRenommer = new ImageButton(context);
         btnRenommer.setImageResource(R.drawable.edit_square_24px);
-        btnRenommer.setColorFilter(Palette.texteNormal);
-        btnRenommer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnRenommer);
         btnRenommer.setOnClickListener(v -> {
             if (variableSelectionnee != null) afficherPopupRenommerVariable(context, variableSelectionnee);
         });
 
         ImageButton btnSupprimer = new ImageButton(context);
         btnSupprimer.setImageResource(R.drawable.delete_24px);
-        btnSupprimer.setColorFilter(Palette.texteNormal);
-        btnSupprimer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnSupprimer);
         btnSupprimer.setOnClickListener(v -> {
             if (variableSelectionnee != null) afficherPopupSupprimerVariable(context, variableSelectionnee);
         });
@@ -702,7 +830,7 @@ public class PanneauRessources extends ScrollView {
         Context context = getContext();
         LinearLayout conteneurLigne = new LinearLayout(context);
         conteneurLigne.setOrientation(LinearLayout.VERTICAL);
-        conteneurLigne.setPadding(0, 5, 0, 15);
+        conteneurLigne.setPadding(0, dp(3), 0, dp(3));
         
         TextView nomVariable = new TextView(context);
         
@@ -727,13 +855,14 @@ public class PanneauRessources extends ScrollView {
         nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "] = " + texteValeur);
         
         if (var == variableSelectionnee) {
-            nomVariable.setTextColor(Palette.texteSelectionne); 
+            nomVariable.setTextColor(Palette.texteSelectionne);
+            nomVariable.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
         } else {
             nomVariable.setTextColor(var.scope.equals("GLOBALE") ? Color.parseColor("#ADD8E6") : Color.parseColor("#90EE90"));
         }
         
-        nomVariable.setPadding(10, 5, 10, 5);
-        nomVariable.setTextSize(16f);
+        nomVariable.setPadding(dp(10), dp(8), dp(10), dp(8));
+        nomVariable.setTextSize(14f);
 
         nomVariable.setOnClickListener(v -> {
             variableSelectionnee = var;
@@ -743,17 +872,21 @@ public class PanneauRessources extends ScrollView {
         conteneurLigne.addView(nomVariable);
         conteneurVariables.addView(conteneurLigne);
     }
+// bas 4
 
+
+// haut 5
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         EditText champTexte = new EditText(context);
         champTexte.setHint("Entrez le nom...");
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -761,13 +894,10 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nom = champTexte.getText().toString().trim();
             if(!nom.isEmpty()) {
-                
-                // ANTI-DOUBLON POUR LA CRÉATION DE SCÈNE
                 InterfaceEditeur editeur = (InterfaceEditeur) context;
                 if (editeur.listeScenes != null) {
                     for (Scene s : editeur.listeScenes) {
@@ -777,7 +907,7 @@ public class PanneauRessources extends ScrollView {
                                     .setMessage("Une scène avec ce nom existe déjà dans le projet.")
                                     .setPositiveButton("OK", null)
                                     .show();
-                            return; // Bloque la création
+                            return;
                         }
                     }
                 }
@@ -790,8 +920,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnValider);
@@ -808,10 +937,11 @@ public class PanneauRessources extends ScrollView {
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         EditText champTexte = new EditText(context);
         champTexte.setText(scene.nom);
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -819,8 +949,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nouveauNom = champTexte.getText().toString().trim();
             if(nouveauNom.isEmpty()) {
@@ -828,7 +957,6 @@ public class PanneauRessources extends ScrollView {
                 return;
             }
 
-            // ANTI-DOUBLON STRICT POUR LE RENOMMAGE DE SCÈNE
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             if (editeur.listeScenes != null) {
                 for (Scene s : editeur.listeScenes) {
@@ -838,7 +966,7 @@ public class PanneauRessources extends ScrollView {
                                 .setMessage("Une scène avec ce nom existe déjà dans le projet.")
                                 .setPositiveButton("OK", null)
                                 .show();
-                        return; // Bloque le renommage, laisse le dialogue ouvert
+                        return;
                     }
                 }
             }
@@ -851,8 +979,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnValider);
@@ -862,21 +989,20 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 4
 
-
-// haut 5
     private void afficherPopupSupprimerScene(Context context, Scene scene) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Supprimer la scène");
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         TextView txtMessage = new TextView(context);
         txtMessage.setText("Voulez-vous vraiment supprimer la scène '" + scene.nom + "' ?");
-        txtMessage.setPadding(0, 0, 0, 20);
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
         layoutDialog.addView(txtMessage);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -884,8 +1010,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnOui = new ImageButton(context);
         btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnOui);
         btnOui.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             
@@ -906,8 +1031,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnNon = new ImageButton(context);
         btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnNon);
         btnNon.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnOui);
@@ -917,41 +1041,51 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+// bas 5
 
+// haut 6
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         EditText champTexte = new EditText(context);
         champTexte.setHint("Nom de la variable");
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
 
         TextView txtScope = new TextView(context);
         txtScope.setText("Portée (Scope) :");
+        txtScope.setTextColor(Palette.texteSelectionne);
+        txtScope.setPadding(0, dp(12), 0, dp(4));
         layoutDialog.addView(txtScope);
         
         Spinner spinnerScope = new Spinner(context);
         ArrayAdapter<String> adapterScope = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Locale", "Globale"});
         adapterScope.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerScope.setAdapter(adapterScope);
+        spinnerScope.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
         layoutDialog.addView(spinnerScope);
 
         TextView txtType = new TextView(context);
         txtType.setText("Type :");
+        txtType.setTextColor(Palette.texteSelectionne);
+        txtType.setPadding(0, dp(12), 0, dp(4));
         layoutDialog.addView(txtType);
 
         Spinner spinnerType = new Spinner(context);
         ArrayAdapter<String> adapterType = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Entier", "Texte", "Oui/Non", "Liste d'Inventaire"});
         adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(adapterType);
+        spinnerType.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
         layoutDialog.addView(spinnerType);
 
         EditText champValeurInit = new EditText(context);
         champValeurInit.setHint("Valeur initiale (optionnel)");
+        styliserChampDialogue(champValeurInit);
         layoutDialog.addView(champValeurInit);
         
         spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -972,8 +1106,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nom = champTexte.getText().toString().trim();
             if(nom.isEmpty()) {
@@ -1043,8 +1176,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnValider);
@@ -1054,17 +1186,20 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+// bas 6
 
+// haut 7
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         EditText champTexte = new EditText(context);
         champTexte.setText(var.nom);
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -1072,8 +1207,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nouveauNom = champTexte.getText().toString().trim();
             if(nouveauNom.isEmpty()) {
@@ -1106,8 +1240,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnValider);
@@ -1117,21 +1250,20 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 5
 
-
-// haut 6
     private void afficherPopupSupprimerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Supprimer la variable");
 
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         TextView txtMessage = new TextView(context);
         txtMessage.setText("Voulez-vous vraiment supprimer la variable '" + var.nom + "' ?");
-        txtMessage.setPadding(0, 0, 0, 20);
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
         layoutDialog.addView(txtMessage);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -1139,8 +1271,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnOui = new ImageButton(context);
         btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnOui);
         btnOui.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             if (var.scope.equals("GLOBALE")) {
@@ -1159,8 +1290,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnNon = new ImageButton(context);
         btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnNon);
         btnNon.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnOui);
@@ -1170,24 +1300,27 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+// bas 7
 
+
+// haut 8
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Nouveau dossier");
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         EditText champTexte = new EditText(context);
         champTexte.setHint("Nom du dossier");
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nom = champTexte.getText().toString().trim();
             if (!nom.isEmpty()) {
@@ -1199,8 +1332,7 @@ public class PanneauRessources extends ScrollView {
         });
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnValider);
@@ -1215,18 +1347,18 @@ public class PanneauRessources extends ScrollView {
         dialog.setTitle("Renommer dossier");
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         EditText champTexte = new EditText(context);
         champTexte.setText(dir.getName());
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nouveauNom = champTexte.getText().toString().trim();
             if (!nouveauNom.isEmpty()) {
@@ -1241,8 +1373,7 @@ public class PanneauRessources extends ScrollView {
         });
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnValider);
@@ -1257,18 +1388,20 @@ public class PanneauRessources extends ScrollView {
         dialog.setTitle("Confirmer");
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         TextView txtMessage = new TextView(context);
         txtMessage.setText("Supprimer le dossier (et tout son contenu) ?");
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
         layoutDialog.addView(txtMessage);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
         ImageButton btnOui = new ImageButton(context);
         btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnOui);
         btnOui.setOnClickListener(v -> {
             supprimerRecursif(dir);
             currentFolderSelected = new File(rootAssetsDir, "Images");
@@ -1278,8 +1411,7 @@ public class PanneauRessources extends ScrollView {
         });
         ImageButton btnNon = new ImageButton(context);
         btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnNon);
         btnNon.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnOui);
@@ -1288,24 +1420,27 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+// bas 8
 
+
+// haut 9
     private void afficherPopupRenommerAsset(Context context, File f) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer");
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         EditText champTexte = new EditText(context);
         champTexte.setText(f.getName());
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nouveauNom = champTexte.getText().toString().trim();
             if (!nouveauNom.isEmpty()) {
@@ -1320,8 +1455,7 @@ public class PanneauRessources extends ScrollView {
         });
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnValider);
@@ -1336,18 +1470,20 @@ public class PanneauRessources extends ScrollView {
         dialog.setTitle("Confirmer");
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
+        styliserDialogue(layoutDialog);
 
         TextView txtMessage = new TextView(context);
         txtMessage.setText("Supprimer cet asset ?");
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
         layoutDialog.addView(txtMessage);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
         ImageButton btnOui = new ImageButton(context);
         btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnOui);
         btnOui.setOnClickListener(v -> {
             f.delete();
             currentAssetSelected = null;
@@ -1356,8 +1492,7 @@ public class PanneauRessources extends ScrollView {
         });
         ImageButton btnNon = new ImageButton(context);
         btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnNon);
         btnNon.setOnClickListener(v -> dialog.dismiss());
 
         zoneBoutons.addView(btnOui);
@@ -1367,12 +1502,7 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 }
-// bas 6
-
-
-
-
-
+// bas 9
 
 
     
@@ -1386,13 +1516,26 @@ public class PanneauRessources extends ScrollView {
 
 
 
+
+    
+
+
+
+
+
     
 
 
     
 
+
     
 
+    
+
+
+
+    
 
 
 
