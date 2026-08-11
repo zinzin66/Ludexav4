@@ -26,6 +26,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Déplacer Objet", "Actions", "NoeudActionDeplacer"));
         REGISTRE.add(new InfoNoeud("Modifier Variable", "Actions", "NoeudActionModifierVariable"));
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Actions", "NoeudActionModifierTexte"));
+        REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Actions", "NoeudActionConcatenerTexte"));
         REGISTRE.add(new InfoNoeud("Modifier Couleur", "Actions", "NoeudActionModifierCouleur"));
         REGISTRE.add(new InfoNoeud("Condition", "Logique", "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud("Timer", "Actions", "NoeudActionTimer"));
@@ -35,9 +36,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Visibilité", "Actions", "NoeudActionVisibilite"));
         REGISTRE.add(new InfoNoeud("Modifier Déplaçable", "Actions", "NoeudActionModifierDeplacable"));
         REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Actions", "NoeudActionNombreAleatoire"));
-        
+        REGISTRE.add(new InfoNoeud("Changer Z-Order", "Actions", "NoeudActionChangerZOrder"));
+        REGISTRE.add(new InfoNoeud("Changer de Scène", "Actions", "NoeudActionChangerScene"));
+      
         REGISTRE.add(new InfoNoeud("Ouvrir HUD", "UI", "NoeudActionOuvrirHUD"));
         REGISTRE.add(new InfoNoeud("Fermer HUD", "UI", "NoeudActionFermerHUD"));
+        
         
         REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
         
@@ -54,6 +58,8 @@ public class RegistreNoeuds {
         
         // NOUVEAU : Chrono
         REGISTRE.add(new InfoNoeud("Chrono", "Actions", "NoeudActionChrono"));
+        REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique", "NoeudConditionSiObjetVisible"));
+        REGISTRE.add(new InfoNoeud("Changer Image", "Actions", "NoeudActionChangerImage"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {

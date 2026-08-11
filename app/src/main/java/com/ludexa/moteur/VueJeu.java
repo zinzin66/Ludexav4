@@ -1,5 +1,5 @@
-// debut 1 10 08
-    package com.ludexa.moteur;
+// haut 1
+package com.ludexa.moteur;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -97,6 +97,40 @@ public class VueJeu extends View {
         }
     }
 
+    public void chargerNouvelleScene(Scene nouvelleScene) {
+        if (nouvelleScene == null) return;
+
+        this.sceneActive = nouvelleScene;
+
+        Blueprint nouveauBlueprint = null;
+        if (cheminProjet != null) {
+            try {
+                java.io.File dossierLogique = new java.io.File(cheminProjet, "logique");
+                java.io.File fileBlueprint = new java.io.File(dossierLogique, nouvelleScene.id + ".json");
+                
+                if (fileBlueprint.exists()) {
+                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fileBlueprint));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    br.close();
+                    nouveauBlueprint = Blueprint.fromJson(sb.toString(), nouvelleScene);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (nouveauBlueprint != null) {
+            this.moteur = new MoteurLogique(nouveauBlueprint);
+            this.moteur.executerDemarrage();
+        } else {
+            this.moteur = null; 
+        }
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -110,7 +144,10 @@ public class VueJeu extends View {
         super.onDetachedFromWindow();
         removeCallbacks(boucleDeRendu);
     }
+// bas 1
 
+
+// haut 2
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu) {
         List<ObjetBase> listeARechercher = null;
         if (sceneHudActive != null && sceneHudActive.objets != null) {
@@ -185,7 +222,6 @@ public class VueJeu extends View {
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
                             if (this.moteurHud != null) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
-                            // CORRECTION BUG 2 : On n'intercepte le clic que si on a réellement cliqué sur un objet du HUD.
                             clickIntercepte = true;
                             break;
                         }
@@ -225,7 +261,8 @@ public class VueJeu extends View {
         }
         return true;
     }
-
+// bas 2
+// haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -394,3 +431,6 @@ public class VueJeu extends View {
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
     }
 }
+// bas 3
+
+
