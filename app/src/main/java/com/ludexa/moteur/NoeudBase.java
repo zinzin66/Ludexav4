@@ -14,6 +14,8 @@ public abstract class NoeudBase {
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
     public static final String TYPE_COULEUR = "TYPE_COULEUR";
     public static final String TYPE_CHOIX_LISTE = "TYPE_CHOIX_LISTE";
+    // NOUVEAU : Constante pour le sélecteur d'images
+    public static final String TYPE_CHOIX_IMAGE = "TYPE_CHOIX_IMAGE";
 
     public String id;
     public String nom;
@@ -113,7 +115,3 @@ public abstract class NoeudBase {
     }
 }
 // bas 1
-
-
-
-
