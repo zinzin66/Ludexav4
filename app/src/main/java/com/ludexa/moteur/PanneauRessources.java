@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 11 08
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -310,7 +310,7 @@ public class PanneauRessources extends ScrollView {
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show(); // Commenté (10/08) : jugé inutile et trop lent à disparaître, réactivable si besoin
         });
 
         ImageButton btnAjouterTexte = new ImageButton(context);
@@ -324,7 +324,7 @@ public class PanneauRessources extends ScrollView {
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show(); // Commenté (10/08) : jugé inutile et trop lent à disparaître, réactivable si besoin
         });
 
         ImageButton btnAjouterRond = new ImageButton(context);
@@ -338,7 +338,7 @@ public class PanneauRessources extends ScrollView {
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show(); // Commenté (10/08) : jugé inutile et trop lent à disparaître, réactivable si besoin
         });
 
         contenu.addView(btnAjouterCarre);

@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 11 aout
 package com.ludexa.moteur;
 
 import android.content.ClipData;
@@ -67,7 +67,8 @@ public class CanvasBlueprint extends View {
     private void init() {
         paintGrille = new Paint();
         paintGrille.setColor(Palette.canvasGrille);
-        paintGrille.setStrokeWidth(2);
+        paintGrille.setStrokeWidth(1.5f);
+        paintGrille.setAntiAlias(true);
         
         paintNoeudBG = new Paint();
         paintNoeudBG.setColor(Palette.fondPanneaux);
@@ -79,13 +80,13 @@ public class CanvasBlueprint extends View {
         
         paintTexteTitre = new Paint();
         paintTexteTitre.setColor(Palette.texteNormal);
-        paintTexteTitre.setTextSize(24);
+        paintTexteTitre.setTextSize(26);
         paintTexteTitre.setFakeBoldText(true);
         paintTexteTitre.setAntiAlias(true);
         
         paintTextePort = new Paint();
         paintTextePort.setColor(Palette.texteNormal);
-        paintTextePort.setTextSize(18);
+        paintTextePort.setTextSize(19);
         paintTextePort.setAntiAlias(true);
         
         paintPort = new Paint();
@@ -94,13 +95,15 @@ public class CanvasBlueprint extends View {
         
         paintLien = new Paint();
         paintLien.setStyle(Paint.Style.STROKE);
-        paintLien.setStrokeWidth(6);
+        paintLien.setStrokeWidth(5);
+        paintLien.setStrokeCap(Paint.Cap.ROUND);
+        paintLien.setStrokeJoin(Paint.Join.ROUND);
         paintLien.setAntiAlias(true);
         
         paintSelection = new Paint();
-        paintSelection.setColor(Color.parseColor("#FFD700")); 
+        paintSelection.setColor(Palette.texteSelectionne);
         paintSelection.setStyle(Paint.Style.STROKE);
-        paintSelection.setStrokeWidth(6);
+        paintSelection.setStrokeWidth(4);
         paintSelection.setAntiAlias(true);
 
         paintBoutonEdition = new Paint();
@@ -108,14 +111,15 @@ public class CanvasBlueprint extends View {
         paintBoutonEdition.setStyle(Paint.Style.FILL);
         
         paintTexteBouton = new Paint();
-        paintTexteBouton.setColor(Color.WHITE);
-        paintTexteBouton.setTextSize(16);
+        paintTexteBouton.setColor(Palette.texteNormal);
+        paintTexteBouton.setTextSize(18);
+        paintTexteBouton.setFakeBoldText(true);
         paintTexteBouton.setTextAlign(Paint.Align.CENTER);
         paintTexteBouton.setAntiAlias(true);
         
         paintResume = new Paint();
         paintResume.setColor(Palette.texteSelectionne);
-        paintResume.setTextSize(18);
+        paintResume.setTextSize(17);
         paintResume.setAntiAlias(true);
         
         setBackgroundColor(Palette.canvasFond); 
@@ -277,9 +281,9 @@ public class CanvasBlueprint extends View {
         path.cubicTo(x1 + dist, y1, x2 - dist, y2, x2, y2);
         
         if (Port.TYPE_EXECUTION_ENTREE.equals(portType.type) || Port.TYPE_EXECUTION_SORTIE.equals(portType.type)) {
-            paintLien.setColor(Color.WHITE);
+            paintLien.setColor(Palette.texteNormal);
         } else {
-            paintLien.setColor(Color.parseColor("#44AAFF"));
+            paintLien.setColor(Palette.texteSelectionne);
         }
         canvas.drawPath(path, paintLien);
     }
@@ -394,14 +398,14 @@ public class CanvasBlueprint extends View {
         
         if (noeud == noeudSelectionne) {
             RectF rectSelection = new RectF(x - 4, y - 4, x + largeur + 4, y + hauteurTotale + 4);
-            canvas.drawRoundRect(rectSelection, 18, 18, paintSelection);
+            canvas.drawRoundRect(rectSelection, 22, 22, paintSelection);
         }
         
         RectF rectFond = new RectF(x, y, x + largeur, y + hauteurTotale);
-        canvas.drawRoundRect(rectFond, 16, 16, paintNoeudBG);
+        canvas.drawRoundRect(rectFond, 20, 20, paintNoeudBG);
         
         RectF rectTitre = new RectF(x, y, x + largeur, y + 45);
-        canvas.drawRoundRect(rectTitre, 16, 16, paintTitreBG);
+        canvas.drawRoundRect(rectTitre, 20, 20, paintTitreBG);
         canvas.drawRect(x, y + 25, x + largeur, y + 45, paintTitreBG);
         
         canvas.drawText(noeud.nom, x + 15, y + 32, paintTexteTitre);
@@ -411,7 +415,7 @@ public class CanvasBlueprint extends View {
             Port p = noeud.portsEntree.get(i);
             definirCouleurPort(p);
             float portY = startY + (i * 40);
-            canvas.drawCircle(x, portY, 8, paintPort);
+            canvas.drawCircle(x, portY, 9, paintPort);
             canvas.drawText(p.nom, x + 20, portY + 6, paintTextePort);
         }
         
@@ -419,7 +423,7 @@ public class CanvasBlueprint extends View {
             Port p = noeud.portsSortie.get(i);
             definirCouleurPort(p);
             float portY = startY + (i * 40);
-            canvas.drawCircle(x + largeur, portY, 8, paintPort);
+            canvas.drawCircle(x + largeur, portY, 9, paintPort);
             float textWidth = paintTextePort.measureText(p.nom);
             canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
         }
@@ -460,16 +464,16 @@ public class CanvasBlueprint extends View {
         if (estEditable) {
             float btnY = y + hauteurBase;
             RectF rectBouton = new RectF(x + 10, btnY, x + largeur - 10, btnY + 40);
-            canvas.drawRoundRect(rectBouton, 8, 8, paintBoutonEdition);
+            canvas.drawRoundRect(rectBouton, 12, 12, paintBoutonEdition);
             canvas.drawText("📝 Configurer", x + largeur / 2f, btnY + 26, paintTexteBouton);
         }
     }
     
     private void definirCouleurPort(Port p) {
         if (Port.TYPE_EXECUTION_ENTREE.equals(p.type) || Port.TYPE_EXECUTION_SORTIE.equals(p.type)) {
-            paintPort.setColor(Color.WHITE);
+            paintPort.setColor(Palette.texteNormal);
         } else {
-            paintPort.setColor(Color.parseColor("#44AAFF")); 
+            paintPort.setColor(Palette.texteSelectionne); 
         }
     }
 

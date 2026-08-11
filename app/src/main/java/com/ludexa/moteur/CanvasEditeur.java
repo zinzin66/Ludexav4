@@ -37,7 +37,6 @@ public class CanvasEditeur extends View {
     private ScaleGestureDetector scaleGestureDetector;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
-    // NOUVEAU : Cache pour les polices
     private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
     public CanvasEditeur(Context context) {
@@ -74,7 +73,6 @@ public class CanvasEditeur extends View {
     }
 
     private void init() {
-        // ---- ESTHETIQUE : grille fine harmonisee avec la palette ----
         paintGrille = new Paint();
         paintGrille.setColor(Palette.canvasGrille);
         paintGrille.setStyle(Paint.Style.STROKE);
@@ -84,7 +82,6 @@ public class CanvasEditeur extends View {
 
         setBackgroundColor(Palette.canvasFond);
 
-        // ---- ESTHETIQUE : cadre camera en pointilles bleu clair ----
         paintCamera = new Paint();
         paintCamera.setColor(Palette.texteSelectionne);
         paintCamera.setStyle(Paint.Style.STROKE);
@@ -101,14 +98,12 @@ public class CanvasEditeur extends View {
         paintTexte.setAntiAlias(true);
         paintTexte.setSubpixelText(true);
 
-        // ---- ESTHETIQUE : contour de selection bleu clair ----
         paintSelection = new Paint();
         paintSelection.setColor(Palette.texteSelectionne);
         paintSelection.setStyle(Paint.Style.STROKE);
         paintSelection.setAntiAlias(true);
         paintSelection.setStrokeCap(Paint.Cap.ROUND);
 
-        // ---- ESTHETIQUE : poignees bleu bouton ----
         paintPoignee = new Paint();
         paintPoignee.setColor(Palette.boutonSurvol);
         paintPoignee.setStyle(Paint.Style.FILL);
@@ -216,7 +211,54 @@ public class CanvasEditeur extends View {
     }
 // bas 1
 
+
 // haut 2
+    private float getHauteurReelle(ObjetBase objet) {
+        if (!"texte".equals(objet.type)) {
+            return objet.hauteur;
+        }
+
+        String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+        
+        Paint p = new Paint(paintTexte);
+        if (objet.cheminPolice != null && cheminProjet != null) {
+            android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
+            p.setTypeface(tf != null ? tf : android.graphics.Typeface.DEFAULT);
+        } else {
+            p.setTypeface(android.graphics.Typeface.DEFAULT);
+        }
+        p.setTextSize(objet.tailleFonte);
+        p.setTextScaleX(1.0f);
+
+        float hauteurLigne = objet.tailleFonte * 1.2f;
+        float totalLines = 0;
+        float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
+
+        String[] paragraphes = txt.split("\n", -1);
+        for (String paragraphe : paragraphes) {
+            if (paragraphe.isEmpty()) {
+                totalLines++;
+                continue;
+            }
+            int start = 0;
+            while (start < paragraphe.length()) {
+                int count = p.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
+                if (count <= 0) count = 1;
+
+                int end = start + count;
+                if (end < paragraphe.length()) {
+                    int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
+                    if (dernierEspace > start) {
+                        end = dernierEspace + 1;
+                    }
+                }
+                totalLines++;
+                start = end;
+            }
+        }
+        return totalLines * hauteurLigne;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -267,7 +309,6 @@ public class CanvasEditeur extends View {
                     paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                     String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
                     
-                    // NOUVEAU : Chargement et application de la police custom
                     if (objet.cheminPolice != null && cheminProjet != null) {
                         android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
                         if (tf == null) {
@@ -286,13 +327,11 @@ public class CanvasEditeur extends View {
                         paintTexte.setTypeface(android.graphics.Typeface.DEFAULT);
                     }
 
-                    // NOUVEAU : Configuration correcte de la taille et suppression du scale horizontal artificiel
                     paintTexte.setTextSize(objet.tailleFonte);
                     paintTexte.setTextScaleX(1.0f);
                     
-                    // NOUVEAU : Rendu multiligne avec Word Wrap
                     float hauteurLigne = objet.tailleFonte * 1.2f;
-                    float currentY = hauteurLigne; // Débute en haut de la boîte
+                    float currentY = hauteurLigne;
                     float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
                     
                     String[] paragraphes = txt.split("\n", -1);
@@ -305,13 +344,11 @@ public class CanvasEditeur extends View {
                         int start = 0;
                         while (start < paragraphe.length()) {
                             int count = paintTexte.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
-                            if (count <= 0) count = 1; // Sécurité anti-boucle infinie
+                            if (count <= 0) count = 1; 
                             
                             int end = start + count;
-                            // Si la coupure tombe au milieu d'un mot et qu'on n'est pas à la fin
                             if (end < paragraphe.length()) {
                                 int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
-                                // On coupe à l'espace si possible pour le word wrap
                                 if (dernierEspace > start) {
                                     end = dernierEspace + 1;
                                 }
@@ -332,29 +369,40 @@ public class CanvasEditeur extends View {
                 }
 
                 if (objet == objetSelectionne) {
-                    float scaleFactor = Math.max(Math.abs(objet.scaleX), Math.abs(objet.scaleY));
-                    if (scaleFactor < 0.01f) scaleFactor = 0.01f;
+                    float scaleFactorX = Math.abs(objet.scaleX);
+                    if (scaleFactorX < 0.01f) scaleFactorX = 0.01f;
+                    
+                    float scaleFactorY = Math.abs(objet.scaleY);
+                    if (scaleFactorY < 0.01f) scaleFactorY = 0.01f;
 
-                    paintSelection.setStrokeWidth(2f / scaleFactor);
-                    float l = -4f / scaleFactor;
-                    float t = -4f / scaleFactor;
-                    float r = objet.largeur + 4f / scaleFactor;
-                    float b = objet.hauteur + 4f / scaleFactor;
+                    float maxScale = Math.max(scaleFactorX, scaleFactorY);
+                    paintSelection.setStrokeWidth(2f / maxScale);
+                    
+                    float l = -4f / scaleFactorX;
+                    float t = -4f / scaleFactorY;
+                    float r = objet.largeur + 4f / scaleFactorX;
+                    
+                    float objHauteur = getHauteurReelle(objet);
+                    float b = objHauteur + 4f / scaleFactorY;
                     
                     canvas.drawRect(l, t, r, b, paintSelection);
                     
-                    float hs = 12f / scaleFactor;
-                    // ESTHETIQUE : poignees arrondies
-                    float rc = 4f / scaleFactor;
-                    canvas.drawRoundRect(new android.graphics.RectF(l - hs, t - hs, l + hs, t + hs), rc, rc, paintPoignee);
-                    canvas.drawRoundRect(new android.graphics.RectF(r - hs, t - hs, r + hs, t + hs), rc, rc, paintPoignee);
-                    canvas.drawRoundRect(new android.graphics.RectF(l - hs, b - hs, l + hs, b + hs), rc, rc, paintPoignee);
-                    canvas.drawRoundRect(new android.graphics.RectF(r - hs, b - hs, r + hs, b + hs), rc, rc, paintPoignee);
+                    float hsX = 12f / scaleFactorX;
+                    float hsY = 12f / scaleFactorY;
+                    float rcX = 4f / scaleFactorX;
+                    float rcY = 4f / scaleFactorY;
+                    
+                    canvas.drawRoundRect(new android.graphics.RectF(l - hsX, t - hsY, l + hsX, t + hsY), rcX, rcY, paintPoignee);
+                    canvas.drawRoundRect(new android.graphics.RectF(r - hsX, t - hsY, r + hsX, t + hsY), rcX, rcY, paintPoignee);
+                    canvas.drawRoundRect(new android.graphics.RectF(l - hsX, b - hsY, l + hsX, b + hsY), rcX, rcY, paintPoignee);
+                    canvas.drawRoundRect(new android.graphics.RectF(r - hsX, b - hsY, r + hsX, b + hsY), rcX, rcY, paintPoignee);
                     
                     float cx = objet.largeur / 2f;
-                    float rotY = t - (50f / scaleFactor);
+                    float rotY = t - (50f / scaleFactorY);
                     canvas.drawLine(cx, t, cx, rotY, paintSelection);
-                    canvas.drawCircle(cx, rotY, 15f / scaleFactor, paintPoignee);
+                    
+                    float scaleFactorAvg = (scaleFactorX + scaleFactorY) / 2f;
+                    canvas.drawCircle(cx, rotY, 15f / scaleFactorAvg, paintPoignee);
                 }
                 canvas.restore();
             }
@@ -415,13 +463,17 @@ public class CanvasEditeur extends View {
             ObjetBase objet = objetsTries.get(i);
             float[] localPos = worldToLocal(objet, sx, sy);
             float lx = localPos[0], ly = localPos[1];
-            if (lx >= 0 && lx <= objet.largeur && ly >= 0 && ly <= objet.hauteur) {
+            
+            float objHauteur = getHauteurReelle(objet);
+            
+            if (lx >= 0 && lx <= objet.largeur && ly >= 0 && ly <= objHauteur) {
                 return objet;
             }
         }
         return null;
     }
 // bas 2
+
 
 // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
@@ -432,20 +484,27 @@ public class CanvasEditeur extends View {
             float[] pts = worldToLocal(objetSelectionne, sx, sy);
             float lx = pts[0], ly = pts[1];
             
-            float scale = Math.max(Math.abs(objetSelectionne.scaleX), Math.abs(objetSelectionne.scaleY));
-            if (scale < 0.01f) scale = 0.01f;
-            float hit = (30f / niveauZoom) / scale;
+            float scaleX = Math.abs(objetSelectionne.scaleX);
+            if (scaleX < 0.01f) scaleX = 0.01f;
+            float scaleY = Math.abs(objetSelectionne.scaleY);
+            if (scaleY < 0.01f) scaleY = 0.01f;
+            
+            float hitX = (30f / niveauZoom) / scaleX;
+            float hitY = (30f / niveauZoom) / scaleY;
+            float hitAvg = (hitX + hitY) / 2f;
             
             float midX = objetSelectionne.largeur / 2f;
-            float rotY = -50f / Math.abs(objetSelectionne.scaleY);
-            if (Math.hypot(lx - midX, ly - rotY) < hit) return 8; 
+            float rotY = -50f / scaleY;
+            if (Math.hypot(lx - midX, ly - rotY) < hitAvg) return 8; 
             
-            if (Math.abs(lx) < hit && Math.abs(ly) < hit) return 4; 
-            if (Math.abs(lx - objetSelectionne.largeur) < hit && Math.abs(ly) < hit) return 5; 
-            if (Math.abs(lx) < hit && Math.abs(ly - objetSelectionne.hauteur) < hit) return 6; 
-            if (Math.abs(lx - objetSelectionne.largeur) < hit && Math.abs(ly - objetSelectionne.hauteur) < hit) return 7; 
+            float objHauteur = getHauteurReelle(objetSelectionne);
             
-            if (lx >= 0 && lx <= objetSelectionne.largeur && ly >= 0 && ly <= objetSelectionne.hauteur) return 2; 
+            if (Math.abs(lx) < hitX && Math.abs(ly) < hitY) return 4; 
+            if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly) < hitY) return 5; 
+            if (Math.abs(lx) < hitX && Math.abs(ly - objHauteur) < hitY) return 6; 
+            if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly - objHauteur) < hitY) return 7; 
+            
+            if (lx >= 0 && lx <= objetSelectionne.largeur && ly >= 0 && ly <= objHauteur) return 2; 
         }
         
         ObjetBase obj = trouverObjetSousToucher(xEcran, yEcran);
@@ -505,61 +564,66 @@ public class CanvasEditeur extends View {
                     cameraX += (x - lastTouchX) / niveauZoom;
                     cameraY += (y - lastTouchY) / niveauZoom;
                 } else if (currentMode == 2 && objetSelectionne != null) { 
-                    Matrix invParent = new Matrix();
-                    getParentMatrix(objetSelectionne).invert(invParent);
-                    
-                    float[] curTouchP = {sx, sy};
-                    float[] lastTouchP = {ecranVersScene(lastTouchX, lastTouchY)[0], ecranVersScene(lastTouchX, lastTouchY)[1]};
-                    
-                    invParent.mapPoints(curTouchP); invParent.mapPoints(lastTouchP);
-                    objetSelectionne.x += (curTouchP[0] - lastTouchP[0]);
-                    objetSelectionne.y += (curTouchP[1] - lastTouchP[1]);
+                    if (!objetSelectionne.estVerrouille) {
+                        Matrix invParent = new Matrix();
+                        getParentMatrix(objetSelectionne).invert(invParent);
+                        
+                        float[] curTouchP = {sx, sy};
+                        float[] lastTouchP = {ecranVersScene(lastTouchX, lastTouchY)[0], ecranVersScene(lastTouchX, lastTouchY)[1]};
+                        
+                        invParent.mapPoints(curTouchP); invParent.mapPoints(lastTouchP);
+                        objetSelectionne.x += (curTouchP[0] - lastTouchP[0]);
+                        objetSelectionne.y += (curTouchP[1] - lastTouchP[1]);
+                    }
                 } else if (currentMode >= 4 && currentMode <= 7 && objetSelectionne != null) { 
-                    Matrix invInit = new Matrix();
-                    initMatrix.invert(invInit);
-                    float[] ptsInit = {sx, sy};
-                    invInit.mapPoints(ptsInit);
-                    float lx = ptsInit[0], ly = ptsInit[1];
-                    
-                    float newSx = initScaleX, newSy = initScaleY;
-                    if (currentMode == 4) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * ((initH - ly) / initH); }
-                    else if (currentMode == 5) { newSx = initScaleX * (lx / initW); newSy = initScaleY * ((initH - ly) / initH); }
-                    else if (currentMode == 6) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * (ly / initH); }
-                    else if (currentMode == 7) { newSx = initScaleX * (lx / initW); newSy = initScaleY * (ly / initH); }
-                    
-                    if (Math.abs(newSx) < 0.05f) newSx = 0.05f * Math.signum(newSx);
-                    if (Math.abs(newSy) < 0.05f) newSy = 0.05f * Math.signum(newSy);
-                    
-                    objetSelectionne.scaleX = newSx; objetSelectionne.scaleY = newSy;
-                    
-                    float ancLocX = (currentMode == 4 || currentMode == 6) ? initW : 0;
-                    float ancLocY = (currentMode == 4 || currentMode == 5) ? initH : 0;
-                    
-                    float[] initAnchorWorld = {ancLocX, ancLocY};
-                    initMatrix.mapPoints(initAnchorWorld);
-                    
-                    Matrix newMat = getAbsoluteMatrix(objetSelectionne);
-                    float[] newAnchorWorld = {ancLocX, ancLocY};
-                    newMat.mapPoints(newAnchorWorld);
-                    
-                    Matrix parentMat = getParentMatrix(objetSelectionne);
-                    Matrix invParent = new Matrix();
-                    parentMat.invert(invParent);
-                    
-                    float[] initAncParent = {initAnchorWorld[0], initAnchorWorld[1]};
-                    float[] newAncParent = {newAnchorWorld[0], newAnchorWorld[1]};
-                    invParent.mapPoints(initAncParent); invParent.mapPoints(newAncParent);
-                    
-                    objetSelectionne.x += (initAncParent[0] - newAncParent[0]);
-                    objetSelectionne.y += (initAncParent[1] - newAncParent[1]);
-                    
+                    if (!objetSelectionne.estVerrouille) {
+                        Matrix invInit = new Matrix();
+                        initMatrix.invert(invInit);
+                        float[] ptsInit = {sx, sy};
+                        invInit.mapPoints(ptsInit);
+                        float lx = ptsInit[0], ly = ptsInit[1];
+                        
+                        float newSx = initScaleX, newSy = initScaleY;
+                        if (currentMode == 4) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * ((initH - ly) / initH); }
+                        else if (currentMode == 5) { newSx = initScaleX * (lx / initW); newSy = initScaleY * ((initH - ly) / initH); }
+                        else if (currentMode == 6) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * (ly / initH); }
+                        else if (currentMode == 7) { newSx = initScaleX * (lx / initW); newSy = initScaleY * (ly / initH); }
+                        
+                        if (Math.abs(newSx) < 0.05f) newSx = 0.05f * Math.signum(newSx);
+                        if (Math.abs(newSy) < 0.05f) newSy = 0.05f * Math.signum(newSy);
+                        
+                        objetSelectionne.scaleX = newSx; objetSelectionne.scaleY = newSy;
+                        
+                        float ancLocX = (currentMode == 4 || currentMode == 6) ? initW : 0;
+                        float ancLocY = (currentMode == 4 || currentMode == 5) ? initH : 0;
+                        
+                        float[] initAnchorWorld = {ancLocX, ancLocY};
+                        initMatrix.mapPoints(initAnchorWorld);
+                        
+                        Matrix newMat = getAbsoluteMatrix(objetSelectionne);
+                        float[] newAnchorWorld = {ancLocX, ancLocY};
+                        newMat.mapPoints(newAnchorWorld);
+                        
+                        Matrix parentMat = getParentMatrix(objetSelectionne);
+                        Matrix invParent = new Matrix();
+                        parentMat.invert(invParent);
+                        
+                        float[] initAncParent = {initAnchorWorld[0], initAnchorWorld[1]};
+                        float[] newAncParent = {newAnchorWorld[0], newAnchorWorld[1]};
+                        invParent.mapPoints(initAncParent); invParent.mapPoints(newAncParent);
+                        
+                        objetSelectionne.x += (initAncParent[0] - newAncParent[0]);
+                        objetSelectionne.y += (initAncParent[1] - newAncParent[1]);
+                    }
                 } else if (currentMode == 8 && objetSelectionne != null) { 
-                    float[] centerWorld = {objetSelectionne.largeur / 2f, objetSelectionne.hauteur / 2f};
-                    getAbsoluteMatrix(objetSelectionne).mapPoints(centerWorld);
-                    
-                    double angleWorld = Math.toDegrees(Math.atan2(sy - centerWorld[1], sx - centerWorld[0]));
-                    float parentRot = getAbsoluteRotation(getObjetById(objetSelectionne.parentId));
-                    objetSelectionne.rotation = (float) (angleWorld + 90) - parentRot;
+                    if (!objetSelectionne.estVerrouille) {
+                        float[] centerWorld = {objetSelectionne.largeur / 2f, objetSelectionne.hauteur / 2f};
+                        getAbsoluteMatrix(objetSelectionne).mapPoints(centerWorld);
+                        
+                        double angleWorld = Math.toDegrees(Math.atan2(sy - centerWorld[1], sx - centerWorld[0]));
+                        float parentRot = getAbsoluteRotation(getObjetById(objetSelectionne.parentId));
+                        objetSelectionne.rotation = (float) (angleWorld + 90) - parentRot;
+                    }
                 }
                 
                 lastTouchX = x; lastTouchY = y;
@@ -598,6 +662,7 @@ public class CanvasEditeur extends View {
 
 
     
+
 
 
 

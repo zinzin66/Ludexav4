@@ -344,7 +344,6 @@ public class InspecteurProprietes extends LinearLayout {
 
         cbVerrouille = new CheckBox(context);
         cbVerrouille.setText("Verrouillé (empêche l'édition)");
-        cbVerrouille.setOnClickListener(toastListener);
         styliserCase(cbVerrouille);
         blocProprietes.addView(cbVerrouille);
 
@@ -369,7 +368,10 @@ public class InspecteurProprietes extends LinearLayout {
         styliserBouton(btnParent);
         blocProprietes.addView(btnParent);
 // bas 1
-   // haut 2
+
+
+
+// haut 2
         btnParent.setOnClickListener(v -> {
             if (objetCourant == null) return;
 
@@ -611,7 +613,9 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 // bas 2
-    // haut 3
+
+
+// haut 3
         champNom.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 verifierEtConfirmerRenommage(context);
@@ -680,6 +684,13 @@ public class InspecteurProprietes extends LinearLayout {
         cbDeplacable.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) {
                 objetCourant.estDeplacable = isChecked;
+            }
+        });
+
+        cbVerrouille.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) {
+                objetCourant.estVerrouille = isChecked;
+                canvasEditeur.invalidate();
             }
         });
 
@@ -848,6 +859,7 @@ public class InspecteurProprietes extends LinearLayout {
             cbRamassable.setChecked(objet.estRamassable);
             cbZoneDeClic.setChecked(objet.estZoneDeClic);
             cbDeplacable.setChecked(objet.estDeplacable);
+            cbVerrouille.setChecked(objet.estVerrouille);
 
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
@@ -939,3 +951,11 @@ public class InspecteurProprietes extends LinearLayout {
 }
 // bas 3
 
+
+
+
+
+        
+
+
+    
