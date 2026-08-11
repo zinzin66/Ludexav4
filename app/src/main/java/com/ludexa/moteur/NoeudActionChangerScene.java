@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.List;
@@ -20,8 +21,8 @@ public class NoeudActionChangerScene extends NoeudBase {
             InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
             VueJeu vue = editeur.getVueJeu();
             if (vue != null) {
-                // TODO: Nous connecterons ceci à la méthode de changement de scène dans VueJeu plus tard
-                // vue.chargerNouvelleScene(sceneCible);
+                // APPEL ACTIVÉ : On dit à la VueJeu de changer de décor !
+                vue.chargerNouvelleScene(sceneCible);
             }
         }
     }
@@ -67,3 +68,4 @@ public class NoeudActionChangerScene extends NoeudBase {
     @Override
     public ObjetBase getCibleObjet() { return null; }
 }
+// bas 1
