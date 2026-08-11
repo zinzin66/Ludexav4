@@ -36,9 +36,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Visibilité", "Actions", "NoeudActionVisibilite"));
         REGISTRE.add(new InfoNoeud("Modifier Déplaçable", "Actions", "NoeudActionModifierDeplacable"));
         REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Actions", "NoeudActionNombreAleatoire"));
-        
+        REGISTRE.add(new InfoNoeud("Changer Z-Order", "Actions", "NoeudActionChangerZOrder"));
+        REGISTRE.add(new InfoNoeud("Changer de Scène", "Actions", "NoeudActionChangerScene"));
+      
         REGISTRE.add(new InfoNoeud("Ouvrir HUD", "UI", "NoeudActionOuvrirHUD"));
         REGISTRE.add(new InfoNoeud("Fermer HUD", "UI", "NoeudActionFermerHUD"));
+        
         
         REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
         
