@@ -58,6 +58,7 @@ public class RegistreNoeuds {
         
         // NOUVEAU : Chrono
         REGISTRE.add(new InfoNoeud("Chrono", "Actions", "NoeudActionChrono"));
+        REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique", "NoeudConditionSiObjetVisible"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
