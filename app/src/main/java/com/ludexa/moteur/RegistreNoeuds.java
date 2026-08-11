@@ -51,6 +51,9 @@ public class RegistreNoeuds {
         // NOUVEAU : Noeuds de Collision
         REGISTRE.add(new InfoNoeud("Collision A/B", "Événements", "NoeudEventCollisionAB"));
         REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique", "NoeudConditionSiObjetToucheZone"));
+        
+        // NOUVEAU : Chrono
+        REGISTRE.add(new InfoNoeud("Chrono", "Actions", "NoeudActionChrono"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
