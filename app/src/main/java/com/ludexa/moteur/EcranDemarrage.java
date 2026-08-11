@@ -607,14 +607,14 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    private void actionSupprimer() {
+        private void actionSupprimer() {
         File dossier = dossierSelectionne();
         if (dossier == null) return;
         String nom = nomProjet(dossier);
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
                 .setTitle("Supprimer le projet")
-                .setMessage("Supprimer définitivement « " + nom + " » ? Cette action est irréversible.")
+                .setMessage("Voulez-vous vraiment supprimer le projet " + nom + " ?")
                 .setPositiveButton("Supprimer", (d, w) -> {
                     supprimerDossierRecursif(dossier);
                     positionSelectionnee = -1;
@@ -625,6 +625,7 @@ public class EcranDemarrage extends Activity {
         dialogue.show();
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
     }
+
 
     // ---------------------------------------------------------------- création projet
 
