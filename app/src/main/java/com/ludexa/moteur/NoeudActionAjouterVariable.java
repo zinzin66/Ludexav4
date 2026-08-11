@@ -1,3 +1,5 @@
+// début 1 11 08
+
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -38,8 +40,29 @@ public class NoeudActionAjouterVariable extends NoeudBase {
             }
             
             cibleActuelle.valeur = valeurCourante + valeurAJoindre;
+        } else if (cibleActuelle != null && "ENTIER".equals(cibleActuelle.type)) {
+            // CORRECTION : le type ENTIER n'était pas géré (seul CHIFFRE l'était), le nœud ne faisait rien silencieusement
+            int valeurCourante = 0;
+            if (cibleActuelle.valeur instanceof Integer) {
+                valeurCourante = (Integer) cibleActuelle.valeur;
+            } else if (cibleActuelle.valeur != null) {
+                try {
+                    valeurCourante = Integer.parseInt(cibleActuelle.valeur.toString().trim());
+                } catch (NumberFormatException e) {
+                    valeurCourante = 0;
+                }
+            }
+
+            int valeurAJoindre = 0;
+            try {
+                valeurAJoindre = Integer.parseInt(valeurSaisie.trim());
+            } catch (NumberFormatException e) {
+                valeurAJoindre = 0;
+            }
+
+            cibleActuelle.valeur = valeurCourante + valeurAJoindre;
         }
-        // Si le type n'est pas "CHIFFRE", on ne fait rien (pas de crash).
+        // Si le type n'est ni CHIFFRE ni ENTIER, on ne fait rien (pas de crash).
         
         propagerExecution("Suivant");
     }
@@ -113,4 +136,4 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     public boolean utiliseClavierTexte() {
         return true;
     }
-}
+} 
