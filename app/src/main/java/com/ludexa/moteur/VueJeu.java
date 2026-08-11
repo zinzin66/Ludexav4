@@ -146,7 +146,6 @@ public class VueJeu extends View {
     }
 // bas 1
 
-
 // haut 2
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu) {
         List<ObjetBase> listeARechercher = null;
@@ -262,6 +261,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
+
 // haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
@@ -411,12 +411,16 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
+        // --- NOUVEAU : On vérifie les variables à chaque frame ---
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
             this.moteur.verifierCollisions(this, sceneActive.objets);
+            this.moteur.verifierVariablesChangees(); 
         }
         if (this.moteurHud != null && sceneHudActive != null && sceneHudActive.objets != null) {
             this.moteurHud.verifierCollisions(this, sceneHudActive.objets);
+            this.moteurHud.verifierVariablesChangees(); 
         }
+        // --------------------------------------------------------
         
         echelle = Math.min((float) getWidth() / ConfigurationJeu.LARGEUR_JEU, (float) getHeight() / ConfigurationJeu.HAUTEUR_JEU);
         decalageX = (getWidth() - ConfigurationJeu.LARGEUR_JEU * echelle) / 2f;
@@ -432,5 +436,10 @@ public class VueJeu extends View {
     }
 }
 // bas 3
+
+
+
+    
+
 
 
