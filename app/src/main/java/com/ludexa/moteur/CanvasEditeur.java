@@ -472,6 +472,8 @@ public class CanvasEditeur extends View {
         return null;
     }
 // bas 2
+
+
 // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
@@ -649,8 +651,7 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
-
-
+        
 
 
 
