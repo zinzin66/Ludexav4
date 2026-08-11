@@ -26,6 +26,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Déplacer Objet", "Actions", "NoeudActionDeplacer"));
         REGISTRE.add(new InfoNoeud("Modifier Variable", "Actions", "NoeudActionModifierVariable"));
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Actions", "NoeudActionModifierTexte"));
+        REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Actions", "NoeudActionConcatenerTexte"));
         REGISTRE.add(new InfoNoeud("Modifier Couleur", "Actions", "NoeudActionModifierCouleur"));
         REGISTRE.add(new InfoNoeud("Condition", "Logique", "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud("Timer", "Actions", "NoeudActionTimer"));
