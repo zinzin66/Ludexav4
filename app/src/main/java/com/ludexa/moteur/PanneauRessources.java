@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
 import android.net.Uri;
@@ -34,6 +35,13 @@ public class PanneauRessources extends ScrollView {
     private LinearLayout conteneurListeAssets;
     
     private String cheminProjet;
+
+    // AJOUT : masquage du panneau (modèle InspecteurProprietes)
+    private TextView titreRessources;
+    private Button boutonMasquer;
+    private LinearLayout conteneurSections;
+    private LinearLayout.LayoutParams paramsOuvert;
+    private LinearLayout.LayoutParams paramsFerme;
 
     public PanneauRessources(Context context, CanvasEditeur canvas, String cheminProjet) {
         super(context);
@@ -102,7 +110,11 @@ public class PanneauRessources extends ScrollView {
 
     private void init(Context context) {
         setBackgroundColor(Palette.fondPanneaux);
-        setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
+
+        // AJOUT : gabarits ouvert / fermé
+        paramsOuvert = new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT);
+        paramsFerme = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        setLayoutParams(paramsOuvert);
 
         rootAssetsDir = new File(cheminProjet, "assets_ludexa");
         if (!rootAssetsDir.exists()) rootAssetsDir.mkdirs();
@@ -120,11 +132,62 @@ public class PanneauRessources extends ScrollView {
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
         layoutPrincipal.setPadding(0, dp(4), 0, dp(12));
 
-        layoutPrincipal.addView(creerSectionScenes(context));
-        layoutPrincipal.addView(creerSectionObjets(context));
-        layoutPrincipal.addView(creerSectionArborescence(context));
-        layoutPrincipal.addView(creerSectionAssets(context));
-        layoutPrincipal.addView(creerSectionVariables(context));
+        // AJOUT : en-tête avec bouton de masquage (même style que l'Inspecteur)
+        LinearLayout enteteRessources = new LinearLayout(context);
+        enteteRessources.setOrientation(LinearLayout.HORIZONTAL);
+        enteteRessources.setPadding(dp(12), dp(10), dp(12), dp(10));
+        enteteRessources.setBackground(fond(Palette.enTeteDialogues, Palette.bordure, 0));
+        enteteRessources.setGravity(Gravity.CENTER_VERTICAL);
+
+        titreRessources = new TextView(context);
+        titreRessources.setText("RESSOURCES");
+        titreRessources.setTextSize(17f);
+        titreRessources.setLetterSpacing(0.08f);
+        titreRessources.setTypeface(null, android.graphics.Typeface.BOLD);
+        titreRessources.setGravity(Gravity.CENTER_VERTICAL);
+        titreRessources.setTextColor(Palette.texteSelectionne);
+        LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        titreRessources.setLayoutParams(paramsTitre);
+
+        boutonMasquer = new Button(context);
+        boutonMasquer.setText("<");
+        boutonMasquer.setAllCaps(false);
+        boutonMasquer.setTextColor(Palette.iconeNormal);
+        boutonMasquer.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        boutonMasquer.setPadding(dp(10), dp(6), dp(10), dp(6));
+        LinearLayout.LayoutParams paramsMasquer = new LinearLayout.LayoutParams(dp(44), dp(40));
+        boutonMasquer.setLayoutParams(paramsMasquer);
+
+        enteteRessources.addView(titreRessources);
+        enteteRessources.addView(boutonMasquer);
+        layoutPrincipal.addView(enteteRessources);
+
+        // AJOUT : toutes les sections existantes regroupées pour être masquées d'un coup
+        conteneurSections = new LinearLayout(context);
+        conteneurSections.setOrientation(LinearLayout.VERTICAL);
+
+        conteneurSections.addView(creerSectionScenes(context));
+        conteneurSections.addView(creerSectionObjets(context));
+        conteneurSections.addView(creerSectionArborescence(context));
+        conteneurSections.addView(creerSectionAssets(context));
+        conteneurSections.addView(creerSectionVariables(context));
+
+        layoutPrincipal.addView(conteneurSections);
+
+        boutonMasquer.setOnClickListener(v -> {
+            if (conteneurSections.getVisibility() == View.VISIBLE) {
+                conteneurSections.setVisibility(View.GONE);
+                titreRessources.setVisibility(View.GONE);
+                boutonMasquer.setText(">");
+                this.setLayoutParams(paramsFerme);
+            } else {
+                conteneurSections.setVisibility(View.VISIBLE);
+                titreRessources.setVisibility(View.VISIBLE);
+                boutonMasquer.setText("<");
+                this.setLayoutParams(paramsOuvert);
+            }
+        });
 
         addView(layoutPrincipal);
     }
@@ -221,7 +284,7 @@ public class PanneauRessources extends ScrollView {
         }
     }
 // bas 1
-
+    
 
 // haut 2
     private View creerSectionObjets(Context context) {
