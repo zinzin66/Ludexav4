@@ -57,6 +57,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique", "NoeudConditionSiObjetToucheZone"));
         
         // NOUVEAU : Chrono
+        REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Actions", "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud("Chrono", "Actions", "NoeudActionChrono"));
         REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique", "NoeudConditionSiObjetVisible"));
         REGISTRE.add(new InfoNoeud("Changer Image", "Actions", "NoeudActionChangerImage"));
