@@ -40,7 +40,6 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fermer HUD", "UI", "NoeudActionFermerHUD"));
         
         REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
-        
         REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
         REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
         
@@ -53,7 +52,6 @@ public class RegistreNoeuds {
         
         REGISTRE.add(new InfoNoeud("Chrono", "Actions", "NoeudActionChrono"));
         
-        // NOUVEAUX NOEUDS
         REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Actions", "NoeudActionConcatenerTexte"));
         REGISTRE.add(new InfoNoeud("Changer Z-Order", "Actions", "NoeudActionChangerZOrder"));
         REGISTRE.add(new InfoNoeud("Changer de Scène", "Actions", "NoeudActionChangerScene"));
@@ -61,6 +59,10 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique", "NoeudConditionSiObjetVisible"));
         REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Actions", "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
+        
+        // NOUVEAUX NOEUDS INTÉGRÉS
+        REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Actions", "NoeudActionAfficherDialogue"));
+        REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
