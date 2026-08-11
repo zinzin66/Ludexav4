@@ -186,7 +186,7 @@ public class EcranDemarrage extends Activity {
         colonneGauche.addView(titre);
 
         TextView baseline = new TextView(this);
-        baseline.setText("Moteur de jeu 2D â€” crÃ©ez sans coder.");
+        baseline.setText(" Moteur de jeu 2D — créez sans coder");
         baseline.setTextSize(13f);
         baseline.setGravity(Gravity.CENTER);
         baseline.setPadding(0, dp(6), 0, dp(20));
@@ -196,11 +196,11 @@ public class EcranDemarrage extends Activity {
         LinearLayout rangeeLangue = new LinearLayout(this);
         rangeeLangue.setOrientation(LinearLayout.HORIZONTAL);
         rangeeLangue.setGravity(Gravity.CENTER);
-        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, "Langue : FranÃ§ais", v ->
-                Toast.makeText(this, "Langue : FranÃ§ais", Toast.LENGTH_SHORT).show()));
+        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, "Langue : Francais", v ->
+                Toast.makeText(this, "Langue : Francais", Toast.LENGTH_SHORT).show()));
 
         TextView libelleLangue = new TextView(this);
-        libelleLangue.setText("FranÃ§ais");
+        libelleLangue.setText("Francais");
         libelleLangue.setTextSize(13f);
         libelleLangue.setTextColor(couleurTexteSecondaire());
         libelleLangue.setGravity(Gravity.CENTER_VERTICAL);
@@ -239,9 +239,9 @@ public class EcranDemarrage extends Activity {
         bandeau.setPadding(dp(6), dp(6), dp(6), dp(6));
         bandeau.setBackground(fond(Palette.fondPanneaux, 8, couleurBordure(), 1));
 
-        bandeau.addView(boutonBandeau(R.drawable.add_24px, "CrÃ©er un projet",
+        bandeau.addView(boutonBandeau(R.drawable.add_24px, "Créer un projet",
                 v -> afficherDialogueCreationProjet()));
-        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, "Ouvrir un projet tÃ©lÃ©chargÃ©",
+        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, "Ouvrir un projet télécharger",
                 v -> Toast.makeText(this, "Import de projet : Ã  venir", Toast.LENGTH_SHORT).show()));
 
         bandeau.addView(separateurVertical());
@@ -405,7 +405,7 @@ public class EcranDemarrage extends Activity {
                     try {
                         JSONObject metaJson = lireJson(metaFile);
                         noms.add(metaJson.optString("nom", "Projet Sans Nom"));
-                        sousTitres.add("ModifiÃ© le " + metaJson.optString("dateModif", "date inconnue"));
+                        sousTitres.add("Modifier le " + metaJson.optString("date Modif", "date inconnue"));
                         dossiersProjets.add(sousDossier);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -450,7 +450,7 @@ public class EcranDemarrage extends Activity {
 
     private File dossierSelectionne() {
         if (positionSelectionnee < 0 || positionSelectionnee >= dossiersProjets.size()) {
-            Toast.makeText(this, "SÃ©lectionnez d'abord un projet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sélectionnez d'abord un projet", Toast.LENGTH_SHORT).show();
             return null;
         }
         return dossiersProjets.get(positionSelectionnee);
@@ -528,11 +528,11 @@ public class EcranDemarrage extends Activity {
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nouveauNom = champ.getText().toString().trim();
             if (nouveauNom.isEmpty()) {
-                Toast.makeText(this, "Le nom du projet ne peut pas Ãªtre vide", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (nomDejaUtilise(nouveauNom, nomActuel)) {
-                Toast.makeText(this, "Ce nom de projet est dÃ©jÃ  utilisÃ©.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Ce nom de projet est déjà  utiliser.", Toast.LENGTH_SHORT).show();
                 return;
             }
             try {
@@ -614,7 +614,7 @@ public class EcranDemarrage extends Activity {
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
                 .setTitle("Supprimer le projet")
-                .setMessage("Supprimer dÃ©finitivement Â« " + nom + " Â» ? Cette action est irrÃ©versible.")
+                .setMessage("Supprimer définitivement « " + nom + " » ? Cette action est irréversible.");
                 .setPositiveButton("Supprimer", (d, w) -> {
                     supprimerDossierRecursif(dossier);
                     positionSelectionnee = -1;
@@ -635,7 +635,7 @@ public class EcranDemarrage extends Activity {
         AlertDialog dialogue = new AlertDialog.Builder(this)
                 .setTitle("Nouveau projet")
                 .setView(champ)
-                .setPositiveButton("CrÃ©er", null)
+                .setPositiveButton("Créer", null)
                 .setNegativeButton("Annuler", (d, w) -> d.cancel())
                 .create();
         dialogue.show();
@@ -643,11 +643,11 @@ public class EcranDemarrage extends Activity {
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nomProjet = champ.getText().toString().trim();
             if (nomProjet.isEmpty()) {
-                Toast.makeText(this, "Le nom du projet ne peut pas Ãªtre vide", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (nomDejaUtilise(nomProjet, null)) {
-                Toast.makeText(this, "Ce nom de projet est dÃ©jÃ  utilisÃ©.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Ce nom de projet est déjà  utilisé.", Toast.LENGTH_SHORT).show();
                 return;
             }
             creerNouveauProjet(nomProjet);
@@ -685,7 +685,7 @@ public class EcranDemarrage extends Activity {
             fwBlueprint.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de la crÃ©ation des fichiers", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Erreur lors de la création des fichiers", Toast.LENGTH_SHORT).show();
             return;
         }
 
