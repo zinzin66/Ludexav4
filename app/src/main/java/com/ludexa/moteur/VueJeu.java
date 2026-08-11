@@ -202,6 +202,16 @@ public class VueJeu extends View {
                 objetEnGlissement.y += yJeuActuel - lastYJeu;
                 lastXJeu = xJeuActuel;
                 lastYJeu = yJeuActuel;
+            } else {
+                // Détection du survol lors du déplacement du pointeur/doigt
+                ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel);
+                if (objSurvole != null) {
+                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    }
+                }
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             float xJeu = (event.getX() - decalageX) / echelle;
@@ -261,6 +271,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
+
 
 // haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
