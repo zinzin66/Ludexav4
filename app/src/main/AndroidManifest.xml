@@ -3,7 +3,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="Ludexa"
+        android:label="Yop2D"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
