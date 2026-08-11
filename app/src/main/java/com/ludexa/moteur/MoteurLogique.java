@@ -40,7 +40,7 @@ public class MoteurLogique {
         }
     }
 
-    // NOUVEAU : Méthode dédiée à la vérification des événements de collision (vérifie les noeuds "Collision A/B")
+    // Méthode dédiée à la vérification des événements de collision
     public void verifierCollisions(VueJeu vueJeu, List<ObjetBase> objetsContexte) {
         if (blueprintActif == null || blueprintActif.noeuds == null || objetsContexte == null) return;
         
@@ -63,5 +63,20 @@ public class MoteurLogique {
             }
         }
     }
+
+    // NOUVEAU : Méthode dédiée à la vérification des variables (pour le digicode)
+    public void verifierVariablesChangees() {
+        if (blueprintActif == null || blueprintActif.noeuds == null) return;
+        
+        for (NoeudBase noeud : blueprintActif.noeuds) {
+            if (noeud instanceof NoeudEventVariableChange) {
+                ((NoeudEventVariableChange) noeud).verifierEtDeclencher();
+            }
+        }
+    }
 }
 // bas 1
+
+
+
+
