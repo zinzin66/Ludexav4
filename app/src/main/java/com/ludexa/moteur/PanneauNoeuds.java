@@ -4,6 +4,7 @@ package com.ludexa.moteur;
 import android.content.ClipData;
 import android.content.Context;
 import android.graphics.Color;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -14,6 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 public class PanneauNoeuds extends ScrollView {
+
+    private LinearLayout conteneurSections;
+    private Button boutonMasquer;
+    private TextView titrePanneau;
+    private boolean estOuvert = true;
 
     public PanneauNoeuds(Context context) {
         super(context);
@@ -26,6 +32,37 @@ public class PanneauNoeuds extends ScrollView {
 
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
+
+        // ---- En-tête avec bouton de masquage ----
+        LinearLayout enTete = new LinearLayout(context);
+        enTete.setOrientation(LinearLayout.HORIZONTAL);
+        enTete.setGravity(Gravity.CENTER_VERTICAL);
+        enTete.setBackgroundColor(Palette.fondPanneaux);
+        enTete.setPadding(10, 10, 10, 10);
+
+        titrePanneau = new TextView(context);
+        titrePanneau.setText("NŒUDS");
+        titrePanneau.setTextColor(Palette.texteSelectionne);
+        titrePanneau.setTextSize(14);
+        LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
+            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+        );
+        titrePanneau.setLayoutParams(paramsTitre);
+
+        boutonMasquer = new Button(context);
+        boutonMasquer.setText("<");
+        boutonMasquer.setTextColor(Palette.texteNormal);
+        boutonMasquer.setBackgroundColor(Color.TRANSPARENT);
+        boutonMasquer.setPadding(0, 0, 0, 0);
+        boutonMasquer.setLayoutParams(new LinearLayout.LayoutParams(80, 80));
+
+        enTete.addView(titrePanneau);
+        enTete.addView(boutonMasquer);
+        layoutPrincipal.addView(enTete);
+
+        // ---- Conteneur des sections (masquable) ----
+        conteneurSections = new LinearLayout(context);
+        conteneurSections.setOrientation(LinearLayout.VERTICAL);
 
         // Récupération dynamique depuis le RegistreNoeuds
         Map<String, List<RegistreNoeuds.InfoNoeud>> categories = RegistreNoeuds.getNoeudsParCategorie();
@@ -57,9 +94,29 @@ public class PanneauNoeuds extends ScrollView {
                 }
             });
             
-            layoutPrincipal.addView(btnCat);
-            layoutPrincipal.addView(conteneurCat);
+            conteneurSections.addView(btnCat);
+            conteneurSections.addView(conteneurCat);
         }
+
+        layoutPrincipal.addView(conteneurSections);
+
+        // ---- Logique de masquage ----
+        boutonMasquer.setOnClickListener(v -> {
+            estOuvert = !estOuvert;
+            if (estOuvert) {
+                conteneurSections.setVisibility(View.VISIBLE);
+                titrePanneau.setVisibility(View.VISIBLE);
+                boutonMasquer.setText("<");
+                setLayoutParams(new LinearLayout.LayoutParams(300, LinearLayout.LayoutParams.MATCH_PARENT));
+            } else {
+                conteneurSections.setVisibility(View.GONE);
+                titrePanneau.setVisibility(View.GONE);
+                boutonMasquer.setText(">");
+                setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
+            }
+            requestLayout();
+        });
 
         addView(layoutPrincipal);
     }
@@ -93,5 +150,3 @@ public class PanneauNoeuds extends ScrollView {
     }
 }
 // bas 1
-
-
