@@ -211,6 +211,7 @@ public class CanvasEditeur extends View {
     }
 // bas 1
 
+
 // haut 2
     private float getHauteurReelle(ObjetBase objet) {
         if (!"texte".equals(objet.type)) {
@@ -563,61 +564,66 @@ public class CanvasEditeur extends View {
                     cameraX += (x - lastTouchX) / niveauZoom;
                     cameraY += (y - lastTouchY) / niveauZoom;
                 } else if (currentMode == 2 && objetSelectionne != null) { 
-                    Matrix invParent = new Matrix();
-                    getParentMatrix(objetSelectionne).invert(invParent);
-                    
-                    float[] curTouchP = {sx, sy};
-                    float[] lastTouchP = {ecranVersScene(lastTouchX, lastTouchY)[0], ecranVersScene(lastTouchX, lastTouchY)[1]};
-                    
-                    invParent.mapPoints(curTouchP); invParent.mapPoints(lastTouchP);
-                    objetSelectionne.x += (curTouchP[0] - lastTouchP[0]);
-                    objetSelectionne.y += (curTouchP[1] - lastTouchP[1]);
+                    if (!objetSelectionne.estVerrouille) {
+                        Matrix invParent = new Matrix();
+                        getParentMatrix(objetSelectionne).invert(invParent);
+                        
+                        float[] curTouchP = {sx, sy};
+                        float[] lastTouchP = {ecranVersScene(lastTouchX, lastTouchY)[0], ecranVersScene(lastTouchX, lastTouchY)[1]};
+                        
+                        invParent.mapPoints(curTouchP); invParent.mapPoints(lastTouchP);
+                        objetSelectionne.x += (curTouchP[0] - lastTouchP[0]);
+                        objetSelectionne.y += (curTouchP[1] - lastTouchP[1]);
+                    }
                 } else if (currentMode >= 4 && currentMode <= 7 && objetSelectionne != null) { 
-                    Matrix invInit = new Matrix();
-                    initMatrix.invert(invInit);
-                    float[] ptsInit = {sx, sy};
-                    invInit.mapPoints(ptsInit);
-                    float lx = ptsInit[0], ly = ptsInit[1];
-                    
-                    float newSx = initScaleX, newSy = initScaleY;
-                    if (currentMode == 4) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * ((initH - ly) / initH); }
-                    else if (currentMode == 5) { newSx = initScaleX * (lx / initW); newSy = initScaleY * ((initH - ly) / initH); }
-                    else if (currentMode == 6) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * (ly / initH); }
-                    else if (currentMode == 7) { newSx = initScaleX * (lx / initW); newSy = initScaleY * (ly / initH); }
-                    
-                    if (Math.abs(newSx) < 0.05f) newSx = 0.05f * Math.signum(newSx);
-                    if (Math.abs(newSy) < 0.05f) newSy = 0.05f * Math.signum(newSy);
-                    
-                    objetSelectionne.scaleX = newSx; objetSelectionne.scaleY = newSy;
-                    
-                    float ancLocX = (currentMode == 4 || currentMode == 6) ? initW : 0;
-                    float ancLocY = (currentMode == 4 || currentMode == 5) ? initH : 0;
-                    
-                    float[] initAnchorWorld = {ancLocX, ancLocY};
-                    initMatrix.mapPoints(initAnchorWorld);
-                    
-                    Matrix newMat = getAbsoluteMatrix(objetSelectionne);
-                    float[] newAnchorWorld = {ancLocX, ancLocY};
-                    newMat.mapPoints(newAnchorWorld);
-                    
-                    Matrix parentMat = getParentMatrix(objetSelectionne);
-                    Matrix invParent = new Matrix();
-                    parentMat.invert(invParent);
-                    
-                    float[] initAncParent = {initAnchorWorld[0], initAnchorWorld[1]};
-                    float[] newAncParent = {newAnchorWorld[0], newAnchorWorld[1]};
-                    invParent.mapPoints(initAncParent); invParent.mapPoints(newAncParent);
-                    
-                    objetSelectionne.x += (initAncParent[0] - newAncParent[0]);
-                    objetSelectionne.y += (initAncParent[1] - newAncParent[1]);
-                    
+                    if (!objetSelectionne.estVerrouille) {
+                        Matrix invInit = new Matrix();
+                        initMatrix.invert(invInit);
+                        float[] ptsInit = {sx, sy};
+                        invInit.mapPoints(ptsInit);
+                        float lx = ptsInit[0], ly = ptsInit[1];
+                        
+                        float newSx = initScaleX, newSy = initScaleY;
+                        if (currentMode == 4) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * ((initH - ly) / initH); }
+                        else if (currentMode == 5) { newSx = initScaleX * (lx / initW); newSy = initScaleY * ((initH - ly) / initH); }
+                        else if (currentMode == 6) { newSx = initScaleX * ((initW - lx) / initW); newSy = initScaleY * (ly / initH); }
+                        else if (currentMode == 7) { newSx = initScaleX * (lx / initW); newSy = initScaleY * (ly / initH); }
+                        
+                        if (Math.abs(newSx) < 0.05f) newSx = 0.05f * Math.signum(newSx);
+                        if (Math.abs(newSy) < 0.05f) newSy = 0.05f * Math.signum(newSy);
+                        
+                        objetSelectionne.scaleX = newSx; objetSelectionne.scaleY = newSy;
+                        
+                        float ancLocX = (currentMode == 4 || currentMode == 6) ? initW : 0;
+                        float ancLocY = (currentMode == 4 || currentMode == 5) ? initH : 0;
+                        
+                        float[] initAnchorWorld = {ancLocX, ancLocY};
+                        initMatrix.mapPoints(initAnchorWorld);
+                        
+                        Matrix newMat = getAbsoluteMatrix(objetSelectionne);
+                        float[] newAnchorWorld = {ancLocX, ancLocY};
+                        newMat.mapPoints(newAnchorWorld);
+                        
+                        Matrix parentMat = getParentMatrix(objetSelectionne);
+                        Matrix invParent = new Matrix();
+                        parentMat.invert(invParent);
+                        
+                        float[] initAncParent = {initAnchorWorld[0], initAnchorWorld[1]};
+                        float[] newAncParent = {newAnchorWorld[0], newAnchorWorld[1]};
+                        invParent.mapPoints(initAncParent); invParent.mapPoints(newAncParent);
+                        
+                        objetSelectionne.x += (initAncParent[0] - newAncParent[0]);
+                        objetSelectionne.y += (initAncParent[1] - newAncParent[1]);
+                    }
                 } else if (currentMode == 8 && objetSelectionne != null) { 
-                    float[] centerWorld = {objetSelectionne.largeur / 2f, objetSelectionne.hauteur / 2f};
-                    getAbsoluteMatrix(objetSelectionne).mapPoints(centerWorld);
-                    
-                    double angleWorld = Math.toDegrees(Math.atan2(sy - centerWorld[1], sx - centerWorld[0]));
-                    float parentRot = getAbsoluteRotation(getObjetById(objetSelectionne.parentId));
-                    objetSelectionne.rotation = (float) (angleWorld + 90) - parentRot;
+                    if (!objetSelectionne.estVerrouille) {
+                        float[] centerWorld = {objetSelectionne.largeur / 2f, objetSelectionne.hauteur / 2f};
+                        getAbsoluteMatrix(objetSelectionne).mapPoints(centerWorld);
+                        
+                        double angleWorld = Math.toDegrees(Math.atan2(sy - centerWorld[1], sx - centerWorld[0]));
+                        float parentRot = getAbsoluteRotation(getObjetById(objetSelectionne.parentId));
+                        objetSelectionne.rotation = (float) (angleWorld + 90) - parentRot;
+                    }
                 }
                 
                 lastTouchX = x; lastTouchY = y;
@@ -651,7 +657,7 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
-        
+
 
 
 
