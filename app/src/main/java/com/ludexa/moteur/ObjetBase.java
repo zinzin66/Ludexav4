@@ -34,6 +34,7 @@ public class ObjetBase {
     public boolean estRamassable = false;
     public boolean estZoneDeClic = false;
     public boolean estDeplacable = false;
+    public boolean estVerrouille = false;
 
     public ObjetBase(String nom, float x, float y, float largeur, float hauteur) {
         this.id = UUID.randomUUID().toString();
@@ -49,6 +50,7 @@ public class ObjetBase {
         
         this.tailleFonte = 40f;
         this.cheminPolice = null;
+        this.estVerrouille = false;
         
         if (nom != null) {
             String nomMinuscule = nom.toLowerCase();
@@ -90,6 +92,7 @@ public class ObjetBase {
         copie.estRamassable = this.estRamassable;
         copie.estZoneDeClic = this.estZoneDeClic;
         copie.estDeplacable = this.estDeplacable;
+        copie.estVerrouille = this.estVerrouille;
         
         return copie;
     }
@@ -119,3 +122,9 @@ public class ObjetBase {
     }
 }
 // bas 1
+
+
+
+
+
+
