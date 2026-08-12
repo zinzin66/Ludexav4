@@ -1,12 +1,17 @@
-// haut 1
+
+//  debut nouveau 
+
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,25 +25,26 @@ import java.util.List;
 
 public class PanneauRessources extends LinearLayout {
 
-    private CanvasEditeur canvasEditeur;
-    private String cheminProjet;
-    private File rootAssetsDir;
-    private ObjetBase objetSelectionne;
-    
     private LinearLayout conteneurFichiers;
     private LinearLayout conteneurScenes;
     private LinearLayout conteneurArborescence;
     private LinearLayout conteneurArborescenceDossiers;
     private LinearLayout conteneurListeAssets;
+    private LinearLayout conteneurVariables;
+    
+    private File rootAssetsDir;
+    private CanvasEditeur canvasEditeur;
+    private ObjetBase objetSelectionne;
+    private Variable variableSelectionnee;
     
     private File currentFolderSelected;
     private File currentAssetSelected;
+    private String cheminProjet;
 
     public PanneauRessources(Context context, CanvasEditeur canvasEditeur, String cheminProjet) {
         super(context);
         this.canvasEditeur = canvasEditeur;
         this.cheminProjet = cheminProjet;
-        
         setOrientation(LinearLayout.VERTICAL);
         setBackgroundColor(Palette.fondPanneaux);
 
@@ -55,8 +61,11 @@ public class PanneauRessources extends LinearLayout {
         contenuScroll.setPadding(dp(8), dp(8), dp(8), dp(8));
 
         contenuScroll.addView(creerSectionObjets(context));
-        contenuScroll.addView(creerSectionRessources(context));
+        contenuScroll.addView(creerSectionArborescence(context));
+        contenuScroll.addView(creerSectionAssets(context)); // C'est ici que j'ai mis les dialogues et animations
         contenuScroll.addView(creerSectionScenes(context));
+        contenuScroll.addView(creerSectionVariables(context));
+        contenuScroll.addView(creerSectionDialogues(context)); // Gardé pour rétrocompatibilité avec votre code
 
         scroll.addView(contenuScroll);
         addView(scroll);
@@ -102,6 +111,7 @@ public class PanneauRessources extends LinearLayout {
     }
 
     private String genererNomUnique(String prefixe, Scene scene) {
+        if (scene == null || scene.objets == null) return prefixe + " 1";
         int compteur = 1;
         String nom;
         boolean existe;
@@ -119,89 +129,6 @@ public class PanneauRessources extends LinearLayout {
         return nom;
     }
 
-    private View creerSectionRessources(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
-
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Assets (Images/Sons/Polices) ▼");
-        styliserTitreSection(btnTitre);
-
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        styliserContenuSection(contenu);
-
-        conteneurFichiers = new LinearLayout(context);
-        conteneurFichiers.setOrientation(LinearLayout.VERTICAL);
-        conteneurFichiers.setPadding(0, 0, 0, dp(8));
-        contenu.addView(conteneurFichiers);
-
-        LinearLayout zoneBoutonsDossier = new LinearLayout(context);
-        zoneBoutonsDossier.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnDossierParent = new ImageButton(context);
-        btnDossierParent.setImageResource(R.drawable.arrow_upward_24px);
-        styliserBoutonIcone(btnDossierParent);
-        btnDossierParent.setOnClickListener(v -> naviguerDossierParent());
-
-        ImageButton btnNouveauDossier = new ImageButton(context);
-        btnNouveauDossier.setImageResource(R.drawable.create_new_folder_24px);
-        styliserBoutonIcone(btnNouveauDossier);
-        btnNouveauDossier.setOnClickListener(v -> afficherPopupNouveauDossier(context));
-
-        zoneBoutonsDossier.addView(btnDossierParent);
-        zoneBoutonsDossier.addView(btnNouveauDossier);
-
-        Button btnEditeurDial = new Button(context);
-        btnEditeurDial.setText("Ouvrir dialogues.txt");
-        btnEditeurDial.setAllCaps(false);
-        btnEditeurDial.setTextColor(Color.WHITE);
-        btnEditeurDial.setBackground(fond(Color.parseColor("#4CAF50"), Palette.bordure, 8));
-        LinearLayout.LayoutParams lpBtnDial = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lpBtnDial.setMargins(0, dp(8), 0, 0);
-        btnEditeurDial.setLayoutParams(lpBtnDial);
-        btnEditeurDial.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            EditeurDialogueDialog dialog = new EditeurDialogueDialog(context, editeur.cheminProjet);
-            dialog.show();
-        });
-        
-        Button btnAnimations = new Button(context);
-        btnAnimations.setText("Gérer les Séquences (Animations)");
-        btnAnimations.setAllCaps(false);
-        btnAnimations.setTextColor(Color.WHITE);
-        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8));
-        LinearLayout.LayoutParams lpBtnAnim = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lpBtnAnim.setMargins(0, dp(8), 0, 0);
-        btnAnimations.setLayoutParams(lpBtnAnim);
-        btnAnimations.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            EditeurAnimationsDialog dialog = new EditeurAnimationsDialog(context, editeur.cheminProjet);
-            dialog.show();
-        });
-
-        contenu.addView(zoneBoutonsDossier);
-        contenu.addView(btnEditeurDial);
-        contenu.addView(btnAnimations);
-
-        if (rootAssetsDir != null) rafraichirListeFichiers(rootAssetsDir);
-
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Assets (Images/Sons/Polices) ▶");
-            } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Assets (Images/Sons/Polices) ▼");
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
-    }
-// bas 1
-// haut 2
     private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -277,24 +204,6 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 
-    private String genererNomUnique(String prefixe, Scene scene) {
-        if (scene == null || scene.objets == null) return prefixe + "1";
-        int index = 1;
-        while (true) {
-            String testNom = prefixe + index;
-            boolean existe = false;
-            for (ObjetBase obj : scene.objets) {
-                if (obj.nom.equals(testNom)) {
-                    existe = true;
-                    break;
-                }
-            }
-            if (!existe) return testNom;
-            index++;
-        }
-    }
-// bas 2
-// haut 3
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -314,7 +223,7 @@ public class PanneauRessources extends LinearLayout {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
-            nouveau.type = "carre"; // <-- CORRECTION ICI
+            nouveau.type = "carre"; 
             nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
@@ -328,7 +237,7 @@ public class PanneauRessources extends LinearLayout {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
-            nouveau.type = "texte"; // <-- CORRECTION ICI
+            nouveau.type = "texte"; 
             nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
@@ -342,7 +251,7 @@ public class PanneauRessources extends LinearLayout {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
-            nouveau.type = "rond"; // <-- CORRECTION ICI
+            nouveau.type = "rond"; 
             nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
@@ -465,14 +374,13 @@ public class PanneauRessources extends LinearLayout {
         return (dir.getParentFile() != null && dir.getParentFile().equals(rootAssetsDir)) &&
                (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts") || nom.equals("Textes"));
     }
-// bas 3
-// haut 4
+
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
-        btnTitre.setText("Assets ▼");
+        btnTitre.setText("Assets (Ressources) ▼");
         styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
@@ -551,20 +459,52 @@ public class PanneauRessources extends LinearLayout {
         boutonsAssets.addView(btnEditAsset);
         boutonsAssets.addView(btnDelAsset);
 
+        // --- NOUVEAUX BOUTONS AJOUTÉS ICI ---
+        Button btnEditeurDial = new Button(context);
+        btnEditeurDial.setText("Ouvrir dialogues.txt");
+        btnEditeurDial.setAllCaps(false);
+        btnEditeurDial.setTextColor(Color.WHITE);
+        btnEditeurDial.setBackground(fond(Color.parseColor("#4CAF50"), Palette.bordure, 8));
+        LinearLayout.LayoutParams lpBtnDial = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpBtnDial.setMargins(0, dp(8), 0, 0);
+        btnEditeurDial.setLayoutParams(lpBtnDial);
+        btnEditeurDial.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            EditeurDialogueDialog dialog = new EditeurDialogueDialog(context, editeur.cheminProjet);
+            dialog.show();
+        });
+        
+        Button btnAnimations = new Button(context);
+        btnAnimations.setText("Gérer les Séquences (Animations)");
+        btnAnimations.setAllCaps(false);
+        btnAnimations.setTextColor(Color.WHITE);
+        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8)); 
+        LinearLayout.LayoutParams lpBtnAnim = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpBtnAnim.setMargins(0, dp(8), 0, 0);
+        btnAnimations.setLayoutParams(lpBtnAnim);
+        btnAnimations.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            EditeurAnimationsDialog dialog = new EditeurAnimationsDialog(context, editeur.cheminProjet);
+            dialog.show();
+        });
+        // -------------------------------------
+
         contenu.addView(conteneurArborescenceDossiers);
         contenu.addView(boutonsDossiers);
         contenu.addView(conteneurListeAssets);
         contenu.addView(boutonsAssets);
+        contenu.addView(btnEditeurDial);
+        contenu.addView(btnAnimations);
 
         rafraichirSectionAssetsTotale();
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
                 contenu.setVisibility(View.GONE);
-                btnTitre.setText("Assets ▶");
+                btnTitre.setText("Assets (Ressources) ▶");
             } else {
                 contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Assets ▼");
+                btnTitre.setText("Assets (Ressources) ▼");
                 rafraichirSectionAssetsTotale();
             }
         });
@@ -635,8 +575,7 @@ public class PanneauRessources extends LinearLayout {
             }
         }
     }
-// bas 4
-// haut 5
+
     private void rafraichirListeAssets() {
         if (conteneurListeAssets == null || currentFolderSelected == null) return;
         conteneurListeAssets.removeAllViews();
@@ -756,9 +695,7 @@ public class PanneauRessources extends LinearLayout {
         }
         fileOrDirectory.delete();
     }
-// bas 5
 
-// haut 6
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -879,10 +816,7 @@ public class PanneauRessources extends LinearLayout {
         conteneurLigne.addView(nomVariable);
         conteneurVariables.addView(conteneurLigne);
     }
-// bas 6
 
-
-// haut 7
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
@@ -1048,10 +982,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 7
 
-
-// haut 8
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -1306,11 +1237,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 8
 
-
-
-// haut 9
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Nouveau dossier");
@@ -1505,10 +1432,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 9
 
-
-// haut 10
     private View creerSectionDialogues(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -1654,7 +1578,21 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+    
+    private void styliserDialogue(LinearLayout layout) {
+        layout.setBackgroundColor(Palette.fondPanneaux);
+        layout.setPadding(dp(16), dp(16), dp(16), dp(16));
+    }
+
+    private void styliserChampDialogue(EditText champ) {
+        champ.setTextColor(Palette.texteNormal);
+        champ.setHintTextColor(Palette.bordure);
+        champ.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
+        champ.setPadding(dp(12), dp(10), dp(12), dp(10));
+        champ.setTextSize(14f);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, 0, dp(12));
+        champ.setLayoutParams(lp);
+    }
 }
-// bas 10
-
-
