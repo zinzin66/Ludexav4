@@ -296,8 +296,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-
-// haut 3
+    // haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -362,8 +361,14 @@ public class VueJeu extends View {
         for (ObjetBase objet : objetsTries) {
             if (!objet.visible) continue; 
 
+            // NOUVEAU : Application de la transparence (Alpha) aux pinceaux
+            int alphaInt = Math.max(0, Math.min(255, (int)(objet.alpha * 255)));
+            
             peintureObjet.setColor(objet.couleur);
+            peintureObjet.setAlpha(alphaInt);
+            
             peintureTexte.setColor(objet.couleur);
+            peintureTexte.setAlpha(alphaInt);
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
 
@@ -469,13 +474,4 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-
-
-
-
-    
-
-
-
-
 
