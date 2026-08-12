@@ -38,6 +38,7 @@ public class NoeudActionJouerAnimation extends NoeudBase {
 
     @Override
     public List<String> getNomsParametres() { return Arrays.asList("Nom Animation", "Vitesse (FPS)", "Boucle (true/false)"); }
+    
     @Override
     public String getValeurParametre(String nom) {
         if ("Nom Animation".equals(nom)) return nomAnimation;
@@ -45,11 +46,20 @@ public class NoeudActionJouerAnimation extends NoeudBase {
         if ("Boucle (true/false)".equals(nom)) return boucle;
         return "";
     }
+    
     @Override
     public void setValeurParametre(String nom, String valeur) {
         if ("Nom Animation".equals(nom)) nomAnimation = valeur;
         if ("Vitesse (FPS)".equals(nom)) vitesse = valeur;
         if ("Boucle (true/false)".equals(nom)) boucle = valeur;
+    }
+
+    @Override
+    public String getTypeEditeurParametre(String nom) {
+        if ("Nom Animation".equals(nom)) {
+            return "CHOIX_ANIMATION";
+        }
+        return super.getTypeEditeurParametre(nom);
     }
     
     @Override
@@ -85,10 +95,8 @@ public class NoeudActionJouerAnimation extends NoeudBase {
         }
         return cible;
     }
+    
     @Override
     public boolean utiliseClavierTexte() { return true; }
 }
 // bas 1
-
-
-
