@@ -60,9 +60,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Actions", "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
         
-        // NOUVEAUX NOEUDS INTÉGRÉS
         REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Actions", "NoeudActionAfficherDialogue"));
         REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
+
+        // NOEUDS AUDIO AJOUTÉS ICI
+        REGISTRE.add(new InfoNoeud("Jouer un Son", "Audio", "NoeudActionJouerSon"));
+        REGISTRE.add(new InfoNoeud("Gérer Musique", "Audio", "NoeudActionMusique"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {

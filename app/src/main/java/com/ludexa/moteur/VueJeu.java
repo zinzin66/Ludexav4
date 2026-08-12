@@ -143,6 +143,9 @@ public class VueJeu extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(boucleDeRendu);
+        
+        // NOUVEAU : On coupe la musique quand le mode Test/Play est quitté
+        GestionnaireAudio.arreterMusique();
     }
 // bas 1
 // haut 2

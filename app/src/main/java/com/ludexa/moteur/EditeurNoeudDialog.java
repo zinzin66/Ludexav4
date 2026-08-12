@@ -161,7 +161,6 @@ public class EditeurNoeudDialog extends Dialog {
                         }
                         break;
                         
-                    // NOUVEAU BLOC : Le sélecteur de dialogues
                     case NoeudBase.TYPE_CHOIX_DIALOGUE:
                         if (cheminProj != null) {
                             java.io.File fichierDialogues = new java.io.File(cheminProj, "assets_ludexa/Textes/dialogues.txt");
@@ -172,7 +171,6 @@ public class EditeurNoeudDialog extends Dialog {
                                     String ligne;
                                     while ((ligne = br.readLine()) != null) {
                                         ligne = ligne.trim();
-                                        // On ignore les lignes vides et les commentaires
                                         if (ligne.isEmpty() || ligne.startsWith("//")) continue;
                                         int idxEgal = ligne.indexOf('=');
                                         if (idxEgal > 0) {
@@ -183,7 +181,6 @@ public class EditeurNoeudDialog extends Dialog {
                                     br.close();
                                 } catch (Exception e) {}
                             }
-                            
                             if (clesDialogue.isEmpty()) clesDialogue.add("Aucune clé trouvée");
                             
                             android.app.AlertDialog.Builder builderDial = new android.app.AlertDialog.Builder(context);
@@ -195,6 +192,34 @@ public class EditeurNoeudDialog extends Dialog {
                                 }
                             });
                             builderDial.show();
+                        }
+                        break;
+                        
+                    // NOUVEAU BLOC : Sélecteur de fichiers Audio
+                    case NoeudBase.TYPE_CHOIX_SON:
+                        if (cheminProj != null) {
+                            java.io.File dossierSons = new java.io.File(cheminProj, "assets_ludexa/Sons");
+                            List<String> sons = new ArrayList<>();
+                            sons.add("Aucun fichier"); 
+                            
+                            if (dossierSons.exists() && dossierSons.isDirectory()) {
+                                java.io.File[] fichiers = dossierSons.listFiles();
+                                if (fichiers != null) {
+                                    for (java.io.File f : fichiers) {
+                                        if (!f.isDirectory() && (f.getName().toLowerCase().endsWith(".mp3") || f.getName().toLowerCase().endsWith(".wav") || f.getName().toLowerCase().endsWith(".ogg"))) {
+                                            sons.add("assets_ludexa/Sons/" + f.getName());
+                                        }
+                                    }
+                                }
+                            }
+                            android.app.AlertDialog.Builder builderSon = new android.app.AlertDialog.Builder(context);
+                            builderSon.setTitle("Choisir un fichier audio");
+                            String[] sonsArray = sons.toArray(new String[0]);
+                            builderSon.setItems(sonsArray, (dialog, which) -> {
+                                if (which == 0) champSaisie.setText("");
+                                else champSaisie.setText(sonsArray[which]);
+                            });
+                            builderSon.show();
                         }
                         break;
                 }
@@ -337,8 +362,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
 // bas 2
-
-// haut 3
+ // haut 3
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
 
@@ -381,8 +405,11 @@ public class EditeurNoeudDialog extends Dialog {
 
                     appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
                     String type = noeud.getTypeEditeurParametre(champActif);
+                    
+                    // CORRECTION ICI : Ajout de TYPE_CHOIX_SON
                     if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
-                        NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type)) {
+                        NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
+                        NoeudBase.TYPE_CHOIX_SON.equals(type)) {
                         champSaisie.performClick();
                     }
                 });
@@ -485,6 +512,8 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 3
+
+
 // haut 4
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -761,8 +790,11 @@ public class EditeurNoeudDialog extends Dialog {
     private void appliquerTypeEditeur(NoeudBase noeud, String nomParam, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
         String type = (nomParam != null) ? noeud.getTypeEditeurParametre(nomParam) : NoeudBase.TYPE_TEXTE_LIBRE;
 
+        // CORRECTION ICI : Ajout de TYPE_CHOIX_SON
         if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
-            NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type)) {
+            NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
+            NoeudBase.TYPE_CHOIX_SON.equals(type)) {
+            
             champSaisie.setFocusable(false);
             champSaisie.setFocusableInTouchMode(false);
             champSaisie.setClickable(true);
@@ -793,22 +825,6 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 4
 
 
-
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-        
 
 
 
