@@ -1,4 +1,4 @@
-// haut 1 12 08
+// haut 1 12 août 
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -32,20 +32,15 @@ public class InspecteurProprietes extends LinearLayout {
 
     private TextView valeurType;
     private EditText champLargeur, champHauteur, champRotation, champAlpha, champZOrder;
-    // FIX 2: Ajout des champs d'Echelle pour refléter le redimensionnement dynamique
     private EditText champScaleX, champScaleY;
     private CheckBox cbVisible, cbVerrouille;
     private Button btnCouleur;
     private Button btnParent;
-    
-    // NOUVEAU BOUTON ANIMATIONS
-    private Button btnAnimations;
 
     private LinearLayout blocTexte;
     private EditText champContenu, champTaille;
     private Button btnCouleurTexte, btnPolice;
 
-    // Composants pour l'image
     private LinearLayout blocImage;
     private Button btnChargerImage, btnSupprimerImage;
     private CheckBox cbFondColore;
@@ -56,7 +51,6 @@ public class InspecteurProprietes extends LinearLayout {
     private ObjetBase objetCourant;
     private boolean miseAJourEnCours = false;
 
-    // NOUVEAU CHAMP
     private String cheminProjet;
 
     public InspecteurProprietes(Context context, Scene scene, CanvasEditeur canvas) {
@@ -66,17 +60,13 @@ public class InspecteurProprietes extends LinearLayout {
         initialiserInterface(context);
     }
 
-    // NOUVEAU SETTER
     public void setCheminProjet(String cheminProjet) {
         this.cheminProjet = cheminProjet;
     }
 
-    // AJOUT: Setter pour mettre à jour la scène active dynamiquement
     public void setSceneActive(Scene scene) {
         this.sceneActive = scene;
     }
-
-    // ---------- Helpers visuels (esthétique uniquement, repris de PanneauRessources) ----------
 
     private int dp(int valeur) {
         return (int) (valeur * getResources().getDisplayMetrics().density);
@@ -159,8 +149,6 @@ public class InspecteurProprietes extends LinearLayout {
         lp.setMargins(dp(3), dp(2), dp(3), dp(2));
         cb.setLayoutParams(lp);
     }
-
-    // ------------------------------------------------------------------------
 
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -294,7 +282,6 @@ public class InspecteurProprietes extends LinearLayout {
         layoutDim.addView(champHauteur);
         blocProprietes.addView(layoutDim);
 
-        // FIX 2: Ajout section Echelle
         TextView labelScale = new TextView(context);
         labelScale.setText("Echelle X / Y (Scale)");
         styliserLabel(labelScale);
@@ -370,23 +357,7 @@ public class InspecteurProprietes extends LinearLayout {
         btnParent.setText("Parent : Aucun");
         styliserBouton(btnParent);
         blocProprietes.addView(btnParent);
-// bas 1
 
-// NOUVEAU BLOC INTÉGRÉ ICI : SECTION ANIMATIONS
-        TextView labelAnimations = new TextView(context);
-        labelAnimations.setText("Animations (Sprite 2D)");
-        styliserLabel(labelAnimations);
-        blocProprietes.addView(labelAnimations);
-
-        btnAnimations = new Button(context);
-        btnAnimations.setText("Gérer les Animations");
-        styliserBouton(btnAnimations);
-        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8)); // Violet pour ressortir
-        btnAnimations.setTextColor(Color.WHITE);
-        blocProprietes.addView(btnAnimations);
-// FIN NOUVEAU BLOC
-
-// haut 2
         btnParent.setOnClickListener(v -> {
             if (objetCourant == null) return;
 
@@ -416,18 +387,6 @@ public class InspecteurProprietes extends LinearLayout {
                     }
                 })
                 .show();
-        });
-        
-        // NOUVEAU LISTENER : Ouverture du popup Animations
-        btnAnimations.setOnClickListener(v -> {
-            if (objetCourant == null) return;
-            if (cheminProjet == null) {
-                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            EditeurAnimationsDialog dialog = new EditeurAnimationsDialog(context, objetCourant, cheminProjet);
-            dialog.setOnDismissListener(d -> canvasEditeur.invalidate());
-            dialog.show();
         });
 
         blocTexte = new LinearLayout(context);
@@ -639,9 +598,7 @@ public class InspecteurProprietes extends LinearLayout {
                 this.setLayoutParams(paramsOuvert);
             }
         });
-// bas 2
 
-// haut 3
         champNom.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 verifierEtConfirmerRenommage(context);
@@ -802,7 +759,6 @@ public class InspecteurProprietes extends LinearLayout {
 
         if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
 
-            // ANTI-DOUBLON STRICT
             if (sceneActive != null && sceneActive.objets != null) {
                 for (ObjetBase obj : sceneActive.objets) {
                     if (!obj.id.equals(objetCourant.id) && obj.nom != null && obj.nom.trim().equalsIgnoreCase(nouveauNom)) {
@@ -815,7 +771,7 @@ public class InspecteurProprietes extends LinearLayout {
                         miseAJourEnCours = true;
                         champNom.setText(ancienNom);
                         miseAJourEnCours = false;
-                        return; // Bloque la suite
+                        return; 
                     }
                 }
             }
@@ -975,4 +931,4 @@ public class InspecteurProprietes extends LinearLayout {
         };
     }
 }
-// bas 3
+// bas 1
