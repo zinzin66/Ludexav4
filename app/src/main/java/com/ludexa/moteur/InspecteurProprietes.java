@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 12 08
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -37,6 +37,9 @@ public class InspecteurProprietes extends LinearLayout {
     private CheckBox cbVisible, cbVerrouille;
     private Button btnCouleur;
     private Button btnParent;
+    
+    // NOUVEAU BOUTON ANIMATIONS
+    private Button btnAnimations;
 
     private LinearLayout blocTexte;
     private EditText champContenu, champTaille;
@@ -369,7 +372,19 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(btnParent);
 // bas 1
 
+// NOUVEAU BLOC INTÉGRÉ ICI : SECTION ANIMATIONS
+        TextView labelAnimations = new TextView(context);
+        labelAnimations.setText("Animations (Sprite 2D)");
+        styliserLabel(labelAnimations);
+        blocProprietes.addView(labelAnimations);
 
+        btnAnimations = new Button(context);
+        btnAnimations.setText("Gérer les Animations");
+        styliserBouton(btnAnimations);
+        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8)); // Violet pour ressortir
+        btnAnimations.setTextColor(Color.WHITE);
+        blocProprietes.addView(btnAnimations);
+// FIN NOUVEAU BLOC
 
 // haut 2
         btnParent.setOnClickListener(v -> {
@@ -401,6 +416,18 @@ public class InspecteurProprietes extends LinearLayout {
                     }
                 })
                 .show();
+        });
+        
+        // NOUVEAU LISTENER : Ouverture du popup Animations
+        btnAnimations.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            if (cheminProjet == null) {
+                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            EditeurAnimationsDialog dialog = new EditeurAnimationsDialog(context, objetCourant, cheminProjet);
+            dialog.setOnDismissListener(d -> canvasEditeur.invalidate());
+            dialog.show();
         });
 
         blocTexte = new LinearLayout(context);
@@ -613,7 +640,6 @@ public class InspecteurProprietes extends LinearLayout {
             }
         });
 // bas 2
-
 
 // haut 3
         champNom.setOnEditorActionListener((v, actionId, event) -> {
@@ -950,12 +976,3 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 3
-
-
-
-
-
-        
-
-
-    
