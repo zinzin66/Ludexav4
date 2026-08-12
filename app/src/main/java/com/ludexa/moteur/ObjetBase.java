@@ -2,7 +2,10 @@
 package com.ludexa.moteur;
 
 import android.graphics.Color;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ObjetBase {
@@ -17,7 +20,6 @@ public class ObjetBase {
     public boolean visible = true;
     public boolean estDeplacable = false;
     
-    // VARIABLES RESTAURÉES
     public boolean estVerrouille = false;
     public boolean estRamassable = false;
     public boolean estZoneDeClic = false;
@@ -37,9 +39,16 @@ public class ObjetBase {
     public float rotation = 0f;
     
     public String parentId = null;
-    
-    // NOUVELLE VARIABLE ANIMATION
     public float alpha = 1.0f;
+
+    // NOUVEAU : SYSTÈME D'ANIMATION MULTIPLE
+    public HashMap<String, List<String>> animations = new HashMap<>();
+    public String animationActive = null;
+    public int frameCourante = 0;
+    public long dernierTempsFrame = 0;
+    public int vitesseFps = 8;
+    public boolean boucleAnimation = false;
+    public boolean animationEnCours = false;
 
     public ObjetBase() {
         this.id = UUID.randomUUID().toString();
@@ -54,7 +63,6 @@ public class ObjetBase {
         this.hauteur = hauteur;
     }
 
-    // MÉTHODE RESTAURÉE
     public ObjetBase clonerProfond() {
         ObjetBase copie = new ObjetBase();
         copie.id = this.id; 
@@ -81,10 +89,21 @@ public class ObjetBase {
         copie.rotation = this.rotation;
         copie.parentId = this.parentId;
         copie.alpha = this.alpha;
+        
+        // Clonage sécurisé du dictionnaire d'animations
+        for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
+            copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        copie.animationActive = this.animationActive;
+        copie.frameCourante = this.frameCourante;
+        copie.dernierTempsFrame = this.dernierTempsFrame;
+        copie.vitesseFps = this.vitesseFps;
+        copie.boucleAnimation = this.boucleAnimation;
+        copie.animationEnCours = this.animationEnCours;
+
         return copie;
     }
 
-    // MÉTHODE RESTAURÉE
     public static boolean verifierBoucleParent(String idEnfant, String idParentPropose, List<ObjetBase> objets) {
         if (idParentPropose == null) return false;
         if (idEnfant.equals(idParentPropose)) return true;
@@ -111,3 +130,7 @@ public class ObjetBase {
     }
 }
 // bas 1
+
+
+
+
