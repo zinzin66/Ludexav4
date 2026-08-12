@@ -296,7 +296,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-    // haut 3
+// haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -360,13 +360,38 @@ public class VueJeu extends View {
 
         for (ObjetBase objet : objetsTries) {
             if (!objet.visible) continue; 
-
-            // NOUVEAU : Application de la transparence (Alpha) aux pinceaux
-            int alphaInt = Math.max(0, Math.min(255, (int)(objet.alpha * 255)));
             
+            // NOUVEAU : GESTION TEMPORELLE DE L'ANIMATION (Mise à jour de l'image)
+            if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
+                List<String> frames = objet.animations.get(objet.animationActive);
+                if (frames != null && !frames.isEmpty()) {
+                    long tempsActuel = System.currentTimeMillis();
+                    if (objet.dernierTempsFrame == 0) objet.dernierTempsFrame = tempsActuel;
+                    
+                    long ecoulement = tempsActuel - objet.dernierTempsFrame;
+                    long delaiFrame = 1000 / Math.max(1, objet.vitesseFps);
+                    
+                    if (ecoulement >= delaiFrame) {
+                        objet.frameCourante++;
+                        objet.dernierTempsFrame = tempsActuel;
+                        
+                        if (objet.frameCourante >= frames.size()) {
+                            if (objet.boucleAnimation) {
+                                objet.frameCourante = 0; // On recommence au début
+                            } else {
+                                objet.frameCourante = frames.size() - 1; // On bloque sur la dernière image
+                                objet.animationEnCours = false; // L'animation est finie
+                            }
+                        }
+                    }
+                    // On force l'image actuelle à être celle de l'animation
+                    objet.cheminImage = frames.get(objet.frameCourante);
+                }
+            }
+
+            int alphaInt = Math.max(0, Math.min(255, (int)(objet.alpha * 255)));
             peintureObjet.setColor(objet.couleur);
             peintureObjet.setAlpha(alphaInt);
-            
             peintureTexte.setColor(objet.couleur);
             peintureTexte.setAlpha(alphaInt);
 
@@ -474,4 +499,3 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-
