@@ -1,24 +1,46 @@
 // haut 1
 package com.ludexa.moteur;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PanneauRessources extends LinearLayout {
 
+    // TOUTES LES VARIABLES RESTAURÉES
+    private CanvasEditeur canvasEditeur;
+    private String cheminProjet;
+    private File rootAssetsDir;
+    private ObjetBase objetSelectionne;
+    
     private LinearLayout conteneurFichiers;
     private LinearLayout conteneurScenes;
-    private File rootAssetsDir;
-    private CanvasEditeur canvasEditeur;
+    private LinearLayout conteneurArborescence;
+    private LinearLayout conteneurArborescenceDossiers;
+    private LinearLayout conteneurListeAssets;
+    
+    private File currentFolderSelected;
+    private File currentAssetSelected;
 
-    public PanneauRessources(Context context, String cheminProjet, CanvasEditeur canvasEditeur) {
+    // CONSTRUCTEUR CORRIGÉ (Ordre des paramètres restauré)
+    public PanneauRessources(Context context, CanvasEditeur canvasEditeur, String cheminProjet) {
         super(context);
         this.canvasEditeur = canvasEditeur;
+        this.cheminProjet = cheminProjet;
+        
         setOrientation(LinearLayout.VERTICAL);
         setBackgroundColor(Palette.fondPanneaux);
 
@@ -81,24 +103,6 @@ public class PanneauRessources extends LinearLayout {
         btn.setLayoutParams(lp);
     }
 
-    private String genererNomUnique(String prefixe, Scene scene) {
-        int compteur = 1;
-        String nom;
-        boolean existe;
-        do {
-            nom = prefixe + " " + compteur;
-            existe = false;
-            for (ObjetBase obj : scene.objets) {
-                if (nom.equals(obj.nom)) {
-                    existe = true;
-                    break;
-                }
-            }
-            compteur++;
-        } while (existe);
-        return nom;
-    }
-
     private View creerSectionRessources(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -132,7 +136,7 @@ public class PanneauRessources extends LinearLayout {
         zoneBoutonsDossier.addView(btnDossierParent);
         zoneBoutonsDossier.addView(btnNouveauDossier);
 
-        // NOUVEAU BOUTON : Editeur Dialogues
+        // BOUTON DIALOGUES
         Button btnEditeurDial = new Button(context);
         btnEditeurDial.setText("Ouvrir dialogues.txt");
         btnEditeurDial.setAllCaps(false);
@@ -147,7 +151,7 @@ public class PanneauRessources extends LinearLayout {
             dialog.show();
         });
         
-        // NOUVEAU BOUTON : Editeur Animations (Global)
+        // BOUTON ANIMATIONS
         Button btnAnimations = new Button(context);
         btnAnimations.setText("Gérer les Séquences (Animations)");
         btnAnimations.setAllCaps(false);
@@ -181,7 +185,7 @@ public class PanneauRessources extends LinearLayout {
         section.addView(btnTitre);
         section.addView(contenu);
         return section;
-    }
+            }
 // bas 1
 // haut 2
     private View creerSectionArborescence(Context context) {
