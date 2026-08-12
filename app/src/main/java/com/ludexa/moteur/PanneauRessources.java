@@ -1,4 +1,5 @@
-// haut 1 11 08
+// 12 08
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -36,7 +37,6 @@ public class PanneauRessources extends ScrollView {
     
     private String cheminProjet;
 
-    // AJOUT : masquage du panneau (modèle InspecteurProprietes)
     private TextView titreRessources;
     private Button boutonMasquer;
     private LinearLayout conteneurSections;
@@ -111,7 +111,6 @@ public class PanneauRessources extends ScrollView {
     private void init(Context context) {
         setBackgroundColor(Palette.fondPanneaux);
 
-        // AJOUT : gabarits ouvert / fermé
         paramsOuvert = new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT);
         paramsFerme = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
         setLayoutParams(paramsOuvert);
@@ -122,9 +121,13 @@ public class PanneauRessources extends ScrollView {
         File dirImages = new File(rootAssetsDir, "Images");
         File dirSons = new File(rootAssetsDir, "Sons");
         File dirFonts = new File(rootAssetsDir, "Fonts");
+        // NOUVEAU : Création du dossier Textes
+        File dirTextes = new File(rootAssetsDir, "Textes");
+        
         if (!dirImages.exists()) dirImages.mkdirs();
         if (!dirSons.exists()) dirSons.mkdirs();
         if (!dirFonts.exists()) dirFonts.mkdirs();
+        if (!dirTextes.exists()) dirTextes.mkdirs();
         
         currentFolderSelected = dirImages;
 
@@ -132,7 +135,6 @@ public class PanneauRessources extends ScrollView {
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
         layoutPrincipal.setPadding(0, dp(4), 0, dp(12));
 
-        // AJOUT : en-tête avec bouton de masquage (même style que l'Inspecteur)
         LinearLayout enteteRessources = new LinearLayout(context);
         enteteRessources.setOrientation(LinearLayout.HORIZONTAL);
         enteteRessources.setPadding(dp(12), dp(10), dp(12), dp(10));
@@ -163,7 +165,6 @@ public class PanneauRessources extends ScrollView {
         enteteRessources.addView(boutonMasquer);
         layoutPrincipal.addView(enteteRessources);
 
-        // AJOUT : toutes les sections existantes regroupées pour être masquées d'un coup
         conteneurSections = new LinearLayout(context);
         conteneurSections.setOrientation(LinearLayout.VERTICAL);
 
@@ -172,6 +173,8 @@ public class PanneauRessources extends ScrollView {
         conteneurSections.addView(creerSectionArborescence(context));
         conteneurSections.addView(creerSectionAssets(context));
         conteneurSections.addView(creerSectionVariables(context));
+        // NOUVEAU : Ajout de la section Dialogues
+        conteneurSections.addView(creerSectionDialogues(context));
 
         layoutPrincipal.addView(conteneurSections);
 
@@ -191,7 +194,8 @@ public class PanneauRessources extends ScrollView {
 
         addView(layoutPrincipal);
     }
-
+// bas 1
+// haut 2
     private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -283,10 +287,8 @@ public class PanneauRessources extends ScrollView {
             index++;
         }
     }
-// bas 1
-    
-
-// haut 2
+// bas 2
+// haut 3
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -310,7 +312,6 @@ public class PanneauRessources extends ScrollView {
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            // Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show(); // Commenté (10/08) : jugé inutile et trop lent à disparaître, réactivable si besoin
         });
 
         ImageButton btnAjouterTexte = new ImageButton(context);
@@ -324,7 +325,6 @@ public class PanneauRessources extends ScrollView {
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            // Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show(); // Commenté (10/08) : jugé inutile et trop lent à disparaître, réactivable si besoin
         });
 
         ImageButton btnAjouterRond = new ImageButton(context);
@@ -338,7 +338,6 @@ public class PanneauRessources extends ScrollView {
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
             rafraichirArborescence();
-            // Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show(); // Commenté (10/08) : jugé inutile et trop lent à disparaître, réactivable si besoin
         });
 
         contenu.addView(btnAjouterCarre);
@@ -455,12 +454,10 @@ public class PanneauRessources extends ScrollView {
         if (dir == null) return false;
         String nom = dir.getName();
         return (dir.getParentFile() != null && dir.getParentFile().equals(rootAssetsDir)) &&
-               (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts"));
+               (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts") || nom.equals("Textes"));
     }
-// bas 2
-
-
-// haut 3
+// bas 3
+// haut 4
     private View creerSectionAssets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -629,7 +626,8 @@ public class PanneauRessources extends ScrollView {
             }
         }
     }
-
+// bas 4
+// haut 5
     private void rafraichirListeAssets() {
         if (conteneurListeAssets == null || currentFolderSelected == null) return;
         conteneurListeAssets.removeAllViews();
@@ -681,9 +679,7 @@ public class PanneauRessources extends ScrollView {
         itemLayout.addView(nom);
         conteneurListeAssets.addView(itemLayout);
     }
-// bas 3
 
-// haut 4
     public void traiterImportAsset(Uri uri) {
         Context context = getContext();
         String nomOriginal = getFileNameFromUri(context, uri);
@@ -751,7 +747,9 @@ public class PanneauRessources extends ScrollView {
         }
         fileOrDirectory.delete();
     }
+// bas 5
 
+// haut 6
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -872,10 +870,10 @@ public class PanneauRessources extends ScrollView {
         conteneurLigne.addView(nomVariable);
         conteneurVariables.addView(conteneurLigne);
     }
-// bas 4
+// bas 6
 
 
-// haut 5
+// haut 7
     private void afficherPopupCreerScene(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une scène");
@@ -1041,9 +1039,10 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 5
+// bas 7
 
-// haut 6
+
+// haut 8
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -1186,9 +1185,7 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 6
 
-// haut 7
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");
@@ -1300,10 +1297,11 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 7
+// bas 8
 
 
-// haut 8
+
+// haut 9
     private void afficherPopupNouveauDossier(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Nouveau dossier");
@@ -1420,10 +1418,7 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 8
 
-
-// haut 9
     private void afficherPopupRenommerAsset(Context context, File f) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer");
@@ -1501,41 +1496,156 @@ public class PanneauRessources extends ScrollView {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-}
 // bas 9
 
 
-    
+// haut 10
+    private View creerSectionDialogues(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
 
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Script & Dialogues ▼");
+        styliserTitreSection(btnTitre);
 
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        styliserContenuSection(contenu);
 
-    
+        Button btnOuvrir = new Button(context);
+        btnOuvrir.setText("Ouvrir dialogues.txt");
+        btnOuvrir.setAllCaps(false);
+        btnOuvrir.setTextColor(Palette.texteNormal);
+        btnOuvrir.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        btnOuvrir.setPadding(dp(10), dp(10), dp(10), dp(10));
+        
+        btnOuvrir.setOnClickListener(v -> afficherEditeurTexteGeant(context));
+        
+        contenu.addView(btnOuvrir);
 
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Script & Dialogues ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Script & Dialogues ▼");
+            }
+        });
 
-    
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
 
+    private void afficherEditeurTexteGeant(Context context) {
+        Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setBackgroundColor(Palette.fondPanneaux);
+        layoutDialog.setPadding(dp(16), dp(16), dp(16), dp(16));
 
+        TextView titre = new TextView(context);
+        titre.setText("Éditeur de Script (dialogues.txt)");
+        titre.setTextColor(Palette.texteSelectionne);
+        titre.setTextSize(18f);
+        titre.setTypeface(null, android.graphics.Typeface.BOLD);
+        titre.setPadding(0, 0, 0, dp(10));
+        layoutDialog.addView(titre);
 
+        ScrollView scroll = new ScrollView(context);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scroll.setLayoutParams(scrollParams);
+        scroll.setFillViewport(true);
 
-    
+        EditText champTexte = new EditText(context);
+        champTexte.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
+        champTexte.setTextColor(Palette.texteNormal);
+        champTexte.setGravity(Gravity.TOP | Gravity.START);
+        champTexte.setPadding(dp(12), dp(12), dp(12), dp(12));
+        champTexte.setTextSize(14f);
+        champTexte.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        
+        File dirTextes = new File(rootAssetsDir, "Textes");
+        if (!dirTextes.exists()) dirTextes.mkdirs();
+        File fichierDialogues = new File(dirTextes, "dialogues.txt");
+        
+        String texteInitial = 
+            "// ==========================================\n" +
+            "// FICHIER DE DIALOGUES ET TEXTES\n" +
+            "// ==========================================\n" +
+            "// Règle 1 : Une ligne par texte.\n" +
+            "// Règle 2 : Utilisez le format CLE = Votre texte ici\n" +
+            "// Exemple :\n" +
+            "// intro = Où suis-je ? Ma tête tourne...\n" +
+            "// porte_01 = La porte est verrouillée.\n" +
+            "// ==========================================\n\n";
 
+        if (fichierDialogues.exists()) {
+            try {
+                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fichierDialogues));
+                StringBuilder sb = new StringBuilder();
+                String ligne;
+                while ((ligne = br.readLine()) != null) {
+                    sb.append(ligne).append("\n");
+                }
+                br.close();
+                if (sb.length() > 0) {
+                    texteInitial = sb.toString();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        champTexte.setText(texteInitial);
+        scroll.addView(champTexte);
+        layoutDialog.addView(scroll);
 
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        zoneBoutons.setGravity(Gravity.END);
+        zoneBoutons.setPadding(0, dp(10), 0, 0);
 
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setTextColor(Palette.texteNormal);
+        btnAnnuler.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        btnAnnuler.setPadding(dp(16), dp(10), dp(16), dp(10));
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
 
+        Button btnSauvegarder = new Button(context);
+        btnSauvegarder.setText("Sauvegarder");
+        btnSauvegarder.setTextColor(Color.WHITE);
+        btnSauvegarder.setBackground(fond(Color.parseColor("#4CAF50"), Palette.bordure, 8));
+        btnSauvegarder.setPadding(dp(16), dp(10), dp(16), dp(10));
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.setMargins(dp(10), 0, 0, 0);
+        btnSauvegarder.setLayoutParams(btnParams);
+        
+        btnSauvegarder.setOnClickListener(v -> {
+            try {
+                java.io.FileWriter fw = new java.io.FileWriter(fichierDialogues);
+                fw.write(champTexte.getText().toString());
+                fw.close();
+                Toast.makeText(context, "Script sauvegardé avec succès", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } catch (Exception e) {
+                Toast.makeText(context, "Erreur lors de la sauvegarde", Toast.LENGTH_LONG).show();
+            }
+        });
 
-    
+        zoneBoutons.addView(btnAnnuler);
+        zoneBoutons.addView(btnSauvegarder);
+        layoutDialog.addView(zoneBoutons);
 
-
-    
-
-
-    
-
-    
-
-
-
-    
-
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+}
+// bas 10
 
 

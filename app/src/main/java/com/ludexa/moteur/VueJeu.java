@@ -143,12 +143,14 @@ public class VueJeu extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(boucleDeRendu);
+        
+        // NOUVEAU : On coupe la musique quand le mode Test/Play est quitté
+        GestionnaireAudio.arreterMusique();
     }
 // bas 1
-
-
 // haut 2
-    private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu) {
+    // Version améliorée : on peut exiger ou non que l'objet soit déplaçable
+    private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
         if (sceneHudActive != null && sceneHudActive.objets != null) {
             listeARechercher = sceneHudActive.objets;
@@ -166,7 +168,9 @@ public class VueJeu extends View {
         });
 
         for (ObjetBase obj : objetsTries) {
-            if (!obj.visible || !obj.estDeplacable) continue;
+            if (!obj.visible) continue;
+            if (exigeDeplacable && !obj.estDeplacable) continue; // Filtre uniquement si demandé (ex: pour le drag)
+            
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
             Matrix inverseMatrix = new Matrix();
             if (absMatrix.invert(inverseMatrix)) {
@@ -180,13 +184,33 @@ public class VueJeu extends View {
         return null;
     }
 
+    // Gestion du survol par curseur de souris / trackpad / émulateur
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
+            float xJeuActuel = (event.getX() - decalageX) / echelle;
+            float yJeuActuel = (event.getY() - decalageY) / echelle;
+
+            ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false); // false = n'importe quel objet visible
+            if (objSurvole != null) {
+                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                    this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                    this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                }
+            }
+            return true;
+        }
+        return super.onGenericMotionEvent(event);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float xJeuActuel = (event.getX() - decalageX) / echelle;
         float yJeuActuel = (event.getY() - decalageY) / echelle;
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel);
+            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, true); // true = doit être déplaçable
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
             
@@ -203,6 +227,16 @@ public class VueJeu extends View {
                 objetEnGlissement.y += yJeuActuel - lastYJeu;
                 lastXJeu = xJeuActuel;
                 lastYJeu = yJeuActuel;
+            } else {
+                // Sur les écrans tactiles, simule le survol si on glisse le doigt sans porter d'objet
+                ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
+                if (objSurvole != null) {
+                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    }
+                }
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             float xJeu = (event.getX() - decalageX) / echelle;
@@ -231,7 +265,7 @@ public class VueJeu extends View {
 
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
                 List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
-                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
+                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
                     if (!obj.visible) continue;
@@ -262,6 +296,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
+
 // haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
@@ -413,9 +448,11 @@ public class VueJeu extends View {
         
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
             this.moteur.verifierCollisions(this, sceneActive.objets);
+            this.moteur.verifierVariablesChangees(); 
         }
         if (this.moteurHud != null && sceneHudActive != null && sceneHudActive.objets != null) {
             this.moteurHud.verifierCollisions(this, sceneHudActive.objets);
+            this.moteurHud.verifierVariablesChangees(); 
         }
         
         echelle = Math.min((float) getWidth() / ConfigurationJeu.LARGEUR_JEU, (float) getHeight() / ConfigurationJeu.HAUTEUR_JEU);
@@ -432,5 +469,13 @@ public class VueJeu extends View {
     }
 }
 // bas 3
+
+
+
+
+    
+
+
+
 
 

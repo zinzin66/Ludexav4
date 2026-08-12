@@ -14,8 +14,10 @@ public abstract class NoeudBase {
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
     public static final String TYPE_COULEUR = "TYPE_COULEUR";
     public static final String TYPE_CHOIX_LISTE = "TYPE_CHOIX_LISTE";
-    // NOUVEAU : Constante pour le sélecteur d'images
     public static final String TYPE_CHOIX_IMAGE = "TYPE_CHOIX_IMAGE";
+    public static final String TYPE_CHOIX_DIALOGUE = "TYPE_CHOIX_DIALOGUE";
+    // NOUVEAU : Pour le dossier Sons
+    public static final String TYPE_CHOIX_SON = "TYPE_CHOIX_SON";
 
     public String id;
     public String nom;
@@ -42,15 +44,9 @@ public abstract class NoeudBase {
     public void connecterPort(String nomPortSortie, NoeudBase noeudArrivee, String nomPortEntree) {
         Port portSortie = trouverPort(this.portsSortie, nomPortSortie);
         Port portEntree = trouverPort(noeudArrivee.portsEntree, nomPortEntree);
-        
         if (portSortie != null && portEntree != null) {
             portSortie.noeudDestination = noeudArrivee;
             portSortie.portDestination = portEntree;
-        } else {
-            if (contexteApplication != null) {
-                if (portSortie == null) Toast.makeText(contexteApplication, "ERREUR : port " + nomPortSortie + " introuvable sur " + this.nom, Toast.LENGTH_LONG).show();
-                if (portEntree == null) Toast.makeText(contexteApplication, "ERREUR : port " + nomPortEntree + " introuvable sur " + noeudArrivee.nom, Toast.LENGTH_LONG).show();
-            }
         }
     }
 
@@ -73,12 +69,9 @@ public abstract class NoeudBase {
         }
     }
 
-    protected static String genererId() {
-        return UUID.randomUUID().toString();
-    }
+    protected static String genererId() { return UUID.randomUUID().toString(); }
 
     public abstract void executer();
-
     public abstract List<String> getNomsParametres();
     public abstract String getValeurParametre(String nom);
     public abstract void setValeurParametre(String nom, String valeur);
@@ -87,7 +80,6 @@ public abstract class NoeudBase {
     public abstract void setCibleObjet(ObjetBase objet);
     public abstract ObjetBase getCibleObjet();
     
-    // NOUVEAU : Mécanisme spécifique de deuxième cible pour la détection de collisions
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
     public ObjetBase getCibleObjetB() { return null; }
@@ -101,17 +93,17 @@ public abstract class NoeudBase {
     public Scene getCibleScene() { return null; }
     
     public boolean utiliseClavierTexte() { return false; }
-
-    public String getTypeEditeurParametre(String nomParametre) {
-        return TYPE_TEXTE_LIBRE; 
-    }
-    
-    public List<String> getOptionsChoixListe(String nomParametre) {
-        return new ArrayList<>();
-    }
+    public String getTypeEditeurParametre(String nomParametre) { return TYPE_TEXTE_LIBRE; }
+    public List<String> getOptionsChoixListe(String nomParametre) { return new ArrayList<>(); }
     
     public boolean aDesParametresEditables() {
         return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleObjetB() || requiertCibleVariable() || requiertCibleScene();
     }
 }
 // bas 1
+
+
+
+
+
+
