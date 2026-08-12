@@ -66,9 +66,11 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Jouer un Son", "Audio", "NoeudActionJouerSon"));
         REGISTRE.add(new InfoNoeud("Gérer Musique", "Audio", "NoeudActionMusique"));
 
-        // NOUVEAUX NOEUDS INTÉGRÉS
         REGISTRE.add(new InfoNoeud("Fondu (Alpha)", "Animations", "NoeudActionFondu"));
         REGISTRE.add(new InfoNoeud("Glisser Vers", "Animations", "NoeudActionGlisserVers"));
+        
+        // NOUVEAU NOEUD INTÉGRÉ ICI
+        REGISTRE.add(new InfoNoeud("Jouer Animation", "Animations", "NoeudActionJouerAnimation"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
