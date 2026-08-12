@@ -145,7 +145,6 @@ public class VueJeu extends View {
         removeCallbacks(boucleDeRendu);
     }
 // bas 1
-
 // haut 2
     // Version améliorée : on peut exiger ou non que l'objet soit déplaçable
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
@@ -471,8 +470,9 @@ public class VueJeu extends View {
 
 
 
-
     
+
+
 
 
 
