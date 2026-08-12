@@ -1,14 +1,13 @@
 // haut 1
 package com.ludexa.moteur;
 
-import android.app.AlertDialog;
-import android.content.Context;
 import java.util.Arrays;
 import java.util.List;
 
 public class NoeudActionAfficherDialogue extends NoeudBase {
 
-    private String titreDialogue = "Message";
+    private transient ObjetBase cible;
+    private String nomCibleObjet;
     private String cleMessageDialogue = "";
 
     public NoeudActionAfficherDialogue() {
@@ -19,7 +18,10 @@ public class NoeudActionAfficherDialogue extends NoeudBase {
 
     @Override
     public void executer() {
-        if (contexteApplication != null) {
+        ObjetBase obj = getCibleObjet();
+        
+        // Si on a bien ciblé un objet (ex: txt 1)
+        if (obj != null && contexteApplication != null) {
             
             // 1. On cherche le chemin du projet pour lire le fichier texte
             String projPath = null;
@@ -28,8 +30,9 @@ public class NoeudActionAfficherDialogue extends NoeudBase {
                 projPath = (String) field.get(contexteApplication);
             } catch(Exception e) {}
 
-            // 2. On traduit la clé en vrai texte
+            // 2. On traduit la clé en vrai texte (par défaut, on affiche la clé si on ne trouve pas le fichier)
             String vraiMessage = cleMessageDialogue;
+            
             if (projPath != null && cleMessageDialogue != null && !cleMessageDialogue.isEmpty()) {
                 java.io.File fichierDialogues = new java.io.File(projPath, "assets_ludexa/Textes/dialogues.txt");
                 if (fichierDialogues.exists()) {
@@ -38,11 +41,14 @@ public class NoeudActionAfficherDialogue extends NoeudBase {
                         String ligne;
                         while ((ligne = br.readLine()) != null) {
                             ligne = ligne.trim();
+                            // On ignore les commentaires et les lignes vides
                             if (ligne.isEmpty() || ligne.startsWith("//")) continue;
+                            
                             int idxEgal = ligne.indexOf('=');
                             if (idxEgal > 0) {
                                 String cle = ligne.substring(0, idxEgal).trim();
                                 if (cle.equals(cleMessageDialogue)) {
+                                    // On a trouvé la bonne phrase !
                                     vraiMessage = ligne.substring(idxEgal + 1).trim();
                                     break;
                                 }
@@ -53,57 +59,71 @@ public class NoeudActionAfficherDialogue extends NoeudBase {
                 }
             }
             
-            // 3. On affiche la vraie phrase finale
-            final String messageAAfficher = vraiMessage;
-            android.os.Handler handler = new android.os.Handler(contexteApplication.getMainLooper());
-            handler.post(() -> {
-                try {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(contexteApplication);
-                    if (titreDialogue != null && !titreDialogue.isEmpty()) {
-                        builder.setTitle(titreDialogue);
-                    }
-                    builder.setMessage(messageAAfficher != null ? messageAAfficher : "");
-                    builder.setPositiveButton("OK", null);
-                    builder.show();
-                } catch (Exception e) {
-                    android.widget.Toast.makeText(contexteApplication, messageAAfficher, android.widget.Toast.LENGTH_LONG).show();
-                }
-            });
+            // 3. NOUVEAU COMPORTEMENT : On injecte la phrase directement dans l'objet cible !
+            obj.contenuTexte = vraiMessage;
         }
+        
         propagerExecution("Suivant");
     }
 
     @Override
     public List<String> getNomsParametres() { 
-        return Arrays.asList("Titre", "Clé du Dialogue"); 
+        // Le titre a disparu, on ne garde que la clé
+        return Arrays.asList("Clé du Dialogue"); 
     }
 
     @Override
     public String getValeurParametre(String nom) {
-        if ("Titre".equals(nom)) return titreDialogue;
         if ("Clé du Dialogue".equals(nom)) return cleMessageDialogue;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        if ("Titre".equals(nom)) titreDialogue = valeur;
         if ("Clé du Dialogue".equals(nom)) cleMessageDialogue = valeur;
     }
     
-    // NOUVEAU : Appel du sélecteur spécifique pour le message
+    // Ouvre toujours le sélecteur avec la liste déroulante
     @Override
     public String getTypeEditeurParametre(String nomParametre) {
         if ("Clé du Dialogue".equals(nomParametre)) return TYPE_CHOIX_DIALOGUE;
         return super.getTypeEditeurParametre(nomParametre);
     }
 
+    // NOUVEAU : Exige qu'on sélectionne un objet
     @Override
-    public boolean requiertCibleObjet() { return false; }
+    public boolean requiertCibleObjet() { return true; }
+    
     @Override
-    public void setCibleObjet(ObjetBase objet) {}
+    public void setCibleObjet(ObjetBase objet) {
+        this.cible = objet;
+        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+    }
+    
     @Override
-    public ObjetBase getCibleObjet() { return null; }
+    public ObjetBase getCibleObjet() {
+        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
+            try {
+                if (contexteApplication instanceof InterfaceEditeur) {
+                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+                        for (ObjetBase o : editeur.sceneActive.objets) {
+                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
+                        }
+                    }
+                } else {
+                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                    Scene s = (Scene) sceneField.get(contexteApplication);
+                    if (s != null && s.objets != null) {
+                        for (ObjetBase o : s.objets) {
+                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
+                        }
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return cible;
+    }
 
     @Override
     public boolean utiliseClavierTexte() { return true; }
