@@ -20,7 +20,6 @@ import java.util.List;
 
 public class PanneauRessources extends LinearLayout {
 
-    // TOUTES LES VARIABLES RESTAURÉES
     private CanvasEditeur canvasEditeur;
     private String cheminProjet;
     private File rootAssetsDir;
@@ -35,7 +34,6 @@ public class PanneauRessources extends LinearLayout {
     private File currentFolderSelected;
     private File currentAssetSelected;
 
-    // CONSTRUCTEUR CORRIGÉ (Ordre des paramètres restauré)
     public PanneauRessources(Context context, CanvasEditeur canvasEditeur, String cheminProjet) {
         super(context);
         this.canvasEditeur = canvasEditeur;
@@ -103,6 +101,24 @@ public class PanneauRessources extends LinearLayout {
         btn.setLayoutParams(lp);
     }
 
+    private String genererNomUnique(String prefixe, Scene scene) {
+        int compteur = 1;
+        String nom;
+        boolean existe;
+        do {
+            nom = prefixe + " " + compteur;
+            existe = false;
+            for (ObjetBase obj : scene.objets) {
+                if (nom.equals(obj.nom)) {
+                    existe = true;
+                    break;
+                }
+            }
+            compteur++;
+        } while (existe);
+        return nom;
+    }
+
     private View creerSectionRessources(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -136,7 +152,6 @@ public class PanneauRessources extends LinearLayout {
         zoneBoutonsDossier.addView(btnDossierParent);
         zoneBoutonsDossier.addView(btnNouveauDossier);
 
-        // BOUTON DIALOGUES
         Button btnEditeurDial = new Button(context);
         btnEditeurDial.setText("Ouvrir dialogues.txt");
         btnEditeurDial.setAllCaps(false);
@@ -151,12 +166,11 @@ public class PanneauRessources extends LinearLayout {
             dialog.show();
         });
         
-        // BOUTON ANIMATIONS
         Button btnAnimations = new Button(context);
         btnAnimations.setText("Gérer les Séquences (Animations)");
         btnAnimations.setAllCaps(false);
         btnAnimations.setTextColor(Color.WHITE);
-        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8)); // Violet
+        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8));
         LinearLayout.LayoutParams lpBtnAnim = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lpBtnAnim.setMargins(0, dp(8), 0, 0);
         btnAnimations.setLayoutParams(lpBtnAnim);
@@ -185,7 +199,7 @@ public class PanneauRessources extends LinearLayout {
         section.addView(btnTitre);
         section.addView(contenu);
         return section;
-            }
+    }
 // bas 1
 // haut 2
     private View creerSectionArborescence(Context context) {
