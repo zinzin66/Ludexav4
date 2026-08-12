@@ -26,8 +26,6 @@ public class EditeurNoeudDialog extends Dialog {
 
     private String champActif = null;
 
-    // ---------- Helpers visuels (esthétique uniquement, repris de PanneauRessources) ----------
-
     private int dp(Context c, int valeur) {
         return (int) (valeur * c.getResources().getDisplayMetrics().density);
     }
@@ -49,9 +47,6 @@ public class EditeurNoeudDialog extends Dialog {
         root.setBackgroundColor(Palette.fondPanneaux);
         root.setPadding(dp(context, 8), dp(context, 8), dp(context, 8), dp(context, 4));
 
-        // =========================================================
-        // DÉCLARATIONS COMMUNES
-        // =========================================================
         final LinearLayout conteneurClavier = new LinearLayout(context);
         conteneurClavier.setOrientation(LinearLayout.VERTICAL);
         conteneurClavier.setBackground(fond(context, Palette.fondNormal, Palette.bordure, 12));
@@ -114,6 +109,11 @@ public class EditeurNoeudDialog extends Dialog {
         champSaisie.setOnClickListener(v -> {
             if (champActif != null) {
                 String typeEditeur = noeud.getTypeEditeurParametre(champActif);
+                
+                String cheminProj = null;
+                if (context instanceof InterfaceBlueprint) cheminProj = ((InterfaceBlueprint) context).cheminProjet;
+                else if (context instanceof InterfaceEditeur) cheminProj = ((InterfaceEditeur) context).cheminProjet;
+                        
                 switch (typeEditeur) {
                     case NoeudBase.TYPE_COULEUR:
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
@@ -134,15 +134,7 @@ public class EditeurNoeudDialog extends Dialog {
                         });
                         builderListe.show();
                         break;
-                    // NOUVEAU BLOC : Le sélecteur d'images
                     case NoeudBase.TYPE_CHOIX_IMAGE:
-                        String cheminProj = null;
-                        if (context instanceof InterfaceBlueprint) {
-                            cheminProj = ((InterfaceBlueprint) context).cheminProjet;
-                        } else if (context instanceof InterfaceEditeur) {
-                            cheminProj = ((InterfaceEditeur) context).cheminProjet;
-                        }
-                        
                         if (cheminProj != null) {
                             java.io.File dossierImages = new java.io.File(cheminProj, "assets_ludexa/Images");
                             List<String> images = new ArrayList<>();
@@ -158,30 +150,59 @@ public class EditeurNoeudDialog extends Dialog {
                                     }
                                 }
                             }
-                            
                             android.app.AlertDialog.Builder builderImage = new android.app.AlertDialog.Builder(context);
                             builderImage.setTitle("Choisir une image");
                             String[] imagesArray = images.toArray(new String[0]);
                             builderImage.setItems(imagesArray, (dialog, which) -> {
-                                if (which == 0) {
-                                    champSaisie.setText("");
-                                } else {
-                                    champSaisie.setText(imagesArray[which]);
-                                }
+                                if (which == 0) champSaisie.setText("");
+                                else champSaisie.setText(imagesArray[which]);
                             });
                             builderImage.show();
-                        } else {
-                            android.widget.Toast.makeText(context, "Erreur : Chemin du projet introuvable", android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                        
+                    // NOUVEAU BLOC : Le sélecteur de dialogues
+                    case NoeudBase.TYPE_CHOIX_DIALOGUE:
+                        if (cheminProj != null) {
+                            java.io.File fichierDialogues = new java.io.File(cheminProj, "assets_ludexa/Textes/dialogues.txt");
+                            List<String> clesDialogue = new ArrayList<>();
+                            if (fichierDialogues.exists()) {
+                                try {
+                                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fichierDialogues));
+                                    String ligne;
+                                    while ((ligne = br.readLine()) != null) {
+                                        ligne = ligne.trim();
+                                        // On ignore les lignes vides et les commentaires
+                                        if (ligne.isEmpty() || ligne.startsWith("//")) continue;
+                                        int idxEgal = ligne.indexOf('=');
+                                        if (idxEgal > 0) {
+                                            String cle = ligne.substring(0, idxEgal).trim();
+                                            clesDialogue.add(cle);
+                                        }
+                                    }
+                                    br.close();
+                                } catch (Exception e) {}
+                            }
+                            
+                            if (clesDialogue.isEmpty()) clesDialogue.add("Aucune clé trouvée");
+                            
+                            android.app.AlertDialog.Builder builderDial = new android.app.AlertDialog.Builder(context);
+                            builderDial.setTitle("Choisir un dialogue");
+                            String[] arrayDial = clesDialogue.toArray(new String[0]);
+                            builderDial.setItems(arrayDial, (dialog, which) -> {
+                                if (!arrayDial[which].equals("Aucune clé trouvée")) {
+                                    champSaisie.setText(arrayDial[which]);
+                                }
+                            });
+                            builderDial.show();
                         }
                         break;
                 }
             }
         });
 // bas 1
-        // haut 2
-        // =========================================================
-        // PANNEAU DROIT (Édition & Cibles)
-        // =========================================================
+
+// haut 2
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
         wrapperDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f));
@@ -195,9 +216,6 @@ public class EditeurNoeudDialog extends Dialog {
         colonneDroite.setBackground(fond(context, Palette.fondPanneaux, Palette.bordure, 12));
         colonneDroite.setPadding(dp(context, 12), dp(context, 12), dp(context, 12), dp(context, 12));
 
-        // ---------------------------------------------------------
-        // RANGÉE HORIZONTALE DES CIBLES (GÉNÉRIQUE)
-        // ---------------------------------------------------------
         HorizontalScrollView scrollCibles = new HorizontalScrollView(context);
         LinearLayout rangeeCibles = new LinearLayout(context);
         rangeeCibles.setOrientation(LinearLayout.HORIZONTAL);
@@ -299,7 +317,6 @@ public class EditeurNoeudDialog extends Dialog {
                         tempScenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
                     } catch (Exception e) {}
                 }
-
                 final List<Scene> scenesRecuperees = tempScenes;
 
                 if (scenesRecuperees != null && !scenesRecuperees.isEmpty()) {
@@ -364,7 +381,8 @@ public class EditeurNoeudDialog extends Dialog {
 
                     appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
                     String type = noeud.getTypeEditeurParametre(champActif);
-                    if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || NoeudBase.TYPE_CHOIX_IMAGE.equals(type)) {
+                    if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
+                        NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type)) {
                         champSaisie.performClick();
                     }
                 });
@@ -467,10 +485,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 3
-        // haut 4
-        // =========================================================
-        // PANNEAU GAUCHE (Uniquement Insertion Texte)
-        // =========================================================
+// haut 4
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lpGauche = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.5f);
@@ -607,58 +622,9 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        TextView titreScenes = new TextView(context);
-        titreScenes.setText("Scènes (Insertion)");
-        titreScenes.setTextColor(Palette.texteSelectionne);
-        titreScenes.setTextSize(15f);
-        titreScenes.setTypeface(null, android.graphics.Typeface.BOLD);
-        titreScenes.setGravity(Gravity.CENTER);
-        titreScenes.setBackground(fond(context, Palette.enTeteDialogues, Palette.bordure, 10));
-        titreScenes.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
-        LinearLayout.LayoutParams lpTitreScenes = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lpTitreScenes.setMargins(0, dp(context, 14), 0, 0);
-        titreScenes.setLayoutParams(lpTitreScenes);
-        listeGauche.addView(titreScenes);
-
-        List<Scene> scenesRecuperees = null;
-        if (NoeudBase.contexteApplication != null) {
-            try {
-                java.lang.reflect.Field scenesField = NoeudBase.contexteApplication.getClass().getField("listeScenes");
-                @SuppressWarnings("unchecked")
-                List<Scene> scenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
-                scenesRecuperees = scenes;
-            } catch (Exception e) {}
-        }
-
-        if (scenesRecuperees != null) {
-            for (Scene s : scenesRecuperees) {
-                Button btnScene = new Button(context);
-                btnScene.setText(s.nom);
-                btnScene.setAllCaps(false);
-                btnScene.setTextSize(14f);
-                btnScene.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-                btnScene.setTextColor(Palette.texteNormal);
-                btnScene.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
-                btnScene.setMinHeight(0);
-                btnScene.setMinimumHeight(0);
-                btnScene.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
-                LinearLayout.LayoutParams lpScene = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                lpScene.setMargins(0, dp(context, 4), 0, 0);
-                btnScene.setLayoutParams(lpScene);
-                btnScene.setTag(s.nom);
-                btnScene.setOnClickListener(insertionListener);
-                listeGauche.addView(btnScene);
-            }
-        }
-
         scrollGauche.addView(listeGauche);
         colonneGauche.addView(scrollGauche);
 
-        // =========================================================
-        // AJOUT AU ROOT ET BARRE DU BAS
-        // =========================================================
         root.addView(colonneGauche);
         root.addView(wrapperDroite);
 
@@ -703,9 +669,6 @@ public class EditeurNoeudDialog extends Dialog {
         mettreAJourResumeExpression(noeud, txtResumeExpression);
     }
 
-    // =========================================================
-    // NOUVELLES MÉTHODES UTILITAIRES POUR LES CIBLES
-    // =========================================================
     private Button creerBoutonSelectionCible(Context context, String texte) {
         Button btn = new Button(context);
         btn.setText(texte);
@@ -753,9 +716,6 @@ public class EditeurNoeudDialog extends Dialog {
         rangee.addView(couple);
     }
 
-    // =========================================================
-    // MÉTHODES UTILITAIRES DE LA DIALOG
-    // =========================================================
     private void mettreAJourResumeExpression(NoeudBase noeud, TextView txtResume) {
         boolean estComparaisonGenerique = false;
         if (noeud.requiertCibleVariable() && noeud.getNomsParametres() != null) {
@@ -801,7 +761,8 @@ public class EditeurNoeudDialog extends Dialog {
     private void appliquerTypeEditeur(NoeudBase noeud, String nomParam, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
         String type = (nomParam != null) ? noeud.getTypeEditeurParametre(nomParam) : NoeudBase.TYPE_TEXTE_LIBRE;
 
-        if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || NoeudBase.TYPE_CHOIX_IMAGE.equals(type)) {
+        if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
+            NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type)) {
             champSaisie.setFocusable(false);
             champSaisie.setFocusableInTouchMode(false);
             champSaisie.setClickable(true);
@@ -838,11 +799,18 @@ public class EditeurNoeudDialog extends Dialog {
 
 
 
+
+
+
+
         
 
 
 
+
         
+
+
 
 
     
