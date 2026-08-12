@@ -469,9 +469,7 @@ public class PanneauRessources extends LinearLayout {
         lpBtnDial.setMargins(0, dp(8), 0, 0);
         btnEditeurDial.setLayoutParams(lpBtnDial);
         btnEditeurDial.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            EditeurDialogueDialog dialog = new EditeurDialogueDialog(context, editeur.cheminProjet);
-            dialog.show();
+            afficherEditeurTexteGeant(context);
         });
         
         Button btnAnimations = new Button(context);
