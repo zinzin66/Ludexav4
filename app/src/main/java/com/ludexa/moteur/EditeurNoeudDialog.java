@@ -362,8 +362,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
 // bas 2
-
-// haut 3
+ // haut 3
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
 
@@ -406,8 +405,11 @@ public class EditeurNoeudDialog extends Dialog {
 
                     appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
                     String type = noeud.getTypeEditeurParametre(champActif);
+                    
+                    // CORRECTION ICI : Ajout de TYPE_CHOIX_SON
                     if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
-                        NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type)) {
+                        NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
+                        NoeudBase.TYPE_CHOIX_SON.equals(type)) {
                         champSaisie.performClick();
                     }
                 });
@@ -510,6 +512,8 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 3
+
+
 // haut 4
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -786,8 +790,11 @@ public class EditeurNoeudDialog extends Dialog {
     private void appliquerTypeEditeur(NoeudBase noeud, String nomParam, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
         String type = (nomParam != null) ? noeud.getTypeEditeurParametre(nomParam) : NoeudBase.TYPE_TEXTE_LIBRE;
 
+        // CORRECTION ICI : Ajout de TYPE_CHOIX_SON
         if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
-            NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type)) {
+            NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
+            NoeudBase.TYPE_CHOIX_SON.equals(type)) {
+            
             champSaisie.setFocusable(false);
             champSaisie.setFocusableInTouchMode(false);
             champSaisie.setClickable(true);
@@ -818,22 +825,6 @@ public class EditeurNoeudDialog extends Dialog {
 // bas 4
 
 
-
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-        
 
 
 
