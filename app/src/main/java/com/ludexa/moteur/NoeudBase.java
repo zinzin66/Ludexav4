@@ -14,8 +14,9 @@ public abstract class NoeudBase {
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
     public static final String TYPE_COULEUR = "TYPE_COULEUR";
     public static final String TYPE_CHOIX_LISTE = "TYPE_CHOIX_LISTE";
-    // NOUVEAU : Constante pour le sélecteur d'images
     public static final String TYPE_CHOIX_IMAGE = "TYPE_CHOIX_IMAGE";
+    // NOUVEAU : Pour ouvrir la liste des dialogues
+    public static final String TYPE_CHOIX_DIALOGUE = "TYPE_CHOIX_DIALOGUE";
 
     public String id;
     public String nom;
@@ -87,7 +88,6 @@ public abstract class NoeudBase {
     public abstract void setCibleObjet(ObjetBase objet);
     public abstract ObjetBase getCibleObjet();
     
-    // NOUVEAU : Mécanisme spécifique de deuxième cible pour la détection de collisions
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
     public ObjetBase getCibleObjetB() { return null; }
