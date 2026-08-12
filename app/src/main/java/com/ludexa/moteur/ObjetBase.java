@@ -1,4 +1,3 @@
-// 12 08
 // haut 1
 package com.ludexa.moteur;
 
@@ -18,6 +17,11 @@ public class ObjetBase {
     public boolean visible = true;
     public boolean estDeplacable = false;
     
+    // VARIABLES RESTAURÉES
+    public boolean estVerrouille = false;
+    public boolean estRamassable = false;
+    public boolean estZoneDeClic = false;
+    
     public int couleur = Color.BLUE;
     public String cheminImage = null;
     
@@ -34,7 +38,7 @@ public class ObjetBase {
     
     public String parentId = null;
     
-    // Gestion de la transparence (1.0 = opaque, 0.0 = invisible)
+    // NOUVELLE VARIABLE ANIMATION
     public float alpha = 1.0f;
 
     public ObjetBase() {
@@ -48,6 +52,62 @@ public class ObjetBase {
         this.y = y;
         this.largeur = largeur;
         this.hauteur = hauteur;
+    }
+
+    // MÉTHODE RESTAURÉE
+    public ObjetBase clonerProfond() {
+        ObjetBase copie = new ObjetBase();
+        copie.id = this.id; 
+        copie.nom = this.nom;
+        copie.x = this.x;
+        copie.y = this.y;
+        copie.largeur = this.largeur;
+        copie.hauteur = this.hauteur;
+        copie.zOrder = this.zOrder;
+        copie.visible = this.visible;
+        copie.estDeplacable = this.estDeplacable;
+        copie.estVerrouille = this.estVerrouille;
+        copie.estRamassable = this.estRamassable;
+        copie.estZoneDeClic = this.estZoneDeClic;
+        copie.couleur = this.couleur;
+        copie.cheminImage = this.cheminImage;
+        copie.type = this.type;
+        copie.afficherFondColore = this.afficherFondColore;
+        copie.contenuTexte = this.contenuTexte;
+        copie.cheminPolice = this.cheminPolice;
+        copie.tailleFonte = this.tailleFonte;
+        copie.scaleX = this.scaleX;
+        copie.scaleY = this.scaleY;
+        copie.rotation = this.rotation;
+        copie.parentId = this.parentId;
+        copie.alpha = this.alpha;
+        return copie;
+    }
+
+    // MÉTHODE RESTAURÉE
+    public static boolean verifierBoucleParent(String idEnfant, String idParentPropose, List<ObjetBase> objets) {
+        if (idParentPropose == null) return false;
+        if (idEnfant.equals(idParentPropose)) return true;
+        
+        String curParentId = idParentPropose;
+        while (curParentId != null) {
+            ObjetBase parentObj = null;
+            for (ObjetBase o : objets) {
+                if (o.id.equals(curParentId)) {
+                    parentObj = o;
+                    break;
+                }
+            }
+            if (parentObj != null) {
+                if (idEnfant.equals(parentObj.parentId)) {
+                    return true;
+                }
+                curParentId = parentObj.parentId;
+            } else {
+                break;
+            }
+        }
+        return false;
     }
 }
 // bas 1
