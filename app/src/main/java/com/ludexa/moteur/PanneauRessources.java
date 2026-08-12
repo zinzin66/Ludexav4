@@ -308,6 +308,7 @@ public class PanneauRessources extends ScrollView {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
+            nouveau.type = "carre"; // <-- CORRECTION ICI
             nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
@@ -321,6 +322,7 @@ public class PanneauRessources extends ScrollView {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
+            nouveau.type = "texte"; // <-- CORRECTION ICI
             nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
@@ -334,6 +336,7 @@ public class PanneauRessources extends ScrollView {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
             ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
+            nouveau.type = "rond"; // <-- CORRECTION ICI
             nouveau.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(nouveau);
             canvasEditeur.invalidate();
