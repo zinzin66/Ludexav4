@@ -22,54 +22,60 @@ public class RegistreNoeuds {
     public static final List<InfoNoeud> REGISTRE = new ArrayList<>();
 
     static {
+        // ÉVÉNEMENTS
         REGISTRE.add(new InfoNoeud("Au Démarrage", "Événements", "NoeudEventStart"));
-        REGISTRE.add(new InfoNoeud("Déplacer Objet", "Actions", "NoeudActionDeplacer"));
-        REGISTRE.add(new InfoNoeud("Modifier Variable", "Actions", "NoeudActionModifierVariable"));
-        REGISTRE.add(new InfoNoeud("Modifier Texte", "Actions", "NoeudActionModifierTexte"));
-        REGISTRE.add(new InfoNoeud("Modifier Couleur", "Actions", "NoeudActionModifierCouleur"));
-        REGISTRE.add(new InfoNoeud("Condition", "Logique", "NoeudConditionComparaison"));
-        REGISTRE.add(new InfoNoeud("Timer", "Actions", "NoeudActionTimer"));
         REGISTRE.add(new InfoNoeud("Fin de Clic", "Événements", "NoeudEventFinClic"));
-        REGISTRE.add(new InfoNoeud("Toast", "Actions", "NoeudActionToast"));
-        REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Actions", "NoeudActionAjouterVariable"));
-        REGISTRE.add(new InfoNoeud("Visibilité", "Actions", "NoeudActionVisibilite"));
-        REGISTRE.add(new InfoNoeud("Modifier Déplaçable", "Actions", "NoeudActionModifierDeplacable"));
-        REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Actions", "NoeudActionNombreAleatoire"));
-        
-        REGISTRE.add(new InfoNoeud("Ouvrir HUD", "UI", "NoeudActionOuvrirHUD"));
-        REGISTRE.add(new InfoNoeud("Fermer HUD", "UI", "NoeudActionFermerHUD"));
-        
         REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
         REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
         REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
-        
-        REGISTRE.add(new InfoNoeud("Ajouter à l'inventaire", "Actions", "NoeudActionAjouterInventaire"));
-        REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Actions", "NoeudActionRetirerInventaire"));
-        REGISTRE.add(new InfoNoeud("Si dans l'inventaire", "Logique", "NoeudConditionSiDansInventaire"));
-        
         REGISTRE.add(new InfoNoeud("Collision A/B", "Événements", "NoeudEventCollisionAB"));
-        REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique", "NoeudConditionSiObjetToucheZone"));
-        
-        REGISTRE.add(new InfoNoeud("Chrono", "Actions", "NoeudActionChrono"));
-        
-        REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Actions", "NoeudActionConcatenerTexte"));
-        REGISTRE.add(new InfoNoeud("Changer Z-Order", "Actions", "NoeudActionChangerZOrder"));
-        REGISTRE.add(new InfoNoeud("Changer de Scène", "Actions", "NoeudActionChangerScene"));
-        REGISTRE.add(new InfoNoeud("Changer Image", "Actions", "NoeudActionChangerImage"));
-        REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique", "NoeudConditionSiObjetVisible"));
-        REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Actions", "NoeudActionModifierVerrouillage"));
-        REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
-        
-        REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Actions", "NoeudActionAfficherDialogue"));
         REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
+        REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
 
+        // LOGIQUE & CONDITIONS
+        REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
+        REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique & Conditions", "NoeudConditionSiObjetToucheZone"));
+        REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique & Conditions", "NoeudConditionSiObjetVisible"));
+
+        // SCÈNE & HUD
+        REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
+        REGISTRE.add(new InfoNoeud("Ouvrir HUD", "Scène & HUD", "NoeudActionOuvrirHUD"));
+        REGISTRE.add(new InfoNoeud("Fermer HUD", "Scène & HUD", "NoeudActionFermerHUD"));
+        REGISTRE.add(new InfoNoeud("Toast", "Scène & HUD", "NoeudActionToast"));
+
+        // APPARENCE & OBJETS
+        REGISTRE.add(new InfoNoeud("Déplacer Objet", "Apparence & Objets", "NoeudActionDeplacer"));
+        REGISTRE.add(new InfoNoeud("Modifier Couleur", "Apparence & Objets", "NoeudActionModifierCouleur"));
+        REGISTRE.add(new InfoNoeud("Visibilité", "Apparence & Objets", "NoeudActionVisibilite"));
+        REGISTRE.add(new InfoNoeud("Modifier Déplaçable", "Apparence & Objets", "NoeudActionModifierDeplacable"));
+        REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Apparence & Objets", "NoeudActionModifierVerrouillage"));
+        REGISTRE.add(new InfoNoeud("Changer Z-Order", "Apparence & Objets", "NoeudActionChangerZOrder"));
+        REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
+
+        // TEXTES & DIALOGUES
+        REGISTRE.add(new InfoNoeud("Modifier Texte", "Textes & Dialogues", "NoeudActionModifierTexte"));
+        REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Textes & Dialogues", "NoeudActionConcatenerTexte"));
+        REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Textes & Dialogues", "NoeudActionAfficherDialogue"));
+
+        // VARIABLES & INVENTAIRE
+        REGISTRE.add(new InfoNoeud("Modifier Variable", "Variables & Inventaire", "NoeudActionModifierVariable"));
+        REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Variables & Inventaire", "NoeudActionAjouterVariable"));
+        REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Variables & Inventaire", "NoeudActionNombreAleatoire"));
+        REGISTRE.add(new InfoNoeud("Ajouter à l'inventaire", "Variables & Inventaire", "NoeudActionAjouterInventaire"));
+        REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Variables & Inventaire", "NoeudActionRetirerInventaire"));
+        REGISTRE.add(new InfoNoeud("Si dans l'inventaire", "Variables & Inventaire", "NoeudConditionSiDansInventaire"));
+
+        // TEMPS
+        REGISTRE.add(new InfoNoeud("Timer", "Temps", "NoeudActionTimer"));
+        REGISTRE.add(new InfoNoeud("Chrono", "Temps", "NoeudActionChrono"));
+
+        // AUDIO
         REGISTRE.add(new InfoNoeud("Jouer un Son", "Audio", "NoeudActionJouerSon"));
         REGISTRE.add(new InfoNoeud("Gérer Musique", "Audio", "NoeudActionMusique"));
 
+        // ANIMATIONS
         REGISTRE.add(new InfoNoeud("Fondu (Alpha)", "Animations", "NoeudActionFondu"));
         REGISTRE.add(new InfoNoeud("Glisser Vers", "Animations", "NoeudActionGlisserVers"));
-        
-        // NOUVEAU NOEUD INTÉGRÉ ICI
         REGISTRE.add(new InfoNoeud("Jouer Animation", "Animations", "NoeudActionJouerAnimation"));
     }
 
