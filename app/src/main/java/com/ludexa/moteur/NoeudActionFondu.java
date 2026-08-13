@@ -22,8 +22,28 @@ public class NoeudActionFondu extends NoeudBase {
         ObjetBase obj = getCibleObjet();
         if (obj != null && contexteApplication != null) {
             try {
-                float target = Float.parseFloat(cibleAlpha);
-                float temps = Float.parseFloat(duree);
+                // Remplacement des virgules par des points pour éviter les crashs de parsing
+                String strAlpha = cibleAlpha.replace(",", ".").trim();
+                String strDuree = duree.replace(",", ".").trim();
+
+                // Tentative de lire une variable si on a saisi un nom de variable plutôt qu'un chiffre
+                Variable varAlpha = trouverVariable(strAlpha);
+                if (varAlpha != null && varAlpha.valeur != null) {
+                    strAlpha = varAlpha.valeur.toString().replace(",", ".");
+                }
+                
+                Variable varDuree = trouverVariable(strDuree);
+                if (varDuree != null && varDuree.valeur != null) {
+                    strDuree = varDuree.valeur.toString().replace(",", ".");
+                }
+
+                float target = Float.parseFloat(strAlpha);
+                float temps = Float.parseFloat(strDuree);
+                
+                // Sécurité des limites pour l'alpha (0 à 1) et le temps
+                if (target < 0f) target = 0f;
+                if (target > 1f) target = 1f;
+                if (temps < 0.1f) temps = 0.1f;
                 
                 android.os.Handler handler = new android.os.Handler(contexteApplication.getMainLooper());
                 handler.post(() -> {
@@ -33,25 +53,55 @@ public class NoeudActionFondu extends NoeudBase {
                     anim.start();
                 });
             } catch (Exception e) {
-                obj.alpha = 1.0f;
+                // En cas d'erreur de frappe inexplicable, on ignore silencieusement au lieu de forcer à 1.0
             }
         }
         propagerExecution("Suivant"); // Poursuit la logique sans attendre la fin de l'animation
     }
 
+    @SuppressWarnings("unchecked")
+    private Variable trouverVariable(String nomVar) {
+        if (contexteApplication instanceof InterfaceEditeur) {
+            InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+            if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
+                for (Variable v : editeur.sceneActive.variablesLocales) if (v.nom.equals(nomVar)) return v;
+            }
+            if (editeur.variablesGlobales != null) {
+                for (Variable v : editeur.variablesGlobales) if (v.nom.equals(nomVar)) return v;
+            }
+        } else if (contexteApplication != null) {
+            try {
+                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                Scene s = (Scene) sceneField.get(contexteApplication);
+                if (s != null && s.variablesLocales != null) {
+                    for (Variable v : s.variablesLocales) if (v.nom.equals(nomVar)) return v;
+                }
+                java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
+                List<Variable> globales = (List<Variable>) varsField.get(contexteApplication);
+                if (globales != null) {
+                    for (Variable v : globales) if (v.nom.equals(nomVar)) return v;
+                }
+            } catch (Exception e) {}
+        }
+        return null;
+    }
+
     @Override
     public List<String> getNomsParametres() { return Arrays.asList("Cible Alpha (0 à 1)", "Durée (secondes)"); }
+    
     @Override
     public String getValeurParametre(String nom) {
         if ("Cible Alpha (0 à 1)".equals(nom)) return cibleAlpha;
         if ("Durée (secondes)".equals(nom)) return duree;
         return "";
     }
+    
     @Override
     public void setValeurParametre(String nom, String valeur) {
         if ("Cible Alpha (0 à 1)".equals(nom)) cibleAlpha = valeur;
         if ("Durée (secondes)".equals(nom)) duree = valeur;
     }
+    
     @Override
     public boolean requiertCibleObjet() { return true; }
     
@@ -85,6 +135,7 @@ public class NoeudActionFondu extends NoeudBase {
         }
         return cible;
     }
+    
     @Override
     public boolean utiliseClavierTexte() { return true; }
 }
