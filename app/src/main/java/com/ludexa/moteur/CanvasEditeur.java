@@ -296,14 +296,20 @@ public class CanvasEditeur extends View {
                 canvas.save();
                 canvas.translate(cameraX, cameraY);
                 canvas.concat(absMatrix);
+                
+                // On détermine quelle image afficher dans l'éditeur (ex: si bouton désactivé)
+                String cheminAAfficher = objet.cheminImage;
+                if ("bouton".equals(objet.type) && objet.estDesactive && objet.cheminImageDesactive != null) {
+                    cheminAAfficher = objet.cheminImageDesactive;
+                }
 
                 if ("rond".equals(objet.type)) {
-                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                    if (objet.afficherFondColore || cheminAAfficher == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                         float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                         canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
                     }
-                    dessinerImage(canvas, objet);
+                    dessinerImage(canvas, objet, cheminAAfficher);
                 } else if ("texte".equals(objet.type)) {
                     paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                     String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
@@ -360,18 +366,17 @@ public class CanvasEditeur extends View {
                         }
                     }
                 } else if ("image".equals(objet.type)) {
-                    // NOUVEAU : Traitement explicite pour le type image
                     if (objet.afficherFondColore) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                         canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                     }
-                    dessinerImage(canvas, objet);
+                    dessinerImage(canvas, objet, cheminAAfficher);
                 } else {
-                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                    if (objet.afficherFondColore || cheminAAfficher == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                         canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                     }
-                    dessinerImage(canvas, objet);
+                    dessinerImage(canvas, objet, cheminAAfficher);
                 }
 
                 if (objet == objetSelectionne) {
@@ -416,16 +421,16 @@ public class CanvasEditeur extends View {
         canvas.restore();
     }
 
-    private void dessinerImage(Canvas canvas, ObjetBase objet) {
-        if (objet.cheminImage != null && cheminProjet != null) {
-            android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
+    private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
+        if (cheminAAfficher != null && cheminProjet != null) {
+            android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
             if (bmp == null) {
                 try {
-                    java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
+                    java.io.File imgFile = new java.io.File(cheminProjet, cheminAAfficher);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                         if (bmp != null) {
-                            cacheImages.put(objet.cheminImage, bmp);
+                            cacheImages.put(cheminAAfficher, bmp);
                         }
                     }
                 } catch (Exception e) {
@@ -447,7 +452,8 @@ public class CanvasEditeur extends View {
             }
         }
     }
-
+// bas 2
+// haut 3
     private float[] ecranVersScene(float xEcran, float yEcran) {
         float cx = getWidth() / 2f, cy = getHeight() / 2f;
         float xZoom = cx + (xEcran - cx) / niveauZoom;
@@ -478,10 +484,7 @@ public class CanvasEditeur extends View {
         }
         return null;
     }
-// bas 2
 
-
-// haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
         float sx = scenePos[0], sy = scenePos[1];
@@ -663,8 +666,6 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
-
-
 
     
 
