@@ -118,14 +118,6 @@ public class NoeudActionModifierTexte extends NoeudBase {
     }
 
     @Override
-    public String getTypeEditeurParametre(String nomParametre) {
-        if ("Nouveau texte".equals(nomParametre)) {
-            return NoeudBase.TYPE_CHOIX_DIALOGUE;
-        }
-        return NoeudBase.TYPE_TEXTE_LIBRE;
-    }
-
-    @Override
     public boolean requiertCibleObjet() { return true; }
     
     @Override
