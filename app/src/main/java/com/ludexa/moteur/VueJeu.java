@@ -250,7 +250,7 @@ public class VueJeu extends View {
         float yJeuActuel = (event.getY() - decalageY) / echelle;
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, true);
+            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false); // Permet de détecter la pression même si non déplaçable
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
             
@@ -262,7 +262,7 @@ public class VueJeu extends View {
                 }
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (objetEnGlissement != null) {
+            if (objetEnGlissement != null && objetEnGlissement.estDeplacable) {
                 objetEnGlissement.x += xJeuActuel - lastXJeu;
                 objetEnGlissement.y += yJeuActuel - lastYJeu;
                 lastXJeu = xJeuActuel;
@@ -294,7 +294,7 @@ public class VueJeu extends View {
                         float[] ptLocal = new float[]{xJeu, yJeu};
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
-                            if (this.moteurHud != null) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            if (this.moteurHud != null && !obj.estDesactive) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
                             clickIntercepte = true;
                             break;
                         }
@@ -304,7 +304,6 @@ public class VueJeu extends View {
 
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
                 List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
-                // CORRECTION ICI : on teste de o2 vers o1 (du plus grand Z au plus petit)
                 Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
@@ -315,7 +314,7 @@ public class VueJeu extends View {
                         float[] ptLocal = new float[]{xJeu, yJeu};
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
-                            if (this.moteur != null) this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            if (this.moteur != null && !obj.estDesactive) this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
                             break;
                         }
                     }
@@ -336,9 +335,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-
-
-    // haut 3
+// haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -368,15 +365,15 @@ public class VueJeu extends View {
         return m;
     }
 
-    private void dessinerImage(Canvas canvas, ObjetBase objet) {
-        if (objet.cheminImage != null && cheminProjet != null) {
-            android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
+    private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
+        if (cheminAAfficher != null && cheminProjet != null) {
+            android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
             if (bmp == null) {
                 try {
-                    java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
+                    java.io.File imgFile = new java.io.File(cheminProjet, cheminAAfficher);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                        if (bmp != null) cacheImages.put(objet.cheminImage, bmp);
+                        if (bmp != null) cacheImages.put(cheminAAfficher, bmp);
                     }
                 } catch (Exception e) {}
             }
@@ -402,8 +399,6 @@ public class VueJeu extends View {
 
         for (ObjetBase objet : objetsTries) {
             if (!objet.visible) continue; 
-            
-            // NOUVEAU : On ne dessine pas les objets Zone, mais ils restent actifs pour les clics
             if ("zone".equals(objet.type)) continue;
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
@@ -443,12 +438,22 @@ public class VueJeu extends View {
             canvas.save();
             canvas.concat(absMatrix);
 
+            // NOUVEAU : Sélection de l'image dynamique
+            String cheminAAfficher = objet.cheminImage;
+            if ("bouton".equals(objet.type)) {
+                if (objet.estDesactive && objet.cheminImageDesactive != null) {
+                    cheminAAfficher = objet.cheminImageDesactive;
+                } else if (objet == objetEnGlissement && objet.cheminImagePresse != null) {
+                    cheminAAfficher = objet.cheminImagePresse;
+                }
+            }
+
             if ("rond".equals(objet.type)) {
-                if (objet.afficherFondColore || objet.cheminImage == null) {
+                if (objet.afficherFondColore || cheminAAfficher == null) {
                     float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                     canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
                 }
-                dessinerImage(canvas, objet);
+                dessinerImage(canvas, objet, cheminAAfficher);
             } else if ("texte".equals(objet.type)) {
                 String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
                 
@@ -502,8 +507,8 @@ public class VueJeu extends View {
                     }
                 }
             } else {
-                if (objet.afficherFondColore || objet.cheminImage == null) canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
-                dessinerImage(canvas, objet);
+                if (objet.afficherFondColore || cheminAAfficher == null) canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
+                dessinerImage(canvas, objet, cheminAAfficher);
             }
             canvas.restore();
 
@@ -542,13 +547,5 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-
-
-
-
-
-
-
-
 
 
