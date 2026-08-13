@@ -191,7 +191,6 @@ public class VueJeu extends View {
     }
 // bas 1
 
-
 // haut 2
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
@@ -339,7 +338,12 @@ public class VueJeu extends View {
 // bas 2
 
 
-// haut 3
+
+
+
+
+
+    // haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -403,6 +407,9 @@ public class VueJeu extends View {
 
         for (ObjetBase objet : objetsTries) {
             if (!objet.visible) continue; 
+            
+            // NOUVEAU : On ne dessine pas les objets Zone, mais ils restent actifs pour les clics
+            if ("zone".equals(objet.type)) continue;
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
                 List<String> frames = objet.animations.get(objet.animationActive);
@@ -540,11 +547,13 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-                              
 
 
 
 
-    
+
+
+
+
 
 
