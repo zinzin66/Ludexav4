@@ -124,6 +124,7 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 1
 
+
 // haut 2 : UTILITAIRES GRAPHIQUES ET NOMMAGE
     private int dp(int valeur) {
         return (int) (valeur * getResources().getDisplayMetrics().density);
@@ -200,6 +201,7 @@ public class PanneauRessources extends LinearLayout {
         return nom;
     }
 // bas 2
+
 
 // haut 3 : SECTION SCENES
     private View creerSectionScenes(Context context) {
@@ -419,6 +421,7 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 3
 
+
 // haut 4 : SECTION OBJETS (Ajout)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -474,9 +477,24 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        ImageButton btnAjouterImage = new ImageButton(context);
+        btnAjouterImage.setImageResource(R.drawable.upload_file_24px); 
+        styliserBoutonIcone(btnAjouterImage);
+        btnAjouterImage.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Image", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 100f, 100f);
+            nouveau.type = "image"; 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
         contenu.addView(btnAjouterCarre);
         contenu.addView(btnAjouterTexte);
         contenu.addView(btnAjouterRond);
+        contenu.addView(btnAjouterImage);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -1190,6 +1208,7 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 8
 
+
 // haut 9 : SECTION VARIABLES UI
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -1313,6 +1332,7 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 9
 
+
 // haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1413,9 +1433,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 6
 
-// haut 7
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");
@@ -1496,3 +1514,41 @@ public class PanneauRessources extends LinearLayout {
     }
 }
 // bas 10
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+    
+
+
+    
+
+
+    
+
+
+
+    
+
+
