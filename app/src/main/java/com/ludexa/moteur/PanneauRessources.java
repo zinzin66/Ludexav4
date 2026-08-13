@@ -418,7 +418,8 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-// haut 4 : SECTION OBJETS (Ajout)
+
+    // haut 4 : SECTION OBJETS (Ajout)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -436,6 +437,9 @@ public class PanneauRessources extends LinearLayout {
         
         LinearLayout ligne2 = new LinearLayout(context);
         ligne2.setOrientation(LinearLayout.HORIZONTAL);
+
+        LinearLayout ligne3 = new LinearLayout(context);
+        ligne3.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageButton btnAjouterCarre = new ImageButton(context);
         btnAjouterCarre.setImageResource(R.drawable.square_24px);
@@ -524,6 +528,49 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        // NOUVEAU : Création du raccourci Préfabriqué Dialogue
+        ImageButton btnAjouterDialogue = new ImageButton(context);
+        btnAjouterDialogue.setImageResource(R.drawable.format_color_text_24px);
+        styliserBoutonIcone(btnAjouterDialogue);
+        btnAjouterDialogue.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            
+            // 1. Fond (Parent)
+            String nomFond = genererNomUnique("BoiteDialogue", editeur.sceneActive);
+            ObjetBase fond = new ObjetBase(nomFond, 50f, 300f, 700f, 150f);
+            fond.type = "image";
+            fond.couleur = Color.argb(220, 30, 30, 30);
+            fond.afficherFondColore = true;
+            fond.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(fond);
+            
+            // 2. Texte (Enfant)
+            String nomTexte = genererNomUnique("TexteDialogue", editeur.sceneActive);
+            ObjetBase texte = new ObjetBase(nomTexte, 20f, 20f, 600f, 110f);
+            texte.type = "texte";
+            texte.contenuTexte = "Texte du dialogue ici...";
+            texte.couleur = Color.WHITE;
+            texte.tailleFonte = 20f;
+            texte.parentId = fond.id;
+            texte.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(texte);
+            
+            // 3. Bouton Fermer (Enfant)
+            String nomBtn = genererNomUnique("BtnFermer", editeur.sceneActive);
+            ObjetBase btn = new ObjetBase(nomBtn, 640f, 10f, 40f, 40f);
+            btn.type = "bouton";
+            btn.estZoneDeClic = true;
+            btn.couleur = Color.parseColor("#E53935");
+            btn.afficherFondColore = true;
+            btn.parentId = fond.id;
+            btn.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(btn);
+
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+            Toast.makeText(context, "Groupe Dialogue créé", Toast.LENGTH_SHORT).show();
+        });
+
         ligne1.addView(btnAjouterCarre);
         ligne1.addView(btnAjouterTexte);
         ligne1.addView(btnAjouterRond);
@@ -531,9 +578,19 @@ public class PanneauRessources extends LinearLayout {
         ligne2.addView(btnAjouterImage);
         ligne2.addView(btnAjouterZone);
         ligne2.addView(btnAjouterBouton);
+        
+        ligne3.addView(btnAjouterDialogue);
+        // Ajout d'espaces invisibles pour garder les icônes de la 3ème ligne à la bonne taille
+        View espace1 = new View(context);
+        espace1.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ligne3.addView(espace1);
+        View espace2 = new View(context);
+        espace2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ligne3.addView(espace2);
 
         contenu.addView(ligne1);
         contenu.addView(ligne2);
+        contenu.addView(ligne3);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
