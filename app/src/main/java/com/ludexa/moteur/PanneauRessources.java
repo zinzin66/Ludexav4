@@ -1,248 +1,222 @@
-// haut 1 8 08
+// haut 1 : IMPORTS ET CONSTRUCTEUR
 package com.ludexa.moteur;
 
-import android.app.Dialog;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Color;
-import android.view.View;
-import android.widget.*;
-import android.net.Uri;
-import android.provider.OpenableColumns;
 import android.database.Cursor;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.FileOutputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.net.Uri;
+import android.provider.OpenableColumns;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
-public class PanneauRessources extends ScrollView {
+public class PanneauRessources extends LinearLayout {
 
-    private CanvasEditeur canvasEditeur;
+    private LinearLayout conteneurFichiers;
     private LinearLayout conteneurScenes;
     private LinearLayout conteneurArborescence;
-    private LinearLayout conteneurVariables;
-    private Variable variableSelectionnee;
-    private ObjetBase objetSelectionne;
-
-    private File rootAssetsDir;
-    private File currentFolderSelected;
-    private File currentAssetSelected;
-    
     private LinearLayout conteneurArborescenceDossiers;
     private LinearLayout conteneurListeAssets;
+    private LinearLayout conteneurVariables;
     
+    private File rootAssetsDir;
+    private CanvasEditeur canvasEditeur;
+    private ObjetBase objetSelectionne;
+    private Variable variableSelectionnee;
+    
+    private File currentFolderSelected;
+    private File currentAssetSelected;
     private String cheminProjet;
 
-    public PanneauRessources(Context context, CanvasEditeur canvas, String cheminProjet) {
+    private ScrollView scrollPanneau;
+    private LinearLayout.LayoutParams paramsOuvert;
+    private LinearLayout.LayoutParams paramsFerme;
+    private Button boutonMasquer;
+
+    public PanneauRessources(Context context, CanvasEditeur canvasEditeur, String cheminProjet) {
         super(context);
-        this.canvasEditeur = canvas;
+        this.canvasEditeur = canvasEditeur;
         this.cheminProjet = cheminProjet;
-        init(context);
-    }
-
-    private void init(Context context) {
+        setOrientation(LinearLayout.VERTICAL);
         setBackgroundColor(Palette.fondPanneaux);
-        setLayoutParams(new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT));
 
-        rootAssetsDir = new File(cheminProjet, "assets_ludexa");
-        if (!rootAssetsDir.exists()) rootAssetsDir.mkdirs();
-        
-        File dirImages = new File(rootAssetsDir, "Images");
-        File dirSons = new File(rootAssetsDir, "Sons");
-        if (!dirImages.exists()) dirImages.mkdirs();
-        if (!dirSons.exists()) dirSons.mkdirs();
-        
-        currentFolderSelected = dirImages;
+        if (cheminProjet != null) {
+            rootAssetsDir = new File(cheminProjet, "assets_ludexa");
+            if (!rootAssetsDir.exists()) rootAssetsDir.mkdirs();
+            new File(rootAssetsDir, "Images").mkdirs();
+            new File(rootAssetsDir, "Sons").mkdirs();
+            new File(rootAssetsDir, "Fonts").mkdirs();
+            new File(rootAssetsDir, "Textes").mkdirs();
+        }
 
-        LinearLayout layoutPrincipal = new LinearLayout(context);
-        layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
+        paramsOuvert = new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT);
+        paramsFerme = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        this.setLayoutParams(paramsOuvert);
 
-        layoutPrincipal.addView(creerSectionScenes(context));
-        layoutPrincipal.addView(creerSectionObjets(context));
-        layoutPrincipal.addView(creerSectionArborescence(context));
-        layoutPrincipal.addView(creerSectionAssets(context));
-        layoutPrincipal.addView(creerSectionVariables(context));
+        LinearLayout entetePanneau = new LinearLayout(context);
+        entetePanneau.setOrientation(LinearLayout.HORIZONTAL);
+        entetePanneau.setPadding(dp(12), dp(10), dp(12), dp(10));
+        entetePanneau.setBackgroundColor(Palette.enTeteDialogues);
+        entetePanneau.setGravity(Gravity.CENTER_VERTICAL);
 
-        addView(layoutPrincipal);
-    }
+        boutonMasquer = new Button(context);
+        boutonMasquer.setText("<"); 
+        boutonMasquer.setAllCaps(false);
+        boutonMasquer.setTextColor(Palette.iconeNormal);
+        boutonMasquer.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        boutonMasquer.setPadding(dp(10), dp(6), dp(10), dp(6));
+        boutonMasquer.setLayoutParams(new LinearLayout.LayoutParams(dp(44), dp(40)));
 
-    private View creerSectionArborescence(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
+        TextView titrePanneau = new TextView(context);
+        titrePanneau.setText("RESSOURCES");
+        titrePanneau.setTextSize(17f);
+        titrePanneau.setLetterSpacing(0.08f);
+        titrePanneau.setTypeface(null, android.graphics.Typeface.BOLD);
+        titrePanneau.setTextColor(Palette.texteSelectionne);
+        titrePanneau.setPadding(dp(10), 0, 0, 0);
+        LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        titrePanneau.setLayoutParams(paramsTitre);
 
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Arborescence ▼");
+        entetePanneau.addView(boutonMasquer);
+        entetePanneau.addView(titrePanneau);
+        addView(entetePanneau);
 
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        scrollPanneau = new ScrollView(context);
+        scrollPanneau.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        conteneurArborescence = new LinearLayout(context);
-        conteneurArborescence.setOrientation(LinearLayout.VERTICAL);
-        contenu.addView(conteneurArborescence);
+        LinearLayout contenuScroll = new LinearLayout(context);
+        contenuScroll.setOrientation(LinearLayout.VERTICAL);
+        contenuScroll.setPadding(dp(8), dp(8), dp(8), dp(8));
 
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Arborescence ▶");
+        contenuScroll.addView(creerSectionScenes(context));
+        contenuScroll.addView(creerSectionObjets(context));
+        contenuScroll.addView(creerSectionArborescence(context));
+        contenuScroll.addView(creerSectionAssets(context));
+        contenuScroll.addView(creerSectionVariables(context));
+
+        scrollPanneau.addView(contenuScroll);
+        addView(scrollPanneau);
+
+        boutonMasquer.setOnClickListener(v -> {
+            if (scrollPanneau.getVisibility() == View.VISIBLE) {
+                scrollPanneau.setVisibility(View.GONE);
+                titrePanneau.setVisibility(View.GONE);
+                boutonMasquer.setText(">");
+                this.setLayoutParams(paramsFerme);
             } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Arborescence ▼");
-                rafraichirArborescence();
+                scrollPanneau.setVisibility(View.VISIBLE);
+                titrePanneau.setVisibility(View.VISIBLE);
+                boutonMasquer.setText("<");
+                this.setLayoutParams(paramsOuvert);
             }
         });
+    }
+// bas 1
 
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
+// haut 2 : UTILITAIRES GRAPHIQUES ET NOMMAGE
+    private int dp(int valeur) {
+        return (int) (valeur * getResources().getDisplayMetrics().density);
     }
 
-    public void setObjetSelectionne(ObjetBase objet) {
-        this.objetSelectionne = objet;
-        rafraichirArborescence();
+    private android.graphics.drawable.GradientDrawable fond(int couleurFond, int couleurBordure, int rayon) {
+        android.graphics.drawable.GradientDrawable g = new android.graphics.drawable.GradientDrawable();
+        g.setColor(couleurFond);
+        g.setCornerRadius(dp(rayon));
+        g.setStroke(dp(1), couleurBordure);
+        return g;
     }
 
-    public void rafraichirArborescence() {
-        if (conteneurArborescence == null) return;
-        conteneurArborescence.removeAllViews();
-        
-        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-        if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-            for (int i = 0; i < editeur.sceneActive.objets.size(); i++) {
-                ObjetBase obj = editeur.sceneActive.objets.get(i);
-                
-                TextView txtObjet = new TextView(getContext());
-                txtObjet.setText("• " + obj.nom);
-                txtObjet.setTextColor(obj == objetSelectionne ? Palette.texteSelectionne : Palette.texteNormal);
-                txtObjet.setPadding(10, 10, 10, 10);
-                txtObjet.setTextSize(14f);
-                
-                txtObjet.setOnClickListener(v -> {
-                    objetSelectionne = obj;
-                    canvasEditeur.setObjetSelectionne(obj);
-                    rafraichirArborescence();
-                });
-                
-                conteneurArborescence.addView(txtObjet);
-            }
-        }
-        
-        if (conteneurArborescence.getChildCount() == 0) {
-            TextView txtVide = new TextView(getContext());
-            txtVide.setText("Aucun objet dans la scène");
-            txtVide.setTextColor(Palette.texteNormal);
-            txtVide.setPadding(10, 10, 10, 10);
-            conteneurArborescence.addView(txtVide);
-        }
+    private void styliserTitreSection(Button btn) {
+        btn.setBackgroundColor(Color.TRANSPARENT);
+        btn.setTextColor(Palette.texteSelectionne);
+        btn.setTextSize(16f);
+        btn.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        btn.setTypeface(null, android.graphics.Typeface.BOLD);
+        btn.setPadding(dp(8), dp(16), dp(8), dp(8));
+        btn.setAllCaps(false);
+    }
+
+    private void styliserContenuSection(LinearLayout contenu) {
+        contenu.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
+        contenu.setPadding(dp(8), dp(8), dp(8), dp(8));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, 0, dp(12));
+        contenu.setLayoutParams(lp);
+    }
+
+    private void styliserBoutonIcone(ImageButton btn) {
+        btn.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        btn.setPadding(dp(12), dp(12), dp(12), dp(12));
+        btn.setColorFilter(Palette.iconeNormal);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(dp(4), dp(4), dp(4), dp(4));
+        btn.setLayoutParams(lp);
+    }
+
+    private void styliserDialogue(LinearLayout layout) {
+        layout.setBackgroundColor(Palette.fondPanneaux);
+        layout.setPadding(dp(16), dp(16), dp(16), dp(16));
+    }
+
+    private void styliserChampDialogue(EditText champ) {
+        champ.setTextColor(Palette.texteNormal);
+        champ.setHintTextColor(Palette.bordure);
+        champ.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
+        champ.setPadding(dp(12), dp(10), dp(12), dp(10));
+        champ.setTextSize(14f);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, 0, dp(12));
+        champ.setLayoutParams(lp);
     }
 
     private String genererNomUnique(String prefixe, Scene scene) {
-        if (scene == null || scene.objets == null) return prefixe + "1";
-        int index = 1;
-        while (true) {
-            String testNom = prefixe + index;
-            boolean existe = false;
+        if (scene == null || scene.objets == null) return prefixe + " 1";
+        int compteur = 1;
+        String nom;
+        boolean existe;
+        do {
+            nom = prefixe + " " + compteur;
+            existe = false;
             for (ObjetBase obj : scene.objets) {
-                if (obj.nom.equals(testNom)) {
+                if (nom.equals(obj.nom)) {
                     existe = true;
                     break;
                 }
             }
-            if (!existe) return testNom;
-            index++;
-        }
+            compteur++;
+        } while (existe);
+        return nom;
     }
+// bas 2
 
-    private View creerSectionObjets(Context context) {
-        LinearLayout section = new LinearLayout(context);
-        section.setOrientation(LinearLayout.VERTICAL);
-
-        Button btnTitre = new Button(context);
-        btnTitre.setText("Objets à placer ▼");
-
-        LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
-
-        ImageButton btnAjouterCarre = new ImageButton(context);
-        btnAjouterCarre.setImageResource(R.drawable.square_24px);
-        btnAjouterCarre.setColorFilter(Palette.texteNormal);
-        btnAjouterCarre.setBackgroundColor(Color.TRANSPARENT);
-        btnAjouterCarre.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
-            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
-            editeur.sceneActive.ajouterObjet(nouveau);
-            canvasEditeur.invalidate();
-            rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
-        });
-
-        ImageButton btnAjouterTexte = new ImageButton(context);
-        btnAjouterTexte.setImageResource(R.drawable.title_24px);
-        btnAjouterTexte.setColorFilter(Palette.texteNormal);
-        btnAjouterTexte.setBackgroundColor(Color.TRANSPARENT);
-        btnAjouterTexte.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
-            ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
-            editeur.sceneActive.ajouterObjet(nouveau);
-            canvasEditeur.invalidate();
-            rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
-        });
-
-        ImageButton btnAjouterRond = new ImageButton(context);
-        btnAjouterRond.setImageResource(R.drawable.circle_24px);
-        btnAjouterRond.setColorFilter(Palette.texteNormal);
-        btnAjouterRond.setBackgroundColor(Color.TRANSPARENT);
-        btnAjouterRond.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
-            String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
-            ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
-            editeur.sceneActive.ajouterObjet(nouveau);
-            canvasEditeur.invalidate();
-            rafraichirArborescence();
-            Toast.makeText(context, nomUnique + " ajouté à la scène", Toast.LENGTH_SHORT).show();
-        });
-
-        contenu.addView(btnAjouterCarre);
-        contenu.addView(btnAjouterTexte);
-        contenu.addView(btnAjouterRond);
-
-        btnTitre.setOnClickListener(v -> {
-            if (contenu.getVisibility() == View.VISIBLE) {
-                contenu.setVisibility(View.GONE);
-                btnTitre.setText("Objets à placer ▶");
-            } else {
-                contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Objets à placer ▼");
-            }
-        });
-
-        section.addView(btnTitre);
-        section.addView(contenu);
-        return section;
-    }
-// bas 1
-
-// haut 2
+// haut 3 : SECTION SCENES
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
         btnTitre.setText("Scènes ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        styliserContenuSection(contenu);
 
         conteneurScenes = new LinearLayout(context);
         conteneurScenes.setOrientation(LinearLayout.VERTICAL);
-        conteneurScenes.setPadding(0, 0, 0, 20);
+        conteneurScenes.setPadding(0, 0, 0, dp(8));
         contenu.addView(conteneurScenes);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -250,14 +224,12 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnCreer = new ImageButton(context);
         btnCreer.setImageResource(R.drawable.add_24px);
-        btnCreer.setColorFilter(Palette.texteNormal);
-        btnCreer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnCreer);
         btnCreer.setOnClickListener(v -> afficherPopupCreerScene(context));
 
         ImageButton btnRenommer = new ImageButton(context);
         btnRenommer.setImageResource(R.drawable.edit_square_24px);
-        btnRenommer.setColorFilter(Palette.texteNormal);
-        btnRenommer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnRenommer);
         btnRenommer.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             afficherPopupRenommerScene(context, editeur.sceneActive);
@@ -265,8 +237,7 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnSupprimer = new ImageButton(context);
         btnSupprimer.setImageResource(R.drawable.delete_24px);
-        btnSupprimer.setColorFilter(Palette.texteNormal);
-        btnSupprimer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnSupprimer);
         btnSupprimer.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
             afficherPopupSupprimerScene(context, editeur.sceneActive);
@@ -305,11 +276,12 @@ public class PanneauRessources extends ScrollView {
                 nomScene.setText(s.nom);
                 if (s == editeur.sceneActive) {
                     nomScene.setTextColor(Palette.texteSelectionne);
+                    nomScene.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
                 } else {
                     nomScene.setTextColor(Palette.texteNormal);
                 }
-                nomScene.setPadding(10, 15, 10, 15);
-                nomScene.setTextSize(16f);
+                nomScene.setPadding(dp(10), dp(10), dp(10), dp(10));
+                nomScene.setTextSize(15f);
                 
                 nomScene.setOnClickListener(v -> {
                     editeur.changerScene(s);
@@ -321,11 +293,290 @@ public class PanneauRessources extends ScrollView {
         }
     }
 
+    private void afficherPopupCreerScene(Context context) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Créer une scène");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        EditText champTexte = new EditText(context);
+        champTexte.setHint("Entrez le nom...");
+        styliserChampDialogue(champTexte);
+        layoutDialog.addView(champTexte);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnValider = new ImageButton(context);
+        btnValider.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnValider);
+        btnValider.setOnClickListener(v -> {
+            String nom = champTexte.getText().toString().trim();
+            if(!nom.isEmpty()) {
+                InterfaceEditeur editeur = (InterfaceEditeur) context;
+                if (editeur.listeScenes != null) {
+                    for (Scene s : editeur.listeScenes) {
+                        if (s.nom != null && s.nom.trim().equalsIgnoreCase(nom)) {
+                            new AlertDialog.Builder(context).setTitle("Impossible").setMessage("Une scène avec ce nom existe déjà.").setPositiveButton("OK", null).show();
+                            return;
+                        }
+                    }
+                }
+                editeur.creerScene(nom);
+                Toast.makeText(context, "Scène créée : " + nom, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+        ImageButton btnAnnuler = new ImageButton(context);
+        btnAnnuler.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnAnnuler);
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommerScene(Context context, Scene scene) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer la scène");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        EditText champTexte = new EditText(context);
+        champTexte.setText(scene.nom);
+        styliserChampDialogue(champTexte);
+        layoutDialog.addView(champTexte);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnValider = new ImageButton(context);
+        btnValider.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnValider);
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString().trim();
+            if(nouveauNom.isEmpty()) return;
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            if (editeur.listeScenes != null) {
+                for (Scene s : editeur.listeScenes) {
+                    if (s != scene && s.nom != null && s.nom.trim().equalsIgnoreCase(nouveauNom)) {
+                        new AlertDialog.Builder(context).setTitle("Impossible").setMessage("Une scène avec ce nom existe déjà.").setPositiveButton("OK", null).show();
+                        return;
+                    }
+                }
+            }
+            scene.nom = nouveauNom;
+            rafraichirScenes();
+            dialog.dismiss();
+        });
+        ImageButton btnAnnuler = new ImageButton(context);
+        btnAnnuler.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnAnnuler);
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupSupprimerScene(Context context, Scene scene) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Supprimer la scène");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText("Voulez-vous vraiment supprimer la scène '" + scene.nom + "' ?");
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
+        layoutDialog.addView(txtMessage);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnOui = new ImageButton(context);
+        btnOui.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnOui);
+        btnOui.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) context;
+            if (editeur.listeScenes.size() <= 1) {
+                Toast.makeText(context, "Impossible de supprimer la seule scène.", Toast.LENGTH_SHORT).show();
+            } else {
+                editeur.listeScenes.remove(scene);
+                if (editeur.sceneActive == scene) editeur.changerScene(editeur.listeScenes.get(0));
+                else rafraichirScenes();
+                rafraichirArborescence();
+            }
+            dialog.dismiss();
+        });
+        ImageButton btnNon = new ImageButton(context);
+        btnNon.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnNon);
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+// bas 3
+
+// haut 4 : SECTION OBJETS (Ajout)
+    private View creerSectionObjets(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Objets à placer ▼");
+        styliserTitreSection(btnTitre);
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.HORIZONTAL);
+        styliserContenuSection(contenu);
+
+        ImageButton btnAjouterCarre = new ImageButton(context);
+        btnAjouterCarre.setImageResource(R.drawable.square_24px);
+        styliserBoutonIcone(btnAjouterCarre);
+        btnAjouterCarre.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Carré", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 80f, 80f);
+            nouveau.type = "carre"; 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        ImageButton btnAjouterTexte = new ImageButton(context);
+        btnAjouterTexte.setImageResource(R.drawable.title_24px);
+        styliserBoutonIcone(btnAjouterTexte);
+        btnAjouterTexte.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Texte", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 200f, 100f, 120f, 40f);
+            nouveau.type = "texte"; 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        ImageButton btnAjouterRond = new ImageButton(context);
+        btnAjouterRond.setImageResource(R.drawable.circle_24px);
+        styliserBoutonIcone(btnAjouterRond);
+        btnAjouterRond.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Rond", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 100f, 200f, 90f, 90f);
+            nouveau.type = "rond"; 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        contenu.addView(btnAjouterCarre);
+        contenu.addView(btnAjouterTexte);
+        contenu.addView(btnAjouterRond);
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Objets à placer ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Objets à placer ▼");
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+// bas 4
+
+// haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
+    private View creerSectionArborescence(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Arborescence ▼");
+        styliserTitreSection(btnTitre);
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        styliserContenuSection(contenu);
+
+        conteneurArborescence = new LinearLayout(context);
+        conteneurArborescence.setOrientation(LinearLayout.VERTICAL);
+        contenu.addView(conteneurArborescence);
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Arborescence ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Arborescence ▼");
+                rafraichirArborescence();
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+
+    public void setObjetSelectionne(ObjetBase objet) {
+        this.objetSelectionne = objet;
+        rafraichirArborescence();
+    }
+
+    public void rafraichirArborescence() {
+        if (conteneurArborescence == null) return;
+        conteneurArborescence.removeAllViews();
+        
+        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+        if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+            for (int i = 0; i < editeur.sceneActive.objets.size(); i++) {
+                ObjetBase obj = editeur.sceneActive.objets.get(i);
+                
+                TextView txtObjet = new TextView(getContext());
+                txtObjet.setText("• " + obj.nom);
+                txtObjet.setTextColor(obj == objetSelectionne ? Palette.texteSelectionne : Palette.texteNormal);
+                txtObjet.setPadding(dp(10), dp(9), dp(10), dp(9));
+                txtObjet.setTextSize(14f);
+                if (obj == objetSelectionne) {
+                    txtObjet.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+                }
+                
+                txtObjet.setOnClickListener(v -> {
+                    objetSelectionne = obj;
+                    canvasEditeur.setObjetSelectionne(obj);
+                    rafraichirArborescence();
+                });
+                
+                conteneurArborescence.addView(txtObjet);
+            }
+        }
+        
+        if (conteneurArborescence.getChildCount() == 0) {
+            TextView txtVide = new TextView(getContext());
+            txtVide.setText("Aucun objet dans la scène");
+            txtVide.setTextColor(Palette.bordure);
+            txtVide.setTextSize(13f);
+            txtVide.setPadding(dp(10), dp(10), dp(10), dp(10));
+            conteneurArborescence.addView(txtVide);
+        }
+    }
+// bas 5
+
+// haut 6 : SECTION ASSETS UI (Dossiers et Boutons)
     private boolean isRacineIndestructible(File dir) {
         if (dir == null) return false;
         String nom = dir.getName();
         return (dir.getParentFile() != null && dir.getParentFile().equals(rootAssetsDir)) &&
-               (nom.equals("Images") || nom.equals("Sons"));
+               (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts") || nom.equals("Textes"));
     }
 
     private View creerSectionAssets(Context context) {
@@ -333,11 +584,12 @@ public class PanneauRessources extends ScrollView {
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
-        btnTitre.setText("Assets ▼");
+        btnTitre.setText("Assets (Ressources) ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        styliserContenuSection(contenu);
 
         conteneurArborescenceDossiers = new LinearLayout(context);
         conteneurArborescenceDossiers.setOrientation(LinearLayout.VERTICAL);
@@ -347,18 +599,15 @@ public class PanneauRessources extends ScrollView {
         
         ImageButton btnAddFolder = new ImageButton(context);
         btnAddFolder.setImageResource(R.drawable.add_24px);
-        btnAddFolder.setColorFilter(Palette.texteNormal);
-        btnAddFolder.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAddFolder);
         
         ImageButton btnEditFolder = new ImageButton(context);
         btnEditFolder.setImageResource(R.drawable.edit_square_24px);
-        btnEditFolder.setColorFilter(Palette.texteNormal);
-        btnEditFolder.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnEditFolder);
         
         ImageButton btnDelFolder = new ImageButton(context);
         btnDelFolder.setImageResource(R.drawable.delete_24px);
-        btnDelFolder.setColorFilter(Palette.texteNormal);
-        btnDelFolder.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnDelFolder);
 
         btnAddFolder.setOnClickListener(v -> {
             if (currentFolderSelected != null) afficherPopupNouveauDossier(context);
@@ -380,25 +629,22 @@ public class PanneauRessources extends ScrollView {
 
         conteneurListeAssets = new LinearLayout(context);
         conteneurListeAssets.setOrientation(LinearLayout.VERTICAL);
-        conteneurListeAssets.setPadding(0, 20, 0, 0);
+        conteneurListeAssets.setPadding(0, dp(10), 0, 0);
 
         LinearLayout boutonsAssets = new LinearLayout(context);
         boutonsAssets.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageButton btnImportAsset = new ImageButton(context);
         btnImportAsset.setImageResource(R.drawable.upload_file_24px);
-        btnImportAsset.setColorFilter(Palette.texteNormal);
-        btnImportAsset.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnImportAsset);
         
         ImageButton btnEditAsset = new ImageButton(context);
         btnEditAsset.setImageResource(R.drawable.edit_square_24px);
-        btnEditAsset.setColorFilter(Palette.texteNormal);
-        btnEditAsset.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnEditAsset);
         
         ImageButton btnDelAsset = new ImageButton(context);
         btnDelAsset.setImageResource(R.drawable.delete_24px);
-        btnDelAsset.setColorFilter(Palette.texteNormal);
-        btnDelAsset.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnDelAsset);
 
         btnImportAsset.setOnClickListener(v -> {
             if (currentFolderSelected == null) return;
@@ -417,20 +663,49 @@ public class PanneauRessources extends ScrollView {
         boutonsAssets.addView(btnEditAsset);
         boutonsAssets.addView(btnDelAsset);
 
+        // BOUTONS DIALOGUES ET ANIMATIONS
+        Button btnEditeurDial = new Button(context);
+        btnEditeurDial.setText("Ouvrir dialogues.txt");
+        btnEditeurDial.setAllCaps(false);
+        btnEditeurDial.setTextColor(Color.WHITE);
+        btnEditeurDial.setBackground(fond(Color.parseColor("#4CAF50"), Palette.bordure, 8));
+        LinearLayout.LayoutParams lpBtnDial = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpBtnDial.setMargins(0, dp(8), 0, 0);
+        btnEditeurDial.setLayoutParams(lpBtnDial);
+        btnEditeurDial.setOnClickListener(v -> {
+            afficherEditeurTexteGeant(context);
+        });
+        
+        Button btnAnimations = new Button(context);
+        btnAnimations.setText("Gérer les Séquences (Animations)");
+        btnAnimations.setAllCaps(false);
+        btnAnimations.setTextColor(Color.WHITE);
+        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8)); 
+        LinearLayout.LayoutParams lpBtnAnim = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpBtnAnim.setMargins(0, dp(8), 0, 0);
+        btnAnimations.setLayoutParams(lpBtnAnim);
+        btnAnimations.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            EditeurAnimationsDialog dialog = new EditeurAnimationsDialog(context, editeur.cheminProjet);
+            dialog.show();
+        });
+
         contenu.addView(conteneurArborescenceDossiers);
         contenu.addView(boutonsDossiers);
         contenu.addView(conteneurListeAssets);
         contenu.addView(boutonsAssets);
+        contenu.addView(btnEditeurDial);
+        contenu.addView(btnAnimations);
 
         rafraichirSectionAssetsTotale();
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
                 contenu.setVisibility(View.GONE);
-                btnTitre.setText("Assets ▶");
+                btnTitre.setText("Assets (Ressources) ▶");
             } else {
                 contenu.setVisibility(View.VISIBLE);
-                btnTitre.setText("Assets ▼");
+                btnTitre.setText("Assets (Ressources) ▼");
                 rafraichirSectionAssetsTotale();
             }
         });
@@ -439,8 +714,7 @@ public class PanneauRessources extends ScrollView {
         section.addView(contenu);
         return section;
     }
-// bas 2
-// haut 3
+
     public void rafraichirSectionAssetsTotale() {
         rafraichirArborescenceDossiers();
         rafraichirListeAssets();
@@ -459,6 +733,10 @@ public class PanneauRessources extends ScrollView {
             LinearLayout layoutDossier = new LinearLayout(getContext());
             layoutDossier.setOrientation(LinearLayout.HORIZONTAL);
             layoutDossier.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            layoutDossier.setPadding(dp(6), dp(4), dp(6), dp(4));
+            if (dir.equals(currentFolderSelected)) {
+                layoutDossier.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+            }
             
             if (depth > 0) {
                 TextView tvPrefix = new TextView(getContext());
@@ -470,13 +748,13 @@ public class PanneauRessources extends ScrollView {
             
             ImageView iconeDossier = new ImageView(getContext());
             iconeDossier.setImageResource(R.drawable.folder_open_24px);
-            iconeDossier.setColorFilter(Palette.texteNormal);
-            iconeDossier.setPadding(0, 0, 15, 0);
+            iconeDossier.setColorFilter(dir.equals(currentFolderSelected) ? Palette.iconeSurvol : Palette.iconeNormal);
+            iconeDossier.setPadding(0, 0, dp(8), 0);
             
             TextView tv = new TextView(getContext());
             tv.setText(dir.getName());
             tv.setTextColor(dir.equals(currentFolderSelected) ? Palette.texteSelectionne : Palette.texteNormal);
-            tv.setPadding(0, 10, 0, 10);
+            tv.setPadding(0, dp(6), 0, dp(6));
             tv.setTextSize(14f);
             
             layoutDossier.addView(iconeDossier);
@@ -498,7 +776,9 @@ public class PanneauRessources extends ScrollView {
             }
         }
     }
+// bas 6
 
+// haut 7 : SECTION ASSETS LOGIQUE (Popups et import)
     private void rafraichirListeAssets() {
         if (conteneurListeAssets == null || currentFolderSelected == null) return;
         conteneurListeAssets.removeAllViews();
@@ -516,25 +796,29 @@ public class PanneauRessources extends ScrollView {
         Context context = getContext();
         LinearLayout itemLayout = new LinearLayout(context);
         itemLayout.setOrientation(LinearLayout.HORIZONTAL);
-        itemLayout.setPadding(0, 10, 0, 10);
+        itemLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
         itemLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        if (f.equals(currentAssetSelected)) {
+            itemLayout.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+        }
         
         boolean isImage = f.getAbsolutePath().contains("/Images/");
         
         if (isImage) {
             ImageView miniature = new ImageView(context);
-            miniature.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
+            miniature.setLayoutParams(new LinearLayout.LayoutParams(dp(36), dp(36)));
             try {
                 Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath());
                 miniature.setImageBitmap(bmp);
             } catch (Exception e) {}
             miniature.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            miniature.setPadding(0, 0, 15, 0);
+            miniature.setPadding(0, 0, dp(8), 0);
             itemLayout.addView(miniature);
         }
         
         TextView nom = new TextView(context);
         nom.setText(f.getName());
+        nom.setTextSize(14f);
         nom.setTextColor(f.equals(currentAssetSelected) ? Palette.texteSelectionne : Palette.texteNormal);
         nom.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         
@@ -614,23 +898,314 @@ public class PanneauRessources extends ScrollView {
         }
         fileOrDirectory.delete();
     }
-// bas 3
 
-// haut 4
+    private void afficherPopupNouveauDossier(Context context) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Nouveau dossier");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        EditText champTexte = new EditText(context);
+        champTexte.setHint("Nom du dossier");
+        styliserChampDialogue(champTexte);
+        layoutDialog.addView(champTexte);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnValider = new ImageButton(context);
+        btnValider.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnValider);
+        btnValider.setOnClickListener(v -> {
+            String nom = champTexte.getText().toString().trim();
+            if (!nom.isEmpty()) {
+                File nouveauDossier = new File(currentFolderSelected, nom);
+                if (!nouveauDossier.exists()) nouveauDossier.mkdirs();
+                rafraichirSectionAssetsTotale();
+            }
+            dialog.dismiss();
+        });
+        ImageButton btnAnnuler = new ImageButton(context);
+        btnAnnuler.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnAnnuler);
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommerDossier(Context context, File dir) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer dossier");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        EditText champTexte = new EditText(context);
+        champTexte.setText(dir.getName());
+        styliserChampDialogue(champTexte);
+        layoutDialog.addView(champTexte);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnValider = new ImageButton(context);
+        btnValider.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnValider);
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString().trim();
+            if (!nouveauNom.isEmpty()) {
+                File newFile = new File(dir.getParentFile(), nouveauNom);
+                if (!newFile.exists()) {
+                    dir.renameTo(newFile);
+                    currentFolderSelected = newFile;
+                    rafraichirSectionAssetsTotale();
+                }
+            }
+            dialog.dismiss();
+        });
+        ImageButton btnAnnuler = new ImageButton(context);
+        btnAnnuler.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnAnnuler);
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupSupprimerDossier(Context context, File dir) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Confirmer");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText("Supprimer le dossier (et tout son contenu) ?");
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
+        layoutDialog.addView(txtMessage);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnOui = new ImageButton(context);
+        btnOui.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnOui);
+        btnOui.setOnClickListener(v -> {
+            supprimerRecursif(dir);
+            currentFolderSelected = new File(rootAssetsDir, "Images");
+            currentAssetSelected = null;
+            rafraichirSectionAssetsTotale();
+            dialog.dismiss();
+        });
+        ImageButton btnNon = new ImageButton(context);
+        btnNon.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnNon);
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommerAsset(Context context, File f) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        EditText champTexte = new EditText(context);
+        champTexte.setText(f.getName());
+        styliserChampDialogue(champTexte);
+        layoutDialog.addView(champTexte);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnValider = new ImageButton(context);
+        btnValider.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnValider);
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString().trim();
+            if (!nouveauNom.isEmpty()) {
+                File newFile = new File(f.getParentFile(), nouveauNom);
+                if (!newFile.exists()) {
+                    f.renameTo(newFile);
+                    currentAssetSelected = newFile;
+                    rafraichirSectionAssetsTotale();
+                }
+            }
+            dialog.dismiss();
+        });
+        ImageButton btnAnnuler = new ImageButton(context);
+        btnAnnuler.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnAnnuler);
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupSupprimerAsset(Context context, File f) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Confirmer");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText("Supprimer cet asset ?");
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
+        layoutDialog.addView(txtMessage);
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        ImageButton btnOui = new ImageButton(context);
+        btnOui.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnOui);
+        btnOui.setOnClickListener(v -> {
+            f.delete();
+            currentAssetSelected = null;
+            rafraichirSectionAssetsTotale();
+            dialog.dismiss();
+        });
+        ImageButton btnNon = new ImageButton(context);
+        btnNon.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnNon);
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+// bas 7
+
+// haut 8 : SECTION DIALOGUES LOGIQUE
+    private void afficherEditeurTexteGeant(Context context) {
+        Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setBackgroundColor(Palette.fondPanneaux);
+        layoutDialog.setPadding(dp(16), dp(16), dp(16), dp(16));
+
+        TextView titre = new TextView(context);
+        titre.setText("Éditeur de Script (dialogues.txt)");
+        titre.setTextColor(Palette.texteSelectionne);
+        titre.setTextSize(18f);
+        titre.setTypeface(null, android.graphics.Typeface.BOLD);
+        titre.setPadding(0, 0, 0, dp(10));
+        layoutDialog.addView(titre);
+
+        ScrollView scroll = new ScrollView(context);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scroll.setLayoutParams(scrollParams);
+        scroll.setFillViewport(true);
+
+        EditText champTexte = new EditText(context);
+        champTexte.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
+        champTexte.setTextColor(Palette.texteNormal);
+        champTexte.setGravity(Gravity.TOP | Gravity.START);
+        champTexte.setPadding(dp(12), dp(12), dp(12), dp(12));
+        champTexte.setTextSize(14f);
+        champTexte.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        
+        File dirTextes = new File(rootAssetsDir, "Textes");
+        if (!dirTextes.exists()) dirTextes.mkdirs();
+        File fichierDialogues = new File(dirTextes, "dialogues.txt");
+        
+        String texteInitial = 
+            "// ==========================================\n" +
+            "// FICHIER DE DIALOGUES ET TEXTES\n" +
+            "// ==========================================\n" +
+            "// Règle 1 : Une ligne par texte.\n" +
+            "// Règle 2 : Utilisez le format CLE = Votre texte ici\n" +
+            "// Exemple :\n" +
+            "// intro = Où suis-je ? Ma tête tourne...\n" +
+            "// porte_01 = La porte est verrouillée.\n" +
+            "// ==========================================\n\n";
+
+        if (fichierDialogues.exists()) {
+            try {
+                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fichierDialogues));
+                StringBuilder sb = new StringBuilder();
+                String ligne;
+                while ((ligne = br.readLine()) != null) {
+                    sb.append(ligne).append("\n");
+                }
+                br.close();
+                if (sb.length() > 0) {
+                    texteInitial = sb.toString();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        champTexte.setText(texteInitial);
+        scroll.addView(champTexte);
+        layoutDialog.addView(scroll);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        zoneBoutons.setGravity(Gravity.END);
+        zoneBoutons.setPadding(0, dp(10), 0, 0);
+
+        Button btnAnnuler = new Button(context);
+        btnAnnuler.setText("Annuler");
+        btnAnnuler.setTextColor(Palette.texteNormal);
+        btnAnnuler.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+        btnAnnuler.setPadding(dp(16), dp(10), dp(16), dp(10));
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+
+        Button btnSauvegarder = new Button(context);
+        btnSauvegarder.setText("Sauvegarder");
+        btnSauvegarder.setTextColor(Color.WHITE);
+        btnSauvegarder.setBackground(fond(Color.parseColor("#4CAF50"), Palette.bordure, 8));
+        btnSauvegarder.setPadding(dp(16), dp(10), dp(16), dp(10));
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.setMargins(dp(10), 0, 0, 0);
+        btnSauvegarder.setLayoutParams(btnParams);
+        
+        btnSauvegarder.setOnClickListener(v -> {
+            try {
+                java.io.FileWriter fw = new java.io.FileWriter(fichierDialogues);
+                fw.write(champTexte.getText().toString());
+                fw.close();
+                Toast.makeText(context, "Script sauvegardé avec succès", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } catch (Exception e) {
+                Toast.makeText(context, "Erreur lors de la sauvegarde", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        zoneBoutons.addView(btnAnnuler);
+        zoneBoutons.addView(btnSauvegarder);
+        layoutDialog.addView(zoneBoutons);
+
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+// bas 8
+
+// haut 9 : SECTION VARIABLES UI
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
 
         Button btnTitre = new Button(context);
         btnTitre.setText("Variables ▼");
+        styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
         contenu.setOrientation(LinearLayout.VERTICAL);
-        contenu.setPadding(20, 10, 10, 20);
+        styliserContenuSection(contenu);
 
         conteneurVariables = new LinearLayout(context);
         conteneurVariables.setOrientation(LinearLayout.VERTICAL);
-        conteneurVariables.setPadding(0, 0, 0, 20);
+        conteneurVariables.setPadding(0, 0, 0, dp(8));
         contenu.addView(conteneurVariables);
 
         LinearLayout zoneBoutons = new LinearLayout(context);
@@ -638,22 +1213,19 @@ public class PanneauRessources extends ScrollView {
 
         ImageButton btnCreer = new ImageButton(context);
         btnCreer.setImageResource(R.drawable.add_24px);
-        btnCreer.setColorFilter(Palette.texteNormal);
-        btnCreer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnCreer);
         btnCreer.setOnClickListener(v -> afficherPopupCreerVariable(context));
 
         ImageButton btnRenommer = new ImageButton(context);
         btnRenommer.setImageResource(R.drawable.edit_square_24px);
-        btnRenommer.setColorFilter(Palette.texteNormal);
-        btnRenommer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnRenommer);
         btnRenommer.setOnClickListener(v -> {
             if (variableSelectionnee != null) afficherPopupRenommerVariable(context, variableSelectionnee);
         });
 
         ImageButton btnSupprimer = new ImageButton(context);
         btnSupprimer.setImageResource(R.drawable.delete_24px);
-        btnSupprimer.setColorFilter(Palette.texteNormal);
-        btnSupprimer.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnSupprimer);
         btnSupprimer.setOnClickListener(v -> {
             if (variableSelectionnee != null) afficherPopupSupprimerVariable(context, variableSelectionnee);
         });
@@ -697,7 +1269,7 @@ public class PanneauRessources extends ScrollView {
         Context context = getContext();
         LinearLayout conteneurLigne = new LinearLayout(context);
         conteneurLigne.setOrientation(LinearLayout.VERTICAL);
-        conteneurLigne.setPadding(0, 5, 0, 15);
+        conteneurLigne.setPadding(0, dp(3), 0, dp(3));
         
         TextView nomVariable = new TextView(context);
         
@@ -722,13 +1294,14 @@ public class PanneauRessources extends ScrollView {
         nomVariable.setText(var.nom + " [" + labelScope + ", " + labelType + "] = " + texteValeur);
         
         if (var == variableSelectionnee) {
-            nomVariable.setTextColor(Palette.texteSelectionne); 
+            nomVariable.setTextColor(Palette.texteSelectionne);
+            nomVariable.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
         } else {
             nomVariable.setTextColor(var.scope.equals("GLOBALE") ? Color.parseColor("#ADD8E6") : Color.parseColor("#90EE90"));
         }
         
-        nomVariable.setPadding(10, 5, 10, 5);
-        nomVariable.setTextSize(16f);
+        nomVariable.setPadding(dp(10), dp(8), dp(10), dp(8));
+        nomVariable.setTextSize(14f);
 
         nomVariable.setOnClickListener(v -> {
             variableSelectionnee = var;
@@ -738,242 +1311,62 @@ public class PanneauRessources extends ScrollView {
         conteneurLigne.addView(nomVariable);
         conteneurVariables.addView(conteneurLigne);
     }
+// bas 9
 
-    private void afficherPopupCreerScene(Context context) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Créer une scène");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setHint("Entrez le nom...");
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
-        btnValider.setOnClickListener(v -> {
-            String nom = champTexte.getText().toString().trim();
-            if(!nom.isEmpty()) {
-                
-                // ANTI-DOUBLON POUR LA CRÉATION DE SCÈNE
-                InterfaceEditeur editeur = (InterfaceEditeur) context;
-                if (editeur.listeScenes != null) {
-                    for (Scene s : editeur.listeScenes) {
-                        if (s.nom != null && s.nom.trim().equalsIgnoreCase(nom)) {
-                            new AlertDialog.Builder(context)
-                                    .setTitle("Impossible")
-                                    .setMessage("Une scène avec ce nom existe déjà dans le projet.")
-                                    .setPositiveButton("OK", null)
-                                    .show();
-                            return; // Bloque la création
-                        }
-                    }
-                }
-
-                editeur.creerScene(nom);
-                Toast.makeText(context, "Scène créée : " + nom, Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-            }
-        });
-
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupRenommerScene(Context context, Scene scene) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer la scène");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setText(scene.nom);
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
-        btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString().trim();
-            if(nouveauNom.isEmpty()) {
-                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // ANTI-DOUBLON STRICT POUR LE RENOMMAGE DE SCÈNE
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            if (editeur.listeScenes != null) {
-                for (Scene s : editeur.listeScenes) {
-                    if (s != scene && s.nom != null && s.nom.trim().equalsIgnoreCase(nouveauNom)) {
-                        new AlertDialog.Builder(context)
-                                .setTitle("Impossible")
-                                .setMessage("Une scène avec ce nom existe déjà dans le projet.")
-                                .setPositiveButton("OK", null)
-                                .show();
-                        return; // Bloque le renommage, laisse le dialogue ouvert
-                    }
-                }
-            }
-
-            scene.nom = nouveauNom;
-            rafraichirScenes();
-            Toast.makeText(context, "Scène renommée", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
-        });
-
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-// bas 4
-// haut 5
-    private void afficherPopupSupprimerScene(Context context, Scene scene) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Supprimer la scène");
-
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        TextView txtMessage = new TextView(context);
-        txtMessage.setText("Voulez-vous vraiment supprimer la scène '" + scene.nom + "' ?");
-        txtMessage.setPadding(0, 0, 0, 20);
-        layoutDialog.addView(txtMessage);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
-        ImageButton btnOui = new ImageButton(context);
-        btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
-        btnOui.setOnClickListener(v -> {
-            InterfaceEditeur editeur = (InterfaceEditeur) context;
-            
-            if (editeur.listeScenes.size() <= 1) {
-                Toast.makeText(context, "Impossible de supprimer la seule scène du projet.", Toast.LENGTH_SHORT).show();
-            } else {
-                editeur.listeScenes.remove(scene);
-                if (editeur.sceneActive == scene) {
-                    editeur.changerScene(editeur.listeScenes.get(0));
-                } else {
-                    rafraichirScenes();
-                }
-                rafraichirArborescence();
-                Toast.makeText(context, "Scène supprimée", Toast.LENGTH_SHORT).show();
-            }
-            dialog.dismiss();
-        });
-
-        ImageButton btnNon = new ImageButton(context);
-        btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
-        btnNon.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnOui);
-        zoneBoutons.addView(btnNon);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
+// haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
-
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
+        styliserDialogue(layoutDialog);
         EditText champTexte = new EditText(context);
         champTexte.setHint("Nom de la variable");
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
-
         TextView txtScope = new TextView(context);
         txtScope.setText("Portée (Scope) :");
+        txtScope.setTextColor(Palette.texteSelectionne);
+        txtScope.setPadding(0, dp(12), 0, dp(4));
         layoutDialog.addView(txtScope);
-        
         Spinner spinnerScope = new Spinner(context);
         ArrayAdapter<String> adapterScope = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Locale", "Globale"});
         adapterScope.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerScope.setAdapter(adapterScope);
+        spinnerScope.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
         layoutDialog.addView(spinnerScope);
-
         TextView txtType = new TextView(context);
         txtType.setText("Type :");
+        txtType.setTextColor(Palette.texteSelectionne);
+        txtType.setPadding(0, dp(12), 0, dp(4));
         layoutDialog.addView(txtType);
-
         Spinner spinnerType = new Spinner(context);
         ArrayAdapter<String> adapterType = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Entier", "Texte", "Oui/Non", "Liste d'Inventaire"});
         adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(adapterType);
+        spinnerType.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
         layoutDialog.addView(spinnerType);
-
         EditText champValeurInit = new EditText(context);
         champValeurInit.setHint("Valeur initiale (optionnel)");
+        styliserChampDialogue(champValeurInit);
         layoutDialog.addView(champValeurInit);
-        
         spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (spinnerType.getSelectedItem().toString().equals("Liste d'Inventaire")) {
-                    champValeurInit.setVisibility(View.GONE);
-                } else {
-                    champValeurInit.setVisibility(View.VISIBLE);
-                }
+                if (spinnerType.getSelectedItem().toString().equals("Liste d'Inventaire")) champValeurInit.setVisibility(View.GONE);
+                else champValeurInit.setVisibility(View.VISIBLE);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nom = champTexte.getText().toString().trim();
-            if(nom.isEmpty()) {
-                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
+            if(nom.isEmpty()) return;
             String scopeSelect = spinnerScope.getSelectedItem().toString().equals("Globale") ? "GLOBALE" : "LOCALE";
             String typeSelectText = spinnerType.getSelectedItem().toString();
             String typeSelect = "CHIFFRE";
@@ -981,377 +1374,120 @@ public class PanneauRessources extends ScrollView {
             if (typeSelectText.equals("Oui/Non")) typeSelect = "BOOLEEN";
             if (typeSelectText.equals("Entier")) typeSelect = "ENTIER";
             if (typeSelectText.equals("Liste d'Inventaire")) typeSelect = "LISTE_INVENTAIRE";
-
             InterfaceEditeur editeur = (InterfaceEditeur) context;
-            
             if (scopeSelect.equals("GLOBALE")) {
                 for (Variable vExistant : editeur.variablesGlobales) {
-                    if (vExistant.nom.equals(nom)) {
-                        Toast.makeText(context, "Une variable globale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if (vExistant.nom.equals(nom)) return;
                 }
             } else {
                 for (Variable vExistant : editeur.sceneActive.variablesLocales) {
-                    if (vExistant.nom.equals(nom)) {
-                        Toast.makeText(context, "Une variable locale avec ce nom existe déjà dans cette scène", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if (vExistant.nom.equals(nom)) return;
                 }
             }
-
             Variable nouvelleVar = new Variable(nom, scopeSelect, typeSelect);
-            
             String valInitTexte = champValeurInit.getText().toString().trim();
             if (!valInitTexte.isEmpty()) {
                 if (typeSelect.equals("CHIFFRE")) {
-                    try {
-                        nouvelleVar.valeur = Float.parseFloat(valInitTexte);
-                    } catch (NumberFormatException e) {
-                        nouvelleVar.valeur = 0f;
-                    }
+                    try { nouvelleVar.valeur = Float.parseFloat(valInitTexte); } catch (Exception e) { nouvelleVar.valeur = 0f; }
                 } else if (typeSelect.equals("TEXTE")) {
                     nouvelleVar.valeur = valInitTexte;
                 } else if (typeSelect.equals("BOOLEEN")) {
                     String cleanVal = valInitTexte.toLowerCase();
                     nouvelleVar.valeur = (cleanVal.equals("oui") || cleanVal.equals("vrai") || cleanVal.equals("true"));
                 } else if (typeSelect.equals("ENTIER")) {
-                    try {
-                        nouvelleVar.valeur = Integer.parseInt(valInitTexte);
-                    } catch (NumberFormatException e) {
-                        nouvelleVar.valeur = 0;
-                    }
+                    try { nouvelleVar.valeur = Integer.parseInt(valInitTexte); } catch (Exception e) { nouvelleVar.valeur = 0; }
                 }
             }
-
-            if (scopeSelect.equals("GLOBALE")) {
-                editeur.variablesGlobales.add(nouvelleVar);
-            } else {
-                editeur.sceneActive.variablesLocales.add(nouvelleVar);
-            }
-
+            if (scopeSelect.equals("GLOBALE")) editeur.variablesGlobales.add(nouvelleVar);
+            else editeur.sceneActive.variablesLocales.add(nouvelleVar);
             rafraichirVariables();
             dialog.dismiss();
         });
-
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
         zoneBoutons.addView(btnValider);
         zoneBoutons.addView(btnAnnuler);
-
         layoutDialog.addView(zoneBoutons);
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+// bas 6
 
+// haut 7
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");
-
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
+        styliserDialogue(layoutDialog);
         EditText champTexte = new EditText(context);
         champTexte.setText(var.nom);
+        styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
-
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nouveauNom = champTexte.getText().toString().trim();
-            if(nouveauNom.isEmpty()) {
-                Toast.makeText(context, "Le nom ne peut pas être vide", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
+            if(nouveauNom.isEmpty()) return;
             InterfaceEditeur editeur = (InterfaceEditeur) context;
-            
             if (var.scope.equals("GLOBALE")) {
                 for (Variable vExistant : editeur.variablesGlobales) {
-                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) {
-                        Toast.makeText(context, "Une variable globale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) return;
                 }
             } else {
                 for (Variable vExistant : editeur.sceneActive.variablesLocales) {
-                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) {
-                        Toast.makeText(context, "Une variable locale avec ce nom existe déjà", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if (vExistant != var && vExistant.nom.equals(nouveauNom)) return;
                 }
             }
-
             var.nom = nouveauNom;
             rafraichirVariables();
             dialog.dismiss();
         });
-
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
         zoneBoutons.addView(btnValider);
         zoneBoutons.addView(btnAnnuler);
-
         layoutDialog.addView(zoneBoutons);
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-// bas 5
 
-// haut 6
     private void afficherPopupSupprimerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Supprimer la variable");
-
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
+        styliserDialogue(layoutDialog);
         TextView txtMessage = new TextView(context);
         txtMessage.setText("Voulez-vous vraiment supprimer la variable '" + var.nom + "' ?");
-        txtMessage.setPadding(0, 0, 0, 20);
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
         layoutDialog.addView(txtMessage);
-
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-
         ImageButton btnOui = new ImageButton(context);
         btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnOui);
         btnOui.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) context;
-            if (var.scope.equals("GLOBALE")) {
-                editeur.variablesGlobales.remove(var);
-            } else {
-                editeur.sceneActive.variablesLocales.remove(var);
-            }
-            
-            if (var == variableSelectionnee) {
-                variableSelectionnee = null;
-            }
-            
+            if (var.scope.equals("GLOBALE")) editeur.variablesGlobales.remove(var);
+            else editeur.sceneActive.variablesLocales.remove(var);
+            if (var == variableSelectionnee) variableSelectionnee = null;
             rafraichirVariables();
             dialog.dismiss();
         });
-
         ImageButton btnNon = new ImageButton(context);
         btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
+        styliserBoutonIcone(btnNon);
         btnNon.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnOui);
-        zoneBoutons.addView(btnNon);
-
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupNouveauDossier(Context context) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Nouveau dossier");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setHint("Nom du dossier");
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
-        btnValider.setOnClickListener(v -> {
-            String nom = champTexte.getText().toString().trim();
-            if (!nom.isEmpty()) {
-                File nouveauDossier = new File(currentFolderSelected, nom);
-                if (!nouveauDossier.exists()) nouveauDossier.mkdirs();
-                rafraichirSectionAssetsTotale();
-            }
-            dialog.dismiss();
-        });
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupRenommerDossier(Context context, File dir) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer dossier");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setText(dir.getName());
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
-        btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString().trim();
-            if (!nouveauNom.isEmpty()) {
-                File newFile = new File(dir.getParentFile(), nouveauNom);
-                if (!newFile.exists()) {
-                    dir.renameTo(newFile);
-                    currentFolderSelected = newFile;
-                    rafraichirSectionAssetsTotale();
-                }
-            }
-            dialog.dismiss();
-        });
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupSupprimerDossier(Context context, File dir) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Confirmer");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        TextView txtMessage = new TextView(context);
-        txtMessage.setText("Supprimer le dossier (et tout son contenu) ?");
-        layoutDialog.addView(txtMessage);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnOui = new ImageButton(context);
-        btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
-        btnOui.setOnClickListener(v -> {
-            supprimerRecursif(dir);
-            currentFolderSelected = new File(rootAssetsDir, "Images");
-            currentAssetSelected = null;
-            rafraichirSectionAssetsTotale();
-            dialog.dismiss();
-        });
-        ImageButton btnNon = new ImageButton(context);
-        btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
-        btnNon.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnOui);
-        zoneBoutons.addView(btnNon);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupRenommerAsset(Context context, File f) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Renommer");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        EditText champTexte = new EditText(context);
-        champTexte.setText(f.getName());
-        layoutDialog.addView(champTexte);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnValider = new ImageButton(context);
-        btnValider.setImageResource(R.drawable.save_24px);
-        btnValider.setColorFilter(Palette.texteNormal);
-        btnValider.setBackgroundColor(Color.TRANSPARENT);
-        btnValider.setOnClickListener(v -> {
-            String nouveauNom = champTexte.getText().toString().trim();
-            if (!nouveauNom.isEmpty()) {
-                File newFile = new File(f.getParentFile(), nouveauNom);
-                if (!newFile.exists()) {
-                    f.renameTo(newFile);
-                    currentAssetSelected = newFile;
-                    rafraichirSectionAssetsTotale();
-                }
-            }
-            dialog.dismiss();
-        });
-        ImageButton btnAnnuler = new ImageButton(context);
-        btnAnnuler.setImageResource(R.drawable.undo_24px);
-        btnAnnuler.setColorFilter(Palette.texteNormal);
-        btnAnnuler.setBackgroundColor(Color.TRANSPARENT);
-        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
-
-        zoneBoutons.addView(btnValider);
-        zoneBoutons.addView(btnAnnuler);
-        layoutDialog.addView(zoneBoutons);
-        dialog.setContentView(layoutDialog);
-        dialog.show();
-    }
-
-    private void afficherPopupSupprimerAsset(Context context, File f) {
-        Dialog dialog = new Dialog(context);
-        dialog.setTitle("Confirmer");
-        LinearLayout layoutDialog = new LinearLayout(context);
-        layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(40, 40, 40, 40);
-
-        TextView txtMessage = new TextView(context);
-        txtMessage.setText("Supprimer cet asset ?");
-        layoutDialog.addView(txtMessage);
-
-        LinearLayout zoneBoutons = new LinearLayout(context);
-        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
-        ImageButton btnOui = new ImageButton(context);
-        btnOui.setImageResource(R.drawable.save_24px);
-        btnOui.setColorFilter(Palette.texteNormal);
-        btnOui.setBackgroundColor(Color.TRANSPARENT);
-        btnOui.setOnClickListener(v -> {
-            f.delete();
-            currentAssetSelected = null;
-            rafraichirSectionAssetsTotale();
-            dialog.dismiss();
-        });
-        ImageButton btnNon = new ImageButton(context);
-        btnNon.setImageResource(R.drawable.undo_24px);
-        btnNon.setColorFilter(Palette.texteNormal);
-        btnNon.setBackgroundColor(Color.TRANSPARENT);
-        btnNon.setOnClickListener(v -> dialog.dismiss());
-
         zoneBoutons.addView(btnOui);
         zoneBoutons.addView(btnNon);
         layoutDialog.addView(zoneBoutons);
@@ -1359,32 +1495,4 @@ public class PanneauRessources extends ScrollView {
         dialog.show();
     }
 }
-// bas 6
-
-
-
-
-
-
-
-    
-
-
-
-    
-
-
-
-
-
-    
-
-
-    
-
-
-    
-
-
-
-
+// bas 10

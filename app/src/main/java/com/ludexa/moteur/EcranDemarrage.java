@@ -31,10 +31,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Ã‰cran de dÃ©marrage YOP.2D â€” mise en page faÃ§on Godot :
- *  - colonne gauche : identitÃ© (logo, baseline, langue)
+ * Écran de démarrage YOP.2D — mise en page façon Godot :
+ *  - colonne gauche : identité (logo, baseline, langue)
  *  - colonne droite : bandeau d'outils compact en haut, liste des projets au centre,
- *                     barre d'actions contextuelles en bas (Ã‰diter / Renommer /
+ *                     barre d'actions contextuelles en bas (Éditer / Renommer /
  *                     Dupliquer / Exporter / Supprimer).
  */
 public class EcranDemarrage extends Activity {
@@ -55,7 +55,7 @@ public class EcranDemarrage extends Activity {
                 TypedValue.COMPLEX_UNIT_DIP, valeur, getResources().getDisplayMetrics()));
     }
 
-    /** Fond arrondi rÃ©utilisable (panneaux, boutons, champs). */
+    /** Fond arrondi réutilisable (panneaux, boutons, champs). */
     private GradientDrawable fond(int couleur, int rayonDp, int couleurBordure, int epaisseurDp) {
         GradientDrawable g = new GradientDrawable();
         g.setColor(couleur);
@@ -66,7 +66,7 @@ public class EcranDemarrage extends Activity {
         return g;
     }
 
-    // --- Couleurs dÃ©rivÃ©es directement de Palette.java (aucune valeur en dur) ---
+    // --- Couleurs dérivées directement de Palette.java (aucune valeur en dur) ---
     private int couleurSurface() {
         return Palette.canvasFond;      // panneau de droite
     }
@@ -80,14 +80,14 @@ public class EcranDemarrage extends Activity {
     }
 
     private int couleurSelection() {
-        return Palette.boutonSurvol;    // ligne sÃ©lectionnÃ©e
+        return Palette.boutonSurvol;    // ligne sélectionnée
     }
 
     private int couleurTexteSecondaire() {
         return Palette.texteSelectionne;
     }
 
-    /** Petit bouton icÃ´ne du bandeau (style Godot : compact, carrÃ©, discret). */
+    /** Petit bouton icône du bandeau (style Godot : compact, carré, discret). */
     private ImageButton boutonBandeau(int idIcone, String description, View.OnClickListener action) {
         ImageButton b = new ImageButton(this);
         b.setImageResource(idIcone);
@@ -186,7 +186,7 @@ public class EcranDemarrage extends Activity {
         colonneGauche.addView(titre);
 
         TextView baseline = new TextView(this);
-        baseline.setText(" Moteur de jeu 2D — créez sans coder");
+        baseline.setText("Moteur de jeu 2D — créez sans coder.");
         baseline.setTextSize(13f);
         baseline.setGravity(Gravity.CENTER);
         baseline.setPadding(0, dp(6), 0, dp(20));
@@ -196,11 +196,11 @@ public class EcranDemarrage extends Activity {
         LinearLayout rangeeLangue = new LinearLayout(this);
         rangeeLangue.setOrientation(LinearLayout.HORIZONTAL);
         rangeeLangue.setGravity(Gravity.CENTER);
-        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, "Langue : Francais", v ->
-                Toast.makeText(this, "Langue : Francais", Toast.LENGTH_SHORT).show()));
+        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, "Langue : Français", v ->
+                Toast.makeText(this, "Langue : Français", Toast.LENGTH_SHORT).show()));
 
         TextView libelleLangue = new TextView(this);
-        libelleLangue.setText("Francais");
+        libelleLangue.setText("Français");
         libelleLangue.setTextSize(13f);
         libelleLangue.setTextColor(couleurTexteSecondaire());
         libelleLangue.setGravity(Gravity.CENTER_VERTICAL);
@@ -231,7 +231,7 @@ public class EcranDemarrage extends Activity {
         return colonneDroite;
     }
 
-    /** Bandeau supÃ©rieur type Godot : petits boutons icÃ´nes alignÃ©s Ã  gauche. */
+    /** Bandeau supérieur type Godot : petits boutons icônes alignés à gauche. */
     private View construireBandeauOutils() {
         LinearLayout bandeau = new LinearLayout(this);
         bandeau.setOrientation(LinearLayout.HORIZONTAL);
@@ -241,8 +241,8 @@ public class EcranDemarrage extends Activity {
 
         bandeau.addView(boutonBandeau(R.drawable.add_24px, "Créer un projet",
                 v -> afficherDialogueCreationProjet()));
-        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, "Ouvrir un projet télécharger",
-                v -> Toast.makeText(this, "Import de projet : Ã  venir", Toast.LENGTH_SHORT).show()));
+        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, "Ouvrir un projet téléchargé",
+                v -> Toast.makeText(this, "Import de projet : à venir", Toast.LENGTH_SHORT).show()));
 
         bandeau.addView(separateurVertical());
 
@@ -251,7 +251,7 @@ public class EcranDemarrage extends Activity {
         bandeau.addView(boutonBandeau(R.drawable.build_24px, "Test mkdirs",
                 v -> afficherTestMkdirs()));
 
-        // Espace Ã©lastique puis compteur de projets, alignÃ© Ã  droite.
+        // Espace élastique puis compteur de projets, aligné à droite.
         View espace = new View(this);
         espace.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeau.addView(espace);
@@ -300,7 +300,7 @@ public class EcranDemarrage extends Activity {
         barreActions.setOrientation(LinearLayout.HORIZONTAL);
         barreActions.setPadding(dp(6), dp(8), dp(0), dp(2));
 
-        barreActions.addView(boutonAction("Ã‰diter", false, v -> actionEditer()));
+        barreActions.addView(boutonAction("Éditer", false, v -> actionEditer()));
         barreActions.addView(boutonAction("Renommer", false, v -> actionRenommer()));
         barreActions.addView(boutonAction("Dupliquer", false, v -> actionDupliquer()));
         barreActions.addView(boutonAction("Exporter", false, v -> actionExporter()));
@@ -322,11 +322,12 @@ public class EcranDemarrage extends Activity {
         if (etiquetteSelection != null) {
             int total = dossiersProjets.size();
             etiquetteSelection.setText(actif
-                    ? "1 projet sÃ©lectionnÃ© Â· " + total + " au total"
+                    ? "1 projet sélectionné · " + total + " au total"
                     : total + " projet(s)");
         }
     }
 // bas 1
+            
 // haut 2
 
     // ---------------------------------------------------------------- adaptateur liste
@@ -385,7 +386,7 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    // ---------------------------------------------------------------- donnÃ©es
+    // ---------------------------------------------------------------- données
 
     private void chargerListeProjets() {
         if (listeProjets == null) return;
@@ -405,7 +406,7 @@ public class EcranDemarrage extends Activity {
                     try {
                         JSONObject metaJson = lireJson(metaFile);
                         noms.add(metaJson.optString("nom", "Projet Sans Nom"));
-                        sousTitres.add("Modifier le " + metaJson.optString("date Modif", "date inconnue"));
+                        sousTitres.add("Modifié le " + metaJson.optString("dateModif", "date inconnue"));
                         dossiersProjets.add(sousDossier);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -497,7 +498,6 @@ public class EcranDemarrage extends Activity {
     }
 
     // ---------------------------------------------------------------- actions
-    // ---------------------------------------------------------------- actions
 
     private void actionEditer() {
         File dossier = dossierSelectionne();
@@ -532,7 +532,7 @@ public class EcranDemarrage extends Activity {
                 return;
             }
             if (nomDejaUtilise(nouveauNom, nomActuel)) {
-                Toast.makeText(this, "Ce nom de projet est déjà  utiliser.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
                 return;
             }
             try {
@@ -574,7 +574,7 @@ public class EcranDemarrage extends Activity {
             fw.write(metaJson.toString(4));
             fw.close();
             chargerListeProjets();
-            Toast.makeText(this, "Projet dupliquÃ© : " + nomFinal, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Projet dupliqué : " + nomFinal, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
             supprimerDossierRecursif(cible);
@@ -597,8 +597,8 @@ public class EcranDemarrage extends Activity {
             zip.close();
 
             new AlertDialog.Builder(this)
-                    .setTitle("Export terminÃ©")
-                    .setMessage("Archive crÃ©Ã©e :\n" + archive.getAbsolutePath())
+                    .setTitle("Export terminé")
+                    .setMessage("Archive créée :\n" + archive.getAbsolutePath())
                     .setPositiveButton("OK", null)
                     .show();
         } catch (Exception e) {
@@ -607,14 +607,14 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    private void actionSupprimer() {
+        private void actionSupprimer() {
         File dossier = dossierSelectionne();
         if (dossier == null) return;
         String nom = nomProjet(dossier);
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
                 .setTitle("Supprimer le projet")
-                .setMessage("Supprimer définitivement « " + nom + " » ? Cette action est irréversible.");
+                .setMessage("Voulez-vous vraiment supprimer le projet " + nom + " ?")
                 .setPositiveButton("Supprimer", (d, w) -> {
                     supprimerDossierRecursif(dossier);
                     positionSelectionnee = -1;
@@ -626,7 +626,8 @@ public class EcranDemarrage extends Activity {
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
     }
 
-    // ---------------------------------------------------------------- crÃ©ation projet
+
+    // ---------------------------------------------------------------- création projet
 
     private void afficherDialogueCreationProjet() {
         final EditText champ = new EditText(this);
@@ -647,7 +648,7 @@ public class EcranDemarrage extends Activity {
                 return;
             }
             if (nomDejaUtilise(nomProjet, null)) {
-                Toast.makeText(this, "Ce nom de projet est déjà  utilisé.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
                 return;
             }
             creerNouveauProjet(nomProjet);
@@ -764,9 +765,9 @@ public class EcranDemarrage extends Activity {
 
         File[] sousDossiers = dossierProjets.listFiles();
         if (sousDossiers == null) {
-            info.append("listFiles() a retournÃ© null\n");
+            info.append("listFiles() a retourné null\n");
         } else if (sousDossiers.length == 0) {
-            info.append("Aucun sous-dossier trouvÃ©\n");
+            info.append("Aucun sous-dossier trouvé\n");
         } else {
             for (File sousDossier : sousDossiers) {
                 info.append("Dossier : ").append(sousDossier.getName()).append("\n");
@@ -807,4 +808,4 @@ public class EcranDemarrage extends Activity {
 }
 // bas 2
 
-    
+

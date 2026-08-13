@@ -40,7 +40,6 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fermer HUD", "UI", "NoeudActionFermerHUD"));
         
         REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
-        
         REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
         REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
         
@@ -48,9 +47,30 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Actions", "NoeudActionRetirerInventaire"));
         REGISTRE.add(new InfoNoeud("Si dans l'inventaire", "Logique", "NoeudConditionSiDansInventaire"));
         
-        // NOUVEAU : Noeuds de Collision
         REGISTRE.add(new InfoNoeud("Collision A/B", "Événements", "NoeudEventCollisionAB"));
         REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique", "NoeudConditionSiObjetToucheZone"));
+        
+        REGISTRE.add(new InfoNoeud("Chrono", "Actions", "NoeudActionChrono"));
+        
+        REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Actions", "NoeudActionConcatenerTexte"));
+        REGISTRE.add(new InfoNoeud("Changer Z-Order", "Actions", "NoeudActionChangerZOrder"));
+        REGISTRE.add(new InfoNoeud("Changer de Scène", "Actions", "NoeudActionChangerScene"));
+        REGISTRE.add(new InfoNoeud("Changer Image", "Actions", "NoeudActionChangerImage"));
+        REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique", "NoeudConditionSiObjetVisible"));
+        REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Actions", "NoeudActionModifierVerrouillage"));
+        REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
+        
+        REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Actions", "NoeudActionAfficherDialogue"));
+        REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
+
+        REGISTRE.add(new InfoNoeud("Jouer un Son", "Audio", "NoeudActionJouerSon"));
+        REGISTRE.add(new InfoNoeud("Gérer Musique", "Audio", "NoeudActionMusique"));
+
+        REGISTRE.add(new InfoNoeud("Fondu (Alpha)", "Animations", "NoeudActionFondu"));
+        REGISTRE.add(new InfoNoeud("Glisser Vers", "Animations", "NoeudActionGlisserVers"));
+        
+        // NOUVEAU NOEUD INTÉGRÉ ICI
+        REGISTRE.add(new InfoNoeud("Jouer Animation", "Animations", "NoeudActionJouerAnimation"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {

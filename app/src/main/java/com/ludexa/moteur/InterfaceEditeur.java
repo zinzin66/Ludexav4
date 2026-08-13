@@ -33,17 +33,14 @@ public class InterfaceEditeur extends Activity {
     public List<Variable> variablesGlobales = new ArrayList<>(); 
     public Scene sceneActive;
     
-    // NOUVEAU : Ajout de la scène HUD active
     public Scene sceneHudActive = null;
     
     private VueJeu vueJeu;
 
-    // Ajout du getter public pour accéder à vueJeu sans briser l'encapsulation
     public VueJeu getVueJeu() {
         return this.vueJeu;
     }
     
-    // VARIABLES DE SAUVEGARDE POUR L'ISOLEMENT DU PLAY
     private List<Scene> listeScenesBackup;
     private Scene sceneActiveBackup;
     private Scene sceneHudActiveBackup;
@@ -61,15 +58,11 @@ public class InterfaceEditeur extends Activity {
 
     public static final int REQUEST_CODE_IMPORT_ASSET = 1001;
 
-    // ---------------------------------------------------------------- outils UI
-
-    /** Conversion dp -> pixels. */
     private int dp(float valeur) {
         return Math.round(TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, valeur, getResources().getDisplayMetrics()));
     }
 
-    /** Fond arrondi réutilisable (panneaux, boutons). */
     private GradientDrawable fond(int couleur, int rayonDp, int couleurBordure, int epaisseurDp) {
         GradientDrawable g = new GradientDrawable();
         g.setColor(couleur);
@@ -80,7 +73,6 @@ public class InterfaceEditeur extends Activity {
         return g;
     }
 
-    /** Applique le look "bouton icône" compact du bandeau. */
     private void styliserBoutonBandeau(ImageButton b) {
         b.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         b.setBackground(fond(Palette.boutonNormal, 6, Palette.bordure, 1));
@@ -92,7 +84,6 @@ public class InterfaceEditeur extends Activity {
         b.setLayoutParams(lp);
     }
 
-    /** Petit séparateur vertical du bandeau. */
     private View separateurVertical() {
         View s = new View(this);
         s.setBackgroundColor(Palette.bordure);
@@ -103,7 +94,6 @@ public class InterfaceEditeur extends Activity {
         return s;
     }
     
-    // NOUVEAU : Méthodes pour gérer le HUD
     public void ouvrirHUD(Scene scene) {
         this.sceneHudActive = scene;
         Blueprint blueprintHud = null;
@@ -246,6 +236,8 @@ public class InterfaceEditeur extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
+
+
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -267,9 +259,20 @@ public class InterfaceEditeur extends Activity {
                             }
                         }
                         
+                        for (Scene scene : listeScenes) {
+                            int zOrderMaxScene = -1;
+                            if (scene.objets != null) {
+                                for (ObjetBase obj : scene.objets) {
+                                    if (obj.zOrder > zOrderMaxScene) {
+                                        zOrderMaxScene = obj.zOrder;
+                                    }
+                                }
+                            }
+                            scene.resynchroniserCompteurZOrder(zOrderMaxScene + 1);
+                        }
+                        
                         sceneActive = listeScenes.get(0);
                         
-                        // DÉBUT DE LA CORRECTION : Compatibilité ascendante pour Scene.id
                         boolean sceneModifiee = false;
                         for (Scene scene : listeScenes) {
                             if (scene.id == null) {
@@ -278,7 +281,6 @@ public class InterfaceEditeur extends Activity {
                             }
                         }
                         
-                        // Si au moins une scène a reçu un nouvel id, on sauvegarde directement
                         if (sceneModifiee) {
                             try {
                                 Gson gson = new Gson();
@@ -290,7 +292,6 @@ public class InterfaceEditeur extends Activity {
                                 e.printStackTrace();
                             }
                         }
-                        // FIN DE LA CORRECTION
                     }
                 }
                 
@@ -379,7 +380,6 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonBasculeBlueprint);
 
-        // Espace élastique : les actions de test restent alignées à droite.
         View espaceBandeau = new View(this);
         espaceBandeau.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeauHaut.addView(espaceBandeau);
@@ -438,6 +438,7 @@ public class InterfaceEditeur extends Activity {
     }
 // bas 2
 
+
 // haut 3
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
@@ -466,7 +467,6 @@ public class InterfaceEditeur extends Activity {
         Blueprint blueprintActif = new Blueprint();
         
         File dossierLogique = new File(cheminProjet, "logique");
-        // CORRECTION 1 : Chargement basé sur l'id de la scène active
         File fileBlueprint = new File(dossierLogique, sceneActive.id + ".json");
 
         if (fileBlueprint.exists()) {
@@ -488,7 +488,6 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
         }
 
-        // CORRECTION 2 : Chargement pour le HUD
         Blueprint blueprintHud = null;
         if (sceneHudActive != null) {
             File fileBlueprintHud = new File(dossierLogique, sceneHudActive.id + ".json");
@@ -508,7 +507,6 @@ public class InterfaceEditeur extends Activity {
             }
         }
 
-        // CORRECTION 3 : Passage de blueprintHud et sceneHudActive au constructeur
         this.vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet, sceneHudActive, blueprintHud);
         
         FrameLayout conteneurJeu = new FrameLayout(this);
@@ -552,10 +550,10 @@ public class InterfaceEditeur extends Activity {
                 sceneActive = sceneActiveBackup;
                 sceneActiveBackup = null;
             }
-            if (sceneHudActiveBackup != null) {
-                sceneHudActive = sceneHudActiveBackup;
-                sceneHudActiveBackup = null;
-            }
+            
+            sceneHudActive = sceneHudActiveBackup;
+            sceneHudActiveBackup = null;
+
             if (variablesGlobalesBackup != null) {
                 variablesGlobales = variablesGlobalesBackup;
                 variablesGlobalesBackup = null;
@@ -647,4 +645,5 @@ public class InterfaceEditeur extends Activity {
     
 
 
-        
+
+    

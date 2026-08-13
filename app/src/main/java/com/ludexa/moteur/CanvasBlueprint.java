@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 11 aout
 package com.ludexa.moteur;
 
 import android.content.ClipData;
@@ -26,6 +26,7 @@ public class CanvasBlueprint extends View {
     private Paint paintSelection;
     private Paint paintBoutonEdition;
     private Paint paintTexteBouton;
+    private Paint paintResume;
     
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
@@ -66,7 +67,8 @@ public class CanvasBlueprint extends View {
     private void init() {
         paintGrille = new Paint();
         paintGrille.setColor(Palette.canvasGrille);
-        paintGrille.setStrokeWidth(2);
+        paintGrille.setStrokeWidth(1.5f);
+        paintGrille.setAntiAlias(true);
         
         paintNoeudBG = new Paint();
         paintNoeudBG.setColor(Palette.fondPanneaux);
@@ -78,13 +80,13 @@ public class CanvasBlueprint extends View {
         
         paintTexteTitre = new Paint();
         paintTexteTitre.setColor(Palette.texteNormal);
-        paintTexteTitre.setTextSize(24);
+        paintTexteTitre.setTextSize(26);
         paintTexteTitre.setFakeBoldText(true);
         paintTexteTitre.setAntiAlias(true);
         
         paintTextePort = new Paint();
         paintTextePort.setColor(Palette.texteNormal);
-        paintTextePort.setTextSize(18);
+        paintTextePort.setTextSize(19);
         paintTextePort.setAntiAlias(true);
         
         paintPort = new Paint();
@@ -93,13 +95,15 @@ public class CanvasBlueprint extends View {
         
         paintLien = new Paint();
         paintLien.setStyle(Paint.Style.STROKE);
-        paintLien.setStrokeWidth(6);
+        paintLien.setStrokeWidth(5);
+        paintLien.setStrokeCap(Paint.Cap.ROUND);
+        paintLien.setStrokeJoin(Paint.Join.ROUND);
         paintLien.setAntiAlias(true);
         
         paintSelection = new Paint();
-        paintSelection.setColor(Color.parseColor("#FFD700")); 
+        paintSelection.setColor(Palette.texteSelectionne);
         paintSelection.setStyle(Paint.Style.STROKE);
-        paintSelection.setStrokeWidth(6);
+        paintSelection.setStrokeWidth(4);
         paintSelection.setAntiAlias(true);
 
         paintBoutonEdition = new Paint();
@@ -107,10 +111,16 @@ public class CanvasBlueprint extends View {
         paintBoutonEdition.setStyle(Paint.Style.FILL);
         
         paintTexteBouton = new Paint();
-        paintTexteBouton.setColor(Color.WHITE);
-        paintTexteBouton.setTextSize(16);
+        paintTexteBouton.setColor(Palette.texteNormal);
+        paintTexteBouton.setTextSize(18);
+        paintTexteBouton.setFakeBoldText(true);
         paintTexteBouton.setTextAlign(Paint.Align.CENTER);
         paintTexteBouton.setAntiAlias(true);
+        
+        paintResume = new Paint();
+        paintResume.setColor(Palette.texteSelectionne);
+        paintResume.setTextSize(17);
+        paintResume.setAntiAlias(true);
         
         setBackgroundColor(Palette.canvasFond); 
 
@@ -205,8 +215,6 @@ public class CanvasBlueprint extends View {
         return noeudSelectionne;
     }
 // bas 1
-
-
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -273,9 +281,9 @@ public class CanvasBlueprint extends View {
         path.cubicTo(x1 + dist, y1, x2 - dist, y2, x2, y2);
         
         if (Port.TYPE_EXECUTION_ENTREE.equals(portType.type) || Port.TYPE_EXECUTION_SORTIE.equals(portType.type)) {
-            paintLien.setColor(Color.WHITE);
+            paintLien.setColor(Palette.texteNormal);
         } else {
-            paintLien.setColor(Color.parseColor("#44AAFF"));
+            paintLien.setColor(Palette.texteSelectionne);
         }
         canvas.drawPath(path, paintLien);
     }
@@ -288,7 +296,7 @@ public class CanvasBlueprint extends View {
         float x = xObj;
         float y = yObj;
         float startY = y + 70;
-        float largeur = 260;
+        float largeur = getLargeurNoeud(noeud);
 
         for (int i = 0; i < noeud.portsEntree.size(); i++) {
             if (noeud.portsEntree.get(i).nom.equals(port.nom)) {
@@ -303,14 +311,15 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
- // haut 3
+// haut 3
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
         if (noeud.requiertCibleObjet()) count++;
+        if (noeud.requiertCibleObjetB()) count++;
         if (noeud.requiertCibleVariable()) count++;
         if (noeud.requiertCibleScene()) count++;
         if (noeud.getNomsParametres() != null) count += noeud.getNomsParametres().size();
-        return count * 22f;
+        return count * 28f;
     }
 
     private float calculerHauteurBase(NoeudBase noeud) {
@@ -321,6 +330,57 @@ public class CanvasBlueprint extends View {
     private float calculerHauteurTotale(NoeudBase noeud) {
         return calculerHauteurBase(noeud) + (noeud.aDesParametresEditables() ? 50 : 0);
     }
+    
+    private float getLargeurNoeud(NoeudBase noeud) {
+        float max = 220f;
+        
+        float wTitre = paintTexteTitre.measureText(noeud.nom) + 40f;
+        if (wTitre > max) max = wTitre;
+        
+        int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
+        for (int i = 0; i < maxPorts; i++) {
+            float rowWidth = 60f; 
+            if (i < noeud.portsEntree.size()) {
+                rowWidth += paintTextePort.measureText(noeud.portsEntree.get(i).nom);
+            }
+            if (i < noeud.portsSortie.size()) {
+                rowWidth += paintTextePort.measureText(noeud.portsSortie.get(i).nom);
+            }
+            if (rowWidth > max) max = rowWidth;
+        }
+
+        if (noeud.requiertCibleObjet()) {
+            String nom = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "Aucune";
+            float w = paintResume.measureText("Objet : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.requiertCibleObjetB()) {
+            String nom = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "Aucune";
+            float w = paintResume.measureText("Objet B : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.requiertCibleVariable()) {
+            String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "Aucune";
+            float w = paintResume.measureText("Variable : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.requiertCibleScene()) {
+            String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : "Aucune";
+            float w = paintResume.measureText("Scène : " + nom) + 30f;
+            if (w > max) max = w;
+        }
+        if (noeud.getNomsParametres() != null) {
+            for (String param : noeud.getNomsParametres()) {
+                String val = noeud.getValeurParametre(param);
+                if (val == null) val = "";
+                String ligne = param + " : " + val;
+                float w = paintResume.measureText(ligne) + 30f;
+                if (w > max) max = w;
+            }
+        }
+        
+        return max;
+    }
 
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
@@ -329,7 +389,7 @@ public class CanvasBlueprint extends View {
         
         float x = xObj;
         float y = yObj;
-        float largeur = 260;
+        float largeur = getLargeurNoeud(noeud);
         int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
         
         boolean estEditable = noeud.aDesParametresEditables();
@@ -338,14 +398,14 @@ public class CanvasBlueprint extends View {
         
         if (noeud == noeudSelectionne) {
             RectF rectSelection = new RectF(x - 4, y - 4, x + largeur + 4, y + hauteurTotale + 4);
-            canvas.drawRoundRect(rectSelection, 18, 18, paintSelection);
+            canvas.drawRoundRect(rectSelection, 22, 22, paintSelection);
         }
         
         RectF rectFond = new RectF(x, y, x + largeur, y + hauteurTotale);
-        canvas.drawRoundRect(rectFond, 16, 16, paintNoeudBG);
+        canvas.drawRoundRect(rectFond, 20, 20, paintNoeudBG);
         
         RectF rectTitre = new RectF(x, y, x + largeur, y + 45);
-        canvas.drawRoundRect(rectTitre, 16, 16, paintTitreBG);
+        canvas.drawRoundRect(rectTitre, 20, 20, paintTitreBG);
         canvas.drawRect(x, y + 25, x + largeur, y + 45, paintTitreBG);
         
         canvas.drawText(noeud.nom, x + 15, y + 32, paintTexteTitre);
@@ -355,7 +415,7 @@ public class CanvasBlueprint extends View {
             Port p = noeud.portsEntree.get(i);
             definirCouleurPort(p);
             float portY = startY + (i * 40);
-            canvas.drawCircle(x, portY, 8, paintPort);
+            canvas.drawCircle(x, portY, 9, paintPort);
             canvas.drawText(p.nom, x + 20, portY + 6, paintTextePort);
         }
         
@@ -363,57 +423,57 @@ public class CanvasBlueprint extends View {
             Port p = noeud.portsSortie.get(i);
             definirCouleurPort(p);
             float portY = startY + (i * 40);
-            canvas.drawCircle(x + largeur, portY, 8, paintPort);
+            canvas.drawCircle(x + largeur, portY, 9, paintPort);
             float textWidth = paintTextePort.measureText(p.nom);
             canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
         }
         
         // Résumé des paramètres
         float currentY = y + 60 + (maxPorts * 40) + 15;
-        Paint paintResume = new Paint();
-        paintResume.setColor(Palette.texteSelectionne);
-        paintResume.setTextSize(14);
-        paintResume.setAntiAlias(true);
         
         if (noeud.requiertCibleObjet()) {
             String nom = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "Aucune";
             canvas.drawText("Objet : " + nom, x + 15, currentY, paintResume);
-            currentY += 22;
+            currentY += 28;
+        }
+        if (noeud.requiertCibleObjetB()) {
+            String nom = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "Aucune";
+            canvas.drawText("Objet B : " + nom, x + 15, currentY, paintResume);
+            currentY += 28;
         }
         if (noeud.requiertCibleVariable()) {
             String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "Aucune";
             canvas.drawText("Variable : " + nom, x + 15, currentY, paintResume);
-            currentY += 22;
+            currentY += 28;
         }
         if (noeud.requiertCibleScene()) {
             String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : "Aucune";
             canvas.drawText("Scène : " + nom, x + 15, currentY, paintResume);
-            currentY += 22;
+            currentY += 28;
         }
         if (noeud.getNomsParametres() != null) {
             for (String param : noeud.getNomsParametres()) {
                 String val = noeud.getValeurParametre(param);
                 if (val == null) val = "";
                 String ligne = param + " : " + val;
-                if (ligne.length() > 25) ligne = ligne.substring(0, 22) + "...";
                 canvas.drawText(ligne, x + 15, currentY, paintResume);
-                currentY += 22;
+                currentY += 28;
             }
         }
 
         if (estEditable) {
             float btnY = y + hauteurBase;
             RectF rectBouton = new RectF(x + 10, btnY, x + largeur - 10, btnY + 40);
-            canvas.drawRoundRect(rectBouton, 8, 8, paintBoutonEdition);
+            canvas.drawRoundRect(rectBouton, 12, 12, paintBoutonEdition);
             canvas.drawText("📝 Configurer", x + largeur / 2f, btnY + 26, paintTexteBouton);
         }
     }
     
     private void definirCouleurPort(Port p) {
         if (Port.TYPE_EXECUTION_ENTREE.equals(p.type) || Port.TYPE_EXECUTION_SORTIE.equals(p.type)) {
-            paintPort.setColor(Color.WHITE);
+            paintPort.setColor(Palette.texteNormal);
         } else {
-            paintPort.setColor(Color.parseColor("#44AAFF")); 
+            paintPort.setColor(Palette.texteSelectionne); 
         }
     }
 
@@ -428,7 +488,7 @@ public class CanvasBlueprint extends View {
             if (nx == null || ny == null) continue;
 
             float startY = ny + 70;
-            float largeur = 260;
+            float largeur = getLargeurNoeud(noeud);
 
             for (int j = 0; j < noeud.portsEntree.size(); j++) {
                 float py = startY + (j * 40);
@@ -456,7 +516,7 @@ public class CanvasBlueprint extends View {
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             
             if (nx != null && ny != null) {
-                float largeur = 260;
+                float largeur = getLargeurNoeud(noeud);
                 float hauteurBase = calculerHauteurBase(noeud);
                 float btnY = ny + hauteurBase;
                 
@@ -476,7 +536,7 @@ public class CanvasBlueprint extends View {
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             
             if (nx != null && ny != null) {
-                float largeur = 260;
+                float largeur = getLargeurNoeud(noeud);
                 float hauteur = calculerHauteurTotale(noeud);
                 
                 if (sceneX >= nx && sceneX <= nx + largeur && sceneY >= ny && sceneY <= ny + hauteur) {
@@ -534,8 +594,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-    
-// haut 4
+ // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();

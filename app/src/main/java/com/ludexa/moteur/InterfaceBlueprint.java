@@ -6,7 +6,11 @@ import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.*;
 
 import java.io.File;
@@ -30,6 +34,54 @@ public class InterfaceBlueprint extends Activity {
     private Blueprint blueprintActif;
     private CanvasBlueprint canvasBlueprint;
 
+    private int dp(float valeur) {
+        return Math.round(TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, valeur, getResources().getDisplayMetrics()));
+    }
+
+    private GradientDrawable fond(int couleur, int rayonDp, int couleurBordure, int epaisseurDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(couleur);
+        g.setCornerRadius(dp(rayonDp));
+        if (epaisseurDp > 0) {
+            g.setStroke(dp(epaisseurDp), couleurBordure);
+        }
+        return g;
+    }
+
+    private void styliserBoutonBandeau(ImageButton b) {
+        b.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        b.setBackground(fond(Palette.boutonNormal, 6, Palette.bordure, 1));
+        b.setPadding(dp(6), dp(6), dp(6), dp(6));
+        Palette.appliquerCouleurIcone(b, Palette.iconeNormal);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(38), dp(38));
+        lp.setMargins(0, 0, dp(6), 0);
+        lp.gravity = Gravity.CENTER_VERTICAL;
+        b.setLayoutParams(lp);
+    }
+
+    private View separateurVertical() {
+        View s = new View(this);
+        s.setBackgroundColor(Palette.bordure);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(1), dp(26));
+        lp.setMargins(dp(4), 0, dp(10), 0);
+        lp.gravity = Gravity.CENTER_VERTICAL;
+        s.setLayoutParams(lp);
+        return s;
+    }
+
+    private void styliserBoutonDialog(Button b) {
+        b.setBackground(fond(Palette.boutonNormal, 6, Palette.bordure, 1));
+        b.setTextColor(Palette.texteNormal);
+        b.setAllCaps(false);
+        b.setTextSize(14f);
+        b.setPadding(dp(14), dp(6), dp(14), dp(6));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, dp(8), 0);
+        b.setLayoutParams(lp);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -49,84 +101,99 @@ public class InterfaceBlueprint extends Activity {
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
-        layoutPrincipal.setBackgroundColor(Palette.fondPanneaux);
+        layoutPrincipal.setBackgroundColor(Palette.fondNormal);
+        layoutPrincipal.setPadding(dp(8), dp(8), dp(8), dp(8));
 
         // ---- Bandeau du haut ----
         LinearLayout bandeauHaut = new LinearLayout(this);
         bandeauHaut.setOrientation(LinearLayout.HORIZONTAL);
-        bandeauHaut.setPadding(10, 10, 10, 10);
-        bandeauHaut.setBackgroundColor(Palette.fondPanneaux);
+        bandeauHaut.setGravity(Gravity.CENTER_VERTICAL);
+        bandeauHaut.setPadding(dp(6), dp(6), dp(6), dp(6));
+        bandeauHaut.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
 
-        Button boutonRetour = new Button(this);
-        boutonRetour.setText("Retour Scène");
-        boutonRetour.setBackgroundColor(Palette.boutonNormal);
-        boutonRetour.setTextColor(Palette.texteNormal);
+        ImageButton boutonRetour = new ImageButton(this);
+        boutonRetour.setImageResource(R.drawable.exit_to_app_24px);
+        styliserBoutonBandeau(boutonRetour);
         boutonRetour.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonRetour);
+
+        TextView titreBlueprint = new TextView(this);
+        titreBlueprint.setText("Blueprint");
+        titreBlueprint.setTextSize(15f);
+        titreBlueprint.setTextColor(Palette.texteSelectionne);
+        LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        paramsTitre.setMargins(dp(4), 0, dp(10), 0);
+        paramsTitre.gravity = Gravity.CENTER_VERTICAL;
+        titreBlueprint.setLayoutParams(paramsTitre);
+        bandeauHaut.addView(titreBlueprint);
+
+        bandeauHaut.addView(separateurVertical());
 
         canvasBlueprint = new CanvasBlueprint(this);
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+        paramsCentre.setMargins(dp(8), 0, 0, 0);
         canvasBlueprint.setLayoutParams(paramsCentre);
 
-        Button boutonSauvegarder = new Button(this);
-        boutonSauvegarder.setText("Sauvegarder");
-        boutonSauvegarder.setBackgroundColor(Palette.boutonNormal);
-        boutonSauvegarder.setTextColor(Palette.texteNormal);
+        ImageButton boutonSauvegarder = new ImageButton(this);
+        boutonSauvegarder.setImageResource(R.drawable.save_24px);
+        styliserBoutonBandeau(boutonSauvegarder);
         boutonSauvegarder.setOnClickListener(v -> sauvegarderBlueprintLocal());
         bandeauHaut.addView(boutonSauvegarder);
 
-        Button boutonCharger = new Button(this);
-        boutonCharger.setText("Charger");
-        boutonCharger.setBackgroundColor(Palette.boutonNormal);
-        boutonCharger.setTextColor(Palette.texteNormal);
+        ImageButton boutonCharger = new ImageButton(this);
+        boutonCharger.setImageResource(R.drawable.folder_open_24px);
+        styliserBoutonBandeau(boutonCharger);
         boutonCharger.setOnClickListener(v -> chargerBlueprintLocal(false));
         bandeauHaut.addView(boutonCharger);
 
-        Button boutonZoomMoins = new Button(this);
-        boutonZoomMoins.setText("[-]");
-        boutonZoomMoins.setBackgroundColor(Palette.boutonNormal);
-        boutonZoomMoins.setTextColor(Palette.texteNormal);
+        bandeauHaut.addView(separateurVertical());
+
+        ImageButton boutonZoomMoins = new ImageButton(this);
+        boutonZoomMoins.setImageResource(R.drawable.zoom_out_24px);
+        styliserBoutonBandeau(boutonZoomMoins);
         boutonZoomMoins.setOnClickListener(v -> canvasBlueprint.zoomMoins());
         bandeauHaut.addView(boutonZoomMoins);
 
-        Button boutonZoomReset = new Button(this);
-        boutonZoomReset.setText("[[]]");
-        boutonZoomReset.setBackgroundColor(Palette.boutonNormal);
-        boutonZoomReset.setTextColor(Palette.texteNormal);
+        ImageButton boutonZoomReset = new ImageButton(this);
+        boutonZoomReset.setImageResource(R.drawable.center_focus_weak_24px);
+        styliserBoutonBandeau(boutonZoomReset);
         boutonZoomReset.setOnClickListener(v -> canvasBlueprint.zoomReset());
         bandeauHaut.addView(boutonZoomReset);
 
-        Button boutonZoomPlus = new Button(this);
-        boutonZoomPlus.setText("[+]");
-        boutonZoomPlus.setBackgroundColor(Palette.boutonNormal);
-        boutonZoomPlus.setTextColor(Palette.texteNormal);
+        ImageButton boutonZoomPlus = new ImageButton(this);
+        boutonZoomPlus.setImageResource(R.drawable.zoom_in_24px);
+        styliserBoutonBandeau(boutonZoomPlus);
         boutonZoomPlus.setOnClickListener(v -> canvasBlueprint.zoomPlus());
         bandeauHaut.addView(boutonZoomPlus);
 
-        Button boutonUndo = new Button(this);
-        boutonUndo.setText("[<]");
-        boutonUndo.setBackgroundColor(Palette.boutonNormal);
-        boutonUndo.setTextColor(Palette.texteNormal);
+        bandeauHaut.addView(separateurVertical());
+
+        ImageButton boutonUndo = new ImageButton(this);
+        boutonUndo.setImageResource(R.drawable.undo_24px);
+        styliserBoutonBandeau(boutonUndo);
         bandeauHaut.addView(boutonUndo);
 
-        Button boutonRedo = new Button(this);
-        boutonRedo.setText("[>]");
-        boutonRedo.setBackgroundColor(Palette.boutonNormal);
-        boutonRedo.setTextColor(Palette.texteNormal);
+        ImageButton boutonRedo = new ImageButton(this);
+        boutonRedo.setImageResource(R.drawable.redo_24px);
+        styliserBoutonBandeau(boutonRedo);
         bandeauHaut.addView(boutonRedo);
 
-        Button boutonSupprimerNode = new Button(this);
-        boutonSupprimerNode.setText("Supprimer le node");
-        boutonSupprimerNode.setBackgroundColor(Palette.boutonNormal);
-        boutonSupprimerNode.setTextColor(Palette.texteNormal);
+        ImageButton boutonSupprimerNode = new ImageButton(this);
+        boutonSupprimerNode.setImageResource(R.drawable.delete_24px);
+        styliserBoutonBandeau(boutonSupprimerNode);
         boutonSupprimerNode.setOnClickListener(v -> canvasBlueprint.supprimerNoeudSelectionne());
         bandeauHaut.addView(boutonSupprimerNode);
 
-        Button boutonCode = new Button(this);
-        boutonCode.setText("Code");
-        boutonCode.setBackgroundColor(Palette.boutonNormal);
-        boutonCode.setTextColor(Palette.texteNormal);
+        View espaceBandeau = new View(this);
+        espaceBandeau.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
+        bandeauHaut.addView(espaceBandeau);
+
+        ImageButton boutonCode = new ImageButton(this);
+        boutonCode.setImageResource(R.drawable.edit_square_24px);
+        styliserBoutonBandeau(boutonCode);
+        boutonCode.setBackground(fond(Palette.boutonSurvol, 6, Palette.bordure, 1));
         boutonCode.setOnClickListener(v -> afficherFenetreCode());
         bandeauHaut.addView(boutonCode);
 
@@ -135,6 +202,7 @@ public class InterfaceBlueprint extends Activity {
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        paramsMilieu.setMargins(0, dp(8), 0, 0);
         zoneMilieu.setLayoutParams(paramsMilieu);
 
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
@@ -229,8 +297,20 @@ public class InterfaceBlueprint extends Activity {
 
         LinearLayout layoutDialog = new LinearLayout(this);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
-        layoutDialog.setPadding(30, 30, 30, 30);
-        layoutDialog.setBackgroundColor(Palette.fondPanneaux);
+        layoutDialog.setPadding(dp(16), dp(16), dp(16), dp(16));
+        layoutDialog.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
+
+        TextView enTeteDialog = new TextView(this);
+        enTeteDialog.setText("RÉSUMÉ DU BLUEPRINT");
+        enTeteDialog.setTextSize(14f);
+        enTeteDialog.setTextColor(Palette.texteSelectionne);
+        enTeteDialog.setBackground(fond(Palette.enTeteDialogues, 6, Palette.bordure, 1));
+        enTeteDialog.setPadding(dp(10), dp(8), dp(10), dp(8));
+        LinearLayout.LayoutParams paramsEnTete = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        paramsEnTete.setMargins(0, 0, 0, dp(10));
+        enTeteDialog.setLayoutParams(paramsEnTete);
+        layoutDialog.addView(enTeteDialog);
 
         // --- Génération dynamique du texte du Blueprint ---
         StringBuilder res = new StringBuilder();
@@ -278,11 +358,13 @@ public class InterfaceBlueprint extends Activity {
         textViewCode.setText(res.toString());
         textViewCode.setTextSize(14f); 
         textViewCode.setTextColor(Palette.texteNormal);
+        textViewCode.setPadding(dp(10), dp(10), dp(10), dp(10));
 
         ScrollView scrollView = new ScrollView(this);
-        scrollView.setPadding(0, 0, 0, 30);
+        scrollView.setBackground(fond(Palette.fondListe, 6, Palette.bordure, 1));
         LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scrollParams.setMargins(0, 0, 0, dp(12));
         scrollView.setLayoutParams(scrollParams);
         scrollView.addView(textViewCode);
 
@@ -290,11 +372,11 @@ public class InterfaceBlueprint extends Activity {
 
         LinearLayout boutonsDialog = new LinearLayout(this);
         boutonsDialog.setOrientation(LinearLayout.HORIZONTAL);
+        boutonsDialog.setGravity(Gravity.END);
 
         Button btnCopier = new Button(this);
         btnCopier.setText("Copier");
-        btnCopier.setBackgroundColor(Palette.boutonNormal);
-        btnCopier.setTextColor(Palette.texteNormal);
+        styliserBoutonDialog(btnCopier);
         btnCopier.setOnClickListener(v -> {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("Code LUDEXA", textViewCode.getText());
@@ -305,8 +387,7 @@ public class InterfaceBlueprint extends Activity {
 
         Button btnQuitter = new Button(this);
         btnQuitter.setText("Quitter");
-        btnQuitter.setBackgroundColor(Palette.boutonNormal);
-        btnQuitter.setTextColor(Palette.texteNormal);
+        styliserBoutonDialog(btnQuitter);
         btnQuitter.setOnClickListener(v -> dialog.dismiss());
         boutonsDialog.addView(btnQuitter);
 
@@ -317,3 +398,4 @@ public class InterfaceBlueprint extends Activity {
     }
 }
 // bas 1
+                               

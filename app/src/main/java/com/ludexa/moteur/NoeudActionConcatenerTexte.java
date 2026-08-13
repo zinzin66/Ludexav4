@@ -1,18 +1,16 @@
-// début 1 11 08
-
 package com.ludexa.moteur;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class NoeudActionAjouterVariable extends NoeudBase {
+public class NoeudActionConcatenerTexte extends NoeudBase {
 
     private transient Variable cible;
     private String nomCibleVariable;
-    private String valeurSaisie = "";
+    private String texteAAjouter = "";
 
-    public NoeudActionAjouterVariable() {
-        super(genererId(), "Ajouter à Variable", "Action");
+    public NoeudActionConcatenerTexte() {
+        super(genererId(), "Ajouter au Texte", "Actions");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
@@ -20,65 +18,36 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     @Override
     public void executer() {
         Variable cibleActuelle = getCibleVariable();
-        if (cibleActuelle != null && "CHIFFRE".equals(cibleActuelle.type)) {
-            float valeurCourante = 0f;
-            if (cibleActuelle.valeur instanceof Float) {
-                valeurCourante = (Float) cibleActuelle.valeur;
-            } else if (cibleActuelle.valeur != null) {
-                try {
-                    valeurCourante = Float.parseFloat(cibleActuelle.valeur.toString());
-                } catch (NumberFormatException e) {
-                    valeurCourante = 0f;
-                }
-            }
+        if (cibleActuelle != null) {
+            // Récupère la valeur actuelle sous forme de chaîne (vide si null)
+            String valeurActuelle = (cibleActuelle.valeur != null) ? cibleActuelle.valeur.toString() : "";
+            String ajout = (texteAAjouter != null) ? texteAAjouter : "";
             
-            float valeurAJoindre = 0f;
-            try {
-                valeurAJoindre = Float.parseFloat(valeurSaisie);
-            } catch (NumberFormatException e) {
-                valeurAJoindre = 0f;
-            }
+            // Concaténation simple
+            cibleActuelle.valeur = valeurActuelle + ajout;
             
-            cibleActuelle.valeur = valeurCourante + valeurAJoindre;
-        } else if (cibleActuelle != null && "ENTIER".equals(cibleActuelle.type)) {
-            // CORRECTION : le type ENTIER n'était pas géré (seul CHIFFRE l'était), le nœud ne faisait rien silencieusement
-            int valeurCourante = 0;
-            if (cibleActuelle.valeur instanceof Integer) {
-                valeurCourante = (Integer) cibleActuelle.valeur;
-            } else if (cibleActuelle.valeur != null) {
-                try {
-                    valeurCourante = Integer.parseInt(cibleActuelle.valeur.toString().trim());
-                } catch (NumberFormatException e) {
-                    valeurCourante = 0;
-                }
+            // On force le type en TEXTE par sécurité pour la cohérence du moteur
+            if (!"TEXTE".equals(cibleActuelle.type)) {
+                cibleActuelle.type = "TEXTE";
             }
-
-            int valeurAJoindre = 0;
-            try {
-                valeurAJoindre = Integer.parseInt(valeurSaisie.trim());
-            } catch (NumberFormatException e) {
-                valeurAJoindre = 0;
-            }
-
-            cibleActuelle.valeur = valeurCourante + valeurAJoindre;
         }
-        // Si le type n'est ni CHIFFRE ni ENTIER, on ne fait rien (pas de crash).
-        
         propagerExecution("Suivant");
     }
 
     @Override
-    public List<String> getNomsParametres() { return Arrays.asList("Valeur à ajouter"); }
+    public List<String> getNomsParametres() { 
+        return Arrays.asList("Texte à ajouter"); 
+    }
 
     @Override
     public String getValeurParametre(String nom) {
-        if ("Valeur à ajouter".equals(nom)) return valeurSaisie;
+        if ("Texte à ajouter".equals(nom)) return texteAAjouter;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        if ("Valeur à ajouter".equals(nom)) valeurSaisie = valeur;
+        if ("Texte à ajouter".equals(nom)) texteAAjouter = valeur;
     }
 
     @Override
@@ -102,8 +71,8 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     @SuppressWarnings("unchecked")
     @Override
     public Variable getCibleVariable() { 
+        // Logique de reconnexion dynamique calquée sur NoeudActionModifierVariable
         if (cible == null && nomCibleVariable != null && contexteApplication != null) {
-            // Reconnexion dynamique
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
@@ -136,4 +105,4 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     public boolean utiliseClavierTexte() {
         return true;
     }
-} 
+}

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class VueJeu extends View {
     private Scene sceneActive;
@@ -34,6 +35,7 @@ public class VueJeu extends View {
     private float lastYJeu = 0f;
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
+    private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
     private final Runnable boucleDeRendu = new Runnable() {
         @Override
@@ -48,6 +50,9 @@ public class VueJeu extends View {
         this.sceneActive = scene;
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
+
+        if (scene != null) chargerAnimationsGlobales(scene.objets);
+        if (sceneHud != null) chargerAnimationsGlobales(sceneHud.objets);
 
         peintureObjet = new Paint();
         peintureObjet.setColor(Color.BLUE);
@@ -74,17 +79,99 @@ public class VueJeu extends View {
         }
     }
 
+    private void chargerAnimationsGlobales(List<ObjetBase> objets) {
+        if (objets == null || cheminProjet == null) return;
+        java.io.File fichierAnim = new java.io.File(cheminProjet, "assets_ludexa/Textes/animations.txt");
+        if (!fichierAnim.exists()) return;
+        
+        Map<String, List<String>> animsGlobales = new java.util.HashMap<>();
+        try {
+            java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fichierAnim));
+            String ligne;
+            while ((ligne = br.readLine()) != null) {
+                ligne = ligne.trim();
+                if (ligne.isEmpty() || ligne.startsWith("//")) continue;
+                int idxEgal = ligne.indexOf('=');
+                if (idxEgal > 0) {
+                    String cle = ligne.substring(0, idxEgal).trim();
+                    String valeurs = ligne.substring(idxEgal + 1).trim();
+                    List<String> images = new ArrayList<>();
+                    if (!valeurs.isEmpty()) {
+                        String[] parts = valeurs.split(",");
+                        for (String p : parts) images.add(p.trim());
+                    }
+                    animsGlobales.put(cle, images);
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        for (ObjetBase obj : objets) {
+            for (Map.Entry<String, List<String>> entry : animsGlobales.entrySet()) {
+                obj.animations.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
+        if (scene != null) chargerAnimationsGlobales(scene.objets);
+        if (scene == null) {
+            this.moteurHud = null;
+        }
     }
 
     public void ouvrirHudDynamique(Scene scene, Blueprint blueprintHud) {
+        if (this.sceneHudActive != null && this.sceneHudActive == scene && this.moteurHud != null) {
+            this.sceneHudActive = scene; 
+            return;
+        }
+
         this.sceneHudActive = scene;
+        if (scene != null) chargerAnimationsGlobales(scene.objets);
+        
         if (blueprintHud != null) {
             this.moteurHud = new MoteurLogique(blueprintHud);
             this.moteurHud.executerDemarrage();
         } else {
             this.moteurHud = null;
+        }
+    }
+
+    public void chargerNouvelleScene(Scene nouvelleScene) {
+        if (nouvelleScene == null) return;
+
+        this.sceneActive = nouvelleScene;
+        chargerAnimationsGlobales(nouvelleScene.objets);
+
+        Blueprint nouveauBlueprint = null;
+        if (cheminProjet != null) {
+            try {
+                java.io.File dossierLogique = new java.io.File(cheminProjet, "logique");
+                java.io.File fileBlueprint = new java.io.File(dossierLogique, nouvelleScene.id + ".json");
+                
+                if (fileBlueprint.exists()) {
+                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fileBlueprint));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    br.close();
+                    nouveauBlueprint = Blueprint.fromJson(sb.toString(), nouvelleScene);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (nouveauBlueprint != null) {
+            this.moteur = new MoteurLogique(nouveauBlueprint);
+            this.moteur.executerDemarrage();
+        } else {
+            this.moteur = null; 
         }
     }
 
@@ -100,9 +187,13 @@ public class VueJeu extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(boucleDeRendu);
+        GestionnaireAudio.arreterMusique();
     }
+// bas 1
 
-    private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu) {
+
+// haut 2
+    private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
         if (sceneHudActive != null && sceneHudActive.objets != null) {
             listeARechercher = sceneHudActive.objets;
@@ -120,7 +211,9 @@ public class VueJeu extends View {
         });
 
         for (ObjetBase obj : objetsTries) {
-            if (!obj.visible || !obj.estDeplacable) continue;
+            if (!obj.visible) continue;
+            if (exigeDeplacable && !obj.estDeplacable) continue;
+            
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
             Matrix inverseMatrix = new Matrix();
             if (absMatrix.invert(inverseMatrix)) {
@@ -135,12 +228,31 @@ public class VueJeu extends View {
     }
 
     @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
+            float xJeuActuel = (event.getX() - decalageX) / echelle;
+            float yJeuActuel = (event.getY() - decalageY) / echelle;
+
+            ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
+            if (objSurvole != null) {
+                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                    this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                    this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                }
+            }
+            return true;
+        }
+        return super.onGenericMotionEvent(event);
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         float xJeuActuel = (event.getX() - decalageX) / echelle;
         float yJeuActuel = (event.getY() - decalageY) / echelle;
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel);
+            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, true);
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
             
@@ -157,6 +269,15 @@ public class VueJeu extends View {
                 objetEnGlissement.y += yJeuActuel - lastYJeu;
                 lastXJeu = xJeuActuel;
                 lastYJeu = yJeuActuel;
+            } else {
+                ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
+                if (objSurvole != null) {
+                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    }
+                }
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             float xJeu = (event.getX() - decalageX) / echelle;
@@ -176,16 +297,16 @@ public class VueJeu extends View {
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
                             if (this.moteurHud != null) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            clickIntercepte = true;
                             break;
                         }
                     }
                 }
-                clickIntercepte = true;
             }
 
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
                 List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
-                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
+                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
                     if (!obj.visible) continue;
@@ -215,7 +336,10 @@ public class VueJeu extends View {
         }
         return true;
     }
+// bas 2
 
+
+// haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -224,7 +348,6 @@ public class VueJeu extends View {
         return null;
     }
 
-    // MODIFICATION : Rendue publique pour être accessible par UtilCollision
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -280,10 +403,38 @@ public class VueJeu extends View {
 
         for (ObjetBase objet : objetsTries) {
             if (!objet.visible) continue; 
+            
+            if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
+                List<String> frames = objet.animations.get(objet.animationActive);
+                if (frames != null && !frames.isEmpty()) {
+                    long tempsActuel = System.currentTimeMillis();
+                    if (objet.dernierTempsFrame == 0) objet.dernierTempsFrame = tempsActuel;
+                    
+                    long ecoulement = tempsActuel - objet.dernierTempsFrame;
+                    long delaiFrame = 1000 / Math.max(1, objet.vitesseFps);
+                    
+                    if (ecoulement >= delaiFrame) {
+                        objet.frameCourante++;
+                        objet.dernierTempsFrame = tempsActuel;
+                        
+                        if (objet.frameCourante >= frames.size()) {
+                            if (objet.boucleAnimation) {
+                                objet.frameCourante = 0;
+                            } else {
+                                objet.frameCourante = frames.size() - 1;
+                                objet.animationEnCours = false;
+                            }
+                        }
+                    }
+                    objet.cheminImage = frames.get(objet.frameCourante);
+                }
+            }
 
+            int alphaInt = Math.max(0, Math.min(255, (int)(objet.alpha * 255)));
             peintureObjet.setColor(objet.couleur);
+            peintureObjet.setAlpha(alphaInt);
             peintureTexte.setColor(objet.couleur);
-            if ("texte".equals(objet.type)) peintureTexte.setTextSize(objet.hauteur > 0 ? objet.hauteur : 40f); 
+            peintureTexte.setAlpha(alphaInt);
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
 
@@ -298,11 +449,56 @@ public class VueJeu extends View {
                 dessinerImage(canvas, objet);
             } else if ("texte".equals(objet.type)) {
                 String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+                
+                if (objet.cheminPolice != null && cheminProjet != null) {
+                    android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
+                    if (tf == null) {
+                        try {
+                            java.io.File fontFile = new java.io.File(cheminProjet, objet.cheminPolice);
+                            if (fontFile.exists()) {
+                                tf = android.graphics.Typeface.createFromFile(fontFile);
+                                cachePolices.put(objet.cheminPolice, tf);
+                            }
+                        } catch (Exception e) {}
+                    }
+                    peintureTexte.setTypeface(tf != null ? tf : android.graphics.Typeface.DEFAULT);
+                } else {
+                    peintureTexte.setTypeface(android.graphics.Typeface.DEFAULT);
+                }
+
+                peintureTexte.setTextSize(objet.tailleFonte);
                 peintureTexte.setTextScaleX(1.0f);
-                float tw = peintureTexte.measureText(texteAAfficher);
-                if (tw > 0) peintureTexte.setTextScaleX(objet.largeur / tw);
-                canvas.drawText(texteAAfficher, 0, objet.hauteur - (objet.hauteur * 0.1f), peintureTexte);
-                peintureTexte.setTextScaleX(1.0f);
+                
+                float hauteurLigne = objet.tailleFonte * 1.2f;
+                float currentY = hauteurLigne; 
+                float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
+                
+                String[] paragraphes = texteAAfficher.split("\n", -1);
+                for (String paragraphe : paragraphes) {
+                    if (paragraphe.isEmpty()) {
+                        currentY += hauteurLigne;
+                        continue;
+                    }
+
+                    int start = 0;
+                    while (start < paragraphe.length()) {
+                        int count = peintureTexte.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
+                        if (count <= 0) count = 1;
+                        
+                        int end = start + count;
+                        if (end < paragraphe.length()) {
+                            int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
+                            if (dernierEspace > start) {
+                                end = dernierEspace + 1;
+                            }
+                        }
+                        
+                        String ligne = paragraphe.substring(start, end);
+                        canvas.drawText(ligne, 0, currentY, peintureTexte);
+                        currentY += hauteurLigne;
+                        start = end;
+                    }
+                }
             } else {
                 if (objet.afficherFondColore || objet.cheminImage == null) canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
                 dessinerImage(canvas, objet);
@@ -321,12 +517,13 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        // NOUVEAU : Vérification continue des collisions à chaque frame (~60fps)
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
             this.moteur.verifierCollisions(this, sceneActive.objets);
+            this.moteur.verifierVariablesChangees(); 
         }
         if (this.moteurHud != null && sceneHudActive != null && sceneHudActive.objets != null) {
             this.moteurHud.verifierCollisions(this, sceneHudActive.objets);
+            this.moteurHud.verifierVariablesChangees(); 
         }
         
         echelle = Math.min((float) getWidth() / ConfigurationJeu.LARGEUR_JEU, (float) getHeight() / ConfigurationJeu.HAUTEUR_JEU);
@@ -338,9 +535,16 @@ public class VueJeu extends View {
         canvas.scale(echelle, echelle);
         canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
-        if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, true);
+        if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false);
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
     }
 }
-// bas 1
-            
+// bas 3
+                              
+
+
+
+
+    
+
+
