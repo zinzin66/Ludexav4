@@ -40,6 +40,8 @@ public class NoeudConditionDouble extends NoeudBase {
     }
     
     private boolean evaluer(String nomVar, String valAttendue) {
+        if (nomVar == null || nomVar.trim().isEmpty()) return false;
+        
         Variable v = trouverVariable(nomVar.trim());
         if (v == null || v.valeur == null) return false;
         
@@ -116,13 +118,42 @@ public class NoeudConditionDouble extends NoeudBase {
 
     @Override
     public String getTypeEditeurParametre(String nomParametre) {
-        if ("Lien (ET/OU)".equals(nomParametre)) return TYPE_CHOIX_LISTE;
+        // Transforme "Variable A", "Variable B" et "Lien" en menus déroulants dynamiques
+        if ("Lien (ET/OU)".equals(nomParametre) || "Variable A".equals(nomParametre) || "Variable B".equals(nomParametre)) {
+            return TYPE_CHOIX_LISTE;
+        }
         return TYPE_TEXTE_LIBRE;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<String> getOptionsChoixListe(String nomParametre) {
-        if ("Lien (ET/OU)".equals(nomParametre)) return Arrays.asList("ET", "OU");
+        if ("Lien (ET/OU)".equals(nomParametre)) {
+            return Arrays.asList("ET", "OU");
+        }
+        
+        // Construction dynamique de la liste des variables disponibles pour A et B
+        if ("Variable A".equals(nomParametre) || "Variable B".equals(nomParametre)) {
+            List<String> options = new ArrayList<>();
+            if (contexteApplication != null) {
+                try {
+                    if (contexteApplication instanceof InterfaceEditeur) {
+                        InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                        if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
+                            for (Variable v : editeur.sceneActive.variablesLocales) options.add(v.nom);
+                        }
+                        if (editeur.variablesGlobales != null) {
+                            for (Variable v : editeur.variablesGlobales) options.add(v.nom);
+                        }
+                    }
+                } catch (Exception e) {}
+            }
+            if (options.isEmpty()) {
+                options.add(""); // Empêche un crash si aucune variable n'existe encore
+            }
+            return options;
+        }
+        
         return new ArrayList<>();
     }
 
@@ -139,3 +170,4 @@ public class NoeudConditionDouble extends NoeudBase {
     public boolean utiliseClavierTexte() { return true; }
 }
 // bas 1
+            
