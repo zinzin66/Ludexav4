@@ -200,6 +200,7 @@ public class PanneauRessources extends LinearLayout {
         return nom;
     }
 // bas 2
+
 // haut 3 : SECTION SCENES
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -417,7 +418,6 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-
 // haut 4 : SECTION OBJETS (Ajout)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -509,17 +509,28 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        ImageButton btnAjouterBouton = new ImageButton(context);
+        btnAjouterBouton.setImageResource(R.drawable.hand_gesture_24px);
+        styliserBoutonIcone(btnAjouterBouton);
+        btnAjouterBouton.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Bouton", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 120f, 50f);
+            nouveau.type = "bouton"; 
+            nouveau.estZoneDeClic = true; 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
         ligne1.addView(btnAjouterCarre);
         ligne1.addView(btnAjouterTexte);
         ligne1.addView(btnAjouterRond);
         
         ligne2.addView(btnAjouterImage);
         ligne2.addView(btnAjouterZone);
-        View espace = new View(context);
-        LinearLayout.LayoutParams lpEspace = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        lpEspace.setMargins(dp(4), dp(4), dp(4), dp(4));
-        espace.setLayoutParams(lpEspace);
-        ligne2.addView(espace);
+        ligne2.addView(btnAjouterBouton);
 
         contenu.addView(ligne1);
         contenu.addView(ligne2);
@@ -539,7 +550,6 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
-
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -616,7 +626,6 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 5
-
 // haut 6 : SECTION ASSETS UI (Dossiers et Boutons)
     private boolean isRacineIndestructible(File dir) {
         if (dir == null) return false;
@@ -823,7 +832,6 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 6
-
 // haut 7 : SECTION ASSETS LOGIQUE (Popups et import)
     private void rafraichirListeAssets() {
         if (conteneurListeAssets == null || currentFolderSelected == null) return;
@@ -1125,8 +1133,6 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 7
-
-
 // haut 8 : SECTION DIALOGUES LOGIQUE
     private void afficherEditeurTexteGeant(Context context) {
         Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -1359,7 +1365,6 @@ public class PanneauRessources extends LinearLayout {
         conteneurVariables.addView(conteneurLigne);
     }
 // bas 9
-
 // haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1546,20 +1551,13 @@ public class PanneauRessources extends LinearLayout {
 
 
 
-
-
+    
 
 
 
 
     
 
-
-
-    
-
-
-    
 
 
 
@@ -1574,15 +1572,23 @@ public class PanneauRessources extends LinearLayout {
 
 
 
-    
-
-
 
     
 
 
 
+
     
 
+
+
+
+    
+
+
+
+
+
+    
 
 
