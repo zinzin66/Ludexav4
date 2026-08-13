@@ -29,13 +29,17 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
         REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
         REGISTRE.add(new InfoNoeud("Collision A/B", "Événements", "NoeudEventCollisionAB"));
+        REGISTRE.add(new InfoNoeud("Sortie de zone", "Événements", "NoeudEventSortieZone"));
         REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
+        REGISTRE.add(new InfoNoeud("Fin de Survol", "Événements", "NoeudEventFinSurvol"));
         REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
 
         // LOGIQUE & CONDITIONS
         REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique & Conditions", "NoeudConditionSiObjetToucheZone"));
         REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique & Conditions", "NoeudConditionSiObjetVisible"));
+        REGISTRE.add(new InfoNoeud("Condition Double (ET/OU)", "Logique & Conditions", "NoeudConditionDouble"));
+        
 
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
@@ -51,6 +55,9 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Apparence & Objets", "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud("Changer Z-Order", "Apparence & Objets", "NoeudActionChangerZOrder"));
         REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
+        REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
+        REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
+        
 
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Textes & Dialogues", "NoeudActionModifierTexte"));
