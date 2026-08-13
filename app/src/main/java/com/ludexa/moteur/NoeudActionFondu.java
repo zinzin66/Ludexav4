@@ -37,23 +37,27 @@ public class NoeudActionFondu extends NoeudBase {
                     strDuree = varDuree.valeur.toString().replace(",", ".");
                 }
 
-                float target = Float.parseFloat(strAlpha);
-                float temps = Float.parseFloat(strDuree);
+                float rawTarget = Float.parseFloat(strAlpha);
+                float rawTemps = Float.parseFloat(strDuree);
                 
                 // Sécurité des limites pour l'alpha (0 à 1) et le temps
-                if (target < 0f) target = 0f;
-                if (target > 1f) target = 1f;
-                if (temps < 0.1f) temps = 0.1f;
+                if (rawTarget < 0f) rawTarget = 0f;
+                if (rawTarget > 1f) rawTarget = 1f;
+                if (rawTemps < 0.1f) rawTemps = 0.1f;
+                
+                // Création de variables finales pour que le lambda Java soit satisfait
+                final float finalTarget = rawTarget;
+                final float finalTemps = rawTemps;
                 
                 android.os.Handler handler = new android.os.Handler(contexteApplication.getMainLooper());
                 handler.post(() -> {
-                    android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofFloat(obj.alpha, target);
-                    anim.setDuration((long)(temps * 1000));
+                    android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofFloat(obj.alpha, finalTarget);
+                    anim.setDuration((long)(finalTemps * 1000));
                     anim.addUpdateListener(a -> obj.alpha = (float) a.getAnimatedValue());
                     anim.start();
                 });
             } catch (Exception e) {
-                // En cas d'erreur de frappe inexplicable, on ignore silencieusement au lieu de forcer à 1.0
+                // En cas d'erreur de frappe inexplicable, on ignore silencieusement
             }
         }
         propagerExecution("Suivant"); // Poursuit la logique sans attendre la fin de l'animation
