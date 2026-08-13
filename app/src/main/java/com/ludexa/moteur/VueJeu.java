@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class VueJeu extends View {
     private Scene sceneActive;
@@ -50,6 +51,9 @@ public class VueJeu extends View {
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
+        if (scene != null) chargerAnimationsGlobales(scene.objets);
+        if (sceneHud != null) chargerAnimationsGlobales(sceneHud.objets);
+
         peintureObjet = new Paint();
         peintureObjet.setColor(Color.BLUE);
         peintureObjet.setAntiAlias(true);
@@ -75,8 +79,45 @@ public class VueJeu extends View {
         }
     }
 
+    private void chargerAnimationsGlobales(List<ObjetBase> objets) {
+        if (objets == null || cheminProjet == null) return;
+        java.io.File fichierAnim = new java.io.File(cheminProjet, "assets_ludexa/Textes/animations.txt");
+        if (!fichierAnim.exists()) return;
+        
+        Map<String, List<String>> animsGlobales = new java.util.HashMap<>();
+        try {
+            java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fichierAnim));
+            String ligne;
+            while ((ligne = br.readLine()) != null) {
+                ligne = ligne.trim();
+                if (ligne.isEmpty() || ligne.startsWith("//")) continue;
+                int idxEgal = ligne.indexOf('=');
+                if (idxEgal > 0) {
+                    String cle = ligne.substring(0, idxEgal).trim();
+                    String valeurs = ligne.substring(idxEgal + 1).trim();
+                    List<String> images = new ArrayList<>();
+                    if (!valeurs.isEmpty()) {
+                        String[] parts = valeurs.split(",");
+                        for (String p : parts) images.add(p.trim());
+                    }
+                    animsGlobales.put(cle, images);
+                }
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        for (ObjetBase obj : objets) {
+            for (Map.Entry<String, List<String>> entry : animsGlobales.entrySet()) {
+                obj.animations.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
+        if (scene != null) chargerAnimationsGlobales(scene.objets);
         if (scene == null) {
             this.moteurHud = null;
         }
@@ -89,6 +130,8 @@ public class VueJeu extends View {
         }
 
         this.sceneHudActive = scene;
+        if (scene != null) chargerAnimationsGlobales(scene.objets);
+        
         if (blueprintHud != null) {
             this.moteurHud = new MoteurLogique(blueprintHud);
             this.moteurHud.executerDemarrage();
@@ -101,6 +144,7 @@ public class VueJeu extends View {
         if (nouvelleScene == null) return;
 
         this.sceneActive = nouvelleScene;
+        chargerAnimationsGlobales(nouvelleScene.objets);
 
         Blueprint nouveauBlueprint = null;
         if (cheminProjet != null) {
@@ -143,13 +187,12 @@ public class VueJeu extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(boucleDeRendu);
-        
-        // NOUVEAU : On coupe la musique quand le mode Test/Play est quitté
         GestionnaireAudio.arreterMusique();
     }
 // bas 1
+
+
 // haut 2
-    // Version améliorée : on peut exiger ou non que l'objet soit déplaçable
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
         if (sceneHudActive != null && sceneHudActive.objets != null) {
@@ -169,7 +212,7 @@ public class VueJeu extends View {
 
         for (ObjetBase obj : objetsTries) {
             if (!obj.visible) continue;
-            if (exigeDeplacable && !obj.estDeplacable) continue; // Filtre uniquement si demandé (ex: pour le drag)
+            if (exigeDeplacable && !obj.estDeplacable) continue;
             
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
             Matrix inverseMatrix = new Matrix();
@@ -184,14 +227,13 @@ public class VueJeu extends View {
         return null;
     }
 
-    // Gestion du survol par curseur de souris / trackpad / émulateur
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
             float xJeuActuel = (event.getX() - decalageX) / echelle;
             float yJeuActuel = (event.getY() - decalageY) / echelle;
 
-            ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false); // false = n'importe quel objet visible
+            ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
             if (objSurvole != null) {
                 if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
                     this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
@@ -210,7 +252,7 @@ public class VueJeu extends View {
         float yJeuActuel = (event.getY() - decalageY) / echelle;
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, true); // true = doit être déplaçable
+            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, true);
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
             
@@ -228,7 +270,6 @@ public class VueJeu extends View {
                 lastXJeu = xJeuActuel;
                 lastYJeu = yJeuActuel;
             } else {
-                // Sur les écrans tactiles, simule le survol si on glisse le doigt sans porter d'objet
                 ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
                 if (objSurvole != null) {
                     if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
@@ -297,6 +338,7 @@ public class VueJeu extends View {
     }
 // bas 2
 
+
 // haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
@@ -361,9 +403,38 @@ public class VueJeu extends View {
 
         for (ObjetBase objet : objetsTries) {
             if (!objet.visible) continue; 
+            
+            if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
+                List<String> frames = objet.animations.get(objet.animationActive);
+                if (frames != null && !frames.isEmpty()) {
+                    long tempsActuel = System.currentTimeMillis();
+                    if (objet.dernierTempsFrame == 0) objet.dernierTempsFrame = tempsActuel;
+                    
+                    long ecoulement = tempsActuel - objet.dernierTempsFrame;
+                    long delaiFrame = 1000 / Math.max(1, objet.vitesseFps);
+                    
+                    if (ecoulement >= delaiFrame) {
+                        objet.frameCourante++;
+                        objet.dernierTempsFrame = tempsActuel;
+                        
+                        if (objet.frameCourante >= frames.size()) {
+                            if (objet.boucleAnimation) {
+                                objet.frameCourante = 0;
+                            } else {
+                                objet.frameCourante = frames.size() - 1;
+                                objet.animationEnCours = false;
+                            }
+                        }
+                    }
+                    objet.cheminImage = frames.get(objet.frameCourante);
+                }
+            }
 
+            int alphaInt = Math.max(0, Math.min(255, (int)(objet.alpha * 255)));
             peintureObjet.setColor(objet.couleur);
+            peintureObjet.setAlpha(alphaInt);
             peintureTexte.setColor(objet.couleur);
+            peintureTexte.setAlpha(alphaInt);
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
 
@@ -469,13 +540,11 @@ public class VueJeu extends View {
     }
 }
 // bas 3
+                              
 
 
 
 
     
-
-
-
 
 
