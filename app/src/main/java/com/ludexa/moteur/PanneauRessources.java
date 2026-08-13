@@ -200,6 +200,7 @@ public class PanneauRessources extends LinearLayout {
         return nom;
     }
 // bas 2
+
 // haut 3 : SECTION SCENES
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -418,7 +419,7 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 3
 
-// haut 4 : SECTION OBJETS (Ajout)
+// haut 4 : SECTION OBJETS (Ajout avec icônes explicites)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -436,6 +437,9 @@ public class PanneauRessources extends LinearLayout {
         
         LinearLayout ligne2 = new LinearLayout(context);
         ligne2.setOrientation(LinearLayout.HORIZONTAL);
+
+        LinearLayout ligne3 = new LinearLayout(context);
+        ligne3.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageButton btnAjouterCarre = new ImageButton(context);
         btnAjouterCarre.setImageResource(R.drawable.square_24px);
@@ -479,8 +483,9 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        // Image : Icône photo explicite
         ImageButton btnAjouterImage = new ImageButton(context);
-        btnAjouterImage.setImageResource(R.drawable.upload_file_24px); 
+        btnAjouterImage.setImageResource(R.drawable.add_photo_alternate_24px); 
         styliserBoutonIcone(btnAjouterImage);
         btnAjouterImage.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -493,8 +498,9 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        // Zone : Icône d'activité de zone
         ImageButton btnAjouterZone = new ImageButton(context);
-        btnAjouterZone.setImageResource(R.drawable.hide_image_24px);
+        btnAjouterZone.setImageResource(R.drawable.activity_zone_24px);
         styliserBoutonIcone(btnAjouterZone);
         btnAjouterZone.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -509,20 +515,81 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        // Bouton : Icône de boutons alternatifs
+        ImageButton btnAjouterBouton = new ImageButton(context);
+        btnAjouterBouton.setImageResource(R.drawable.buttons_alt_24px);
+        styliserBoutonIcone(btnAjouterBouton);
+        btnAjouterBouton.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Bouton", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 120f, 50f);
+            nouveau.type = "bouton"; 
+            nouveau.estZoneDeClic = true; 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        // Dialogue : Icône de chat pour la discussion
+        ImageButton btnAjouterDialogue = new ImageButton(context);
+        btnAjouterDialogue.setImageResource(R.drawable.chat_24px);
+        styliserBoutonIcone(btnAjouterDialogue);
+        btnAjouterDialogue.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            
+            String nomFond = genererNomUnique("BoiteDialogue", editeur.sceneActive);
+            ObjetBase fond = new ObjetBase(nomFond, 50f, 300f, 700f, 150f);
+            fond.type = "image";
+            fond.couleur = Color.argb(220, 30, 30, 30);
+            fond.afficherFondColore = true;
+            fond.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(fond);
+            
+            String nomTexte = genererNomUnique("TexteDialogue", editeur.sceneActive);
+            ObjetBase texte = new ObjetBase(nomTexte, 20f, 20f, 600f, 110f);
+            texte.type = "texte";
+            texte.contenuTexte = "Texte du dialogue ici...";
+            texte.couleur = Color.WHITE;
+            texte.tailleFonte = 20f;
+            texte.parentId = fond.id;
+            texte.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(texte);
+            
+            String nomBtn = genererNomUnique("BtnFermer", editeur.sceneActive);
+            ObjetBase btn = new ObjetBase(nomBtn, 640f, 10f, 40f, 40f);
+            btn.type = "bouton";
+            btn.estZoneDeClic = true;
+            btn.couleur = Color.parseColor("#E53935");
+            btn.afficherFondColore = true;
+            btn.parentId = fond.id;
+            btn.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(btn);
+
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+            Toast.makeText(context, "Groupe Dialogue créé", Toast.LENGTH_SHORT).show();
+        });
+
         ligne1.addView(btnAjouterCarre);
         ligne1.addView(btnAjouterTexte);
         ligne1.addView(btnAjouterRond);
         
         ligne2.addView(btnAjouterImage);
         ligne2.addView(btnAjouterZone);
-        View espace = new View(context);
-        LinearLayout.LayoutParams lpEspace = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        lpEspace.setMargins(dp(4), dp(4), dp(4), dp(4));
-        espace.setLayoutParams(lpEspace);
-        ligne2.addView(espace);
+        ligne2.addView(btnAjouterBouton);
+        
+        ligne3.addView(btnAjouterDialogue);
+        View espace1 = new View(context);
+        espace1.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ligne3.addView(espace1);
+        View espace2 = new View(context);
+        espace2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ligne3.addView(espace2);
 
         contenu.addView(ligne1);
         contenu.addView(ligne2);
+        contenu.addView(ligne3);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -1126,7 +1193,6 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 7
 
-
 // haut 8 : SECTION DIALOGUES LOGIQUE
     private void afficherEditeurTexteGeant(Context context) {
         Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -1236,6 +1302,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 8
+
 
 // haut 9 : SECTION VARIABLES UI
     private View creerSectionVariables(Context context) {
@@ -1359,6 +1426,7 @@ public class PanneauRessources extends LinearLayout {
         conteneurVariables.addView(conteneurLigne);
     }
 // bas 9
+
 
 // haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
@@ -1541,36 +1609,12 @@ public class PanneauRessources extends LinearLayout {
     }
 }
 // bas 10
-
-
-
-
-
-
-
-
-
-
-
     
-
-
 
     
 
 
     
-
-
-
-
-    
-
-
-
-
-    
-
 
 
 
@@ -1584,5 +1628,10 @@ public class PanneauRessources extends LinearLayout {
 
     
 
+
+
+    
+
+    
 
 
