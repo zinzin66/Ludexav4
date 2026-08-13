@@ -31,6 +31,7 @@ public class VueJeu extends View {
     private float decalageY = 0f;
 
     private ObjetBase objetEnGlissement = null;
+    private ObjetBase dernierObjetSurvole = null;
     private float lastXJeu = 0f;
     private float lastYJeu = 0f;
     
@@ -51,7 +52,6 @@ public class VueJeu extends View {
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
-        // Vider la mémoire des scènes précédentes à chaque lancement du jeu
         GestionnaireEtat.viderCache();
 
         if (scene != null) chargerAnimationsGlobales(scene.objets);
@@ -146,16 +146,12 @@ public class VueJeu extends View {
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
 
-        // 1. Sauvegarder l'état de la scène que l'on quitte
         if (this.sceneActive != null) {
             GestionnaireEtat.sauvegarderEtat(this.sceneActive);
         }
 
         this.sceneActive = nouvelleScene;
-
-        // 2. Restaurer l'état de la nouvelle scène (si elle a déjà été visitée)
         GestionnaireEtat.restaurerEtat(this.sceneActive);
-
         chargerAnimationsGlobales(nouvelleScene.objets);
 
         Blueprint nouveauBlueprint = null;
@@ -202,8 +198,8 @@ public class VueJeu extends View {
         GestionnaireAudio.arreterMusique();
     }
 // bas 1
-    
-// haut 2
+
+ // haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -212,7 +208,6 @@ public class VueJeu extends View {
         return null;
     }
 
-    // Vérifie si l'objet et tous ses parents sont visibles en mode Play
     public boolean estVisibleEffectif(ObjetBase obj, List<ObjetBase> contexteObjets) {
         ObjetBase cur = obj;
         while (cur != null) {
@@ -240,7 +235,7 @@ public class VueJeu extends View {
         });
 
         for (ObjetBase obj : objetsTries) {
-            if (!estVisibleEffectif(obj, listeARechercher)) continue; // CASCADE VISIBILITÉ
+            if (!estVisibleEffectif(obj, listeARechercher)) continue;
             if (exigeDeplacable && !obj.estDeplacable) continue;
             
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
@@ -263,12 +258,24 @@ public class VueJeu extends View {
             float yJeuActuel = (event.getY() - decalageY) / echelle;
 
             ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
-            if (objSurvole != null) {
-                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
-                    this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
-                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
-                    this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+            
+            if (objSurvole != dernierObjetSurvole) {
+                if (dernierObjetSurvole != null) {
+                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(dernierObjetSurvole) && this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                    }
                 }
+                
+                if (objSurvole != null) {
+                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    }
+                }
+                dernierObjetSurvole = objSurvole;
             }
             return true;
         }
@@ -300,12 +307,22 @@ public class VueJeu extends View {
                 lastYJeu = yJeuActuel;
             } else {
                 ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
-                if (objSurvole != null) {
-                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
-                        this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
-                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
-                        this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                if (objSurvole != dernierObjetSurvole) {
+                    if (dernierObjetSurvole != null) {
+                        if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
+                            this.moteurHud.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                        } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(dernierObjetSurvole) && this.moteur != null) {
+                            this.moteur.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                        }
                     }
+                    if (objSurvole != null) {
+                        if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                            this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                        } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                            this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                        }
+                    }
+                    dernierObjetSurvole = objSurvole;
                 }
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -318,7 +335,7 @@ public class VueJeu extends View {
                 Collections.sort(objetsHudTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsHudTries) {
-                    if (!estVisibleEffectif(obj, sceneHudActive.objets)) continue; // CASCADE VISIBILITÉ
+                    if (!estVisibleEffectif(obj, sceneHudActive.objets)) continue; 
                     Matrix absMatrix = getAbsoluteMatrix(obj, sceneHudActive.objets);
                     Matrix inverseMatrix = new Matrix();
                     if (absMatrix.invert(inverseMatrix)) {
@@ -338,7 +355,7 @@ public class VueJeu extends View {
                 Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
-                    if (!estVisibleEffectif(obj, sceneActive.objets)) continue; // CASCADE VISIBILITÉ
+                    if (!estVisibleEffectif(obj, sceneActive.objets)) continue; 
                     Matrix absMatrix = getAbsoluteMatrix(obj, sceneActive.objets);
                     Matrix inverseMatrix = new Matrix();
                     if (absMatrix.invert(inverseMatrix)) {
@@ -366,6 +383,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
+
 
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
