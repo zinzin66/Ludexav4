@@ -141,6 +141,16 @@ public class CanvasEditeur extends View {
         return null;
     }
 
+    // Vérifie si l'objet et tous ses parents sont visibles
+    public boolean estVisibleEffectif(ObjetBase obj) {
+        ObjetBase cur = obj;
+        while (cur != null) {
+            if (!cur.visible) return false;
+            cur = getObjetById(cur.parentId);
+        }
+        return true;
+    }
+
     public Matrix getAbsoluteMatrix(ObjetBase obj) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -210,7 +220,6 @@ public class CanvasEditeur extends View {
         return pts;
     }
 // bas 1
-
 // haut 2
     private float getHauteurReelle(ObjetBase objet) {
         if (!"texte".equals(objet.type)) {
@@ -289,7 +298,7 @@ public class CanvasEditeur extends View {
             });
 
             for (ObjetBase objet : objetsTries) {
-                if (!objet.visible) continue;
+                if (!estVisibleEffectif(objet)) continue; // CASCADE VISIBILITÉ
 
                 Matrix absMatrix = getAbsoluteMatrix(objet);
                 
@@ -297,7 +306,6 @@ public class CanvasEditeur extends View {
                 canvas.translate(cameraX, cameraY);
                 canvas.concat(absMatrix);
                 
-                // On détermine quelle image afficher dans l'éditeur (ex: si bouton désactivé)
                 String cheminAAfficher = objet.cheminImage;
                 if ("bouton".equals(objet.type) && objet.estDesactive && objet.cheminImageDesactive != null) {
                     cheminAAfficher = objet.cheminImageDesactive;
@@ -452,8 +460,7 @@ public class CanvasEditeur extends View {
             }
         }
     }
-// bas 2
-// haut 3
+
     private float[] ecranVersScene(float xEcran, float yEcran) {
         float cx = getWidth() / 2f, cy = getHeight() / 2f;
         float xZoom = cx + (xEcran - cx) / niveauZoom;
@@ -473,6 +480,8 @@ public class CanvasEditeur extends View {
 
         for (int i = objetsTries.size() - 1; i >= 0; i--) {
             ObjetBase objet = objetsTries.get(i);
+            if (!estVisibleEffectif(objet)) continue; // CASCADE VISIBILITÉ
+
             float[] localPos = worldToLocal(objet, sx, sy);
             float lx = localPos[0], ly = localPos[1];
             
@@ -484,7 +493,8 @@ public class CanvasEditeur extends View {
         }
         return null;
     }
-
+// bas 2
+// haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
         float sx = scenePos[0], sy = scenePos[1];
@@ -667,7 +677,13 @@ public class CanvasEditeur extends View {
 }
 // bas 3
 
-    
 
+
+
+
+
+
+
+    
 
 
