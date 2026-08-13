@@ -55,6 +55,9 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Apparence & Objets", "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud("Changer Z-Order", "Apparence & Objets", "NoeudActionChangerZOrder"));
         REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
+        REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
+        REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
+        
 
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Textes & Dialogues", "NoeudActionModifierTexte"));
