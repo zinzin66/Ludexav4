@@ -51,6 +51,9 @@ public class VueJeu extends View {
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
+        // Vider la mémoire des scènes précédentes à chaque lancement du jeu
+        GestionnaireEtat.viderCache();
+
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         if (sceneHud != null) chargerAnimationsGlobales(sceneHud.objets);
 
@@ -143,7 +146,16 @@ public class VueJeu extends View {
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
 
+        // 1. Sauvegarder l'état de la scène que l'on quitte
+        if (this.sceneActive != null) {
+            GestionnaireEtat.sauvegarderEtat(this.sceneActive);
+        }
+
         this.sceneActive = nouvelleScene;
+
+        // 2. Restaurer l'état de la nouvelle scène (si elle a déjà été visitée)
+        GestionnaireEtat.restaurerEtat(this.sceneActive);
+
         chargerAnimationsGlobales(nouvelleScene.objets);
 
         Blueprint nouveauBlueprint = null;
@@ -190,7 +202,7 @@ public class VueJeu extends View {
         GestionnaireAudio.arreterMusique();
     }
 // bas 1
-
+    
 // haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
