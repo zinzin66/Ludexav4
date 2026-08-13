@@ -1413,7 +1413,9 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+// bas 6
 
+// haut 7
     private void afficherPopupRenommerVariable(Context context, Variable var) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Renommer la variable");

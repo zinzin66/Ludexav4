@@ -357,7 +357,11 @@ public class InspecteurProprietes extends LinearLayout {
         btnParent.setText("Parent : Aucun");
         styliserBouton(btnParent);
         blocProprietes.addView(btnParent);
+// bas 1
 
+
+
+// haut 2
         btnParent.setOnClickListener(v -> {
             if (objetCourant == null) return;
 
