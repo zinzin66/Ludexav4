@@ -200,7 +200,6 @@ public class PanneauRessources extends LinearLayout {
         return nom;
     }
 // bas 2
-
 // haut 3 : SECTION SCENES
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -429,8 +428,14 @@ public class PanneauRessources extends LinearLayout {
         styliserTitreSection(btnTitre);
 
         LinearLayout contenu = new LinearLayout(context);
-        contenu.setOrientation(LinearLayout.HORIZONTAL);
+        contenu.setOrientation(LinearLayout.VERTICAL);
         styliserContenuSection(contenu);
+
+        LinearLayout ligne1 = new LinearLayout(context);
+        ligne1.setOrientation(LinearLayout.HORIZONTAL);
+        
+        LinearLayout ligne2 = new LinearLayout(context);
+        ligne2.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageButton btnAjouterCarre = new ImageButton(context);
         btnAjouterCarre.setImageResource(R.drawable.square_24px);
@@ -474,9 +479,50 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        contenu.addView(btnAjouterCarre);
-        contenu.addView(btnAjouterTexte);
-        contenu.addView(btnAjouterRond);
+        ImageButton btnAjouterImage = new ImageButton(context);
+        btnAjouterImage.setImageResource(R.drawable.upload_file_24px); 
+        styliserBoutonIcone(btnAjouterImage);
+        btnAjouterImage.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Image", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 100f, 100f);
+            nouveau.type = "image"; 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        ImageButton btnAjouterZone = new ImageButton(context);
+        btnAjouterZone.setImageResource(R.drawable.hide_image_24px);
+        styliserBoutonIcone(btnAjouterZone);
+        btnAjouterZone.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Zone", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 100f, 100f);
+            nouveau.type = "zone"; 
+            nouveau.estZoneDeClic = true; 
+            nouveau.couleur = Color.argb(120, 255, 152, 0); 
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        ligne1.addView(btnAjouterCarre);
+        ligne1.addView(btnAjouterTexte);
+        ligne1.addView(btnAjouterRond);
+        
+        ligne2.addView(btnAjouterImage);
+        ligne2.addView(btnAjouterZone);
+        View espace = new View(context);
+        LinearLayout.LayoutParams lpEspace = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lpEspace.setMargins(dp(4), dp(4), dp(4), dp(4));
+        espace.setLayoutParams(lpEspace);
+        ligne2.addView(espace);
+
+        contenu.addView(ligne1);
+        contenu.addView(ligne2);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -1080,6 +1126,7 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 7
 
+
 // haut 8 : SECTION DIALOGUES LOGIQUE
     private void afficherEditeurTexteGeant(Context context) {
         Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -1494,3 +1541,48 @@ public class PanneauRessources extends LinearLayout {
     }
 }
 // bas 10
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    
+
+
+    
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+

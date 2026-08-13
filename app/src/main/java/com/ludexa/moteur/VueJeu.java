@@ -190,8 +190,6 @@ public class VueJeu extends View {
         GestionnaireAudio.arreterMusique();
     }
 // bas 1
-
-
 // haut 2
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
@@ -306,7 +304,8 @@ public class VueJeu extends View {
 
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
                 List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
-                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
+                // CORRECTION ICI : on teste de o2 vers o1 (du plus grand Z au plus petit)
+                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
                     if (!obj.visible) continue;
@@ -339,7 +338,7 @@ public class VueJeu extends View {
 // bas 2
 
 
-// haut 3
+    // haut 3
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -403,6 +402,9 @@ public class VueJeu extends View {
 
         for (ObjetBase objet : objetsTries) {
             if (!objet.visible) continue; 
+            
+            // NOUVEAU : On ne dessine pas les objets Zone, mais ils restent actifs pour les clics
+            if ("zone".equals(objet.type)) continue;
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
                 List<String> frames = objet.animations.get(objet.animationActive);
@@ -540,11 +542,13 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-                              
 
 
 
 
-    
+
+
+
+
 
 

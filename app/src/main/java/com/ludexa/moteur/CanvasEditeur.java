@@ -211,7 +211,6 @@ public class CanvasEditeur extends View {
     }
 // bas 1
 
-
 // haut 2
     private float getHauteurReelle(ObjetBase objet) {
         if (!"texte".equals(objet.type)) {
@@ -360,6 +359,13 @@ public class CanvasEditeur extends View {
                             start = end;
                         }
                     }
+                } else if ("image".equals(objet.type)) {
+                    // NOUVEAU : Traitement explicite pour le type image
+                    if (objet.afficherFondColore) {
+                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    }
+                    dessinerImage(canvas, objet);
                 } else {
                     if (objet.afficherFondColore || objet.cheminImage == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
@@ -660,9 +666,7 @@ public class CanvasEditeur extends View {
 
 
 
-
     
-
 
 
 
