@@ -190,7 +190,6 @@ public class VueJeu extends View {
         GestionnaireAudio.arreterMusique();
     }
 // bas 1
-
 // haut 2
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
@@ -305,7 +304,8 @@ public class VueJeu extends View {
 
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
                 List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
-                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
+                // CORRECTION ICI : on teste de o2 vers o1 (du plus grand Z au plus petit)
+                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
                     if (!obj.visible) continue;
@@ -336,11 +336,6 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-
-
-
-
-
 
 
     // haut 3
