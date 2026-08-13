@@ -190,7 +190,26 @@ public class VueJeu extends View {
         GestionnaireAudio.arreterMusique();
     }
 // bas 1
+
 // haut 2
+    private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
+        if (contexteObjets == null || id == null) return null;
+        for (ObjetBase o : contexteObjets) {
+            if (o.id.equals(id)) return o;
+        }
+        return null;
+    }
+
+    // Vérifie si l'objet et tous ses parents sont visibles en mode Play
+    public boolean estVisibleEffectif(ObjetBase obj, List<ObjetBase> contexteObjets) {
+        ObjetBase cur = obj;
+        while (cur != null) {
+            if (!cur.visible) return false;
+            cur = getObjetById(cur.parentId, contexteObjets);
+        }
+        return true;
+    }
+
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
         if (sceneHudActive != null && sceneHudActive.objets != null) {
@@ -209,7 +228,7 @@ public class VueJeu extends View {
         });
 
         for (ObjetBase obj : objetsTries) {
-            if (!obj.visible) continue;
+            if (!estVisibleEffectif(obj, listeARechercher)) continue; // CASCADE VISIBILITÉ
             if (exigeDeplacable && !obj.estDeplacable) continue;
             
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
@@ -250,7 +269,7 @@ public class VueJeu extends View {
         float yJeuActuel = (event.getY() - decalageY) / echelle;
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false); // Permet de détecter la pression même si non déplaçable
+            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
             
@@ -287,7 +306,7 @@ public class VueJeu extends View {
                 Collections.sort(objetsHudTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsHudTries) {
-                    if (!obj.visible) continue;
+                    if (!estVisibleEffectif(obj, sceneHudActive.objets)) continue; // CASCADE VISIBILITÉ
                     Matrix absMatrix = getAbsoluteMatrix(obj, sceneHudActive.objets);
                     Matrix inverseMatrix = new Matrix();
                     if (absMatrix.invert(inverseMatrix)) {
@@ -307,7 +326,7 @@ public class VueJeu extends View {
                 Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
-                    if (!obj.visible) continue;
+                    if (!estVisibleEffectif(obj, sceneActive.objets)) continue; // CASCADE VISIBILITÉ
                     Matrix absMatrix = getAbsoluteMatrix(obj, sceneActive.objets);
                     Matrix inverseMatrix = new Matrix();
                     if (absMatrix.invert(inverseMatrix)) {
@@ -335,15 +354,8 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-// haut 3
-    private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
-        if (contexteObjets == null || id == null) return null;
-        for (ObjetBase o : contexteObjets) {
-            if (o.id.equals(id)) return o;
-        }
-        return null;
-    }
 
+// haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -398,7 +410,7 @@ public class VueJeu extends View {
         Collections.sort(objetsTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
 
         for (ObjetBase objet : objetsTries) {
-            if (!objet.visible) continue; 
+            if (!estVisibleEffectif(objet, objets)) continue; // CASCADE VISIBILITÉ
             if ("zone".equals(objet.type)) continue;
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
@@ -438,7 +450,6 @@ public class VueJeu extends View {
             canvas.save();
             canvas.concat(absMatrix);
 
-            // NOUVEAU : Sélection de l'image dynamique
             String cheminAAfficher = objet.cheminImage;
             if ("bouton".equals(objet.type)) {
                 if (objet.estDesactive && objet.cheminImageDesactive != null) {
@@ -547,5 +558,11 @@ public class VueJeu extends View {
     }
 }
 // bas 3
+
+
+
+
+    
+
 
 
