@@ -419,7 +419,7 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 3
 
-    // haut 4 : SECTION OBJETS (Ajout)
+// haut 4 : SECTION OBJETS (Ajout avec icônes explicites)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -483,8 +483,9 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        // Image : Icône photo explicite
         ImageButton btnAjouterImage = new ImageButton(context);
-        btnAjouterImage.setImageResource(R.drawable.upload_file_24px); 
+        btnAjouterImage.setImageResource(R.drawable.add_photo_alternate_24px); 
         styliserBoutonIcone(btnAjouterImage);
         btnAjouterImage.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -497,8 +498,9 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        // Zone : Icône d'activité de zone
         ImageButton btnAjouterZone = new ImageButton(context);
-        btnAjouterZone.setImageResource(R.drawable.hide_image_24px);
+        btnAjouterZone.setImageResource(R.drawable.activity_zone_24px);
         styliserBoutonIcone(btnAjouterZone);
         btnAjouterZone.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -513,8 +515,9 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        // Bouton : Icône de boutons alternatifs
         ImageButton btnAjouterBouton = new ImageButton(context);
-        btnAjouterBouton.setImageResource(R.drawable.hand_gesture_24px);
+        btnAjouterBouton.setImageResource(R.drawable.buttons_alt_24px);
         styliserBoutonIcone(btnAjouterBouton);
         btnAjouterBouton.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -528,14 +531,13 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // NOUVEAU : Création du raccourci Préfabriqué Dialogue
+        // Dialogue : Icône de chat pour la discussion
         ImageButton btnAjouterDialogue = new ImageButton(context);
-        btnAjouterDialogue.setImageResource(R.drawable.format_color_text_24px);
+        btnAjouterDialogue.setImageResource(R.drawable.chat_24px);
         styliserBoutonIcone(btnAjouterDialogue);
         btnAjouterDialogue.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             
-            // 1. Fond (Parent)
             String nomFond = genererNomUnique("BoiteDialogue", editeur.sceneActive);
             ObjetBase fond = new ObjetBase(nomFond, 50f, 300f, 700f, 150f);
             fond.type = "image";
@@ -544,7 +546,6 @@ public class PanneauRessources extends LinearLayout {
             fond.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(fond);
             
-            // 2. Texte (Enfant)
             String nomTexte = genererNomUnique("TexteDialogue", editeur.sceneActive);
             ObjetBase texte = new ObjetBase(nomTexte, 20f, 20f, 600f, 110f);
             texte.type = "texte";
@@ -555,7 +556,6 @@ public class PanneauRessources extends LinearLayout {
             texte.zOrder = editeur.sceneActive.prochainZOrder();
             editeur.sceneActive.ajouterObjet(texte);
             
-            // 3. Bouton Fermer (Enfant)
             String nomBtn = genererNomUnique("BtnFermer", editeur.sceneActive);
             ObjetBase btn = new ObjetBase(nomBtn, 640f, 10f, 40f, 40f);
             btn.type = "bouton";
@@ -580,7 +580,6 @@ public class PanneauRessources extends LinearLayout {
         ligne2.addView(btnAjouterBouton);
         
         ligne3.addView(btnAjouterDialogue);
-        // Ajout d'espaces invisibles pour garder les icônes de la 3ème ligne à la bonne taille
         View espace1 = new View(context);
         espace1.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         ligne3.addView(espace1);
@@ -607,6 +606,7 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
+
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -683,6 +683,7 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 5
+
 // haut 6 : SECTION ASSETS UI (Dossiers et Boutons)
     private boolean isRacineIndestructible(File dir) {
         if (dir == null) return false;
@@ -889,6 +890,7 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 6
+
 // haut 7 : SECTION ASSETS LOGIQUE (Popups et import)
     private void rafraichirListeAssets() {
         if (conteneurListeAssets == null || currentFolderSelected == null) return;
@@ -1190,6 +1192,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 7
+
 // haut 8 : SECTION DIALOGUES LOGIQUE
     private void afficherEditeurTexteGeant(Context context) {
         Dialog dialog = new Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -1299,6 +1302,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 8
+
 
 // haut 9 : SECTION VARIABLES UI
     private View creerSectionVariables(Context context) {
@@ -1422,6 +1426,8 @@ public class PanneauRessources extends LinearLayout {
         conteneurVariables.addView(conteneurLigne);
     }
 // bas 9
+
+
 // haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1603,8 +1609,12 @@ public class PanneauRessources extends LinearLayout {
     }
 }
 // bas 10
+    
+
+    
 
 
+    
 
 
 
@@ -1612,15 +1622,7 @@ public class PanneauRessources extends LinearLayout {
 
 
 
-
     
-
-
-
-
-
-    
-
 
 
 
@@ -1628,23 +1630,7 @@ public class PanneauRessources extends LinearLayout {
 
 
 
-
-
     
-
-
-
-
-    
-
-
-
-
-    
-
-
-
-
 
     
 
