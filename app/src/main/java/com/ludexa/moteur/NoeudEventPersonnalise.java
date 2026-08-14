@@ -17,6 +17,10 @@ public class NoeudEventPersonnalise extends NoeudBase {
     @Override
     public boolean aDesParametresEditables() { return true; }
 
+    // LA CORRECTION EST ICI : Autorise le clavier Android natif pour taper des lettres
+    @Override
+    public boolean utiliseClavierTexte() { return true; }
+
     @Override
     public List<String> getNomsParametres() { return Arrays.asList("Nom de l'événement"); }
 
