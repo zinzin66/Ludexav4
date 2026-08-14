@@ -222,8 +222,8 @@ public class CanvasBlueprint extends View {
 
                 Float xObj = blueprintActuel.noeudsX.get(noeudSelectionne.id);
                 Float yObj = blueprintActuel.noeudsY.get(noeudSelectionne.id);
-                float newX = (xObj != null ? xObj : 0) + 50f;
-                float newY = (yObj != null ? yObj : 0) + 50f;
+                float newX = (xObj != null ? xObj : 0) + 200f;
+                float newY = (yObj != null ? yObj : 0) + 200f;
 
                 blueprintActuel.ajouterNoeud(nouveauNoeud, newX, newY);
                 
