@@ -34,6 +34,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fin de Survol", "Événements", "NoeudEventFinSurvol"));
         REGISTRE.add(new InfoNoeud("Au Choc (Physique)", "Événements", "NoeudEventChoc"));
         REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
+        REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
 
         // LOGIQUE & CONDITIONS
         REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
@@ -41,6 +42,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique & Conditions", "NoeudConditionSiObjetVisible"));
         REGISTRE.add(new InfoNoeud("Condition Double (ET/OU)", "Logique & Conditions", "NoeudConditionDouble"));
         REGISTRE.add(new InfoNoeud("Appeler Fonction", "Logique & Conditions", "NoeudAppelFonction")); // AJOUT ICI
+        REGISTRE.add(new InfoNoeud("Appeler Événement Local", "Logique & Conditions", "NoeudActionAppelerEvent"));
         
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
