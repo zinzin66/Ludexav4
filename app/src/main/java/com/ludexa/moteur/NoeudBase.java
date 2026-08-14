@@ -17,8 +17,6 @@ public abstract class NoeudBase {
     public static final String TYPE_CHOIX_IMAGE = "TYPE_CHOIX_IMAGE";
     public static final String TYPE_CHOIX_DIALOGUE = "TYPE_CHOIX_DIALOGUE";
     public static final String TYPE_CHOIX_SON = "TYPE_CHOIX_SON";
-    
-    // NOUVELLE CONSTANTE OFFICIELLE POUR ÉVITER LE CODE EN DUR
     public static final String TYPE_CHOIX_FONCTION = "TYPE_CHOIX_FONCTION";
 
     public String id;
@@ -26,6 +24,9 @@ public abstract class NoeudBase {
     public String categorie;
     public ArrayList<Port> portsEntree;
     public ArrayList<Port> portsSortie;
+    
+    // NOUVEAU : État de repli visuel
+    public boolean estReplie = false;
 
     public NoeudBase(String id, String nom, String categorie) {
         this.id = id;
