@@ -16,8 +16,10 @@ public abstract class NoeudBase {
     public static final String TYPE_CHOIX_LISTE = "TYPE_CHOIX_LISTE";
     public static final String TYPE_CHOIX_IMAGE = "TYPE_CHOIX_IMAGE";
     public static final String TYPE_CHOIX_DIALOGUE = "TYPE_CHOIX_DIALOGUE";
-    // NOUVEAU : Pour le dossier Sons
     public static final String TYPE_CHOIX_SON = "TYPE_CHOIX_SON";
+    
+    // NOUVELLE CONSTANTE OFFICIELLE POUR ÉVITER LE CODE EN DUR
+    public static final String TYPE_CHOIX_FONCTION = "TYPE_CHOIX_FONCTION";
 
     public String id;
     public String nom;
@@ -101,9 +103,3 @@ public abstract class NoeudBase {
     }
 }
 // bas 1
-
-
-
-
-
-
