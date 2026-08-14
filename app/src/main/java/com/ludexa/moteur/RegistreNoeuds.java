@@ -85,6 +85,9 @@ public class RegistreNoeuds {
         
         // PHYSIQUE
         REGISTRE.add(new InfoNoeud("Activer Physique (Chute)", "Physique", "NoeudActionModifierPhysique"));
+        REGISTRE.add(new InfoNoeud("Appliquer Impulsion (Saut)", "Physique", "NoeudActionImpulsion"));
+        REGISTRE.add(new InfoNoeud("Changer Rebond", "Physique", "NoeudActionChangerRebond"));
+        REGISTRE.add(new InfoNoeud("Si Objet en Chute", "Physique", "NoeudConditionEnMouvement"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
