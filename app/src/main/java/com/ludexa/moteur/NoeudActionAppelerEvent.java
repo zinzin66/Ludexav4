@@ -64,88 +64,98 @@ public class NoeudActionAppelerEvent extends NoeudBase {
 
     @Override
     public void executer() {
+        boolean trouve = false;
+        
         if (nomEvenement != null && !nomEvenement.isEmpty() && contexteApplication != null) {
-            try {
-                List<NoeudBase> listeCible = null;
-
-                // Recherche ultra-robuste des nœuds en mémoire
-                if (contexteApplication.getClass().getSimpleName().equals("InterfaceBlueprint")) {
-                    java.lang.reflect.Field fBp = contexteApplication.getClass().getDeclaredField("blueprintActif");
-                    fBp.setAccessible(true);
-                    Object bp = fBp.get(contexteApplication);
-                    if (bp != null) {
-                        java.lang.reflect.Field fNoeuds = bp.getClass().getDeclaredField("noeuds");
-                        fNoeuds.setAccessible(true);
-                        listeCible = (List<NoeudBase>) fNoeuds.get(bp);
-                    }
-                } else {
-                    // Mode Play : On cherche VueJeu -> MoteurLogique -> List<NoeudBase>
-                    Object vueJeu = null;
-                    for (java.lang.reflect.Field f : contexteApplication.getClass().getDeclaredFields()) {
-                        if (f.getType().getSimpleName().equals("VueJeu")) {
-                            f.setAccessible(true);
-                            vueJeu = f.get(contexteApplication);
-                            if (vueJeu != null) break;
-                        }
-                    }
-
-                    if (vueJeu != null) {
-                        for (java.lang.reflect.Field fMoteur : vueJeu.getClass().getDeclaredFields()) {
-                            if (fMoteur.getType().getSimpleName().equals("MoteurLogique")) {
-                                fMoteur.setAccessible(true);
-                                Object moteur = fMoteur.get(vueJeu);
-                                if (moteur != null) {
-                                    for (java.lang.reflect.Field fListe : moteur.getClass().getDeclaredFields()) {
-                                        if (java.util.List.class.isAssignableFrom(fListe.getType())) {
-                                            fListe.setAccessible(true);
-                                            List<?> liste = (List<?>) fListe.get(moteur);
-                                            if (liste != null && !liste.isEmpty()) {
-                                                boolean contientNoeuds = false;
-                                                for(Object obj : liste) {
-                                                    if(obj != null) {
-                                                        contientNoeuds = obj instanceof NoeudBase;
-                                                        break;
-                                                    }
-                                                }
-                                                if (contientNoeuds) {
-                                                    @SuppressWarnings("unchecked")
-                                                    List<NoeudBase> noeuds = (List<NoeudBase>) liste;
-                                                    for (NoeudBase n : noeuds) {
-                                                        if (n instanceof NoeudEventPersonnalise && nomEvenement.equals(((NoeudEventPersonnalise) n).getNomEvenement())) {
-                                                            listeCible = noeuds;
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Déclenchement de l'événement trouvé
-                if (listeCible != null) {
-                    for (NoeudBase noeud : listeCible) {
-                        if (noeud instanceof NoeudEventPersonnalise) {
-                            if (nomEvenement.equals(((NoeudEventPersonnalise) noeud).getNomEvenement())) {
-                                noeud.executer();
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    android.util.Log.e("Yop2D", "Impossible de trouver la liste des noeuds pour l'événement " + nomEvenement);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            trouve = chercherEtExecuterEvent();
         }
         
-        // L'exécution du nœud "Appel" continue vers le nœud suivant
+        // Sécurité visuelle : si l'événement n'a pas été trouvé en mémoire, on te prévient
+        if (!trouve && contexteApplication != null) {
+            try {
+                android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+                handler.post(() -> android.widget.Toast.makeText(contexteApplication, "Échec : Événement '" + nomEvenement + "' introuvable", android.widget.Toast.LENGTH_LONG).show());
+            } catch(Exception e) {}
+        }
+
+        // On continue la chaîne principale quoiqu'il arrive
         propagerExecution("Suivant");
+    }
+
+    private boolean chercherEtExecuterEvent() {
+        try {
+            if (contexteApplication.getClass().getSimpleName().equals("InterfaceBlueprint")) {
+                java.lang.reflect.Field fBp = contexteApplication.getClass().getDeclaredField("blueprintActif");
+                fBp.setAccessible(true);
+                Object bp = fBp.get(contexteApplication);
+                if (executerDans(bp)) return true;
+            } else {
+                // On cherche VueJeu (Mode Play)
+                Object vueJeu = null;
+                for (java.lang.reflect.Field f : contexteApplication.getClass().getDeclaredFields()) {
+                    f.setAccessible(true);
+                    Object val = f.get(contexteApplication);
+                    if (val != null && val.getClass().getSimpleName().equals("VueJeu")) {
+                        vueJeu = val;
+                        break;
+                    }
+                }
+
+                if (vueJeu != null) {
+                    for (java.lang.reflect.Field fMoteur : vueJeu.getClass().getDeclaredFields()) {
+                        fMoteur.setAccessible(true);
+                        Object moteurObj = fMoteur.get(vueJeu);
+                        if (moteurObj != null) {
+                            String nomClasse = moteurObj.getClass().getSimpleName();
+                            if (nomClasse.equals("MoteurLogique") || nomClasse.equals("Blueprint")) {
+                                if (executerDans(moteurObj)) return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {}
+        return false;
+    }
+
+    private boolean executerDans(Object conteneur) {
+        if (conteneur == null) return false;
+        try {
+            for (java.lang.reflect.Field f : conteneur.getClass().getDeclaredFields()) {
+                f.setAccessible(true);
+                Object obj = f.get(conteneur);
+                
+                // Si le conteneur a directement une liste
+                if (obj instanceof java.util.List) {
+                    if (chercherDansListe((java.util.List<?>) obj)) return true;
+                } 
+                // S'il a un Blueprint qui cache une liste
+                else if (obj != null && obj.getClass().getSimpleName().equals("Blueprint")) {
+                    for (java.lang.reflect.Field fBp : obj.getClass().getDeclaredFields()) {
+                        fBp.setAccessible(true);
+                        Object objListe = fBp.get(obj);
+                        if (objListe instanceof java.util.List) {
+                            if (chercherDansListe((java.util.List<?>) objListe)) return true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {}
+        return false;
+    }
+
+    private boolean chercherDansListe(java.util.List<?> liste) {
+        if (liste == null || liste.isEmpty()) return false;
+        for (Object obj : liste) {
+            if (obj instanceof NoeudEventPersonnalise) {
+                NoeudEventPersonnalise nep = (NoeudEventPersonnalise) obj;
+                if (nomEvenement.equals(nep.getNomEvenement())) {
+                    nep.executer();
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
