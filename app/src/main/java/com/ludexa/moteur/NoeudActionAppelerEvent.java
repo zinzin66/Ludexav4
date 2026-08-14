@@ -31,20 +31,18 @@ public class NoeudActionAppelerEvent extends NoeudBase {
         if ("Nom de l'événement".equals(nom)) nomEvenement = valeur;
     }
 
-    // --- On indique à l'éditeur d'utiliser une liste déroulante ---
     @Override
     public String getTypeEditeurParametre(String nom) {
         if ("Nom de l'événement".equals(nom)) return NoeudBase.TYPE_CHOIX_LISTE;
         return NoeudBase.TYPE_TEXTE_LIBRE;
     }
 
-    // --- On génère la liste en scannant les nœuds de la scène ---
     @Override
     public List<String> getOptionsChoixListe(String nomParametre) {
         List<String> options = new java.util.ArrayList<>();
         if ("Nom de l'événement".equals(nomParametre) && contexteApplication != null) {
             try {
-                if (contexteApplication instanceof InterfaceBlueprint) {
+                if (contexteApplication.getClass().getSimpleName().equals("InterfaceBlueprint")) {
                     java.lang.reflect.Field fBlueprint = contexteApplication.getClass().getDeclaredField("blueprintActif");
                     fBlueprint.setAccessible(true);
                     Blueprint bp = (Blueprint) fBlueprint.get(contexteApplication);
@@ -68,38 +66,85 @@ public class NoeudActionAppelerEvent extends NoeudBase {
     public void executer() {
         if (nomEvenement != null && !nomEvenement.isEmpty() && contexteApplication != null) {
             try {
-                List<NoeudBase> listeNoeuds = null;
-                
-                if (contexteApplication instanceof InterfaceBlueprint) {
-                    java.lang.reflect.Field fBlueprint = contexteApplication.getClass().getDeclaredField("blueprintActif");
-                    fBlueprint.setAccessible(true);
-                    Blueprint bp = (Blueprint) fBlueprint.get(contexteApplication);
-                    if (bp != null) listeNoeuds = bp.noeuds;
+                List<NoeudBase> listeCible = null;
+
+                // Recherche ultra-robuste des nœuds en mémoire
+                if (contexteApplication.getClass().getSimpleName().equals("InterfaceBlueprint")) {
+                    java.lang.reflect.Field fBp = contexteApplication.getClass().getDeclaredField("blueprintActif");
+                    fBp.setAccessible(true);
+                    Object bp = fBp.get(contexteApplication);
+                    if (bp != null) {
+                        java.lang.reflect.Field fNoeuds = bp.getClass().getDeclaredField("noeuds");
+                        fNoeuds.setAccessible(true);
+                        listeCible = (List<NoeudBase>) fNoeuds.get(bp);
+                    }
                 } else {
-                    java.lang.reflect.Field fMoteur = contexteApplication.getClass().getField("moteurLogique");
-                    Object moteur = fMoteur.get(contexteApplication);
-                    if (moteur != null) {
-                        java.lang.reflect.Field fNoeuds = moteur.getClass().getField("noeuds");
-                        @SuppressWarnings("unchecked")
-                        List<NoeudBase> noeudsRuntime = (List<NoeudBase>) fNoeuds.get(moteur);
-                        listeNoeuds = noeudsRuntime;
+                    // Mode Play : On cherche VueJeu -> MoteurLogique -> List<NoeudBase>
+                    Object vueJeu = null;
+                    for (java.lang.reflect.Field f : contexteApplication.getClass().getDeclaredFields()) {
+                        if (f.getType().getSimpleName().equals("VueJeu")) {
+                            f.setAccessible(true);
+                            vueJeu = f.get(contexteApplication);
+                            if (vueJeu != null) break;
+                        }
+                    }
+
+                    if (vueJeu != null) {
+                        for (java.lang.reflect.Field fMoteur : vueJeu.getClass().getDeclaredFields()) {
+                            if (fMoteur.getType().getSimpleName().equals("MoteurLogique")) {
+                                fMoteur.setAccessible(true);
+                                Object moteur = fMoteur.get(vueJeu);
+                                if (moteur != null) {
+                                    for (java.lang.reflect.Field fListe : moteur.getClass().getDeclaredFields()) {
+                                        if (java.util.List.class.isAssignableFrom(fListe.getType())) {
+                                            fListe.setAccessible(true);
+                                            List<?> liste = (List<?>) fListe.get(moteur);
+                                            if (liste != null && !liste.isEmpty()) {
+                                                boolean contientNoeuds = false;
+                                                for(Object obj : liste) {
+                                                    if(obj != null) {
+                                                        contientNoeuds = obj instanceof NoeudBase;
+                                                        break;
+                                                    }
+                                                }
+                                                if (contientNoeuds) {
+                                                    @SuppressWarnings("unchecked")
+                                                    List<NoeudBase> noeuds = (List<NoeudBase>) liste;
+                                                    for (NoeudBase n : noeuds) {
+                                                        if (n instanceof NoeudEventPersonnalise && nomEvenement.equals(((NoeudEventPersonnalise) n).getNomEvenement())) {
+                                                            listeCible = noeuds;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
-                if (listeNoeuds != null) {
-                    for (NoeudBase noeud : listeNoeuds) {
+                // Déclenchement de l'événement trouvé
+                if (listeCible != null) {
+                    for (NoeudBase noeud : listeCible) {
                         if (noeud instanceof NoeudEventPersonnalise) {
                             if (nomEvenement.equals(((NoeudEventPersonnalise) noeud).getNomEvenement())) {
-                                noeud.executer(); 
+                                noeud.executer();
                                 break;
                             }
                         }
                     }
+                } else {
+                    android.util.Log.e("Yop2D", "Impossible de trouver la liste des noeuds pour l'événement " + nomEvenement);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        
+        // L'exécution du nœud "Appel" continue vers le nœud suivant
         propagerExecution("Suivant");
     }
 
@@ -111,4 +156,3 @@ public class NoeudActionAppelerEvent extends NoeudBase {
     public ObjetBase getCibleObjet() { return null; }
 }
 // bas 1
-      
