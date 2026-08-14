@@ -123,7 +123,8 @@ public class CanvasBlueprint extends View {
         paintResume.setAntiAlias(true);
         
         setBackgroundColor(Palette.canvasFond); 
-
+// bas 1
+// haut 2
         this.setOnDragListener((v, event) -> {
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
@@ -172,20 +173,9 @@ public class CanvasBlueprint extends View {
         invalidate();
     }
 
-    public void zoomPlus() {
-        niveauZoom *= 1.25f;
-        invalidate();
-    }
-
-    public void zoomMoins() {
-        niveauZoom /= 1.25f;
-        invalidate();
-    }
-
-    public void zoomReset() {
-        niveauZoom = 1.0f;
-        invalidate();
-    }
+    public void zoomPlus() { niveauZoom *= 1.25f; invalidate(); }
+    public void zoomMoins() { niveauZoom /= 1.25f; invalidate(); }
+    public void zoomReset() { niveauZoom = 1.0f; invalidate(); }
     
     public void supprimerNoeudSelectionne() {
         if (noeudSelectionne != null && blueprintActuel != null) {
@@ -246,13 +236,53 @@ public class CanvasBlueprint extends View {
             }
         }
     }
+// bas 2
+// haut 3
+    public void basculerRepliNoeudSelectionne() {
+        if (noeudSelectionne != null) {
+            noeudSelectionne.estReplie = !noeudSelectionne.estReplie;
+            invalidate();
+            Toast.makeText(getContext(), noeudSelectionne.estReplie ? "Nœuds masqués" : "Nœuds affichés", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Sélectionnez un nœud d'abord", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private java.util.Set<String> getNoeudsMasques() {
+        java.util.Set<String> masques = new java.util.HashSet<>();
+        if (blueprintActuel == null) return masques;
+
+        java.util.List<NoeudBase> aTraiter = new java.util.ArrayList<>();
+        for (NoeudBase n : blueprintActuel.noeuds) {
+            if (n.estReplie) {
+                for (Blueprint.Lien lien : blueprintActuel.liens) {
+                    if (lien.noeudDepart == n) {
+                        aTraiter.add(lien.noeudArrivee);
+                    }
+                }
+            }
+        }
+
+        int index = 0;
+        while (index < aTraiter.size()) {
+            NoeudBase courant = aTraiter.get(index);
+            if (!masques.contains(courant.id)) {
+                masques.add(courant.id);
+                for (Blueprint.Lien lien : blueprintActuel.liens) {
+                    if (lien.noeudDepart == courant) {
+                        aTraiter.add(lien.noeudArrivee);
+                    }
+                }
+            }
+            index++;
+        }
+        return masques;
+    }
 
     public NoeudBase getNoeudSelectionne() {
         return noeudSelectionne;
     }
-// bas 1
 
-// haut 2
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -273,9 +303,13 @@ public class CanvasBlueprint extends View {
         
         canvas.translate(cameraX, cameraY);
         
+        java.util.Set<String> noeudsMasques = getNoeudsMasques();
+
         if (blueprintActuel != null) {
             Path path = new Path();
             for (Blueprint.Lien lien : blueprintActuel.liens) {
+                if (noeudsMasques.contains(lien.noeudArrivee.id)) continue;
+
                 Port pSortie = trouverPortParNom(lien.noeudDepart.portsSortie, lien.portSortieNom);
                 Port pEntree = trouverPortParNom(lien.noeudArrivee.portsEntree, lien.portEntreeNom);
                 
@@ -296,13 +330,15 @@ public class CanvasBlueprint extends View {
             }
 
             for (NoeudBase noeud : blueprintActuel.noeuds) {
+                if (noeudsMasques.contains(noeud.id)) continue;
                 dessinerNoeud(canvas, noeud);
             }
         }
         
         canvas.restore();
     }
-
+// bas 3
+// haut 4
     private Port trouverPortParNom(java.util.ArrayList<Port> ports, String nom) {
         for (Port p : ports) {
             if (p.nom.equals(nom)) return p;
@@ -347,8 +383,7 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
-// bas 2
-   // haut 3
+
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
         if (noeud.requiertCibleObjet()) count++;
@@ -371,7 +406,8 @@ public class CanvasBlueprint extends View {
     private float getLargeurNoeud(NoeudBase noeud) {
         float max = 220f;
         
-        float wTitre = paintTexteTitre.measureText(noeud.nom) + 40f;
+        String texteTitre = noeud.nom + (noeud.estReplie ? " [...]" : "");
+        float wTitre = paintTexteTitre.measureText(texteTitre) + 40f;
         if (wTitre > max) max = wTitre;
         
         int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
@@ -418,7 +454,8 @@ public class CanvasBlueprint extends View {
         
         return max;
     }
-
+// bas 4
+// haut 5
     private void dessinerNoeud(Canvas canvas, NoeudBase noeud) {
         Float xObj = blueprintActuel.noeudsX.get(noeud.id);
         Float yObj = blueprintActuel.noeudsY.get(noeud.id);
@@ -442,10 +479,13 @@ public class CanvasBlueprint extends View {
         canvas.drawRoundRect(rectFond, 20, 20, paintNoeudBG);
         
         RectF rectTitre = new RectF(x, y, x + largeur, y + 45);
+        paintTitreBG.setColor(noeud.estReplie ? Palette.fondListe : Palette.enTeteDialogues);
         canvas.drawRoundRect(rectTitre, 20, 20, paintTitreBG);
         canvas.drawRect(x, y + 25, x + largeur, y + 45, paintTitreBG);
+        paintTitreBG.setColor(Palette.enTeteDialogues); 
         
-        canvas.drawText(noeud.nom, x + 15, y + 32, paintTexteTitre);
+        String texteTitre = noeud.nom + (noeud.estReplie ? " [...]" : "");
+        canvas.drawText(texteTitre, x + 15, y + 32, paintTexteTitre);
         
         float startY = y + 70;
         for (int i = 0; i < noeud.portsEntree.size(); i++) {
@@ -465,7 +505,6 @@ public class CanvasBlueprint extends View {
             canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
         }
         
-        // Résumé des paramètres
         float currentY = y + 60 + (maxPorts * 40) + 15;
         
         if (noeud.requiertCibleObjet()) {
@@ -513,13 +552,20 @@ public class CanvasBlueprint extends View {
             paintPort.setColor(Palette.texteSelectionne); 
         }
     }
+// bas 5
 
+
+
+    // haut 6
     private InfoPort trouverPortSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
         float margeY = 40f; 
+        java.util.Set<String> masques = getNoeudsMasques();
 
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            if (masques.contains(noeud.id)) continue;
+            
             Float nx = blueprintActuel.noeudsX.get(noeud.id);
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             if (nx == null || ny == null) continue;
@@ -545,9 +591,10 @@ public class CanvasBlueprint extends View {
     
     private NoeudBase trouverZoneEditionSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
+        java.util.Set<String> masques = getNoeudsMasques();
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
-            if (!noeud.aDesParametresEditables()) continue;
+            if (masques.contains(noeud.id) || !noeud.aDesParametresEditables()) continue;
             
             Float nx = blueprintActuel.noeudsX.get(noeud.id);
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
@@ -567,8 +614,11 @@ public class CanvasBlueprint extends View {
 
     private NoeudBase trouverNoeudSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
+        java.util.Set<String> masques = getNoeudsMasques();
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            if (masques.contains(noeud.id)) continue;
+            
             Float nx = blueprintActuel.noeudsX.get(noeud.id);
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             
@@ -587,8 +637,11 @@ public class CanvasBlueprint extends View {
     private Blueprint.Lien trouverLienSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
         float seuilDistance = 40f; 
+        java.util.Set<String> masques = getNoeudsMasques();
 
         for (Blueprint.Lien lien : blueprintActuel.liens) {
+            if (masques.contains(lien.noeudArrivee.id)) continue;
+            
             Port pSortie = trouverPortParNom(lien.noeudDepart.portsSortie, lien.portSortieNom);
             Port pEntree = trouverPortParNom(lien.noeudArrivee.portsEntree, lien.portEntreeNom);
             
@@ -630,9 +683,9 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
-// bas 3
-    
-    // haut 4
+// bas 6
+
+// haut 7
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -769,6 +822,21 @@ public class CanvasBlueprint extends View {
         return super.onTouchEvent(event);
     }
 }
-// bas 4
+// bas 7
 
 
+
+    
+
+
+
+    
+
+
+    
+
+
+    
+
+
+    
