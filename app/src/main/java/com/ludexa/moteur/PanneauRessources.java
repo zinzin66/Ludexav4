@@ -445,6 +445,10 @@ public class PanneauRessources extends LinearLayout {
 
         LinearLayout ligne3 = new LinearLayout(context);
         ligne3.setOrientation(LinearLayout.HORIZONTAL);
+        
+        // NOUVELLE LIGNE POUR LES CONTRÔLES
+        LinearLayout ligne4 = new LinearLayout(context);
+        ligne4.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageButton btnAjouterCarre = new ImageButton(context);
         btnAjouterCarre.setImageResource(R.drawable.square_24px);
@@ -488,7 +492,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Image : Icône photo explicite
         ImageButton btnAjouterImage = new ImageButton(context);
         btnAjouterImage.setImageResource(R.drawable.add_photo_alternate_24px); 
         styliserBoutonIcone(btnAjouterImage);
@@ -503,7 +506,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Zone : Icône d'activité de zone
         ImageButton btnAjouterZone = new ImageButton(context);
         btnAjouterZone.setImageResource(R.drawable.activity_zone_24px);
         styliserBoutonIcone(btnAjouterZone);
@@ -520,7 +522,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Bouton : Icône de boutons alternatifs
         ImageButton btnAjouterBouton = new ImageButton(context);
         btnAjouterBouton.setImageResource(R.drawable.buttons_alt_24px);
         styliserBoutonIcone(btnAjouterBouton);
@@ -536,7 +537,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Dialogue : Icône de chat pour la discussion
         ImageButton btnAjouterDialogue = new ImageButton(context);
         btnAjouterDialogue.setImageResource(R.drawable.chat_24px);
         styliserBoutonIcone(btnAjouterDialogue);
@@ -576,6 +576,39 @@ public class PanneauRessources extends LinearLayout {
             Toast.makeText(context, "Groupe Dialogue créé", Toast.LENGTH_SHORT).show();
         });
 
+        // --- NOUVEAUX CONTRÔLES MODULABLES ---
+        ImageButton btnAjouterJoystick = new ImageButton(context);
+        btnAjouterJoystick.setImageResource(R.drawable.circle_24px); 
+        styliserBoutonIcone(btnAjouterJoystick);
+        btnAjouterJoystick.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Joystick", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 50f, 400f, 160f, 160f);
+            nouveau.type = "joystick"; // Type spécifique pour VueJeu
+            nouveau.afficherFondColore = false; 
+            nouveau.couleur = Color.argb(100, 200, 200, 200);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        ImageButton btnAjouterBtnAction = new ImageButton(context);
+        btnAjouterBtnAction.setImageResource(R.drawable.add_circle_24px); // Ou un autre icône pertinent
+        styliserBoutonIcone(btnAjouterBtnAction);
+        btnAjouterBtnAction.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("BtnAction", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 600f, 450f, 100f, 100f);
+            nouveau.type = "bouton_action"; // Type spécifique pour VueJeu
+            nouveau.afficherFondColore = false; 
+            nouveau.couleur = Color.argb(150, 255, 100, 100);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
         ligne1.addView(btnAjouterCarre);
         ligne1.addView(btnAjouterTexte);
         ligne1.addView(btnAjouterRond);
@@ -592,9 +625,17 @@ public class PanneauRessources extends LinearLayout {
         espace2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         ligne3.addView(espace2);
 
+        // Ajout de la ligne 4 pour ne pas surcharger la ligne 3
+        ligne4.addView(btnAjouterJoystick);
+        ligne4.addView(btnAjouterBtnAction);
+        View espace3 = new View(context);
+        espace3.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ligne4.addView(espace3);
+
         contenu.addView(ligne1);
         contenu.addView(ligne2);
         contenu.addView(ligne3);
+        contenu.addView(ligne4);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -611,6 +652,7 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
+    
 
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
