@@ -1,15 +1,18 @@
 // haut 1
 package com.ludexa.moteur;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MoteurPhysique {
-    // Constantes d'ajustement du "jus" physique
     private static final float GRAVITE = 0.8f;
     private static final float VITESSE_MAX_CHUTE = 25f;
     private static final float SEUIL_MINIMUM_REBOND = 1.5f;
 
-    public void mettreAJour(List<ObjetBase> objets) {
+    // Retourne la liste des objets ayant subi un choc lors de cette frame
+    public List<ObjetBase> mettreAJour(List<ObjetBase> objets) {
+        List<ObjetBase> objetsEnChoc = new ArrayList<>();
+
         // Phase 1 : Application de la gravité
         for (ObjetBase obj : objets) {
             if (obj.estPhysique && !obj.estStatique) {
@@ -22,11 +25,12 @@ public class MoteurPhysique {
             }
         }
 
-        // Phase 2 : Résolution des collisions (ancrage au centre pour correspondre au rendu visuel)
+        // Phase 2 : Résolution des collisions (ancrage au centre)
         for (ObjetBase dynamique : objets) {
             if (dynamique.estPhysique && !dynamique.estStatique) {
                 
                 float dynDemiHauteur = (dynamique.hauteur * Math.abs(dynamique.scaleY)) / 2f;
+                boolean aEuUnChoc = false;
 
                 for (ObjetBase statique : objets) {
                     if (dynamique == statique) continue;
@@ -36,34 +40,35 @@ public class MoteurPhysique {
                             
                             // On ne déclenche l'arrêt que si l'objet chute vers le bas (Sol)
                             if (dynamique.vitesseY >= 0) {
-                                // Calcul du bord Haut visuel exact de l'objet statique
                                 float statCentreY = statique.y + (statique.hauteur / 2f);
                                 float statDemiHauteur = (statique.hauteur * Math.abs(statique.scaleY)) / 2f;
                                 float statHaut = statCentreY - statDemiHauteur;
 
-                                // On replace l'objet dynamique pour que son bord bas touche le bord haut du statique
                                 dynamique.y = statHaut - (dynamique.hauteur / 2f) - dynDemiHauteur;
 
                                 // Rebond ou arrêt
                                 if (dynamique.vitesseY > SEUIL_MINIMUM_REBOND) {
                                     dynamique.vitesseY = -dynamique.vitesseY * dynamique.rebond;
+                                    aEuUnChoc = true; // Impact fort (rebond)
                                 } else {
+                                    if (dynamique.vitesseY > 0.1f) {
+                                        aEuUnChoc = true; // Impact faible (arrêt final)
+                                    }
                                     dynamique.vitesseY = 0f;
                                 }
                             }
                         }
                     }
                 }
+                if (aEuUnChoc) {
+                    objetsEnChoc.add(dynamique);
+                }
             }
         }
+        return objetsEnChoc;
     }
 
-    /**
-     * Détection de collision (AABB) calculée à partir des CENTRES 
-     * pour correspondre à la matrice de rendu de VueJeu.java
-     */
     private boolean testerCollisionAABB(ObjetBase a, ObjetBase b) {
-        // Centres réels
         float aCentreX = a.x + (a.largeur / 2f);
         float aCentreY = a.y + (a.hauteur / 2f);
         float aDemiLargeur = (a.largeur * Math.abs(a.scaleX)) / 2f;
@@ -74,7 +79,6 @@ public class MoteurPhysique {
         float aHaut = aCentreY - aDemiHauteur;
         float aBas = aCentreY + aDemiHauteur;
 
-        // Centres réels
         float bCentreX = b.x + (b.largeur / 2f);
         float bCentreY = b.y + (b.hauteur / 2f);
         float bDemiLargeur = (b.largeur * Math.abs(b.scaleX)) / 2f;
