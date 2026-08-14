@@ -188,6 +188,13 @@ public class InterfaceBlueprint extends Activity {
         boutonSupprimerNode.setOnClickListener(v -> canvasBlueprint.supprimerNoeudSelectionne());
         bandeauHaut.addView(boutonSupprimerNode);
 
+        // --- NOUVEAU BOUTON COPIER UN NOEUD ---
+        ImageButton boutonCopierNode = new ImageButton(this);
+        boutonCopierNode.setImageResource(R.drawable.add_24px);
+        styliserBoutonBandeau(boutonCopierNode);
+        boutonCopierNode.setOnClickListener(v -> canvasBlueprint.dupliquerNoeudSelectionne());
+        bandeauHaut.addView(boutonCopierNode);
+
         View espaceBandeau = new View(this);
         espaceBandeau.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeauHaut.addView(espaceBandeau);
@@ -347,7 +354,9 @@ public class InterfaceBlueprint extends Activity {
         }
     }
 // bas 2
-    // haut 3
+
+
+// haut 3
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
         dialog.setTitle("Résumé du Blueprint");
@@ -455,8 +464,10 @@ public class InterfaceBlueprint extends Activity {
 }
 // bas 3
 
-    
 
+
+
+    
 
 
 
