@@ -1429,7 +1429,7 @@ public class PanneauRessources extends LinearLayout {
         conteneurVariables.addView(conteneurLigne);
     }
 // bas 9
-    // haut 10 : SECTION VARIABLES POPUPS
+// haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle("Créer une variable");
@@ -1608,10 +1608,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-}
 // bas 10
-
-
 // haut 11 : SECTION FONCTIONS UI
     private View creerSectionFonctions(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -1715,8 +1712,6 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 11
-
-
 // haut 12 : SECTION FONCTIONS POPUPS
     private void afficherPopupCreerFonction(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1857,44 +1852,11 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
+}
 // bas 12
 
 
-
     
 
-
-
-
     
-
-
-
     
-
-
-
-
-    
-
-
-
-
-    
-
-
-    
-
-
-
-    
-
-
-
-
-
-    
-
-
-
-
