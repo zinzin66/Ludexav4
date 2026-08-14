@@ -110,9 +110,7 @@ public class VueJeu extends View {
                 }
             }
             br.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) {}
         
         for (ObjetBase obj : objets) {
             for (Map.Entry<String, List<String>> entry : animsGlobales.entrySet()) {
@@ -157,12 +155,11 @@ public class VueJeu extends View {
             try {
                 java.io.File dossierLogique = new java.io.File(cheminProjet, "logique");
                 java.io.File fileBlueprint = new java.io.File(dossierLogique, nouvelleScene.id + ".json");
-                
                 if (fileBlueprint.exists()) {
                     java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fileBlueprint));
                     StringBuilder sb = new StringBuilder();
                     String line;
-                    while ((line = br.readLine()) != null) { sb.append(line); }
+                    while ((line = br.readLine()) != null) sb.append(line);
                     br.close();
                     nouveauBlueprint = Blueprint.fromJson(sb.toString(), nouvelleScene);
                 }
@@ -192,6 +189,7 @@ public class VueJeu extends View {
         GestionnaireAudio.arreterMusique();
     }
 // bas 1
+
 // haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
@@ -209,26 +207,45 @@ public class VueJeu extends View {
         }
         return true;
     }
+    
+    private ObjetBase trouverObjetParType(String type) {
+        if (sceneHudActive != null && sceneHudActive.objets != null) {
+            for (ObjetBase o : sceneHudActive.objets) {
+                if (type.equals(o.type) && estVisibleEffectif(o, sceneHudActive.objets)) return o;
+            }
+        }
+        if (sceneActive != null && sceneActive.objets != null) {
+            for (ObjetBase o : sceneActive.objets) {
+                if (type.equals(o.type) && estVisibleEffectif(o, sceneActive.objets)) return o;
+            }
+        }
+        return null;
+    }
+    
+    private boolean pointDansObjet(float xVue, float yVue, float xMonde, float yMonde, ObjetBase obj) {
+        boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
+        List<ObjetBase> contexte = isHud ? sceneHudActive.objets : sceneActive.objets;
+        Matrix absMatrix = getAbsoluteMatrix(obj, contexte);
+        Matrix inverseMatrix = new Matrix();
+        if (absMatrix.invert(inverseMatrix)) {
+            float[] ptLocal = new float[]{isHud ? xVue : xMonde, isHud ? yVue : yMonde};
+            inverseMatrix.mapPoints(ptLocal);
+            return (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur);
+        }
+        return false;
+    }
 
     private ObjetBase trouverObjetSousPoint(float xVue, float yVue, boolean exigeDeplacable) {
-        // 1. Chercher dans le HUD (Fixe à l'écran)
         if (sceneHudActive != null && sceneHudActive.objets != null) {
             List<ObjetBase> objetsHudTries = new ArrayList<>(sceneHudActive.objets);
             Collections.sort(objetsHudTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
             for (ObjetBase obj : objetsHudTries) {
                 if (!estVisibleEffectif(obj, sceneHudActive.objets)) continue;
                 if (exigeDeplacable && !obj.estDeplacable) continue;
-                Matrix absMatrix = getAbsoluteMatrix(obj, sceneHudActive.objets);
-                Matrix inverseMatrix = new Matrix();
-                if (absMatrix.invert(inverseMatrix)) {
-                    float[] ptLocal = new float[]{xVue, yVue};
-                    inverseMatrix.mapPoints(ptLocal);
-                    if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) return obj;
-                }
+                if (pointDansObjet(xVue, yVue, 0f, 0f, obj)) return obj;
             }
         }
 
-        // 2. Chercher dans la Scène (Affectée par la Caméra)
         float xMonde = xVue + GestionnaireControles.cameraX;
         float yMonde = yVue + GestionnaireControles.cameraY;
         
@@ -238,13 +255,7 @@ public class VueJeu extends View {
             for (ObjetBase obj : objetsJeuTries) {
                 if (!estVisibleEffectif(obj, sceneActive.objets)) continue;
                 if (exigeDeplacable && !obj.estDeplacable) continue;
-                Matrix absMatrix = getAbsoluteMatrix(obj, sceneActive.objets);
-                Matrix inverseMatrix = new Matrix();
-                if (absMatrix.invert(inverseMatrix)) {
-                    float[] ptLocal = new float[]{xMonde, yMonde};
-                    inverseMatrix.mapPoints(ptLocal);
-                    if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) return obj;
-                }
+                if (pointDansObjet(0f, 0f, xMonde, yMonde, obj)) return obj;
             }
         }
         return null;
@@ -287,37 +298,48 @@ public class VueJeu extends View {
         GestionnaireControles.joyDirY = 0f;
         GestionnaireControles.isActionJustPressed = false;
 
-        // Gestion du Multi-Touch Aventure
-        if (GestionnaireControles.modeAventureActif) {
-            float joyCentreX = 150f;
-            float joyCentreY = ConfigurationJeu.HAUTEUR_JEU - 150f;
-            float btnX = ConfigurationJeu.LARGEUR_JEU - 150f;
-            float btnY = ConfigurationJeu.HAUTEUR_JEU - 150f;
+        ObjetBase joystickObj = trouverObjetParType("joystick");
+        ObjetBase actionBtnObj = trouverObjetParType("bouton_action");
 
+        // GESTION DYNAMIQUE MULTI-TOUCH
+        if (GestionnaireControles.modeAventureActif) {
             for (int i = 0; i < event.getPointerCount(); i++) {
                 float ptrX = (event.getX(i) - decalageX) / echelle;
                 float ptrY = (event.getY(i) - decalageY) / echelle;
+                float ptrXMonde = ptrX + GestionnaireControles.cameraX;
+                float ptrYMonde = ptrY + GestionnaireControles.cameraY;
                 
-                // Bouton Action
-                if (Math.hypot(ptrX - btnX, ptrY - btnY) < 100f) {
+                // Bouton Action (Détection exacte dans la Hitbox)
+                if (actionBtnObj != null && pointDansObjet(ptrX, ptrY, ptrXMonde, ptrYMonde, actionBtnObj)) {
                     touchAction = true;
                     if (event.getActionMasked() == MotionEvent.ACTION_DOWN || event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
                         if (!GestionnaireControles.isActionPressed) GestionnaireControles.isActionJustPressed = true;
                     }
                 }
                 
-                // Joystick
-                if (ptrX < 300f && ptrY > ConfigurationJeu.HAUTEUR_JEU - 300f) {
-                    touchJoystick = true;
-                    float dx = ptrX - joyCentreX;
-                    float dy = ptrY - joyCentreY;
-                    float dist = (float) Math.hypot(dx, dy);
-                    if (dist > 0) {
-                        GestionnaireControles.joyDirX = dx / Math.max(dist, 80f); 
-                        GestionnaireControles.joyDirY = dy / Math.max(dist, 80f);
-                        if (dist > 80f) {
-                            GestionnaireControles.joyDirX = dx / dist;
-                            GestionnaireControles.joyDirY = dy / dist;
+                // Joystick (Détection relative au centre de l'objet)
+                if (joystickObj != null) {
+                    boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(joystickObj));
+                    float checkX = isHud ? ptrX : ptrXMonde;
+                    float checkY = isHud ? ptrY : ptrYMonde;
+                    
+                    float joyCentreX = joystickObj.x + joystickObj.largeur / 2f;
+                    float joyCentreY = joystickObj.y + joystickObj.hauteur / 2f;
+                    float rayon = Math.min(joystickObj.largeur, joystickObj.hauteur) / 2f;
+                    
+                    float distCenter = (float) Math.hypot(checkX - joyCentreX, checkY - joyCentreY);
+                    if (distCenter <= rayon * 1.5f) { // Hitbox légèrement agrandie pour le confort
+                        touchJoystick = true;
+                        float dx = checkX - joyCentreX;
+                        float dy = checkY - joyCentreY;
+                        float dist = (float) Math.hypot(dx, dy);
+                        if (dist > 0) {
+                            GestionnaireControles.joyDirX = dx / Math.max(dist, rayon); 
+                            GestionnaireControles.joyDirY = dy / Math.max(dist, rayon);
+                            if (dist > rayon) {
+                                GestionnaireControles.joyDirX = dx / dist;
+                                GestionnaireControles.joyDirY = dy / dist;
+                            }
                         }
                     }
                 }
@@ -329,7 +351,6 @@ public class VueJeu extends View {
             this.moteur.executerEvenement(NoeudEventBoutonAction.class);
         }
         
-        // Intercepte les événements si l'HUD Aventure est manipulé
         if (touchJoystick || touchAction) {
             objetEnGlissement = null;
             return true; 
@@ -348,7 +369,7 @@ public class VueJeu extends View {
             if (objetEnGlissement != null) {
                 if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement) && this.moteurHud != null) {
                     this.moteurHud.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
-                    lastXJeu = xVue; lastYJeu = yVue; // Corrige pour le HUD
+                    lastXJeu = xVue; lastYJeu = yVue; 
                 } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement) && this.moteur != null) {
                     this.moteur.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
                 }
@@ -389,7 +410,6 @@ public class VueJeu extends View {
                     this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, objClick);
                 }
             }
-
             if (this.moteur != null) this.moteur.executerEvenement(NoeudEventFinClic.class);
 
             if (objetEnGlissement != null) {
@@ -402,36 +422,6 @@ public class VueJeu extends View {
             objetEnGlissement = null;
         }
         return true;
-    }
-    
-    private void dessinerControlesAventure(Canvas canvas) {
-        if (!GestionnaireControles.modeAventureActif) return;
-        
-        float joyCentreX = 150f;
-        float joyCentreY = ConfigurationJeu.HAUTEUR_JEU - 150f;
-        
-        Paint pBase = new Paint();
-        pBase.setColor(Color.argb(100, 200, 200, 200));
-        canvas.drawCircle(joyCentreX, joyCentreY, 80f, pBase);
-        
-        Paint pStick = new Paint();
-        pStick.setColor(Color.argb(200, 250, 250, 250));
-        float stickX = joyCentreX + (GestionnaireControles.joyDirX * 80f);
-        float stickY = joyCentreY + (GestionnaireControles.joyDirY * 80f);
-        canvas.drawCircle(stickX, stickY, 40f, pStick);
-        
-        float btnX = ConfigurationJeu.LARGEUR_JEU - 150f;
-        float btnY = ConfigurationJeu.HAUTEUR_JEU - 150f;
-        
-        Paint pBtn = new Paint();
-        pBtn.setColor(GestionnaireControles.isActionPressed ? Color.argb(200, 255, 100, 100) : Color.argb(100, 255, 100, 100));
-        canvas.drawCircle(btnX, btnY, 60f, pBtn);
-        
-        Paint pText = new Paint();
-        pText.setColor(Color.WHITE);
-        pText.setTextSize(24f);
-        pText.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("ACTION", btnX, btnY + 8f, pText);
     }
 // bas 2
 
@@ -470,7 +460,7 @@ public class VueJeu extends View {
                 } catch (Exception e) {}
             }
             if (bmp != null) {
-                if ("rond".equals(objet.type)) {
+                if ("rond".equals(objet.type) || "joystick".equals(objet.type) || "bouton_action".equals(objet.type)) {
                     canvas.save();
                     android.graphics.Path path = new android.graphics.Path();
                     float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
@@ -498,18 +488,14 @@ public class VueJeu extends View {
                 if (frames != null && !frames.isEmpty()) {
                     long tempsActuel = System.currentTimeMillis();
                     if (objet.dernierTempsFrame == 0) objet.dernierTempsFrame = tempsActuel;
-                    
                     long ecoulement = tempsActuel - objet.dernierTempsFrame;
                     long delaiFrame = 1000 / Math.max(1, objet.vitesseFps);
-                    
                     if (ecoulement >= delaiFrame) {
                         objet.frameCourante++;
                         objet.dernierTempsFrame = tempsActuel;
-                        
                         if (objet.frameCourante >= frames.size()) {
-                            if (objet.boucleAnimation) {
-                                objet.frameCourante = 0;
-                            } else {
+                            if (objet.boucleAnimation) objet.frameCourante = 0;
+                            else {
                                 objet.frameCourante = frames.size() - 1;
                                 objet.animationEnCours = false;
                             }
@@ -526,25 +512,50 @@ public class VueJeu extends View {
             peintureTexte.setAlpha(alphaInt);
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
-
             canvas.save();
             canvas.concat(absMatrix);
 
             String cheminAAfficher = objet.cheminImage;
+            
             if ("bouton".equals(objet.type)) {
-                if (objet.estDesactive && objet.cheminImageDesactive != null) {
-                    cheminAAfficher = objet.cheminImageDesactive;
-                } else if (objet == objetEnGlissement && objet.cheminImagePresse != null) {
-                    cheminAAfficher = objet.cheminImagePresse;
-                }
+                if (objet.estDesactive && objet.cheminImageDesactive != null) cheminAAfficher = objet.cheminImageDesactive;
+                else if (objet == objetEnGlissement && objet.cheminImagePresse != null) cheminAAfficher = objet.cheminImagePresse;
             }
 
-            if ("rond".equals(objet.type)) {
+            // DESSIN DES TYPES SPÉCIFIQUES AVENTURE
+            if ("joystick".equals(objet.type)) {
+                float rayonBase = Math.min(objet.largeur, objet.hauteur) / 2f;
+                canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayonBase, peintureObjet);
+                dessinerImage(canvas, objet, cheminAAfficher);
+                
+                Paint pStick = new Paint();
+                pStick.setColor(Color.WHITE);
+                pStick.setAlpha(200);
+                float stickX = (objet.largeur / 2f) + (GestionnaireControles.joyDirX * rayonBase * 0.5f);
+                float stickY = (objet.hauteur / 2f) + (GestionnaireControles.joyDirY * rayonBase * 0.5f);
+                canvas.drawCircle(stickX, stickY, rayonBase * 0.4f, pStick);
+                
+            } else if ("bouton_action".equals(objet.type)) {
+                float rayonBase = Math.min(objet.largeur, objet.hauteur) / 2f;
+                if (GestionnaireControles.isActionPressed) {
+                    peintureObjet.setAlpha(Math.min(255, alphaInt + 50)); // Effet de surbrillance
+                }
+                canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayonBase, peintureObjet);
+                dessinerImage(canvas, objet, cheminAAfficher);
+                
+                peintureTexte.setColor(Color.WHITE);
+                peintureTexte.setTextSize(objet.largeur * 0.25f);
+                peintureTexte.setTextAlign(Paint.Align.CENTER);
+                canvas.drawText("ACTION", objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
+                peintureTexte.setTextAlign(Paint.Align.LEFT); // Réinitialisation de sécurité
+                
+            } else if ("rond".equals(objet.type)) {
                 if (objet.afficherFondColore || cheminAAfficher == null) {
                     float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                     canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
                 }
                 dessinerImage(canvas, objet, cheminAAfficher);
+                
             } else if ("texte".equals(objet.type)) {
                 String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
                 if (objet.cheminPolice != null && cheminProjet != null) {
@@ -559,17 +570,13 @@ public class VueJeu extends View {
                         } catch (Exception e) {}
                     }
                     peintureTexte.setTypeface(tf != null ? tf : android.graphics.Typeface.DEFAULT);
-                } else {
-                    peintureTexte.setTypeface(android.graphics.Typeface.DEFAULT);
-                }
+                } else { peintureTexte.setTypeface(android.graphics.Typeface.DEFAULT); }
 
                 peintureTexte.setTextSize(objet.tailleFonte);
                 peintureTexte.setTextScaleX(1.0f);
-                
                 float hauteurLigne = objet.tailleFonte * 1.2f;
                 float currentY = hauteurLigne; 
                 float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
-                
                 String[] paragraphes = texteAAfficher.split("\n", -1);
                 for (String paragraphe : paragraphes) {
                     if (paragraphe.isEmpty()) { currentY += hauteurLigne; continue; }
@@ -637,27 +644,19 @@ public class VueJeu extends View {
             if (cible != null) {
                 float cibleCamX = cible.x + (cible.largeur / 2f) - (ConfigurationJeu.LARGEUR_JEU / 2f);
                 float cibleCamY = cible.y + (cible.hauteur / 2f) - (ConfigurationJeu.HAUTEUR_JEU / 2f);
-                
-                GestionnaireControles.cameraX += (cibleCamX - GestionnaireControles.cameraX) * 0.1f; // Lerp
-                GestionnaireControles.cameraY += (cibleCamY - GestionnaireControles.cameraY) * 0.1f; // Lerp
-                
-                // Clamping
+                GestionnaireControles.cameraX += (cibleCamX - GestionnaireControles.cameraX) * 0.1f; 
+                GestionnaireControles.cameraY += (cibleCamY - GestionnaireControles.cameraY) * 0.1f; 
                 GestionnaireControles.cameraX = Math.max(GestionnaireControles.limiteMinX, Math.min(GestionnaireControles.cameraX, GestionnaireControles.limiteMaxX - ConfigurationJeu.LARGEUR_JEU));
                 GestionnaireControles.cameraY = Math.max(GestionnaireControles.limiteMinY, Math.min(GestionnaireControles.cameraY, GestionnaireControles.limiteMaxY - ConfigurationJeu.HAUTEUR_JEU));
             }
         }
 
-        // On dessine la SCÈNE avec le décalage Caméra
         canvas.save();
         canvas.translate(-GestionnaireControles.cameraX, -GestionnaireControles.cameraY);
         if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false);
-        canvas.restore(); // On annule le décalage caméra pour le HUD
+        canvas.restore(); 
 
-        // On dessine le HUD FIXE
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
-        
-        // On dessine le Joystick Aventure
-        dessinerControlesAventure(canvas);
     }
 }
 // bas 3
