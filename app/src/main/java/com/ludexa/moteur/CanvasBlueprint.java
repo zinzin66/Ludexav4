@@ -1,4 +1,4 @@
-// haut 1 11 aout
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.ClipData;
@@ -211,10 +211,48 @@ public class CanvasBlueprint extends View {
         }
     }
 
+    public void dupliquerNoeudSelectionne() {
+        if (noeudSelectionne != null && blueprintActuel != null) {
+            try {
+                Class<?> clazz = noeudSelectionne.getClass();
+                NoeudBase nouveauNoeud = (NoeudBase) clazz.newInstance();
+
+                nouveauNoeud.nom = noeudSelectionne.nom;
+
+                if (noeudSelectionne.requiertCibleObjet()) nouveauNoeud.setCibleObjet(noeudSelectionne.getCibleObjet());
+                if (noeudSelectionne.requiertCibleObjetB()) nouveauNoeud.setCibleObjetB(noeudSelectionne.getCibleObjetB());
+                if (noeudSelectionne.requiertCibleVariable()) nouveauNoeud.setCibleVariable(noeudSelectionne.getCibleVariable());
+                if (noeudSelectionne.requiertCibleScene()) nouveauNoeud.setCibleScene(noeudSelectionne.getCibleScene());
+
+                if (noeudSelectionne.getNomsParametres() != null) {
+                    for (String param : noeudSelectionne.getNomsParametres()) {
+                        nouveauNoeud.setValeurParametre(param, noeudSelectionne.getValeurParametre(param));
+                    }
+                }
+
+                Float xObj = blueprintActuel.noeudsX.get(noeudSelectionne.id);
+                Float yObj = blueprintActuel.noeudsY.get(noeudSelectionne.id);
+                float newX = (xObj != null ? xObj : 0) + 50f;
+                float newY = (yObj != null ? yObj : 0) + 50f;
+
+                blueprintActuel.ajouterNoeud(nouveauNoeud, newX, newY);
+                
+                noeudSelectionne = nouveauNoeud;
+                invalidate();
+                
+                Toast.makeText(getContext(), "Nœud copié", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Erreur lors de la duplication", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     public NoeudBase getNoeudSelectionne() {
         return noeudSelectionne;
     }
 // bas 1
+
+
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -311,6 +349,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
+
 // haut 3
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
@@ -594,7 +633,8 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
- // haut 4
+
+// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -732,3 +772,20 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    
+
+ˆ
