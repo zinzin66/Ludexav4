@@ -18,11 +18,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
-import java.util.List; 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class InterfaceBlueprint extends Activity {
 
-    public String cheminProjet; // NOUVEAU : Stockage du chemin
+    public String cheminProjet; 
 
     public static Scene sceneACharger; 
     public static List<Variable> variablesGlobalesACharger; 
@@ -93,7 +96,6 @@ public class InterfaceBlueprint extends Activity {
         super.onCreate(savedInstanceState);
         NoeudBase.contexteApplication = this;
 
-        // NOUVEAU : Récupération du chemin du projet
         cheminProjet = getIntent().getStringExtra("cheminProjet");
         
         this.variablesGlobales = variablesGlobalesACharger; 
@@ -207,14 +209,12 @@ public class InterfaceBlueprint extends Activity {
 
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        // --- AJOUT DE LA SCENE AU CANVAS ---
         if (sceneACharger != null) {
             canvasBlueprint.sceneActive = sceneACharger;
         } else {
             canvasBlueprint.sceneActive = new Scene("Scène Vide (Fallback)");
         }
 
-        // --- CHARGEMENT AUTOMATIQUE SILENCIEUX ---
         chargerBlueprintLocal(true);
 
         zoneMilieu.addView(panneauNoeuds);
@@ -225,10 +225,11 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
+// bas 1
 
+// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
-            // NOUVEAU : Utilisation du chemin du projet
             File dir = new File(cheminProjet, "logique");
             if (!dir.exists()) dir.mkdirs();
             File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
@@ -246,7 +247,6 @@ public class InterfaceBlueprint extends Activity {
 
     private void chargerBlueprintLocal(boolean estChargementAuto) {
         try {
-            // NOUVEAU : Utilisation du chemin du projet
             File dir = new File(cheminProjet, "logique");
             File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
             
@@ -254,7 +254,6 @@ public class InterfaceBlueprint extends Activity {
                 if (!estChargementAuto) {
                     Toast.makeText(this, "Aucune sauvegarde trouvée", Toast.LENGTH_SHORT).show();
                 }
-                // Initialisation d'un blueprint VRAIMENT VIDE
                 if (blueprintActif == null) {
                     blueprintActif = new Blueprint();
                     canvasBlueprint.setBlueprint(blueprintActif);
@@ -291,6 +290,64 @@ public class InterfaceBlueprint extends Activity {
         }
     }
 
+    private String formaterNoeud(NoeudBase noeud) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[").append(noeud.nom).append("]");
+        
+        List<String> details = new ArrayList<>();
+        if (noeud.requiertCibleObjet() && noeud.getCibleObjet() != null) {
+            details.add("Cible : " + noeud.getCibleObjet().nom);
+        }
+        if (noeud.requiertCibleObjetB() && noeud.getCibleObjetB() != null) {
+            details.add("Objet B : " + noeud.getCibleObjetB().nom);
+        }
+        if (noeud.requiertCibleVariable() && noeud.getCibleVariable() != null) {
+            details.add("Var : " + noeud.getCibleVariable().nom);
+        }
+        if (noeud.requiertCibleScene() && noeud.getCibleScene() != null) {
+            details.add("Scène : " + noeud.getCibleScene().nom);
+        }
+        
+        if (noeud.getNomsParametres() != null) {
+            for (String param : noeud.getNomsParametres()) {
+                String val = noeud.getValeurParametre(param);
+                if (val != null && !val.isEmpty()) {
+                    details.add(param + " : " + val);
+                }
+            }
+        }
+        
+        if (!details.isEmpty()) {
+            sb.append(" | ").append(String.join(" | ", details));
+        }
+        return sb.toString();
+    }
+
+    private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
+        if (noeudDepart == null || blueprintActif.liens == null) return;
+        
+        for (Blueprint.Lien lien : blueprintActif.liens) {
+            if (lien.noeudDepart == noeudDepart && lien.portSortieNom.equals(portDeclencheur)) {
+                NoeudBase noeudSuivant = lien.noeudArrivee;
+                if (noeudSuivant != null) {
+                    noeudsVisites.add(noeudSuivant.id);
+                    
+                    String prefixe = indentation + "-> ";
+                    if (!portDeclencheur.equals("Suivant") && !portDeclencheur.equals("Sortie")) {
+                        prefixe = indentation + "(Si " + portDeclencheur + ") -> ";
+                    }
+                    
+                    res.append(prefixe).append(formaterNoeud(noeudSuivant)).append("\n");
+                    
+                    genererCheminLogique(noeudSuivant, "Suivant", indentation + "  ", res, noeudsVisites);
+                    genererCheminLogique(noeudSuivant, "Vrai", indentation + "  ", res, noeudsVisites);
+                    genererCheminLogique(noeudSuivant, "Faux", indentation + "  ", res, noeudsVisites);
+                }
+            }
+        }
+    }
+// bas 2
+    // haut 3
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
         dialog.setTitle("Résumé du Blueprint");
@@ -301,7 +358,7 @@ public class InterfaceBlueprint extends Activity {
         layoutDialog.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
 
         TextView enTeteDialog = new TextView(this);
-        enTeteDialog.setText("RÉSUMÉ DU BLUEPRINT");
+        enTeteDialog.setText("SCRIPT BLUEPRINT (Pseudo-Code)");
         enTeteDialog.setTextSize(14f);
         enTeteDialog.setTextColor(Palette.texteSelectionne);
         enTeteDialog.setBackground(fond(Palette.enTeteDialogues, 6, Palette.bordure, 1));
@@ -312,45 +369,44 @@ public class InterfaceBlueprint extends Activity {
         enTeteDialog.setLayoutParams(paramsEnTete);
         layoutDialog.addView(enTeteDialog);
 
-        // --- Génération dynamique du texte du Blueprint ---
         StringBuilder res = new StringBuilder();
-        res.append("=== RESUME DU BLUEPRINT ===\n\n");
+        res.append("=== SCRIPT BLUEPRINT ===\n\n");
         
         if (blueprintActif == null || blueprintActif.noeuds.isEmpty()) {
             res.append("Le Blueprint est vide.\n");
         } else {
-            res.append("--- NOEUDS ---\n");
+            Set<String> noeudsVisites = new HashSet<>();
+            List<NoeudBase> evenements = new ArrayList<>();
+            
             for (NoeudBase noeud : blueprintActif.noeuds) {
-                String shortId = (noeud.id != null && noeud.id.length() >= 8) ? noeud.id.substring(0, 8) : noeud.id;
-                res.append("- [").append(noeud.nom).append("] (ID: ").append(shortId).append(")\n");
-                
-                if (noeud.requiertCibleObjet()) {
-                    String cible = (noeud.getCibleObjet() != null) ? noeud.getCibleObjet().nom : "Aucune";
-                    res.append("  Cible Objet : ").append(cible).append("\n");
-                }
-                
-                if (noeud.requiertCibleVariable()) {
-                    String cible = (noeud.getCibleVariable() != null) ? noeud.getCibleVariable().nom : "Aucune";
-                    res.append("  Cible Variable : ").append(cible).append("\n");
-                }
-                
-                if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
-                    for (String param : noeud.getNomsParametres()) {
-                        res.append("  Paramètre [").append(param).append("] : ").append(noeud.getValeurParametre(param)).append("\n");
-                    }
+                if (noeud.getClass().getSimpleName().startsWith("NoeudEvent") || noeud.nom.equals("Début")) {
+                    evenements.add(noeud);
                 }
             }
             
-            res.append("\n--- CONNEXIONS ---\n");
-            if (blueprintActif.liens != null && !blueprintActif.liens.isEmpty()) {
-                for (Blueprint.Lien lien : blueprintActif.liens) {
-                    String nomDep = (lien.noeudDepart != null) ? lien.noeudDepart.nom : "Inconnu";
-                    String nomArr = (lien.noeudArrivee != null) ? lien.noeudArrivee.nom : "Inconnu";
-                    res.append(nomDep).append(" [").append(lien.portSortieNom).append("] -> ")
-                       .append(nomArr).append(" [").append(lien.portEntreeNom).append("]\n");
-                }
+            if (evenements.isEmpty()) {
+                res.append("⚠️ Aucun Événement de départ détecté.\n\n");
             } else {
-                res.append("Aucune connexion.\n");
+                for (NoeudBase evt : evenements) {
+                    noeudsVisites.add(evt.id);
+                    res.append("ÉVÉNEMENT : ").append(formaterNoeud(evt)).append("\n");
+                    genererCheminLogique(evt, "Sortie", "  ", res, noeudsVisites);
+                    genererCheminLogique(evt, "Suivant", "  ", res, noeudsVisites);
+                    res.append("\n");
+                }
+            }
+            
+            boolean aOrphelins = false;
+            StringBuilder orphelinsRes = new StringBuilder();
+            orphelinsRes.append("--- Nœuds Orphelins (Non reliés) ---\n");
+            for (NoeudBase noeud : blueprintActif.noeuds) {
+                if (!noeudsVisites.contains(noeud.id)) {
+                    aOrphelins = true;
+                    orphelinsRes.append("- ").append(formaterNoeud(noeud)).append("\n");
+                }
+            }
+            if (aOrphelins) {
+                res.append(orphelinsRes);
             }
         }
 
@@ -381,7 +437,7 @@ public class InterfaceBlueprint extends Activity {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("Code LUDEXA", textViewCode.getText());
             clipboard.setPrimaryClip(clip);
-            Toast.makeText(this, "Résumé copié dans le presse-papier !", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Script copié dans le presse-papier !", Toast.LENGTH_SHORT).show();
         });
         boutonsDialog.addView(btnCopier);
 
@@ -397,5 +453,10 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 1
-                               
+// bas 3
+
+    
+
+
+
+

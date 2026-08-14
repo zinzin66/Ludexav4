@@ -141,6 +141,16 @@ public class CanvasEditeur extends View {
         return null;
     }
 
+    // Vérifie si l'objet et tous ses parents sont visibles
+    public boolean estVisibleEffectif(ObjetBase obj) {
+        ObjetBase cur = obj;
+        while (cur != null) {
+            if (!cur.visible) return false;
+            cur = getObjetById(cur.parentId);
+        }
+        return true;
+    }
+
     public Matrix getAbsoluteMatrix(ObjetBase obj) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -210,8 +220,6 @@ public class CanvasEditeur extends View {
         return pts;
     }
 // bas 1
-
-
 // haut 2
     private float getHauteurReelle(ObjetBase objet) {
         if (!"texte".equals(objet.type)) {
@@ -290,21 +298,26 @@ public class CanvasEditeur extends View {
             });
 
             for (ObjetBase objet : objetsTries) {
-                if (!objet.visible) continue;
+                if (!estVisibleEffectif(objet)) continue; // CASCADE VISIBILITÉ
 
                 Matrix absMatrix = getAbsoluteMatrix(objet);
                 
                 canvas.save();
                 canvas.translate(cameraX, cameraY);
                 canvas.concat(absMatrix);
+                
+                String cheminAAfficher = objet.cheminImage;
+                if ("bouton".equals(objet.type) && objet.estDesactive && objet.cheminImageDesactive != null) {
+                    cheminAAfficher = objet.cheminImageDesactive;
+                }
 
                 if ("rond".equals(objet.type)) {
-                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                    if (objet.afficherFondColore || cheminAAfficher == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                         float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                         canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
                     }
-                    dessinerImage(canvas, objet);
+                    dessinerImage(canvas, objet, cheminAAfficher);
                 } else if ("texte".equals(objet.type)) {
                     paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                     String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
@@ -360,12 +373,18 @@ public class CanvasEditeur extends View {
                             start = end;
                         }
                     }
-                } else {
-                    if (objet.afficherFondColore || objet.cheminImage == null) {
+                } else if ("image".equals(objet.type)) {
+                    if (objet.afficherFondColore) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
                         canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                     }
-                    dessinerImage(canvas, objet);
+                    dessinerImage(canvas, objet, cheminAAfficher);
+                } else {
+                    if (objet.afficherFondColore || cheminAAfficher == null) {
+                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    }
+                    dessinerImage(canvas, objet, cheminAAfficher);
                 }
 
                 if (objet == objetSelectionne) {
@@ -410,16 +429,16 @@ public class CanvasEditeur extends View {
         canvas.restore();
     }
 
-    private void dessinerImage(Canvas canvas, ObjetBase objet) {
-        if (objet.cheminImage != null && cheminProjet != null) {
-            android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
+    private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
+        if (cheminAAfficher != null && cheminProjet != null) {
+            android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
             if (bmp == null) {
                 try {
-                    java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
+                    java.io.File imgFile = new java.io.File(cheminProjet, cheminAAfficher);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                         if (bmp != null) {
-                            cacheImages.put(objet.cheminImage, bmp);
+                            cacheImages.put(cheminAAfficher, bmp);
                         }
                     }
                 } catch (Exception e) {
@@ -461,6 +480,8 @@ public class CanvasEditeur extends View {
 
         for (int i = objetsTries.size() - 1; i >= 0; i--) {
             ObjetBase objet = objetsTries.get(i);
+            if (!estVisibleEffectif(objet)) continue; // CASCADE VISIBILITÉ
+
             float[] localPos = worldToLocal(objet, sx, sy);
             float lx = localPos[0], ly = localPos[1];
             
@@ -473,8 +494,6 @@ public class CanvasEditeur extends View {
         return null;
     }
 // bas 2
-
-
 // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
@@ -661,8 +680,10 @@ public class CanvasEditeur extends View {
 
 
 
+
+
+
+
     
-
-
 
 

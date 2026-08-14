@@ -24,6 +24,7 @@ public class VueJeu extends View {
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
     private MoteurLogique moteurHud;
+    private MoteurPhysique moteurPhysique;
     private String cheminProjet; 
     
     private float echelle = 1f;
@@ -31,6 +32,7 @@ public class VueJeu extends View {
     private float decalageY = 0f;
 
     private ObjetBase objetEnGlissement = null;
+    private ObjetBase dernierObjetSurvole = null;
     private float lastXJeu = 0f;
     private float lastYJeu = 0f;
     
@@ -51,6 +53,8 @@ public class VueJeu extends View {
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
+        GestionnaireEtat.viderCache();
+
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         if (sceneHud != null) chargerAnimationsGlobales(sceneHud.objets);
 
@@ -69,6 +73,8 @@ public class VueJeu extends View {
         
         peintureFondBlanc = new Paint();
         peintureFondBlanc.setColor(Color.WHITE);
+
+        this.moteurPhysique = new MoteurPhysique(); 
 
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
@@ -143,7 +149,12 @@ public class VueJeu extends View {
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
 
+        if (this.sceneActive != null) {
+            GestionnaireEtat.sauvegarderEtat(this.sceneActive);
+        }
+
         this.sceneActive = nouvelleScene;
+        GestionnaireEtat.restaurerEtat(this.sceneActive);
         chargerAnimationsGlobales(nouvelleScene.objets);
 
         Blueprint nouveauBlueprint = null;
@@ -191,8 +202,24 @@ public class VueJeu extends View {
     }
 // bas 1
 
-
 // haut 2
+    private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
+        if (contexteObjets == null || id == null) return null;
+        for (ObjetBase o : contexteObjets) {
+            if (o.id.equals(id)) return o;
+        }
+        return null;
+    }
+
+    public boolean estVisibleEffectif(ObjetBase obj, List<ObjetBase> contexteObjets) {
+        ObjetBase cur = obj;
+        while (cur != null) {
+            if (!cur.visible) return false;
+            cur = getObjetById(cur.parentId, contexteObjets);
+        }
+        return true;
+    }
+
     private ObjetBase trouverObjetSousPoint(float xJeu, float yJeu, boolean exigeDeplacable) {
         List<ObjetBase> listeARechercher = null;
         if (sceneHudActive != null && sceneHudActive.objets != null) {
@@ -211,7 +238,7 @@ public class VueJeu extends View {
         });
 
         for (ObjetBase obj : objetsTries) {
-            if (!obj.visible) continue;
+            if (!estVisibleEffectif(obj, listeARechercher)) continue;
             if (exigeDeplacable && !obj.estDeplacable) continue;
             
             Matrix absMatrix = getAbsoluteMatrix(obj, listeARechercher);
@@ -234,12 +261,24 @@ public class VueJeu extends View {
             float yJeuActuel = (event.getY() - decalageY) / echelle;
 
             ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
-            if (objSurvole != null) {
-                if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
-                    this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
-                } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
-                    this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+            
+            if (objSurvole != dernierObjetSurvole) {
+                if (dernierObjetSurvole != null) {
+                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(dernierObjetSurvole) && this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                    }
                 }
+                
+                if (objSurvole != null) {
+                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                        this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                        this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                    }
+                }
+                dernierObjetSurvole = objSurvole;
             }
             return true;
         }
@@ -252,7 +291,7 @@ public class VueJeu extends View {
         float yJeuActuel = (event.getY() - decalageY) / echelle;
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, true);
+            objetEnGlissement = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
             lastXJeu = xJeuActuel;
             lastYJeu = yJeuActuel;
             
@@ -264,19 +303,29 @@ public class VueJeu extends View {
                 }
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (objetEnGlissement != null) {
+            if (objetEnGlissement != null && objetEnGlissement.estDeplacable) {
                 objetEnGlissement.x += xJeuActuel - lastXJeu;
                 objetEnGlissement.y += yJeuActuel - lastYJeu;
                 lastXJeu = xJeuActuel;
                 lastYJeu = yJeuActuel;
             } else {
                 ObjetBase objSurvole = trouverObjetSousPoint(xJeuActuel, yJeuActuel, false);
-                if (objSurvole != null) {
-                    if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
-                        this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
-                    } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
-                        this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                if (objSurvole != dernierObjetSurvole) {
+                    if (dernierObjetSurvole != null) {
+                        if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
+                            this.moteurHud.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                        } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(dernierObjetSurvole) && this.moteur != null) {
+                            this.moteur.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
+                        }
                     }
+                    if (objSurvole != null) {
+                        if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
+                            this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                        } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
+                            this.moteur.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
+                        }
+                    }
+                    dernierObjetSurvole = objSurvole;
                 }
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -289,14 +338,14 @@ public class VueJeu extends View {
                 Collections.sort(objetsHudTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsHudTries) {
-                    if (!obj.visible) continue;
+                    if (!estVisibleEffectif(obj, sceneHudActive.objets)) continue; 
                     Matrix absMatrix = getAbsoluteMatrix(obj, sceneHudActive.objets);
                     Matrix inverseMatrix = new Matrix();
                     if (absMatrix.invert(inverseMatrix)) {
                         float[] ptLocal = new float[]{xJeu, yJeu};
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
-                            if (this.moteurHud != null) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            if (this.moteurHud != null && !obj.estDesactive) this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
                             clickIntercepte = true;
                             break;
                         }
@@ -306,17 +355,17 @@ public class VueJeu extends View {
 
             if (!clickIntercepte && sceneActive != null && sceneActive.objets != null) {
                 List<ObjetBase> objetsJeuTries = new ArrayList<>(sceneActive.objets);
-                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
+                Collections.sort(objetsJeuTries, (o1, o2) -> Integer.compare(o2.zOrder, o1.zOrder));
 
                 for (ObjetBase obj : objetsJeuTries) {
-                    if (!obj.visible) continue;
+                    if (!estVisibleEffectif(obj, sceneActive.objets)) continue; 
                     Matrix absMatrix = getAbsoluteMatrix(obj, sceneActive.objets);
                     Matrix inverseMatrix = new Matrix();
                     if (absMatrix.invert(inverseMatrix)) {
                         float[] ptLocal = new float[]{xJeu, yJeu};
                         inverseMatrix.mapPoints(ptLocal);
                         if (ptLocal[0] >= 0 && ptLocal[0] <= obj.largeur && ptLocal[1] >= 0 && ptLocal[1] <= obj.hauteur) {
-                            if (this.moteur != null) this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
+                            if (this.moteur != null && !obj.estDesactive) this.moteur.executerEvenementSurObjet(NoeudEventClicObjet.class, obj);
                             break;
                         }
                     }
@@ -338,16 +387,7 @@ public class VueJeu extends View {
     }
 // bas 2
 
-
 // haut 3
-    private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
-        if (contexteObjets == null || id == null) return null;
-        for (ObjetBase o : contexteObjets) {
-            if (o.id.equals(id)) return o;
-        }
-        return null;
-    }
-
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -369,15 +409,15 @@ public class VueJeu extends View {
         return m;
     }
 
-    private void dessinerImage(Canvas canvas, ObjetBase objet) {
-        if (objet.cheminImage != null && cheminProjet != null) {
-            android.graphics.Bitmap bmp = cacheImages.get(objet.cheminImage);
+    private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
+        if (cheminAAfficher != null && cheminProjet != null) {
+            android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
             if (bmp == null) {
                 try {
-                    java.io.File imgFile = new java.io.File(cheminProjet, objet.cheminImage);
+                    java.io.File imgFile = new java.io.File(cheminProjet, cheminAAfficher);
                     if (imgFile.exists()) {
                         bmp = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                        if (bmp != null) cacheImages.put(objet.cheminImage, bmp);
+                        if (bmp != null) cacheImages.put(cheminAAfficher, bmp);
                     }
                 } catch (Exception e) {}
             }
@@ -402,7 +442,8 @@ public class VueJeu extends View {
         Collections.sort(objetsTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
 
         for (ObjetBase objet : objetsTries) {
-            if (!objet.visible) continue; 
+            if (!estVisibleEffectif(objet, objets)) continue; // CASCADE VISIBILITÉ
+            if ("zone".equals(objet.type)) continue;
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
                 List<String> frames = objet.animations.get(objet.animationActive);
@@ -441,12 +482,21 @@ public class VueJeu extends View {
             canvas.save();
             canvas.concat(absMatrix);
 
+            String cheminAAfficher = objet.cheminImage;
+            if ("bouton".equals(objet.type)) {
+                if (objet.estDesactive && objet.cheminImageDesactive != null) {
+                    cheminAAfficher = objet.cheminImageDesactive;
+                } else if (objet == objetEnGlissement && objet.cheminImagePresse != null) {
+                    cheminAAfficher = objet.cheminImagePresse;
+                }
+            }
+
             if ("rond".equals(objet.type)) {
-                if (objet.afficherFondColore || objet.cheminImage == null) {
+                if (objet.afficherFondColore || cheminAAfficher == null) {
                     float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                     canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, peintureObjet);
                 }
-                dessinerImage(canvas, objet);
+                dessinerImage(canvas, objet, cheminAAfficher);
             } else if ("texte".equals(objet.type)) {
                 String texteAAfficher = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
                 
@@ -500,8 +550,8 @@ public class VueJeu extends View {
                     }
                 }
             } else {
-                if (objet.afficherFondColore || objet.cheminImage == null) canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
-                dessinerImage(canvas, objet);
+                if (objet.afficherFondColore || cheminAAfficher == null) canvas.drawRect(0, 0, objet.largeur, objet.hauteur, peintureObjet);
+                dessinerImage(canvas, objet, cheminAAfficher);
             }
             canvas.restore();
 
@@ -517,6 +567,17 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
+        // NOUVEAU : La Physique alerte la Logique en cas de choc
+        if (this.moteurPhysique != null && sceneActive != null && sceneActive.objets != null) {
+            List<ObjetBase> chocs = this.moteurPhysique.mettreAJour(sceneActive.objets);
+            
+            if (this.moteur != null && !chocs.isEmpty()) {
+                for (ObjetBase objChoque : chocs) {
+                    this.moteur.executerEvenementSurObjet(NoeudEventChoc.class, objChoque);
+                }
+            }
+        }
+
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
             this.moteur.verifierCollisions(this, sceneActive.objets);
             this.moteur.verifierVariablesChangees(); 
@@ -540,11 +601,13 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-                              
+
 
 
 
 
     
+
+
 
 

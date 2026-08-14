@@ -1,4 +1,4 @@
-// haut 1 12 août 
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -45,6 +45,19 @@ public class InspecteurProprietes extends LinearLayout {
     private Button btnChargerImage, btnSupprimerImage;
     private CheckBox cbFondColore;
     private CheckBox cbRamassable, cbZoneDeClic, cbDeplacable;
+
+    // Bloc pour l'Objet Bouton
+    private LinearLayout blocBouton;
+    private Button btnChargerImagePresse, btnSupprimerImagePresse;
+    private Button btnChargerImageDesactive, btnSupprimerImageDesactive;
+    private CheckBox cbDesactive;
+
+    // NOUVEAU : Bloc Physique et Environnement
+    private LinearLayout blocPhysique;
+    private CheckBox cbEstPhysique;
+    private Button btnTogglePhysique;
+    private LinearLayout conteneurPhysiqueDetails;
+    private EditText champRebond;
 
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
@@ -149,7 +162,9 @@ public class InspecteurProprietes extends LinearLayout {
         lp.setMargins(dp(3), dp(2), dp(3), dp(2));
         cb.setLayoutParams(lp);
     }
+// bas 1
 
+// haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
         this.setBackgroundColor(Palette.fondPanneaux);
@@ -360,20 +375,16 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnParent.setOnClickListener(v -> {
             if (objetCourant == null) return;
-
             List<String> noms = new ArrayList<>();
             List<String> ids = new ArrayList<>();
-
             noms.add("Aucun");
             ids.add(null);
-
             for (ObjetBase o : sceneActive.objets) {
                 if (o != objetCourant) {
                     noms.add(o.nom != null ? o.nom : "Objet sans nom");
                     ids.add(o.id);
                 }
             }
-
             new AlertDialog.Builder(context)
                 .setTitle("Sélectionner un parent")
                 .setItems(noms.toArray(new String[0]), (dialog, which) -> {
@@ -385,10 +396,11 @@ public class InspecteurProprietes extends LinearLayout {
                     } else {
                         Toast.makeText(context, "Erreur : Boucle hiérarchique détectée", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .show();
+                }).show();
         });
+// bas 2
 
+// haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocTexte);
@@ -406,7 +418,6 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("Modifier le texte");
-
             final EditText input = new EditText(context);
             input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
             input.setSingleLine(false);
@@ -414,7 +425,6 @@ public class InspecteurProprietes extends LinearLayout {
             input.setGravity(Gravity.TOP | Gravity.START);
             input.setText(objetCourant.contenuTexte);
             styliserChamp(input);
-
             builder.setView(input);
             builder.setPositiveButton("Valider", (dialog, which) -> {
                 String nouveauTexte = input.getText().toString();
@@ -436,12 +446,10 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle("Taille de police");
-
             final EditText input = new EditText(context);
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
             input.setText(String.valueOf(objetCourant.tailleFonte));
             styliserChamp(input);
-
             builder.setView(input);
             builder.setPositiveButton("Valider", (dialog, which) -> {
                 try {
@@ -470,36 +478,21 @@ public class InspecteurProprietes extends LinearLayout {
         btnPolice.setText("Police : Sélecteur");
         btnPolice.setOnClickListener(v -> {
             if (objetCourant == null) return;
-
-            if (cheminProjet == null) {
-                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
+            if (cheminProjet == null) { Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show(); return; }
             java.io.File dossierPolices = new java.io.File(cheminProjet, "assets_ludexa/Fonts");
             List<String> polices = listerPolicesLocales(dossierPolices, "assets_ludexa/Fonts/");
-
-            if (polices.isEmpty()) {
-                Toast.makeText(context, "Aucune police trouvée dans les assets", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
+            if (polices.isEmpty()) { Toast.makeText(context, "Aucune police trouvée dans les assets", Toast.LENGTH_SHORT).show(); return; }
             List<String> options = new ArrayList<>();
             options.add("Police par défaut");
             options.addAll(polices);
-
             new AlertDialog.Builder(context)
                 .setTitle("Sélectionner une police")
                 .setItems(options.toArray(new String[0]), (dialog, which) -> {
-                    if (which == 0) {
-                        objetCourant.cheminPolice = null;
-                    } else {
-                        objetCourant.cheminPolice = options.get(which);
-                    }
+                    if (which == 0) objetCourant.cheminPolice = null;
+                    else objetCourant.cheminPolice = options.get(which);
                     canvasEditeur.invalidate();
                     afficherObjet(objetCourant);
-                })
-                .show();
+                }).show();
         });
         styliserBouton(btnPolice);
         blocTexte.addView(btnPolice);
@@ -531,6 +524,84 @@ public class InspecteurProprietes extends LinearLayout {
         styliserCase(cbFondColore);
         blocImage.addView(cbFondColore);
 
+        blocProprietes.addView(blocImage);
+        
+        // --- BLOC BOUTON ---
+        blocBouton = new LinearLayout(context);
+        blocBouton.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocBouton);
+
+        TextView sepBouton = new TextView(context);
+        sepBouton.setText("États du Bouton");
+        styliserSousTitre(sepBouton);
+        blocBouton.addView(sepBouton);
+
+        btnChargerImagePresse = new Button(context);
+        btnChargerImagePresse.setText("Image Pressée (Assets)");
+        styliserBouton(btnChargerImagePresse);
+        blocBouton.addView(btnChargerImagePresse);
+
+        btnSupprimerImagePresse = new Button(context);
+        btnSupprimerImagePresse.setText("Supprimer Image Pressée");
+        styliserBouton(btnSupprimerImagePresse);
+        blocBouton.addView(btnSupprimerImagePresse);
+
+        btnChargerImageDesactive = new Button(context);
+        btnChargerImageDesactive.setText("Image Désactivée (Assets)");
+        styliserBouton(btnChargerImageDesactive);
+        blocBouton.addView(btnChargerImageDesactive);
+
+        btnSupprimerImageDesactive = new Button(context);
+        btnSupprimerImageDesactive.setText("Supprimer Image Désactivée");
+        styliserBouton(btnSupprimerImageDesactive);
+        blocBouton.addView(btnSupprimerImageDesactive);
+
+        cbDesactive = new CheckBox(context);
+        cbDesactive.setText("Démarrer désactivé");
+        styliserCase(cbDesactive);
+        blocBouton.addView(cbDesactive);
+
+        blocProprietes.addView(blocBouton);
+        
+        // --- BLOC PHYSIQUE ET ENVIRONNEMENT ---
+        blocPhysique = new LinearLayout(context);
+        blocPhysique.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocPhysique);
+
+        TextView sepPhysique = new TextView(context);
+        sepPhysique.setText("Physique & Environnement");
+        styliserSousTitre(sepPhysique);
+        blocPhysique.addView(sepPhysique);
+
+        cbEstPhysique = new CheckBox(context);
+        cbEstPhysique.setText("Activer le corps physique (Collisions)");
+        styliserCase(cbEstPhysique);
+        blocPhysique.addView(cbEstPhysique);
+
+        btnTogglePhysique = new Button(context);
+        btnTogglePhysique.setText("Physique : Statique ►");
+        styliserBouton(btnTogglePhysique);
+        blocPhysique.addView(btnTogglePhysique);
+
+        conteneurPhysiqueDetails = new LinearLayout(context);
+        conteneurPhysiqueDetails.setOrientation(LinearLayout.VERTICAL);
+        conteneurPhysiqueDetails.setVisibility(View.GONE);
+
+        TextView labelRebond = new TextView(context);
+        labelRebond.setText("Force de rebond (ex: 0.4)");
+        styliserLabel(labelRebond);
+        conteneurPhysiqueDetails.addView(labelRebond);
+
+        champRebond = new EditText(context);
+        champRebond.setHint("0.4");
+        champRebond.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        styliserChamp(champRebond);
+        conteneurPhysiqueDetails.addView(champRebond);
+
+        blocPhysique.addView(conteneurPhysiqueDetails);
+        blocProprietes.addView(blocPhysique);
+
+        // Autres propriétés globales
         cbRamassable = new CheckBox(context);
         cbRamassable.setText("Ramassable (peut aller dans l'inventaire)");
         styliserCase(cbRamassable);
@@ -546,8 +617,6 @@ public class InspecteurProprietes extends LinearLayout {
         styliserCase(cbDeplacable);
         blocProprietes.addView(cbDeplacable);
 
-        blocProprietes.addView(blocImage);
-
         contenuInspecteur.addView(blocProprietes);
 
         boutonSupprimer = new Button(context);
@@ -558,10 +627,7 @@ public class InspecteurProprietes extends LinearLayout {
         boutonSupprimer.setBackground(fond(Color.parseColor("#8B3A3A"), Palette.bordure, 10));
         boutonSupprimer.setPadding(dp(14), dp(11), dp(14), dp(11));
         boutonSupprimer.setOnClickListener(v -> {
-            if (objetCourant == null) {
-                Toast.makeText(context, "Aucun objet sélectionné", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            if (objetCourant == null) { Toast.makeText(context, "Aucun objet sélectionné", Toast.LENGTH_SHORT).show(); return; }
             new AlertDialog.Builder(context)
                     .setTitle("Confirmation de suppression")
                     .setMessage("Voulez-vous vraiment supprimer cet objet de la scène ?")
@@ -571,9 +637,7 @@ public class InspecteurProprietes extends LinearLayout {
                         afficherObjet(null);
                         canvasEditeur.invalidate();
                         Toast.makeText(context, "Objet supprimé", Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Annuler", null)
-                    .show();
+                    }).setNegativeButton("Annuler", null).show();
         });
 
         LinearLayout.LayoutParams paramsBtn = new LinearLayout.LayoutParams(
@@ -584,7 +648,9 @@ public class InspecteurProprietes extends LinearLayout {
         contenuInspecteur.addView(boutonSupprimer);
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
+// bas 3
 
+// haut 4
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
                 scrollInspecteur.setVisibility(View.GONE);
@@ -608,34 +674,19 @@ public class InspecteurProprietes extends LinearLayout {
             return false;
         });
 
-        btnValiderNom.setOnClickListener(v -> {
-            verifierEtConfirmerRenommage(context);
-            cacherClavier(context, champNom);
-        });
+        btnValiderNom.setOnClickListener(v -> { verifierEtConfirmerRenommage(context); cacherClavier(context, champNom); });
 
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
-
-            if (cheminProjet == null) {
-                Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
+            if (cheminProjet == null) { Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show(); return; }
             java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
             List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
-
-            if (images.isEmpty()) {
-                Toast.makeText(context, "Aucune image trouvée dans les assets", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            new AlertDialog.Builder(context)
-                .setTitle("Sélectionner une image")
-                .setItems(images.toArray(new String[0]), (dialog, which) -> {
-                    objetCourant.cheminImage = images.get(which);
-                    canvasEditeur.invalidate();
-                    afficherObjet(objetCourant);
-                })
-                .show();
+            if (images.isEmpty()) { Toast.makeText(context, "Aucune image trouvée", Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle("Sélectionner une image").setItems(images.toArray(new String[0]), (dialog, which) -> {
+                objetCourant.cheminImage = images.get(which);
+                canvasEditeur.invalidate();
+                afficherObjet(objetCourant);
+            }).show();
         });
 
         btnSupprimerImage.setOnClickListener(v -> {
@@ -645,86 +696,122 @@ public class InspecteurProprietes extends LinearLayout {
             afficherObjet(objetCourant);
         });
 
-        cbFondColore.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (objetCourant != null && !miseAJourEnCours) {
-                objetCourant.afficherFondColore = isChecked;
+        btnChargerImagePresse.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            if (cheminProjet == null) return;
+            java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
+            List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
+            if (images.isEmpty()) { Toast.makeText(context, "Aucune image trouvée", Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle("Image Pressée").setItems(images.toArray(new String[0]), (dialog, which) -> {
+                objetCourant.cheminImagePresse = images.get(which);
                 canvasEditeur.invalidate();
+                afficherObjet(objetCourant);
+            }).show();
+        });
+
+        btnSupprimerImagePresse.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.cheminImagePresse = null;
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        btnChargerImageDesactive.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            if (cheminProjet == null) return;
+            java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
+            List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
+            if (images.isEmpty()) { Toast.makeText(context, "Aucune image trouvée", Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle("Image Désactivée").setItems(images.toArray(new String[0]), (dialog, which) -> {
+                objetCourant.cheminImageDesactive = images.get(which);
+                canvasEditeur.invalidate();
+                afficherObjet(objetCourant);
+            }).show();
+        });
+
+        btnSupprimerImageDesactive.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.cheminImageDesactive = null;
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        cbFondColore.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.afficherFondColore = isChecked; canvasEditeur.invalidate(); }
+        });
+        
+        // Listeners Physique
+        cbEstPhysique.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { 
+                objetCourant.estPhysique = isChecked; 
+                canvasEditeur.invalidate(); 
+                afficherObjet(objetCourant); 
             }
         });
+
+        btnTogglePhysique.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.estStatique = !objetCourant.estStatique;
+            if (!objetCourant.estStatique) {
+                objetCourant.estPhysique = true; // Activer la physique automatiquement pour un dynamique
+            }
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        champRebond.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { 
+                try { 
+                    objetCourant.rebond = Float.parseFloat(texte); 
+                } catch (NumberFormatException ignored) {} 
+            }
+        }));
 
         cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (objetCourant != null && !miseAJourEnCours) {
-                objetCourant.estRamassable = isChecked;
-            }
+            if (objetCourant != null && !miseAJourEnCours) objetCourant.estRamassable = isChecked;
         });
-
         cbZoneDeClic.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (objetCourant != null && !miseAJourEnCours) {
-                objetCourant.estZoneDeClic = isChecked;
-            }
+            if (objetCourant != null && !miseAJourEnCours) objetCourant.estZoneDeClic = isChecked;
         });
-
         cbDeplacable.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (objetCourant != null && !miseAJourEnCours) {
-                objetCourant.estDeplacable = isChecked;
-            }
+            if (objetCourant != null && !miseAJourEnCours) objetCourant.estDeplacable = isChecked;
         });
-
         cbVerrouille.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (objetCourant != null && !miseAJourEnCours) {
-                objetCourant.estVerrouille = isChecked;
-                canvasEditeur.invalidate();
-            }
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.estVerrouille = isChecked; canvasEditeur.invalidate(); }
+        });
+        cbDesactive.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.estDesactive = isChecked; canvasEditeur.invalidate(); }
         });
 
         champX.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
         champY.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.y = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.y = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
         champLargeur.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.largeur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.largeur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
         champHauteur.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
 
         champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
         champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
 
         champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
         champZOrder.addTextChangedListener(creerWatcherSimple(texte -> {
-            if (objetCourant != null) {
-                try { objetCourant.zOrder = Integer.parseInt(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {}
-            }
+            if (objetCourant != null) { try { objetCourant.zOrder = Integer.parseInt(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
 
         cbVisible.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (objetCourant != null && !miseAJourEnCours) {
-                objetCourant.visible = isChecked;
-                canvasEditeur.invalidate();
-            }
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.visible = isChecked; canvasEditeur.invalidate(); }
         });
 
         View.OnClickListener selecteurCouleurListener = v -> {
@@ -747,9 +834,7 @@ public class InspecteurProprietes extends LinearLayout {
 
     private void cacherClavier(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
+        if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     private void verifierEtConfirmerRenommage(Context context) {
@@ -758,45 +843,27 @@ public class InspecteurProprietes extends LinearLayout {
         String ancienNom = objetCourant.nom != null ? objetCourant.nom : "";
 
         if (!nouveauNom.equals(ancienNom) && !miseAJourEnCours) {
-
             if (sceneActive != null && sceneActive.objets != null) {
                 for (ObjetBase obj : sceneActive.objets) {
                     if (!obj.id.equals(objetCourant.id) && obj.nom != null && obj.nom.trim().equalsIgnoreCase(nouveauNom)) {
-                        new AlertDialog.Builder(context)
-                                .setTitle("Impossible")
+                        new AlertDialog.Builder(context).setTitle("Impossible")
                                 .setMessage("Un objet nommé '" + nouveauNom + "' existe déjà dans cette scène.")
-                                .setPositiveButton("OK", null)
-                                .show();
-
-                        miseAJourEnCours = true;
-                        champNom.setText(ancienNom);
-                        miseAJourEnCours = false;
+                                .setPositiveButton("OK", null).show();
+                        miseAJourEnCours = true; champNom.setText(ancienNom); miseAJourEnCours = false;
                         return; 
                     }
                 }
             }
-
-            new AlertDialog.Builder(context)
-                    .setTitle("Confirmation")
+            new AlertDialog.Builder(context).setTitle("Confirmation")
                     .setMessage("Renommer " + ancienNom + " en " + nouveauNom + " ?")
-                    .setPositiveButton("Oui", (dialog, which) -> {
-                        objetCourant.nom = nouveauNom;
-                        canvasEditeur.invalidate();
-                    })
-                    .setNegativeButton("Non", (dialog, which) -> {
-                        miseAJourEnCours = true;
-                        champNom.setText(ancienNom);
-                        miseAJourEnCours = false;
-                    })
-                    .setOnCancelListener(dialog -> {
-                        miseAJourEnCours = true;
-                        champNom.setText(ancienNom);
-                        miseAJourEnCours = false;
-                    })
+                    .setPositiveButton("Oui", (dialog, which) -> { objetCourant.nom = nouveauNom; canvasEditeur.invalidate(); })
+                    .setNegativeButton("Non", (dialog, which) -> { miseAJourEnCours = true; champNom.setText(ancienNom); miseAJourEnCours = false; })
+                    .setOnCancelListener(dialog -> { miseAJourEnCours = true; champNom.setText(ancienNom); miseAJourEnCours = false; })
                     .show();
         }
     }
-
+// bas 4
+// haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
         miseAJourEnCours = true;
@@ -830,10 +897,7 @@ public class InspecteurProprietes extends LinearLayout {
             String nomParent = "Aucun";
             if (objet.parentId != null) {
                 for (ObjetBase o : sceneActive.objets) {
-                    if (o.id.equals(objet.parentId)) {
-                        nomParent = o.nom != null ? o.nom : "Objet sans nom";
-                        break;
-                    }
+                    if (o.id.equals(objet.parentId)) { nomParent = o.nom != null ? o.nom : "Objet sans nom"; break; }
                 }
             }
             btnParent.setText("Parent : " + nomParent);
@@ -843,10 +907,30 @@ public class InspecteurProprietes extends LinearLayout {
             cbDeplacable.setChecked(objet.estDeplacable);
             cbVerrouille.setChecked(objet.estVerrouille);
 
+            // Mise à jour de l'affichage de la Physique
+            cbEstPhysique.setChecked(objet.estPhysique);
+            
+            if (!objet.estPhysique) {
+                btnTogglePhysique.setVisibility(View.GONE);
+                conteneurPhysiqueDetails.setVisibility(View.GONE);
+            } else {
+                btnTogglePhysique.setVisibility(View.VISIBLE);
+                if (objet.estStatique) {
+                    btnTogglePhysique.setText("Physique : Statique ►");
+                    conteneurPhysiqueDetails.setVisibility(View.GONE);
+                } else {
+                    btnTogglePhysique.setText("Physique : Dynamique ▼");
+                    conteneurPhysiqueDetails.setVisibility(View.VISIBLE);
+                }
+            }
+            champRebond.setText(String.valueOf(objet.rebond));
+
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
+                blocImage.setVisibility(View.GONE);
+                blocBouton.setVisibility(View.GONE);
+                
                 champContenu.setText(objet.contenuTexte);
-
                 champTaille.setText(String.valueOf(objet.tailleFonte));
                 if (objet.cheminPolice != null) {
                     java.io.File f = new java.io.File(objet.cheminPolice);
@@ -854,8 +938,6 @@ public class InspecteurProprietes extends LinearLayout {
                 } else {
                     btnPolice.setText("Police : Sélecteur");
                 }
-
-                blocImage.setVisibility(View.GONE);
             } else {
                 blocTexte.setVisibility(View.GONE);
                 blocImage.setVisibility(View.VISIBLE);
@@ -867,6 +949,15 @@ public class InspecteurProprietes extends LinearLayout {
                 } else {
                     btnSupprimerImage.setVisibility(View.GONE);
                     cbFondColore.setVisibility(View.GONE);
+                }
+                
+                if ("bouton".equals(objet.type)) {
+                    blocBouton.setVisibility(View.VISIBLE);
+                    btnSupprimerImagePresse.setVisibility(objet.cheminImagePresse != null ? View.VISIBLE : View.GONE);
+                    btnSupprimerImageDesactive.setVisibility(objet.cheminImageDesactive != null ? View.VISIBLE : View.GONE);
+                    cbDesactive.setChecked(objet.estDesactive);
+                } else {
+                    blocBouton.setVisibility(View.GONE);
                 }
             }
         }
@@ -916,19 +1007,30 @@ public class InspecteurProprietes extends LinearLayout {
 
     private TextWatcher creerWatcherSimple(java.util.function.Consumer<String> action) {
         return new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (!miseAJourEnCours) {
-                    action.accept(s.toString());
-                }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void afterTextChanged(Editable s) {
+                if (!miseAJourEnCours) action.accept(s.toString());
             }
         };
     }
 }
-// bas 1
+// bas 5
+
+
+
+
+
+
+    
+
+
+
+        
+
+
+
+        
+
+
+

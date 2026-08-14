@@ -40,7 +40,6 @@ public class MoteurLogique {
         }
     }
 
-    // Méthode dédiée à la vérification des événements de collision
     public void verifierCollisions(VueJeu vueJeu, List<ObjetBase> objetsContexte) {
         if (blueprintActif == null || blueprintActif.noeuds == null || objetsContexte == null) return;
         
@@ -57,14 +56,28 @@ public class MoteurLogique {
                         noeudCol.setEtaitEnCollision(true);
                         noeudCol.executer();
                     } else if (!enCollision && noeudCol.isEtaitEnCollision()) {
-                        noeudCol.setEtaitEnCollision(false); // Reset pour le prochain déclenchement
+                        noeudCol.setEtaitEnCollision(false);
+                    }
+                }
+            } else if (noeud instanceof NoeudEventSortieZone) {
+                NoeudEventSortieZone noeudSortie = (NoeudEventSortieZone) noeud;
+                ObjetBase objA = noeudSortie.getCibleObjet();
+                ObjetBase objB = noeudSortie.getCibleObjetB();
+                
+                if (objA != null && objB != null) {
+                    boolean enCollision = UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu);
+                    
+                    if (enCollision && !noeudSortie.isEtaitEnCollision()) {
+                        noeudSortie.setEtaitEnCollision(true);
+                    } else if (!enCollision && noeudSortie.isEtaitEnCollision()) {
+                        noeudSortie.setEtaitEnCollision(false);
+                        noeudSortie.executer();
                     }
                 }
             }
         }
     }
 
-    // NOUVEAU : Méthode dédiée à la vérification des variables (pour le digicode)
     public void verifierVariablesChangees() {
         if (blueprintActif == null || blueprintActif.noeuds == null) return;
         
@@ -76,7 +89,3 @@ public class MoteurLogique {
     }
 }
 // bas 1
-
-
-
-

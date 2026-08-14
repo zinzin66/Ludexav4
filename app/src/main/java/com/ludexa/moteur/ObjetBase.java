@@ -27,6 +27,11 @@ public class ObjetBase {
     public int couleur = Color.BLUE;
     public String cheminImage = null;
     
+    // NOUVEAU : Etats pour l'Objet Bouton
+    public String cheminImagePresse = null;
+    public String cheminImageDesactive = null;
+    public boolean estDesactive = false;
+    
     public String type = "carre"; 
     public boolean afficherFondColore = true;
     
@@ -41,7 +46,13 @@ public class ObjetBase {
     public String parentId = null;
     public float alpha = 1.0f;
 
-    // NOUVEAU : SYSTÈME D'ANIMATION MULTIPLE
+    // NOUVEAU : PHYSIQUE ARCADE
+    public boolean estPhysique = false;
+    public boolean estStatique = true;
+    public float vitesseY = 0f;
+    public float rebond = 0.4f;
+
+    // SYSTÈME D'ANIMATION MULTIPLE
     public HashMap<String, List<String>> animations = new HashMap<>();
     public String animationActive = null;
     public int frameCourante = 0;
@@ -79,6 +90,12 @@ public class ObjetBase {
         copie.estZoneDeClic = this.estZoneDeClic;
         copie.couleur = this.couleur;
         copie.cheminImage = this.cheminImage;
+        
+        // Clonage des états du bouton
+        copie.cheminImagePresse = this.cheminImagePresse;
+        copie.cheminImageDesactive = this.cheminImageDesactive;
+        copie.estDesactive = this.estDesactive;
+        
         copie.type = this.type;
         copie.afficherFondColore = this.afficherFondColore;
         copie.contenuTexte = this.contenuTexte;
@@ -89,6 +106,12 @@ public class ObjetBase {
         copie.rotation = this.rotation;
         copie.parentId = this.parentId;
         copie.alpha = this.alpha;
+        
+        // Clonage des propriétés physiques
+        copie.estPhysique = this.estPhysique;
+        copie.estStatique = this.estStatique;
+        copie.vitesseY = this.vitesseY;
+        copie.rebond = this.rebond;
         
         // Clonage sécurisé du dictionnaire d'animations
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
@@ -130,7 +153,3 @@ public class ObjetBase {
     }
 }
 // bas 1
-
-
-
-
