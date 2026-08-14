@@ -1640,7 +1640,12 @@ public class PanneauRessources extends LinearLayout {
         styliserBoutonIcone(btnEditer);
         btnEditer.setOnClickListener(v -> {
             if (fonctionSelectionnee != null) {
-                Toast.makeText(context, "Bientôt : Ouverture de la fonction " + fonctionSelectionnee + " dans un Blueprint séparé.", Toast.LENGTH_LONG).show();
+                android.content.Intent intent = new android.content.Intent(context, InterfaceBlueprint.class);
+                intent.putExtra("cheminProjet", cheminProjet);
+                intent.putExtra("modeFonction", true);
+                intent.putExtra("nomFonction", fonctionSelectionnee);
+                InterfaceBlueprint.sceneACharger = null; 
+                context.startActivity(intent);
             }
         });
 
@@ -1712,6 +1717,8 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 11
+    
+    
 // haut 12 : SECTION FONCTIONS POPUPS
     private void afficherPopupCreerFonction(Context context) {
         Dialog dialog = new Dialog(context);
