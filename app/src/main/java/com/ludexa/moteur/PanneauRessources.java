@@ -423,7 +423,6 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-
 // haut 4 : SECTION OBJETS (Ajout avec icônes explicites)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -578,7 +577,7 @@ public class PanneauRessources extends LinearLayout {
 
         // --- NOUVEAUX CONTRÔLES MODULABLES ---
         ImageButton btnAjouterJoystick = new ImageButton(context);
-        btnAjouterJoystick.setImageResource(R.drawable.circle_24px); 
+        btnAjouterJoystick.setImageResource(R.drawable.trackpad_input_24px); // Icône adaptée de ta liste
         styliserBoutonIcone(btnAjouterJoystick);
         btnAjouterJoystick.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -594,7 +593,7 @@ public class PanneauRessources extends LinearLayout {
         });
 
         ImageButton btnAjouterBtnAction = new ImageButton(context);
-        btnAjouterBtnAction.setImageResource(R.drawable.add_circle_24px); // Ou un autre icône pertinent
+        btnAjouterBtnAction.setImageResource(R.drawable.center_focus_weak_24px); // Icône adaptée de ta liste
         styliserBoutonIcone(btnAjouterBtnAction);
         btnAjouterBtnAction.setOnClickListener(v -> {
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -625,7 +624,7 @@ public class PanneauRessources extends LinearLayout {
         espace2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         ligne3.addView(espace2);
 
-        // Ajout de la ligne 4 pour ne pas surcharger la ligne 3
+        // Ajout de la ligne 4 pour les contrôles
         ligne4.addView(btnAjouterJoystick);
         ligne4.addView(btnAjouterBtnAction);
         View espace3 = new View(context);
@@ -652,6 +651,7 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
+    
     
 
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
