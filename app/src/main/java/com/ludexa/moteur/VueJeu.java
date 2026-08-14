@@ -24,7 +24,7 @@ public class VueJeu extends View {
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
     private MoteurLogique moteurHud;
-    private MoteurPhysique moteurPhysique; // NOUVEAU
+    private MoteurPhysique moteurPhysique;
     private String cheminProjet; 
     
     private float echelle = 1f;
@@ -74,7 +74,7 @@ public class VueJeu extends View {
         peintureFondBlanc = new Paint();
         peintureFondBlanc.setColor(Color.WHITE);
 
-        this.moteurPhysique = new MoteurPhysique(); // NOUVEAU : Initialisation du moteur physique
+        this.moteurPhysique = new MoteurPhysique(); 
 
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
@@ -387,7 +387,6 @@ public class VueJeu extends View {
     }
 // bas 2
 
-
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
@@ -568,9 +567,15 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        // NOUVEAU : Application de la physique avant les vérifications logiques
+        // NOUVEAU : La Physique alerte la Logique en cas de choc
         if (this.moteurPhysique != null && sceneActive != null && sceneActive.objets != null) {
-            this.moteurPhysique.mettreAJour(sceneActive.objets);
+            List<ObjetBase> chocs = this.moteurPhysique.mettreAJour(sceneActive.objets);
+            
+            if (this.moteur != null && !chocs.isEmpty()) {
+                for (ObjetBase objChoque : chocs) {
+                    this.moteur.executerEvenementSurObjet(NoeudEventChoc.class, objChoque);
+                }
+            }
         }
 
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
@@ -598,7 +603,11 @@ public class VueJeu extends View {
 // bas 3
 
 
+
+
+
     
+
 
 
 
