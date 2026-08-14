@@ -161,7 +161,8 @@ public class InterfaceBlueprint extends Activity {
         bandeauHaut.addView(boutonCharger);
 
         bandeauHaut.addView(separateurVertical());
-
+// bas 1
+// haut 2
         ImageButton boutonZoomMoins = new ImageButton(this);
         boutonZoomMoins.setImageResource(R.drawable.zoom_out_24px);
         styliserBoutonBandeau(boutonZoomMoins);
@@ -204,6 +205,13 @@ public class InterfaceBlueprint extends Activity {
         boutonCopierNode.setOnClickListener(v -> canvasBlueprint.dupliquerNoeudSelectionne());
         bandeauHaut.addView(boutonCopierNode);
 
+        // NOUVEAU : Bouton Replier/Déplier
+        ImageButton boutonReplierNode = new ImageButton(this);
+        boutonReplierNode.setImageResource(R.drawable.hide_image_24px);
+        styliserBoutonBandeau(boutonReplierNode);
+        boutonReplierNode.setOnClickListener(v -> canvasBlueprint.basculerRepliNoeudSelectionne());
+        bandeauHaut.addView(boutonReplierNode);
+
         View espaceBandeau = new View(this);
         espaceBandeau.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeauHaut.addView(espaceBandeau);
@@ -243,9 +251,7 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
 
-// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
             File file;
@@ -320,7 +326,8 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
-
+// bas 2
+// haut 3
     private String formaterNoeud(NoeudBase noeud) {
         StringBuilder sb = new StringBuilder();
         sb.append("[").append(noeud.nom).append("]");
@@ -377,9 +384,7 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
-// bas 2
-            
-// haut 3
+
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
         dialog.setTitle("Résumé du Blueprint");
@@ -487,10 +492,7 @@ public class InterfaceBlueprint extends Activity {
 }
 // bas 3
 
-
-
-
     
 
 
-
+        
