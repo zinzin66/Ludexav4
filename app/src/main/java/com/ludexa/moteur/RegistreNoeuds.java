@@ -32,6 +32,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Sortie de zone", "Événements", "NoeudEventSortieZone"));
         REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
         REGISTRE.add(new InfoNoeud("Fin de Survol", "Événements", "NoeudEventFinSurvol"));
+        REGISTRE.add(new InfoNoeud("Au Choc (Physique)", "Événements", "NoeudEventChoc"));
         REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
 
         // LOGIQUE & CONDITIONS
