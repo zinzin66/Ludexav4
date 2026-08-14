@@ -10,14 +10,13 @@ public class NoeudEventPersonnalise extends NoeudBase {
 
     public NoeudEventPersonnalise() {
         super(genererId(), "Événement Local", "Événements");
-        // AUCUN port d'entrée : c'est un point de départ
-        this.ajouterPort(new Port("Sortie", Port.TYPE_EXECUTION_SORTIE));
+        // CORRECTION : On utilise le terme standard "Suivant"
+        this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
     @Override
     public boolean aDesParametresEditables() { return true; }
 
-    // LA CORRECTION EST ICI : Autorise le clavier Android natif pour taper des lettres
     @Override
     public boolean utiliseClavierTexte() { return true; }
 
@@ -37,11 +36,10 @@ public class NoeudEventPersonnalise extends NoeudBase {
 
     @Override
     public void executer() {
-        // Lance l'exécution des blocs connectés à sa sortie
-        propagerExecution("Sortie");
+        // Lance l'exécution des blocs connectés via "Suivant"
+        propagerExecution("Suivant");
     }
 
-    // --- Méthodes obligatoires inutilisées ici ---
     @Override
     public boolean requiertCibleObjet() { return false; }
     @Override
@@ -49,7 +47,6 @@ public class NoeudEventPersonnalise extends NoeudBase {
     @Override
     public ObjetBase getCibleObjet() { return null; }
 
-    // Getter utile pour que le nœud d'appel puisse le trouver
     public String getNomEvenement() { return nomEvenement; }
 }
 // bas 1
