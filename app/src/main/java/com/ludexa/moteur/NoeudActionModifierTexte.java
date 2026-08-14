@@ -148,4 +148,3 @@ public class NoeudActionModifierTexte extends NoeudBase {
     }
 }
 // bas 1
-                    
