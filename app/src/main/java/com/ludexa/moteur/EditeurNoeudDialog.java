@@ -1,4 +1,4 @@
-// haut 1 12 08 flash
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -222,6 +222,32 @@ public class EditeurNoeudDialog extends Dialog {
                         }
                         break;
 
+                    case NoeudBase.TYPE_CHOIX_FONCTION: 
+                        if (cheminProj != null) {
+                            java.io.File dossierFonctions = new java.io.File(cheminProj, "fonctions");
+                            List<String> fonctions = new ArrayList<>();
+                            if (dossierFonctions.exists() && dossierFonctions.isDirectory()) {
+                                java.io.File[] fichiers = dossierFonctions.listFiles((dir, name) -> name.endsWith(".json"));
+                                if (fichiers != null) {
+                                    for (java.io.File f : fichiers) {
+                                        fonctions.add(f.getName().replace(".json", ""));
+                                    }
+                                }
+                            }
+                            if (fonctions.isEmpty()) fonctions.add("Aucune fonction trouvée");
+                            
+                            android.app.AlertDialog.Builder builderFonc = new android.app.AlertDialog.Builder(context);
+                            builderFonc.setTitle("Choisir une fonction");
+                            String[] arrayFonc = fonctions.toArray(new String[0]);
+                            builderFonc.setItems(arrayFonc, (dialog, which) -> {
+                                if (!arrayFonc[which].equals("Aucune fonction trouvée")) {
+                                    champSaisie.setText(arrayFonc[which]);
+                                }
+                            });
+                            builderFonc.show();
+                        }
+                        break;
+                        
                     case "CHOIX_ANIMATION":
                         if (cheminProj != null) {
                             java.io.File fichierAnimations = new java.io.File(cheminProj, "assets_ludexa/Textes/animations.txt");
@@ -259,7 +285,6 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
-
 // haut 2
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -395,8 +420,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
 // bas 2
-
-// haut 3
+        // haut 3
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
 
@@ -442,7 +466,8 @@ public class EditeurNoeudDialog extends Dialog {
                     
                     if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
                         NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
-                        NoeudBase.TYPE_CHOIX_SON.equals(type) || "CHOIX_ANIMATION".equals(type)) {
+                        NoeudBase.TYPE_CHOIX_SON.equals(type) || NoeudBase.TYPE_CHOIX_FONCTION.equals(type) ||
+                        "CHOIX_ANIMATION".equals(type)) { 
                         champSaisie.performClick();
                     }
                 });
@@ -545,6 +570,8 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 3
+
+        
 
 // haut 4
         LinearLayout colonneGauche = new LinearLayout(context);
@@ -824,7 +851,8 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
             NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
-            NoeudBase.TYPE_CHOIX_SON.equals(type) || "CHOIX_ANIMATION".equals(type)) {
+            NoeudBase.TYPE_CHOIX_SON.equals(type) || NoeudBase.TYPE_CHOIX_FONCTION.equals(type) ||
+            "CHOIX_ANIMATION".equals(type)) { 
             
             champSaisie.setFocusable(false);
             champSaisie.setFocusableInTouchMode(false);
@@ -854,3 +882,9 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 4
+
+        
+
+
+
+    
