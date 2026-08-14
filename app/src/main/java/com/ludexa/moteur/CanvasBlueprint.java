@@ -252,7 +252,6 @@ public class CanvasBlueprint extends View {
     }
 // bas 1
 
-
 // haut 2
     @Override
     protected void onDraw(Canvas canvas) {
@@ -349,8 +348,7 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 2
-
-// haut 3
+   // haut 3
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
         if (noeud.requiertCibleObjet()) count++;
@@ -633,8 +631,8 @@ public class CanvasBlueprint extends View {
         return null;
     }
 // bas 3
-
-// haut 4
+    
+    // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -774,18 +772,3 @@ public class CanvasBlueprint extends View {
 // bas 4
 
 
-
-
-
-
-
-
-
-
-    
-
-
-
-    
-
-ˆ
