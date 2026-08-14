@@ -24,6 +24,7 @@ public class VueJeu extends View {
     private Paint peintureFondBlanc;
     private MoteurLogique moteur;
     private MoteurLogique moteurHud;
+    private MoteurPhysique moteurPhysique; // NOUVEAU
     private String cheminProjet; 
     
     private float echelle = 1f;
@@ -72,6 +73,8 @@ public class VueJeu extends View {
         
         peintureFondBlanc = new Paint();
         peintureFondBlanc.setColor(Color.WHITE);
+
+        this.moteurPhysique = new MoteurPhysique(); // NOUVEAU : Initialisation du moteur physique
 
         if (blueprintActif != null) {
             this.moteur = new MoteurLogique(blueprintActif);
@@ -199,7 +202,7 @@ public class VueJeu extends View {
     }
 // bas 1
 
- // haut 2
+// haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -565,6 +568,11 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
+        // NOUVEAU : Application de la physique avant les vérifications logiques
+        if (this.moteurPhysique != null && sceneActive != null && sceneActive.objets != null) {
+            this.moteurPhysique.mettreAJour(sceneActive.objets);
+        }
+
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
             this.moteur.verifierCollisions(this, sceneActive.objets);
             this.moteur.verifierVariablesChangees(); 
@@ -588,8 +596,6 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-
-
 
 
     

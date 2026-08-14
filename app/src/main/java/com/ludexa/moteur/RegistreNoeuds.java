@@ -40,7 +40,6 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique & Conditions", "NoeudConditionSiObjetVisible"));
         REGISTRE.add(new InfoNoeud("Condition Double (ET/OU)", "Logique & Conditions", "NoeudConditionDouble"));
         
-
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
         REGISTRE.add(new InfoNoeud("Ouvrir HUD", "Scène & HUD", "NoeudActionOuvrirHUD"));
@@ -58,7 +57,6 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
         REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
         
-
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Textes & Dialogues", "NoeudActionModifierTexte"));
         REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Textes & Dialogues", "NoeudActionConcatenerTexte"));
@@ -84,6 +82,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fondu (Alpha)", "Animations", "NoeudActionFondu"));
         REGISTRE.add(new InfoNoeud("Glisser Vers", "Animations", "NoeudActionGlisserVers"));
         REGISTRE.add(new InfoNoeud("Jouer Animation", "Animations", "NoeudActionJouerAnimation"));
+        
+        // PHYSIQUE
+        REGISTRE.add(new InfoNoeud("Activer Physique (Chute)", "Physique", "NoeudActionModifierPhysique"));
+        REGISTRE.add(new InfoNoeud("Appliquer Impulsion (Saut)", "Physique", "NoeudActionImpulsion"));
+        REGISTRE.add(new InfoNoeud("Changer Rebond", "Physique", "NoeudActionChangerRebond"));
+        REGISTRE.add(new InfoNoeud("Si Objet en Chute", "Physique", "NoeudConditionEnMouvement"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {

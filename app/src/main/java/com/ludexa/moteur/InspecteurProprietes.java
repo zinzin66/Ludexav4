@@ -46,11 +46,18 @@ public class InspecteurProprietes extends LinearLayout {
     private CheckBox cbFondColore;
     private CheckBox cbRamassable, cbZoneDeClic, cbDeplacable;
 
-    // NOUVEAU : Bloc pour l'Objet Bouton
+    // Bloc pour l'Objet Bouton
     private LinearLayout blocBouton;
     private Button btnChargerImagePresse, btnSupprimerImagePresse;
     private Button btnChargerImageDesactive, btnSupprimerImageDesactive;
     private CheckBox cbDesactive;
+
+    // NOUVEAU : Bloc Physique et Environnement
+    private LinearLayout blocPhysique;
+    private CheckBox cbEstPhysique;
+    private Button btnTogglePhysique;
+    private LinearLayout conteneurPhysiqueDetails;
+    private EditText champRebond;
 
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
@@ -156,6 +163,7 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
+
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -391,6 +399,7 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 // bas 2
+
 // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -554,6 +563,45 @@ public class InspecteurProprietes extends LinearLayout {
 
         blocProprietes.addView(blocBouton);
         
+        // --- BLOC PHYSIQUE ET ENVIRONNEMENT ---
+        blocPhysique = new LinearLayout(context);
+        blocPhysique.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocPhysique);
+
+        TextView sepPhysique = new TextView(context);
+        sepPhysique.setText("Physique & Environnement");
+        styliserSousTitre(sepPhysique);
+        blocPhysique.addView(sepPhysique);
+
+        cbEstPhysique = new CheckBox(context);
+        cbEstPhysique.setText("Activer le corps physique (Collisions)");
+        styliserCase(cbEstPhysique);
+        blocPhysique.addView(cbEstPhysique);
+
+        btnTogglePhysique = new Button(context);
+        btnTogglePhysique.setText("Physique : Statique ►");
+        styliserBouton(btnTogglePhysique);
+        blocPhysique.addView(btnTogglePhysique);
+
+        conteneurPhysiqueDetails = new LinearLayout(context);
+        conteneurPhysiqueDetails.setOrientation(LinearLayout.VERTICAL);
+        conteneurPhysiqueDetails.setVisibility(View.GONE);
+
+        TextView labelRebond = new TextView(context);
+        labelRebond.setText("Force de rebond (ex: 0.4)");
+        styliserLabel(labelRebond);
+        conteneurPhysiqueDetails.addView(labelRebond);
+
+        champRebond = new EditText(context);
+        champRebond.setHint("0.4");
+        champRebond.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        styliserChamp(champRebond);
+        conteneurPhysiqueDetails.addView(champRebond);
+
+        blocPhysique.addView(conteneurPhysiqueDetails);
+        blocProprietes.addView(blocPhysique);
+
+        // Autres propriétés globales
         cbRamassable = new CheckBox(context);
         cbRamassable.setText("Ramassable (peut aller dans l'inventaire)");
         styliserCase(cbRamassable);
@@ -691,6 +739,34 @@ public class InspecteurProprietes extends LinearLayout {
         cbFondColore.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) { objetCourant.afficherFondColore = isChecked; canvasEditeur.invalidate(); }
         });
+        
+        // Listeners Physique
+        cbEstPhysique.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { 
+                objetCourant.estPhysique = isChecked; 
+                canvasEditeur.invalidate(); 
+                afficherObjet(objetCourant); 
+            }
+        });
+
+        btnTogglePhysique.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.estStatique = !objetCourant.estStatique;
+            if (!objetCourant.estStatique) {
+                objetCourant.estPhysique = true; // Activer la physique automatiquement pour un dynamique
+            }
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        champRebond.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { 
+                try { 
+                    objetCourant.rebond = Float.parseFloat(texte); 
+                } catch (NumberFormatException ignored) {} 
+            }
+        }));
+
         cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) objetCourant.estRamassable = isChecked;
         });
@@ -787,7 +863,6 @@ public class InspecteurProprietes extends LinearLayout {
         }
     }
 // bas 4
-
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
@@ -831,6 +906,24 @@ public class InspecteurProprietes extends LinearLayout {
             cbZoneDeClic.setChecked(objet.estZoneDeClic);
             cbDeplacable.setChecked(objet.estDeplacable);
             cbVerrouille.setChecked(objet.estVerrouille);
+
+            // Mise à jour de l'affichage de la Physique
+            cbEstPhysique.setChecked(objet.estPhysique);
+            
+            if (!objet.estPhysique) {
+                btnTogglePhysique.setVisibility(View.GONE);
+                conteneurPhysiqueDetails.setVisibility(View.GONE);
+            } else {
+                btnTogglePhysique.setVisibility(View.VISIBLE);
+                if (objet.estStatique) {
+                    btnTogglePhysique.setText("Physique : Statique ►");
+                    conteneurPhysiqueDetails.setVisibility(View.GONE);
+                } else {
+                    btnTogglePhysique.setText("Physique : Dynamique ▼");
+                    conteneurPhysiqueDetails.setVisibility(View.VISIBLE);
+                }
+            }
+            champRebond.setText(String.valueOf(objet.rebond));
 
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
@@ -929,15 +1022,7 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-
-
-
-
     
-
-
-        
-
 
 
 
@@ -945,5 +1030,7 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
+        
 
-    
+
+
