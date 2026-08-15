@@ -50,7 +50,6 @@ public class VueJeu extends View {
     public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet, Scene sceneHud, Blueprint blueprintHud) {
         super(context);
         
-        // Réinitialisation propre de la caméra et des contrôles à chaque lancement du Play
         GestionnaireControles.reinitialiser();
 
         this.sceneActive = scene;
@@ -612,23 +611,13 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        // --- MOUVEMENT FLUIDE AUTOMATIQUE DU JOYSTICK (Option 2) ---
+        // --- MOUVEMENT FLUIDE AUTOMATIQUE DU JOYSTICK ---
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
-            if (sceneActive != null && sceneActive.objets != null) {
-                ObjetBase joueurCible = null;
-                if (GestionnaireControles.cameraCibleId != null) {
-                    joueurCible = getObjetById(GestionnaireControles.cameraCibleId, sceneActive.objets);
-                } else {
-                    for (ObjetBase obj : sceneActive.objets) {
-                        if ("player".equalsIgnoreCase(obj.nom) || "joueur".equalsIgnoreCase(obj.nom)) {
-                            joueurCible = obj;
-                            break;
-                        }
-                    }
-                }
-                
+            ObjetBase joystickObj = trouverObjetParType("joystick");
+            if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
+                ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
                 if (joueurCible != null) {
-                    float vitesseDefaut = 5f;
+                    float vitesseDefaut = 5f; 
                     joueurCible.x += GestionnaireControles.joyDirX * vitesseDefaut;
                     joueurCible.y += GestionnaireControles.joyDirY * vitesseDefaut;
                 }
@@ -682,8 +671,6 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-
-
 
 
 
