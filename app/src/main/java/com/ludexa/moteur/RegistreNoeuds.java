@@ -29,13 +29,14 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
         REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
         REGISTRE.add(new InfoNoeud("Collision A/B", "Événements", "NoeudEventCollisionAB"));
+        REGISTRE.add(new InfoNoeud("Entrée de zone", "Événements", "NoeudEventEntreeZone")); // NOUVEAU
         REGISTRE.add(new InfoNoeud("Sortie de zone", "Événements", "NoeudEventSortieZone"));
         REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
         REGISTRE.add(new InfoNoeud("Fin de Survol", "Événements", "NoeudEventFinSurvol"));
         REGISTRE.add(new InfoNoeud("Au Choc (Physique)", "Événements", "NoeudEventChoc"));
         REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
         REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
-        REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction")); // NOUVEAU
+        REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction"));
 
         // LOGIQUE & CONDITIONS
         REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
@@ -44,14 +45,14 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Condition Double (ET/OU)", "Logique & Conditions", "NoeudConditionDouble"));
         REGISTRE.add(new InfoNoeud("Appeler Fonction", "Logique & Conditions", "NoeudAppelFonction"));
         REGISTRE.add(new InfoNoeud("Appeler Événement Local", "Logique & Conditions", "NoeudActionAppelerEvent"));
-        REGISTRE.add(new InfoNoeud("Si Joystick Actif", "Logique & Conditions", "NoeudConditionSiJoystick")); // NOUVEAU
+        REGISTRE.add(new InfoNoeud("Si Joystick Actif", "Logique & Conditions", "NoeudConditionSiJoystick"));
         
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
         REGISTRE.add(new InfoNoeud("Ouvrir HUD", "Scène & HUD", "NoeudActionOuvrirHUD"));
         REGISTRE.add(new InfoNoeud("Fermer HUD", "Scène & HUD", "NoeudActionFermerHUD"));
         REGISTRE.add(new InfoNoeud("Toast", "Scène & HUD", "NoeudActionToast"));
-        REGISTRE.add(new InfoNoeud("Fixer Caméra", "Scène & HUD", "NoeudActionFixerCamera")); // NOUVEAU
+        REGISTRE.add(new InfoNoeud("Fixer Caméra", "Scène & HUD", "NoeudActionFixerCamera"));
 
         // APPARENCE & OBJETS
         REGISTRE.add(new InfoNoeud("Déplacer Objet", "Apparence & Objets", "NoeudActionDeplacer"));

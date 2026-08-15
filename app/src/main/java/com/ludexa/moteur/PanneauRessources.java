@@ -1478,36 +1478,73 @@ public class PanneauRessources extends LinearLayout {
         LinearLayout layoutDialog = new LinearLayout(context);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
         styliserDialogue(layoutDialog);
+        
         EditText champTexte = new EditText(context);
         champTexte.setHint("Nom de la variable");
         styliserChampDialogue(champTexte);
         layoutDialog.addView(champTexte);
+        
         TextView txtScope = new TextView(context);
         txtScope.setText("Portée (Scope) :");
         txtScope.setTextColor(Palette.texteSelectionne);
         txtScope.setPadding(0, dp(12), 0, dp(4));
         layoutDialog.addView(txtScope);
+        
         Spinner spinnerScope = new Spinner(context);
-        ArrayAdapter<String> adapterScope = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Locale", "Globale"});
-        adapterScope.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // --- ADAPTATEUR PERSONNALISÉ POUR LE SCOPE ---
+        ArrayAdapter<String> adapterScope = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, new String[]{"Locale", "Globale"}) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView tv = (TextView) super.getView(position, convertView, parent);
+                tv.setTextColor(Palette.texteNormal);
+                return tv;
+            }
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                TextView tv = (TextView) super.getDropDownView(position, convertView, parent);
+                tv.setTextColor(Palette.texteNormal);
+                tv.setBackgroundColor(Palette.fondNormal);
+                tv.setPadding(dp(16), dp(16), dp(16), dp(16));
+                return tv;
+            }
+        };
         spinnerScope.setAdapter(adapterScope);
         spinnerScope.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
         layoutDialog.addView(spinnerScope);
+        
         TextView txtType = new TextView(context);
         txtType.setText("Type :");
         txtType.setTextColor(Palette.texteSelectionne);
         txtType.setPadding(0, dp(12), 0, dp(4));
         layoutDialog.addView(txtType);
+        
         Spinner spinnerType = new Spinner(context);
-        ArrayAdapter<String> adapterType = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Entier", "Texte", "Oui/Non", "Liste d'Inventaire"});
-        adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // --- ADAPTATEUR PERSONNALISÉ POUR LE TYPE ---
+        ArrayAdapter<String> adapterType = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, new String[]{"Chiffre", "Entier", "Texte", "Oui/Non", "Liste d'Inventaire"}) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView tv = (TextView) super.getView(position, convertView, parent);
+                tv.setTextColor(Palette.texteNormal);
+                return tv;
+            }
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                TextView tv = (TextView) super.getDropDownView(position, convertView, parent);
+                tv.setTextColor(Palette.texteNormal);
+                tv.setBackgroundColor(Palette.fondNormal);
+                tv.setPadding(dp(16), dp(16), dp(16), dp(16));
+                return tv;
+            }
+        };
         spinnerType.setAdapter(adapterType);
         spinnerType.setBackground(fond(Palette.fondNormal, Palette.bordure, 8));
         layoutDialog.addView(spinnerType);
+        
         EditText champValeurInit = new EditText(context);
         champValeurInit.setHint("Valeur initiale (optionnel)");
         styliserChampDialogue(champValeurInit);
         layoutDialog.addView(champValeurInit);
+        
         spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -1517,22 +1554,28 @@ public class PanneauRessources extends LinearLayout {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
+        
         LinearLayout zoneBoutons = new LinearLayout(context);
         zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        
         ImageButton btnValider = new ImageButton(context);
         btnValider.setImageResource(R.drawable.save_24px);
         styliserBoutonIcone(btnValider);
         btnValider.setOnClickListener(v -> {
             String nom = champTexte.getText().toString().trim();
             if(nom.isEmpty()) return;
+            
             String scopeSelect = spinnerScope.getSelectedItem().toString().equals("Globale") ? "GLOBALE" : "LOCALE";
             String typeSelectText = spinnerType.getSelectedItem().toString();
             String typeSelect = "CHIFFRE";
+            
             if (typeSelectText.equals("Texte")) typeSelect = "TEXTE";
             if (typeSelectText.equals("Oui/Non")) typeSelect = "BOOLEEN";
             if (typeSelectText.equals("Entier")) typeSelect = "ENTIER";
             if (typeSelectText.equals("Liste d'Inventaire")) typeSelect = "LISTE_INVENTAIRE";
+            
             InterfaceEditeur editeur = (InterfaceEditeur) context;
+            
             if (scopeSelect.equals("GLOBALE")) {
                 for (Variable vExistant : editeur.variablesGlobales) {
                     if (vExistant.nom.equals(nom)) return;
@@ -1542,8 +1585,10 @@ public class PanneauRessources extends LinearLayout {
                     if (vExistant.nom.equals(nom)) return;
                 }
             }
+            
             Variable nouvelleVar = new Variable(nom, scopeSelect, typeSelect);
             String valInitTexte = champValeurInit.getText().toString().trim();
+            
             if (!valInitTexte.isEmpty()) {
                 if (typeSelect.equals("CHIFFRE")) {
                     try { nouvelleVar.valeur = Float.parseFloat(valInitTexte); } catch (Exception e) { nouvelleVar.valeur = 0f; }
@@ -1556,18 +1601,23 @@ public class PanneauRessources extends LinearLayout {
                     try { nouvelleVar.valeur = Integer.parseInt(valInitTexte); } catch (Exception e) { nouvelleVar.valeur = 0; }
                 }
             }
+            
             if (scopeSelect.equals("GLOBALE")) editeur.variablesGlobales.add(nouvelleVar);
             else editeur.sceneActive.variablesLocales.add(nouvelleVar);
+            
             rafraichirVariables();
             dialog.dismiss();
         });
+        
         ImageButton btnAnnuler = new ImageButton(context);
         btnAnnuler.setImageResource(R.drawable.undo_24px);
         styliserBoutonIcone(btnAnnuler);
         btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        
         zoneBoutons.addView(btnValider);
         zoneBoutons.addView(btnAnnuler);
         layoutDialog.addView(zoneBoutons);
+        
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
@@ -1651,6 +1701,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 10
+    
 // haut 11 : SECTION FONCTIONS UI
     private View creerSectionFonctions(Context context) {
         LinearLayout section = new LinearLayout(context);

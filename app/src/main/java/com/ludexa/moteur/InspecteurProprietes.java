@@ -52,7 +52,11 @@ public class InspecteurProprietes extends LinearLayout {
     private Button btnChargerImageDesactive, btnSupprimerImageDesactive;
     private CheckBox cbDesactive;
 
-    // NOUVEAU : Bloc Physique et Environnement
+    // NOUVEAU : Bloc pour l'Objet Joystick
+    private LinearLayout blocJoystick;
+    private Button btnCibleJoystick;
+
+    // Bloc Physique et Environnement
     private LinearLayout blocPhysique;
     private CheckBox cbEstPhysique;
     private Button btnTogglePhysique;
@@ -273,8 +277,6 @@ public class InspecteurProprietes extends LinearLayout {
         layoutPos.addView(champY);
         blocProprietes.addView(layoutPos);
 
-        View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
-
         TextView labelDim = new TextView(context);
         labelDim.setText("Largeur / Hauteur");
         styliserLabel(labelDim);
@@ -335,10 +337,16 @@ public class InspecteurProprietes extends LinearLayout {
         styliserBouton(btnCouleur);
         blocProprietes.addView(btnCouleur);
 
+        // --- CORRECTION : Label pour l'Alpha ---
+        TextView labelAlpha = new TextView(context);
+        labelAlpha.setText("Transparence (Alpha 0.0 - 1.0)");
+        styliserLabel(labelAlpha);
+        blocProprietes.addView(labelAlpha);
+        // ---------------------------------------
+
         champAlpha = new EditText(context);
         champAlpha.setHint("Transparence (0-1)");
-        champAlpha.setFocusable(false);
-        champAlpha.setOnClickListener(toastListener);
+        champAlpha.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         styliserChamp(champAlpha);
         blocProprietes.addView(champAlpha);
 
@@ -357,11 +365,49 @@ public class InspecteurProprietes extends LinearLayout {
         styliserLabel(labelZOrder);
         blocProprietes.addView(labelZOrder);
 
+        LinearLayout layoutZOrder = new LinearLayout(context);
+        layoutZOrder.setOrientation(LinearLayout.HORIZONTAL);
+        layoutZOrder.setGravity(Gravity.CENTER_VERTICAL);
+
         champZOrder = new EditText(context);
         champZOrder.setHint("Calque (Z-Order)");
         champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        styliserChamp(champZOrder);
-        blocProprietes.addView(champZOrder);
+        styliserChampFlexible(champZOrder);
+        layoutZOrder.addView(champZOrder);
+
+        Button btnZOrderMoins = new Button(context);
+        btnZOrderMoins.setText("-");
+        styliserBouton(btnZOrderMoins);
+        btnZOrderMoins.setLayoutParams(new LinearLayout.LayoutParams(dp(48), LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        Button btnZOrderPlus = new Button(context);
+        btnZOrderPlus.setText("+");
+        styliserBouton(btnZOrderPlus);
+        btnZOrderPlus.setLayoutParams(new LinearLayout.LayoutParams(dp(48), LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        btnZOrderMoins.setOnClickListener(v -> {
+            if (objetCourant != null) {
+                objetCourant.zOrder--;
+                miseAJourEnCours = true;
+                champZOrder.setText(String.valueOf(objetCourant.zOrder));
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        btnZOrderPlus.setOnClickListener(v -> {
+            if (objetCourant != null) {
+                objetCourant.zOrder++;
+                miseAJourEnCours = true;
+                champZOrder.setText(String.valueOf(objetCourant.zOrder));
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        layoutZOrder.addView(btnZOrderMoins);
+        layoutZOrder.addView(btnZOrderPlus);
+        blocProprietes.addView(layoutZOrder);
 
         TextView labelParent = new TextView(context);
         labelParent.setText("Objet Parent");
@@ -399,6 +445,7 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 // bas 2
+        
 
 // haut 3
         blocTexte = new LinearLayout(context);
@@ -562,6 +609,57 @@ public class InspecteurProprietes extends LinearLayout {
         blocBouton.addView(cbDesactive);
 
         blocProprietes.addView(blocBouton);
+
+        // --- NOUVEAU BLOC JOYSTICK ---
+        blocJoystick = new LinearLayout(context);
+        blocJoystick.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocJoystick);
+
+        TextView sepJoystick = new TextView(context);
+        sepJoystick.setText("Contrôle Joystick");
+        styliserSousTitre(sepJoystick);
+        blocJoystick.addView(sepJoystick);
+
+        TextView labelCibleJoystick = new TextView(context);
+        labelCibleJoystick.setText("Objet à déplacer");
+        styliserLabel(labelCibleJoystick);
+        blocJoystick.addView(labelCibleJoystick);
+
+        btnCibleJoystick = new Button(context);
+        btnCibleJoystick.setText("Cible : Aucune");
+        styliserBouton(btnCibleJoystick);
+        blocJoystick.addView(btnCibleJoystick);
+
+        btnCibleJoystick.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            List<String> noms = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            noms.add("Aucune");
+            ids.add(null);
+            
+            // On récupère TOUTES les scènes du projet via l'éditeur
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            for (Scene s : editeur.listeScenes) {
+                for (ObjetBase o : s.objets) {
+                    // On exclut le joystick lui-même
+                    if (o != objetCourant && !"joystick".equals(o.type)) {
+                        String nomObj = o.nom != null ? o.nom : "Objet sans nom";
+                        noms.add(nomObj + " [" + s.nom + "]");
+                        ids.add(o.id);
+                    }
+                }
+            }
+            
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner la cible")
+                .setItems(noms.toArray(new String[0]), (dialog, which) -> {
+                    objetCourant.cibleJoystickId = ids.get(which);
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                }).show();
+        });
+
+        blocProprietes.addView(blocJoystick);
         
         // --- BLOC PHYSIQUE ET ENVIRONNEMENT ---
         blocPhysique = new LinearLayout(context);
@@ -740,7 +838,6 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null && !miseAJourEnCours) { objetCourant.afficherFondColore = isChecked; canvasEditeur.invalidate(); }
         });
         
-        // Listeners Physique
         cbEstPhysique.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) { 
                 objetCourant.estPhysique = isChecked; 
@@ -753,12 +850,13 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant == null) return;
             objetCourant.estStatique = !objetCourant.estStatique;
             if (!objetCourant.estStatique) {
-                objetCourant.estPhysique = true; // Activer la physique automatiquement pour un dynamique
+                objetCourant.estPhysique = true;
             }
             canvasEditeur.invalidate();
             afficherObjet(objetCourant);
         });
 
+        // --- CORRECTION DE LA PARENTHÈSE MANQUANTE ICI ---
         champRebond.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) { 
                 try { 
@@ -801,6 +899,21 @@ public class InspecteurProprietes extends LinearLayout {
         }));
         champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) { try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+
+        champAlpha.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try {
+                    String valeurSaisie = texte.replace(",", "."); 
+                    if (valeurSaisie.trim().isEmpty() || valeurSaisie.equals(".")) return;
+                    
+                    float val = Float.parseFloat(valeurSaisie);
+                    if (val < 0.0f) val = 0.0f;
+                    if (val > 1.0f) val = 1.0f;
+                    objetCourant.alpha = val;
+                    canvasEditeur.invalidate();
+                } catch (NumberFormatException ignored) {}
+            }
         }));
 
         champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
@@ -863,6 +976,8 @@ public class InspecteurProprietes extends LinearLayout {
         }
     }
 // bas 4
+    
+        
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
@@ -890,6 +1005,7 @@ public class InspecteurProprietes extends LinearLayout {
             champScaleX.setText(String.valueOf(objet.scaleX));
             champScaleY.setText(String.valueOf(objet.scaleY));
 
+            champAlpha.setText(String.valueOf(objet.alpha));
             champRotation.setText(String.valueOf((int) objet.rotation));
             champZOrder.setText(String.valueOf(objet.zOrder));
             cbVisible.setChecked(objet.visible);
@@ -907,7 +1023,6 @@ public class InspecteurProprietes extends LinearLayout {
             cbDeplacable.setChecked(objet.estDeplacable);
             cbVerrouille.setChecked(objet.estVerrouille);
 
-            // Mise à jour de l'affichage de la Physique
             cbEstPhysique.setChecked(objet.estPhysique);
             
             if (!objet.estPhysique) {
@@ -929,6 +1044,7 @@ public class InspecteurProprietes extends LinearLayout {
                 blocTexte.setVisibility(View.VISIBLE);
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
+                blocJoystick.setVisibility(View.GONE);
                 
                 champContenu.setText(objet.contenuTexte);
                 champTaille.setText(String.valueOf(objet.tailleFonte));
@@ -958,6 +1074,28 @@ public class InspecteurProprietes extends LinearLayout {
                     cbDesactive.setChecked(objet.estDesactive);
                 } else {
                     blocBouton.setVisibility(View.GONE);
+                }
+
+                if ("joystick".equals(objet.type)) {
+                    blocJoystick.setVisibility(View.VISIBLE);
+                    String nomCible = "Aucune";
+                    if (objet.cibleJoystickId != null) {
+                        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+                        boolean trouve = false;
+                        for (Scene s : editeur.listeScenes) {
+                            for (ObjetBase o : s.objets) {
+                                if (o.id.equals(objet.cibleJoystickId)) {
+                                    nomCible = o.nom != null ? o.nom : "Objet sans nom";
+                                    trouve = true;
+                                    break;
+                                }
+                            }
+                            if (trouve) break;
+                        }
+                    }
+                    btnCibleJoystick.setText("Cible : " + nomCible);
+                } else {
+                    blocJoystick.setVisibility(View.GONE);
                 }
             }
         }
@@ -1019,18 +1157,15 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-
-
-
     
 
 
-
         
 
 
 
         
+
 
 
 
