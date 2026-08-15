@@ -236,8 +236,6 @@ public class InterfaceEditeur extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
-
-
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -363,6 +361,49 @@ public class InterfaceEditeur extends Activity {
                     nouveauMode ? Palette.iconeSurvol : Palette.iconeNormal);
         });
         bandeauHaut.addView(boutonDeplacerScene);
+        
+        // --- NOUVEAU BOUTON : Déplacer Objet ---
+        ImageButton boutonDeplacerObjet = new ImageButton(this);
+        boutonDeplacerObjet.setImageResource(R.drawable.open_with_24px);
+        styliserBoutonBandeau(boutonDeplacerObjet);
+        boutonDeplacerObjet.setOnClickListener(v -> {
+            boolean nouveauMode = !canvasEditeur.isModeDeplacementObjet();
+            canvasEditeur.setModeDeplacementObjet(nouveauMode);
+            boutonDeplacerObjet.setBackground(fond(
+                    nouveauMode ? Palette.boutonSurvol : Palette.boutonNormal, 6, Palette.bordure, 1));
+            Palette.appliquerCouleurIcone(boutonDeplacerObjet,
+                    nouveauMode ? Palette.iconeSurvol : Palette.iconeNormal);
+        });
+        bandeauHaut.addView(boutonDeplacerObjet);
+        
+        // --- NOUVEAU BOUTON : Copier Objet ---
+        ImageButton boutonCopierObjet = new ImageButton(this);
+        boutonCopierObjet.setImageResource(R.drawable.content_copy_24px);
+        styliserBoutonBandeau(boutonCopierObjet);
+        boutonCopierObjet.setOnClickListener(v -> {
+            ObjetBase objSel = canvasEditeur.getObjetSelectionne();
+            if (objSel != null) {
+                ObjetBase copie = objSel.clonerProfond();
+                copie.id = java.util.UUID.randomUUID().toString();
+                copie.nom = (copie.nom != null ? copie.nom : "Objet") + " (copie)";
+                copie.x += 20;
+                copie.y += 20;
+                
+                copie.zOrder = sceneActive.prochainZOrder(); 
+                
+                sceneActive.objets.add(copie);
+                canvasEditeur.setObjetSelectionne(copie);
+                rafraichirArborescence(copie);
+                if (menuInspecteur != null) {
+                    menuInspecteur.afficherObjet(copie);
+                }
+                canvasEditeur.invalidate();
+                Toast.makeText(this, "Objet copié", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Sélectionnez un objet à copier", Toast.LENGTH_SHORT).show();
+            }
+        });
+        bandeauHaut.addView(boutonCopierObjet);
 
         bandeauHaut.addView(separateurVertical());
 
@@ -437,7 +478,6 @@ public class InterfaceEditeur extends Activity {
         }
     }
 // bas 2
-
 
 // haut 3
     private void basculerVersJeu() {
@@ -643,6 +683,7 @@ public class InterfaceEditeur extends Activity {
 
 
     
+
 
 
 
