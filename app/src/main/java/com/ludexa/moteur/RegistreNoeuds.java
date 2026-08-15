@@ -67,6 +67,11 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
         REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
         REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
+        // --- Nouveautés LOT 2 ---
+        REGISTRE.add(new InfoNoeud("Filtre Couleur", "Apparence & Objets", "NoeudActionFiltre"));
+        REGISTRE.add(new InfoNoeud("Clignotement (Blink)", "Apparence & Objets", "NoeudActionClignotement"));
+        REGISTRE.add(new InfoNoeud("Surbrillance (Glow)", "Apparence & Objets", "NoeudActionSurbrillance"));
+        // -------------------------
         
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Textes & Dialogues", "NoeudActionModifierTexte"));
