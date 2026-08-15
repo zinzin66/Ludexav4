@@ -592,12 +592,20 @@ public class InspecteurProprietes extends LinearLayout {
             List<String> ids = new ArrayList<>();
             noms.add("Aucune");
             ids.add(null);
-            for (ObjetBase o : sceneActive.objets) {
-                if (o != objetCourant && !"joystick".equals(o.type)) {
-                    noms.add(o.nom != null ? o.nom : "Objet sans nom");
-                    ids.add(o.id);
+            
+            // On récupère TOUTES les scènes du projet via l'éditeur
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            for (Scene s : editeur.listeScenes) {
+                for (ObjetBase o : s.objets) {
+                    // On exclut le joystick lui-même
+                    if (o != objetCourant && !"joystick".equals(o.type)) {
+                        String nomObj = o.nom != null ? o.nom : "Objet sans nom";
+                        noms.add(nomObj + " [" + s.nom + "]");
+                        ids.add(o.id);
+                    }
                 }
             }
+            
             new AlertDialog.Builder(context)
                 .setTitle("Sélectionner la cible")
                 .setItems(noms.toArray(new String[0]), (dialog, which) -> {
@@ -695,6 +703,7 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
+        
 
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
@@ -909,6 +918,7 @@ public class InspecteurProprietes extends LinearLayout {
     }
 // bas 4
 
+
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
@@ -1010,11 +1020,17 @@ public class InspecteurProprietes extends LinearLayout {
                     blocJoystick.setVisibility(View.VISIBLE);
                     String nomCible = "Aucune";
                     if (objet.cibleJoystickId != null) {
-                        for (ObjetBase o : sceneActive.objets) {
-                            if (o.id.equals(objet.cibleJoystickId)) {
-                                nomCible = o.nom != null ? o.nom : "Objet sans nom";
-                                break;
+                        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+                        boolean trouve = false;
+                        for (Scene s : editeur.listeScenes) {
+                            for (ObjetBase o : s.objets) {
+                                if (o.id.equals(objet.cibleJoystickId)) {
+                                    nomCible = o.nom != null ? o.nom : "Objet sans nom";
+                                    trouve = true;
+                                    break;
+                                }
                             }
+                            if (trouve) break;
                         }
                     }
                     btnCibleJoystick.setText("Cible : " + nomCible);
