@@ -236,7 +236,8 @@ public class InterfaceEditeur extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
-// haut 2
+
+   // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
             try {
@@ -362,6 +363,9 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonDeplacerScene);
         
+        // --- NOUVEAU SÉPARATEUR POUR ISOLER LES OUTILS OBJETS ---
+        bandeauHaut.addView(separateurVertical());
+        
         // --- NOUVEAU BOUTON : Déplacer Objet ---
         ImageButton boutonDeplacerObjet = new ImageButton(this);
         boutonDeplacerObjet.setImageResource(R.drawable.open_with_24px);
@@ -478,6 +482,7 @@ public class InterfaceEditeur extends Activity {
         }
     }
 // bas 2
+    
 
 // haut 3
     private void basculerVersJeu() {
