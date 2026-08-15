@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -36,6 +37,9 @@ public class InterfaceBlueprint extends Activity {
 
     private Blueprint blueprintActif;
     private CanvasBlueprint canvasBlueprint;
+    
+    private boolean estModeFonction = false;
+    private String nomFonctionActive = null;
 
     private int dp(float valeur) {
         return Math.round(TypedValue.applyDimension(
@@ -97,6 +101,8 @@ public class InterfaceBlueprint extends Activity {
         NoeudBase.contexteApplication = this;
 
         cheminProjet = getIntent().getStringExtra("cheminProjet");
+        estModeFonction = getIntent().getBooleanExtra("modeFonction", false);
+        nomFonctionActive = getIntent().getStringExtra("nomFonction");
         
         this.variablesGlobales = variablesGlobalesACharger; 
         this.listeScenes = listeScenesACharger; 
@@ -120,7 +126,11 @@ public class InterfaceBlueprint extends Activity {
         bandeauHaut.addView(boutonRetour);
 
         TextView titreBlueprint = new TextView(this);
-        titreBlueprint.setText("Blueprint");
+        if (estModeFonction) {
+            titreBlueprint.setText("Fonction : " + nomFonctionActive);
+        } else {
+            titreBlueprint.setText("Blueprint");
+        }
         titreBlueprint.setTextSize(15f);
         titreBlueprint.setTextColor(Palette.texteSelectionne);
         LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
@@ -151,7 +161,8 @@ public class InterfaceBlueprint extends Activity {
         bandeauHaut.addView(boutonCharger);
 
         bandeauHaut.addView(separateurVertical());
-
+// bas 1
+// haut 2
         ImageButton boutonZoomMoins = new ImageButton(this);
         boutonZoomMoins.setImageResource(R.drawable.zoom_out_24px);
         styliserBoutonBandeau(boutonZoomMoins);
@@ -188,6 +199,19 @@ public class InterfaceBlueprint extends Activity {
         boutonSupprimerNode.setOnClickListener(v -> canvasBlueprint.supprimerNoeudSelectionne());
         bandeauHaut.addView(boutonSupprimerNode);
 
+        ImageButton boutonCopierNode = new ImageButton(this);
+        boutonCopierNode.setImageResource(R.drawable.add_24px);
+        styliserBoutonBandeau(boutonCopierNode);
+        boutonCopierNode.setOnClickListener(v -> canvasBlueprint.dupliquerNoeudSelectionne());
+        bandeauHaut.addView(boutonCopierNode);
+
+        // NOUVEAU : Bouton Replier/Déplier
+        ImageButton boutonReplierNode = new ImageButton(this);
+        boutonReplierNode.setImageResource(R.drawable.hide_image_24px);
+        styliserBoutonBandeau(boutonReplierNode);
+        boutonReplierNode.setOnClickListener(v -> canvasBlueprint.basculerRepliNoeudSelectionne());
+        bandeauHaut.addView(boutonReplierNode);
+
         View espaceBandeau = new View(this);
         espaceBandeau.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeauHaut.addView(espaceBandeau);
@@ -209,7 +233,9 @@ public class InterfaceBlueprint extends Activity {
 
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        if (sceneACharger != null) {
+        if (estModeFonction) {
+            canvasBlueprint.sceneActive = new Scene(nomFonctionActive);
+        } else if (sceneACharger != null) {
             canvasBlueprint.sceneActive = sceneACharger;
         } else {
             canvasBlueprint.sceneActive = new Scene("Scène Vide (Fallback)");
@@ -225,14 +251,19 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
-// bas 1
 
-// haut 2
     private void sauvegarderBlueprintLocal() {
         try {
-            File dir = new File(cheminProjet, "logique");
-            if (!dir.exists()) dir.mkdirs();
-            File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            File file;
+            if (estModeFonction && nomFonctionActive != null) {
+                File dir = new File(cheminProjet, "fonctions");
+                if (!dir.exists()) dir.mkdirs();
+                file = new File(dir, nomFonctionActive + ".json");
+            } else {
+                File dir = new File(cheminProjet, "logique");
+                if (!dir.exists()) dir.mkdirs();
+                file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            }
             
             String json = blueprintActif.toJson();
             FileOutputStream fos = new FileOutputStream(file);
@@ -247,8 +278,14 @@ public class InterfaceBlueprint extends Activity {
 
     private void chargerBlueprintLocal(boolean estChargementAuto) {
         try {
-            File dir = new File(cheminProjet, "logique");
-            File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            File file;
+            if (estModeFonction && nomFonctionActive != null) {
+                File dir = new File(cheminProjet, "fonctions");
+                file = new File(dir, nomFonctionActive + ".json");
+            } else {
+                File dir = new File(cheminProjet, "logique");
+                file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            }
             
             if (!file.exists()) {
                 if (!estChargementAuto) {
@@ -289,7 +326,8 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
-
+// bas 2
+// haut 3
     private String formaterNoeud(NoeudBase noeud) {
         StringBuilder sb = new StringBuilder();
         sb.append("[").append(noeud.nom).append("]");
@@ -346,8 +384,7 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
-// bas 2
-    // haut 3
+
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
         dialog.setTitle("Résumé du Blueprint");
@@ -458,5 +495,4 @@ public class InterfaceBlueprint extends Activity {
     
 
 
-
-
+        

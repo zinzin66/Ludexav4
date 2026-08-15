@@ -29,11 +29,14 @@ public class PanneauRessources extends LinearLayout {
     private LinearLayout conteneurArborescenceDossiers;
     private LinearLayout conteneurListeAssets;
     private LinearLayout conteneurVariables;
+    private LinearLayout conteneurFonctions; 
     
     private File rootAssetsDir;
+    private File rootFonctionsDir; 
     private CanvasEditeur canvasEditeur;
     private ObjetBase objetSelectionne;
     private Variable variableSelectionnee;
+    private String fonctionSelectionnee; 
     
     private File currentFolderSelected;
     private File currentAssetSelected;
@@ -58,6 +61,9 @@ public class PanneauRessources extends LinearLayout {
             new File(rootAssetsDir, "Sons").mkdirs();
             new File(rootAssetsDir, "Fonts").mkdirs();
             new File(rootAssetsDir, "Textes").mkdirs();
+            
+            rootFonctionsDir = new File(cheminProjet, "fonctions"); 
+            if (!rootFonctionsDir.exists()) rootFonctionsDir.mkdirs(); 
         }
 
         paramsOuvert = new LinearLayout.LayoutParams(500, LinearLayout.LayoutParams.MATCH_PARENT);
@@ -104,6 +110,7 @@ public class PanneauRessources extends LinearLayout {
         contenuScroll.addView(creerSectionArborescence(context));
         contenuScroll.addView(creerSectionAssets(context));
         contenuScroll.addView(creerSectionVariables(context));
+        contenuScroll.addView(creerSectionFonctions(context)); 
 
         scrollPanneau.addView(contenuScroll);
         addView(scrollPanneau);
@@ -123,7 +130,6 @@ public class PanneauRessources extends LinearLayout {
         });
     }
 // bas 1
-
 // haut 2 : UTILITAIRES GRAPHIQUES ET NOMMAGE
     private int dp(int valeur) {
         return (int) (valeur * getResources().getDisplayMetrics().density);
@@ -200,7 +206,6 @@ public class PanneauRessources extends LinearLayout {
         return nom;
     }
 // bas 2
-
 // haut 3 : SECTION SCENES
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -418,7 +423,6 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-
 // haut 4 : SECTION OBJETS (Ajout avec icônes explicites)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -440,6 +444,10 @@ public class PanneauRessources extends LinearLayout {
 
         LinearLayout ligne3 = new LinearLayout(context);
         ligne3.setOrientation(LinearLayout.HORIZONTAL);
+        
+        // NOUVELLE LIGNE POUR LES CONTRÔLES
+        LinearLayout ligne4 = new LinearLayout(context);
+        ligne4.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageButton btnAjouterCarre = new ImageButton(context);
         btnAjouterCarre.setImageResource(R.drawable.square_24px);
@@ -483,7 +491,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Image : Icône photo explicite
         ImageButton btnAjouterImage = new ImageButton(context);
         btnAjouterImage.setImageResource(R.drawable.add_photo_alternate_24px); 
         styliserBoutonIcone(btnAjouterImage);
@@ -498,7 +505,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Zone : Icône d'activité de zone
         ImageButton btnAjouterZone = new ImageButton(context);
         btnAjouterZone.setImageResource(R.drawable.activity_zone_24px);
         styliserBoutonIcone(btnAjouterZone);
@@ -515,7 +521,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Bouton : Icône de boutons alternatifs
         ImageButton btnAjouterBouton = new ImageButton(context);
         btnAjouterBouton.setImageResource(R.drawable.buttons_alt_24px);
         styliserBoutonIcone(btnAjouterBouton);
@@ -531,7 +536,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // Dialogue : Icône de chat pour la discussion
         ImageButton btnAjouterDialogue = new ImageButton(context);
         btnAjouterDialogue.setImageResource(R.drawable.chat_24px);
         styliserBoutonIcone(btnAjouterDialogue);
@@ -571,6 +575,39 @@ public class PanneauRessources extends LinearLayout {
             Toast.makeText(context, "Groupe Dialogue créé", Toast.LENGTH_SHORT).show();
         });
 
+        // --- NOUVEAUX CONTRÔLES MODULABLES ---
+        ImageButton btnAjouterJoystick = new ImageButton(context);
+        btnAjouterJoystick.setImageResource(R.drawable.trackpad_input_24px); // Icône adaptée de ta liste
+        styliserBoutonIcone(btnAjouterJoystick);
+        btnAjouterJoystick.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("Joystick", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 50f, 400f, 160f, 160f);
+            nouveau.type = "joystick"; // Type spécifique pour VueJeu
+            nouveau.afficherFondColore = false; 
+            nouveau.couleur = Color.argb(100, 200, 200, 200);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
+        ImageButton btnAjouterBtnAction = new ImageButton(context);
+        btnAjouterBtnAction.setImageResource(R.drawable.center_focus_weak_24px); // Icône adaptée de ta liste
+        styliserBoutonIcone(btnAjouterBtnAction);
+        btnAjouterBtnAction.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            String nomUnique = genererNomUnique("BtnAction", editeur.sceneActive);
+            ObjetBase nouveau = new ObjetBase(nomUnique, 600f, 450f, 100f, 100f);
+            nouveau.type = "bouton_action"; // Type spécifique pour VueJeu
+            nouveau.afficherFondColore = false; 
+            nouveau.couleur = Color.argb(150, 255, 100, 100);
+            nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+            editeur.sceneActive.ajouterObjet(nouveau);
+            canvasEditeur.invalidate();
+            rafraichirArborescence();
+        });
+
         ligne1.addView(btnAjouterCarre);
         ligne1.addView(btnAjouterTexte);
         ligne1.addView(btnAjouterRond);
@@ -587,9 +624,17 @@ public class PanneauRessources extends LinearLayout {
         espace2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         ligne3.addView(espace2);
 
+        // Ajout de la ligne 4 pour les contrôles
+        ligne4.addView(btnAjouterJoystick);
+        ligne4.addView(btnAjouterBtnAction);
+        View espace3 = new View(context);
+        espace3.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        ligne4.addView(espace3);
+
         contenu.addView(ligne1);
         contenu.addView(ligne2);
         contenu.addView(ligne3);
+        contenu.addView(ligne4);
 
         btnTitre.setOnClickListener(v -> {
             if (contenu.getVisibility() == View.VISIBLE) {
@@ -606,6 +651,8 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
+    
+    
 
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
@@ -1302,8 +1349,6 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 8
-
-
 // haut 9 : SECTION VARIABLES UI
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -1426,8 +1471,6 @@ public class PanneauRessources extends LinearLayout {
         conteneurVariables.addView(conteneurLigne);
     }
 // bas 9
-
-
 // haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
@@ -1607,31 +1650,262 @@ public class PanneauRessources extends LinearLayout {
         dialog.setContentView(layoutDialog);
         dialog.show();
     }
-}
 // bas 10
+// haut 11 : SECTION FONCTIONS UI
+    private View creerSectionFonctions(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText("Fonctions ▼");
+        styliserTitreSection(btnTitre);
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        styliserContenuSection(contenu);
+
+        conteneurFonctions = new LinearLayout(context);
+        conteneurFonctions.setOrientation(LinearLayout.VERTICAL);
+        conteneurFonctions.setPadding(0, 0, 0, dp(8));
+        contenu.addView(conteneurFonctions);
+
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+
+        ImageButton btnCreer = new ImageButton(context);
+        btnCreer.setImageResource(R.drawable.add_24px);
+        styliserBoutonIcone(btnCreer);
+        btnCreer.setOnClickListener(v -> afficherPopupCreerFonction(context));
+
+        ImageButton btnEditer = new ImageButton(context);
+        btnEditer.setImageResource(R.drawable.account_tree_24px); 
+        styliserBoutonIcone(btnEditer);
+        btnEditer.setOnClickListener(v -> {
+            if (fonctionSelectionnee != null) {
+                android.content.Intent intent = new android.content.Intent(context, InterfaceBlueprint.class);
+                intent.putExtra("cheminProjet", cheminProjet);
+                intent.putExtra("modeFonction", true);
+                intent.putExtra("nomFonction", fonctionSelectionnee);
+                InterfaceBlueprint.sceneACharger = null; 
+                context.startActivity(intent);
+            }
+        });
+
+        ImageButton btnRenommer = new ImageButton(context);
+        btnRenommer.setImageResource(R.drawable.edit_square_24px);
+        styliserBoutonIcone(btnRenommer);
+        btnRenommer.setOnClickListener(v -> {
+            if (fonctionSelectionnee != null) afficherPopupRenommerFonction(context, fonctionSelectionnee);
+        });
+
+        ImageButton btnSupprimer = new ImageButton(context);
+        btnSupprimer.setImageResource(R.drawable.delete_24px);
+        styliserBoutonIcone(btnSupprimer);
+        btnSupprimer.setOnClickListener(v -> {
+            if (fonctionSelectionnee != null) afficherPopupSupprimerFonction(context, fonctionSelectionnee);
+        });
+
+        zoneBoutons.addView(btnCreer);
+        zoneBoutons.addView(btnEditer);
+        zoneBoutons.addView(btnRenommer);
+        zoneBoutons.addView(btnSupprimer);
+
+        contenu.addView(zoneBoutons);
+        rafraichirFonctions();
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText("Fonctions ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText("Fonctions ▼");
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+
+    public void rafraichirFonctions() {
+        if (conteneurFonctions == null || rootFonctionsDir == null) return;
+        conteneurFonctions.removeAllViews();
+
+        File[] fichiers = rootFonctionsDir.listFiles((dir, name) -> name.endsWith(".json"));
+        if (fichiers != null) {
+            java.util.Arrays.sort(fichiers, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
+            for (File f : fichiers) {
+                String nomFonc = f.getName().replace(".json", "");
+                
+                TextView nomView = new TextView(getContext());
+                nomView.setText("ƒ " + nomFonc);
+                if (nomFonc.equals(fonctionSelectionnee)) {
+                    nomView.setTextColor(Palette.texteSelectionne);
+                    nomView.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+                } else {
+                    nomView.setTextColor(Color.parseColor("#E040FB")); 
+                }
+                nomView.setPadding(dp(10), dp(8), dp(10), dp(8));
+                nomView.setTextSize(14f);
+
+                nomView.setOnClickListener(v -> {
+                    fonctionSelectionnee = nomFonc;
+                    rafraichirFonctions();
+                });
+
+                conteneurFonctions.addView(nomView);
+            }
+        }
+    }
+// bas 11
+    
+    
+// haut 12 : SECTION FONCTIONS POPUPS
+    private void afficherPopupCreerFonction(Context context) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Créer une fonction");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        
+        EditText champTexte = new EditText(context);
+        champTexte.setHint("Nom de la fonction");
+        styliserChampDialogue(champTexte);
+        layoutDialog.addView(champTexte);
+        
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        
+        ImageButton btnValider = new ImageButton(context);
+        btnValider.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnValider);
+        btnValider.setOnClickListener(v -> {
+            String nom = champTexte.getText().toString().trim();
+            if(!nom.isEmpty()) {
+                File nvFichier = new File(rootFonctionsDir, nom + ".json");
+                if (nvFichier.exists()) {
+                    Toast.makeText(context, "Cette fonction existe déjà", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    nvFichier.createNewFile();
+                    FileOutputStream fos = new FileOutputStream(nvFichier);
+                    fos.write("{\"noeuds\":[],\"liens\":[]}".getBytes());
+                    fos.close();
+                    
+                    fonctionSelectionnee = nom;
+                    rafraichirFonctions();
+                    dialog.dismiss();
+                } catch(Exception e) {
+                    Toast.makeText(context, "Erreur création", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        
+        ImageButton btnAnnuler = new ImageButton(context);
+        btnAnnuler.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnAnnuler);
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupRenommerFonction(Context context, String oldNom) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Renommer la fonction");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        
+        EditText champTexte = new EditText(context);
+        champTexte.setText(oldNom);
+        styliserChampDialogue(champTexte);
+        layoutDialog.addView(champTexte);
+        
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        
+        ImageButton btnValider = new ImageButton(context);
+        btnValider.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnValider);
+        btnValider.setOnClickListener(v -> {
+            String nouveauNom = champTexte.getText().toString().trim();
+            if(!nouveauNom.isEmpty() && !nouveauNom.equals(oldNom)) {
+                File oldFichier = new File(rootFonctionsDir, oldNom + ".json");
+                File newFichier = new File(rootFonctionsDir, nouveauNom + ".json");
+                if (newFichier.exists()) {
+                    Toast.makeText(context, "Ce nom est déjà pris", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (oldFichier.renameTo(newFichier)) {
+                    fonctionSelectionnee = nouveauNom;
+                    rafraichirFonctions();
+                    dialog.dismiss();
+                }
+            }
+        });
+        
+        ImageButton btnAnnuler = new ImageButton(context);
+        btnAnnuler.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnAnnuler);
+        btnAnnuler.setOnClickListener(v -> dialog.dismiss());
+        
+        zoneBoutons.addView(btnValider);
+        zoneBoutons.addView(btnAnnuler);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+
+    private void afficherPopupSupprimerFonction(Context context, String nomFonc) {
+        Dialog dialog = new Dialog(context);
+        dialog.setTitle("Supprimer la fonction");
+        LinearLayout layoutDialog = new LinearLayout(context);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        styliserDialogue(layoutDialog);
+        
+        TextView txtMessage = new TextView(context);
+        txtMessage.setText("Voulez-vous vraiment supprimer la fonction '" + nomFonc + "' ?");
+        txtMessage.setTextColor(Palette.texteNormal);
+        txtMessage.setTextSize(15f);
+        txtMessage.setPadding(0, 0, 0, dp(14));
+        layoutDialog.addView(txtMessage);
+        
+        LinearLayout zoneBoutons = new LinearLayout(context);
+        zoneBoutons.setOrientation(LinearLayout.HORIZONTAL);
+        
+        ImageButton btnOui = new ImageButton(context);
+        btnOui.setImageResource(R.drawable.save_24px);
+        styliserBoutonIcone(btnOui);
+        btnOui.setOnClickListener(v -> {
+            File f = new File(rootFonctionsDir, nomFonc + ".json");
+            if (f.exists()) f.delete();
+            fonctionSelectionnee = null;
+            rafraichirFonctions();
+            dialog.dismiss();
+        });
+        
+        ImageButton btnNon = new ImageButton(context);
+        btnNon.setImageResource(R.drawable.undo_24px);
+        styliserBoutonIcone(btnNon);
+        btnNon.setOnClickListener(v -> dialog.dismiss());
+        
+        zoneBoutons.addView(btnOui);
+        zoneBoutons.addView(btnNon);
+        layoutDialog.addView(zoneBoutons);
+        dialog.setContentView(layoutDialog);
+        dialog.show();
+    }
+}
+// bas 12
+
+
     
 
     
-
-
     
-
-
-
-    
-
-
-
-    
-
-
-
-    
-
-
-
-    
-
-    
-
-
