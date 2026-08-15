@@ -20,6 +20,7 @@ public class CanvasEditeur extends View {
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
     private boolean isPanMode = false;
+    private boolean isModeDeplacementObjet = false; // NOUVEAU
     private float niveauZoom = 1.0f;
 
     private Scene sceneActive;
@@ -70,6 +71,16 @@ public class CanvasEditeur extends View {
             inspecteurLie.afficherObjet(obj);
         }
         invalidate();
+    }
+
+    // NOUVEAU : Setter et Getter pour le mode Déplacement
+    public void setModeDeplacementObjet(boolean mode) {
+        this.isModeDeplacementObjet = mode;
+        invalidate();
+    }
+
+    public boolean isModeDeplacementObjet() {
+        return isModeDeplacementObjet;
     }
 
     private void init() {
@@ -141,7 +152,6 @@ public class CanvasEditeur extends View {
         return null;
     }
 
-    // Vérifie si l'objet et tous ses parents sont visibles
     public boolean estVisibleEffectif(ObjetBase obj) {
         ObjetBase cur = obj;
         while (cur != null) {
@@ -220,6 +230,7 @@ public class CanvasEditeur extends View {
         return pts;
     }
 // bas 1
+
 // haut 2
     private float getHauteurReelle(ObjetBase objet) {
         if (!"texte".equals(objet.type)) {
@@ -298,7 +309,14 @@ public class CanvasEditeur extends View {
             });
 
             for (ObjetBase objet : objetsTries) {
-                if (!estVisibleEffectif(objet)) continue; // CASCADE VISIBILITÉ
+                if (!estVisibleEffectif(objet)) continue; 
+
+                // --- GESTION DE LA TRANSPARENCE (ALPHA) CORRIGÉE ---
+                int alphaVal = (int) (objet.alpha * 255);
+                if (alphaVal < 0) alphaVal = 0;
+                if (alphaVal > 255) alphaVal = 255;
+                paintObjet.setAlpha(alphaVal);
+                paintTexte.setAlpha(alphaVal);
 
                 Matrix absMatrix = getAbsoluteMatrix(objet);
                 
@@ -314,12 +332,14 @@ public class CanvasEditeur extends View {
                 if ("rond".equals(objet.type)) {
                     if (objet.afficherFondColore || cheminAAfficher == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        paintObjet.setAlpha(alphaVal); // Remettre l'alpha après avoir changé la couleur
                         float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                         canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
                     }
                     dessinerImage(canvas, objet, cheminAAfficher);
                 } else if ("texte".equals(objet.type)) {
                     paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                    paintTexte.setAlpha(alphaVal); // Remettre l'alpha après avoir changé la couleur
                     String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
                     
                     if (objet.cheminPolice != null && cheminProjet != null) {
@@ -376,12 +396,14 @@ public class CanvasEditeur extends View {
                 } else if ("image".equals(objet.type)) {
                     if (objet.afficherFondColore) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        paintObjet.setAlpha(alphaVal);
                         canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                     }
                     dessinerImage(canvas, objet, cheminAAfficher);
                 } else {
                     if (objet.afficherFondColore || cheminAAfficher == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                        paintObjet.setAlpha(alphaVal);
                         canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                     }
                     dessinerImage(canvas, objet, cheminAAfficher);
@@ -404,24 +426,28 @@ public class CanvasEditeur extends View {
                     float objHauteur = getHauteurReelle(objet);
                     float b = objHauteur + 4f / scaleFactorY;
                     
+                    // On dessine TOUJOURS le cadre
                     canvas.drawRect(l, t, r, b, paintSelection);
                     
-                    float hsX = 12f / scaleFactorX;
-                    float hsY = 12f / scaleFactorY;
-                    float rcX = 4f / scaleFactorX;
-                    float rcY = 4f / scaleFactorY;
-                    
-                    canvas.drawRoundRect(new android.graphics.RectF(l - hsX, t - hsY, l + hsX, t + hsY), rcX, rcY, paintPoignee);
-                    canvas.drawRoundRect(new android.graphics.RectF(r - hsX, t - hsY, r + hsX, t + hsY), rcX, rcY, paintPoignee);
-                    canvas.drawRoundRect(new android.graphics.RectF(l - hsX, b - hsY, l + hsX, b + hsY), rcX, rcY, paintPoignee);
-                    canvas.drawRoundRect(new android.graphics.RectF(r - hsX, b - hsY, r + hsX, b + hsY), rcX, rcY, paintPoignee);
-                    
-                    float cx = objet.largeur / 2f;
-                    float rotY = t - (50f / scaleFactorY);
-                    canvas.drawLine(cx, t, cx, rotY, paintSelection);
-                    
-                    float scaleFactorAvg = (scaleFactorX + scaleFactorY) / 2f;
-                    canvas.drawCircle(cx, rotY, 15f / scaleFactorAvg, paintPoignee);
+                    // On ne dessine les poignées QUE si on n'est PAS en mode déplacement
+                    if (!isModeDeplacementObjet) {
+                        float hsX = 12f / scaleFactorX;
+                        float hsY = 12f / scaleFactorY;
+                        float rcX = 4f / scaleFactorX;
+                        float rcY = 4f / scaleFactorY;
+                        
+                        canvas.drawRoundRect(new android.graphics.RectF(l - hsX, t - hsY, l + hsX, t + hsY), rcX, rcY, paintPoignee);
+                        canvas.drawRoundRect(new android.graphics.RectF(r - hsX, t - hsY, r + hsX, t + hsY), rcX, rcY, paintPoignee);
+                        canvas.drawRoundRect(new android.graphics.RectF(l - hsX, b - hsY, l + hsX, b + hsY), rcX, rcY, paintPoignee);
+                        canvas.drawRoundRect(new android.graphics.RectF(r - hsX, b - hsY, r + hsX, b + hsY), rcX, rcY, paintPoignee);
+                        
+                        float cx = objet.largeur / 2f;
+                        float rotY = t - (50f / scaleFactorY);
+                        canvas.drawLine(cx, t, cx, rotY, paintSelection);
+                        
+                        float scaleFactorAvg = (scaleFactorX + scaleFactorY) / 2f;
+                        canvas.drawCircle(cx, rotY, 15f / scaleFactorAvg, paintPoignee);
+                    }
                 }
                 canvas.restore();
             }
@@ -480,7 +506,7 @@ public class CanvasEditeur extends View {
 
         for (int i = objetsTries.size() - 1; i >= 0; i--) {
             ObjetBase objet = objetsTries.get(i);
-            if (!estVisibleEffectif(objet)) continue; // CASCADE VISIBILITÉ
+            if (!estVisibleEffectif(objet)) continue; 
 
             float[] localPos = worldToLocal(objet, sx, sy);
             float lx = localPos[0], ly = localPos[1];
@@ -494,6 +520,7 @@ public class CanvasEditeur extends View {
         return null;
     }
 // bas 2
+
 // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
@@ -514,15 +541,19 @@ public class CanvasEditeur extends View {
             
             float midX = objetSelectionne.largeur / 2f;
             float rotY = -50f / scaleY;
-            if (Math.hypot(lx - midX, ly - rotY) < hitAvg) return 8; 
-            
             float objHauteur = getHauteurReelle(objetSelectionne);
+
+            // NOUVEAU : Si on n'est PAS en mode déplacement, on vérifie les poignées
+            if (!isModeDeplacementObjet) {
+                if (Math.hypot(lx - midX, ly - rotY) < hitAvg) return 8; 
+                
+                if (Math.abs(lx) < hitX && Math.abs(ly) < hitY) return 4; 
+                if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly) < hitY) return 5; 
+                if (Math.abs(lx) < hitX && Math.abs(ly - objHauteur) < hitY) return 6; 
+                if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly - objHauteur) < hitY) return 7; 
+            }
             
-            if (Math.abs(lx) < hitX && Math.abs(ly) < hitY) return 4; 
-            if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly) < hitY) return 5; 
-            if (Math.abs(lx) < hitX && Math.abs(ly - objHauteur) < hitY) return 6; 
-            if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly - objHauteur) < hitY) return 7; 
-            
+            // Si on touche le corps de l'objet, c'est le déplacement
             if (lx >= 0 && lx <= objetSelectionne.largeur && ly >= 0 && ly <= objHauteur) return 2; 
         }
         
@@ -676,6 +707,7 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
+
 
 
 
