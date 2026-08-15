@@ -49,6 +49,10 @@ public class VueJeu extends View {
 
     public VueJeu(Context context, Scene scene, Blueprint blueprintActif, String cheminProjet, Scene sceneHud, Blueprint blueprintHud) {
         super(context);
+        
+        // Réinitialisation propre de la caméra et des contrôles à chaque lancement du Play
+        GestionnaireControles.reinitialiser();
+
         this.sceneActive = scene;
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
@@ -301,7 +305,6 @@ public class VueJeu extends View {
         ObjetBase joystickObj = trouverObjetParType("joystick");
         ObjetBase actionBtnObj = trouverObjetParType("bouton_action");
 
-        // GESTION DYNAMIQUE MULTI-TOUCH
         if (GestionnaireControles.modeAventureActif) {
             for (int i = 0; i < event.getPointerCount(); i++) {
                 float ptrX = (event.getX(i) - decalageX) / echelle;
@@ -309,7 +312,6 @@ public class VueJeu extends View {
                 float ptrXMonde = ptrX + GestionnaireControles.cameraX;
                 float ptrYMonde = ptrY + GestionnaireControles.cameraY;
                 
-                // Bouton Action (Détection exacte dans la Hitbox)
                 if (actionBtnObj != null && pointDansObjet(ptrX, ptrY, ptrXMonde, ptrYMonde, actionBtnObj)) {
                     touchAction = true;
                     if (event.getActionMasked() == MotionEvent.ACTION_DOWN || event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
@@ -317,7 +319,6 @@ public class VueJeu extends View {
                     }
                 }
                 
-                // Joystick (Détection relative au centre de l'objet)
                 if (joystickObj != null) {
                     boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(joystickObj));
                     float checkX = isHud ? ptrX : ptrXMonde;
@@ -328,7 +329,7 @@ public class VueJeu extends View {
                     float rayon = Math.min(joystickObj.largeur, joystickObj.hauteur) / 2f;
                     
                     float distCenter = (float) Math.hypot(checkX - joyCentreX, checkY - joyCentreY);
-                    if (distCenter <= rayon * 1.5f) { // Hitbox légèrement agrandie pour le confort
+                    if (distCenter <= rayon * 1.5f) {
                         touchJoystick = true;
                         float dx = checkX - joyCentreX;
                         float dy = checkY - joyCentreY;
@@ -424,7 +425,6 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
@@ -522,7 +522,6 @@ public class VueJeu extends View {
                 else if (objet == objetEnGlissement && objet.cheminImagePresse != null) cheminAAfficher = objet.cheminImagePresse;
             }
 
-            // DESSIN DES TYPES SPÉCIFIQUES AVENTURE
             if ("joystick".equals(objet.type)) {
                 float rayonBase = Math.min(objet.largeur, objet.hauteur) / 2f;
                 canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayonBase, peintureObjet);
@@ -538,7 +537,7 @@ public class VueJeu extends View {
             } else if ("bouton_action".equals(objet.type)) {
                 float rayonBase = Math.min(objet.largeur, objet.hauteur) / 2f;
                 if (GestionnaireControles.isActionPressed) {
-                    peintureObjet.setAlpha(Math.min(255, alphaInt + 50)); // Effet de surbrillance
+                    peintureObjet.setAlpha(Math.min(255, alphaInt + 50));
                 }
                 canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayonBase, peintureObjet);
                 dessinerImage(canvas, objet, cheminAAfficher);
@@ -547,7 +546,7 @@ public class VueJeu extends View {
                 peintureTexte.setTextSize(objet.largeur * 0.25f);
                 peintureTexte.setTextAlign(Paint.Align.CENTER);
                 canvas.drawText("ACTION", objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
-                peintureTexte.setTextAlign(Paint.Align.LEFT); // Réinitialisation de sécurité
+                peintureTexte.setTextAlign(Paint.Align.LEFT);
                 
             } else if ("rond".equals(objet.type)) {
                 if (objet.afficherFondColore || cheminAAfficher == null) {
@@ -613,6 +612,29 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
+        // --- MOUVEMENT FLUIDE AUTOMATIQUE DU JOYSTICK (Option 2) ---
+        if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
+            if (sceneActive != null && sceneActive.objets != null) {
+                ObjetBase joueurCible = null;
+                if (GestionnaireControles.cameraCibleId != null) {
+                    joueurCible = getObjetById(GestionnaireControles.cameraCibleId, sceneActive.objets);
+                } else {
+                    for (ObjetBase obj : sceneActive.objets) {
+                        if ("player".equalsIgnoreCase(obj.nom) || "joueur".equalsIgnoreCase(obj.nom)) {
+                            joueurCible = obj;
+                            break;
+                        }
+                    }
+                }
+                
+                if (joueurCible != null) {
+                    float vitesseDefaut = 5f;
+                    joueurCible.x += GestionnaireControles.joyDirX * vitesseDefaut;
+                    joueurCible.y += GestionnaireControles.joyDirY * vitesseDefaut;
+                }
+            }
+        }
+
         if (this.moteurPhysique != null && sceneActive != null && sceneActive.objets != null) {
             List<ObjetBase> chocs = this.moteurPhysique.mettreAJour(sceneActive.objets);
             if (this.moteur != null && !chocs.isEmpty()) {
@@ -660,6 +682,8 @@ public class VueJeu extends View {
     }
 }
 // bas 3
+
+
 
 
 
