@@ -29,7 +29,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
         REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
         REGISTRE.add(new InfoNoeud("Collision A/B", "Événements", "NoeudEventCollisionAB"));
-        REGISTRE.add(new InfoNoeud("Entrée de zone", "Événements", "NoeudEventEntreeZone")); // NOUVEAU
+        REGISTRE.add(new InfoNoeud("Entrée de zone", "Événements", "NoeudEventEntreeZone")); 
         REGISTRE.add(new InfoNoeud("Sortie de zone", "Événements", "NoeudEventSortieZone"));
         REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
         REGISTRE.add(new InfoNoeud("Fin de Survol", "Événements", "NoeudEventFinSurvol"));
@@ -53,6 +53,9 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fermer HUD", "Scène & HUD", "NoeudActionFermerHUD"));
         REGISTRE.add(new InfoNoeud("Toast", "Scène & HUD", "NoeudActionToast"));
         REGISTRE.add(new InfoNoeud("Fixer Caméra", "Scène & HUD", "NoeudActionFixerCamera"));
+        REGISTRE.add(new InfoNoeud("Afficher/Masquer Joystick", "Scène & HUD", "NoeudActionJoystick"));
+        REGISTRE.add(new InfoNoeud("Afficher/Masquer Action", "Scène & HUD", "NoeudActionBoutonAction"));
+        REGISTRE.add(new InfoNoeud("Vibration", "Scène & HUD", "NoeudActionVibration"));
 
         // APPARENCE & OBJETS
         REGISTRE.add(new InfoNoeud("Déplacer Objet", "Apparence & Objets", "NoeudActionDeplacer"));
