@@ -337,6 +337,13 @@ public class InspecteurProprietes extends LinearLayout {
         styliserBouton(btnCouleur);
         blocProprietes.addView(btnCouleur);
 
+        // --- CORRECTION : Label pour l'Alpha ---
+        TextView labelAlpha = new TextView(context);
+        labelAlpha.setText("Transparence (Alpha 0.0 - 1.0)");
+        styliserLabel(labelAlpha);
+        blocProprietes.addView(labelAlpha);
+        // ---------------------------------------
+
         champAlpha = new EditText(context);
         champAlpha.setHint("Transparence (0-1)");
         champAlpha.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
@@ -438,6 +445,7 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 // bas 2
+        
 
 // haut 3
         blocTexte = new LinearLayout(context);
@@ -854,7 +862,7 @@ public class InspecteurProprietes extends LinearLayout {
                     objetCourant.rebond = Float.parseFloat(texte); 
                 } catch (NumberFormatException ignored) {} 
             }
-        }));
+        });
 
         cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) objetCourant.estRamassable = isChecked;
@@ -895,7 +903,11 @@ public class InspecteurProprietes extends LinearLayout {
         champAlpha.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try {
-                    float val = Float.parseFloat(texte);
+                    // --- CORRECTION : Accepter la virgule au lieu du point ---
+                    String valeurSaisie = texte.replace(",", "."); 
+                    if (valeurSaisie.trim().isEmpty() || valeurSaisie.equals(".")) return;
+                    
+                    float val = Float.parseFloat(valeurSaisie);
                     if (val < 0.0f) val = 0.0f;
                     if (val > 1.0f) val = 1.0f;
                     objetCourant.alpha = val;
@@ -964,7 +976,7 @@ public class InspecteurProprietes extends LinearLayout {
         }
     }
 // bas 4
-
+    
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
