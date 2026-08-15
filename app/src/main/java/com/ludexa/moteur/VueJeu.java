@@ -424,6 +424,8 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
+
+
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
@@ -481,6 +483,24 @@ public class VueJeu extends View {
         for (ObjetBase objet : objetsTries) {
             if (!estVisibleEffectif(objet, objets)) continue; 
             if ("zone".equals(objet.type)) continue;
+
+            // --- GESTION DU CLIGNOTEMENT ---
+            if (objet.clignotementActif) {
+                long now = System.currentTimeMillis();
+                if (objet.clignotementDureeTotalMs > 0 && now - objet.tempsDebutClignotement > objet.clignotementDureeTotalMs) {
+                    objet.clignotementActif = false;
+                    objet.etatVisibleClignotement = true;
+                } else {
+                    long ecoule = now - objet.tempsDebutClignotement;
+                    objet.etatVisibleClignotement = (ecoule / Math.max(1, objet.clignotementVitesseMs)) % 2 == 0;
+                }
+            } else {
+                objet.etatVisibleClignotement = true;
+            }
+
+            if (!objet.etatVisibleClignotement) {
+                continue; // On saute le rendu de cet objet (il clignote et est "éteint" sur cette frame)
+            }
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
                 List<String> frames = objet.animations.get(objet.animationActive);
@@ -510,9 +530,59 @@ public class VueJeu extends View {
             peintureTexte.setColor(objet.couleur);
             peintureTexte.setAlpha(alphaInt);
 
+            // --- GESTION DU FILTRE COULEUR ---
+            if (!"Aucun".equals(objet.filtreCouleur)) {
+                android.graphics.ColorMatrix cm = new android.graphics.ColorMatrix();
+                if ("Noir et Blanc".equals(objet.filtreCouleur)) {
+                    cm.setSaturation(0);
+                } else if ("Sepia".equals(objet.filtreCouleur)) {
+                    cm.setSaturation(0);
+                    android.graphics.ColorMatrix sepiaMatrix = new android.graphics.ColorMatrix();
+                    sepiaMatrix.setScale(1.2f, 1.0f, 0.8f, 1.0f);
+                    cm.postConcat(sepiaMatrix);
+                } else if ("Inversion".equals(objet.filtreCouleur)) {
+                    cm.set(new float[] {
+                        -1, 0, 0, 0, 255,
+                        0, -1, 0, 0, 255,
+                        0, 0, -1, 0, 255,
+                        0, 0, 0, 1, 0
+                    });
+                }
+                peintureObjet.setColorFilter(new android.graphics.ColorMatrixColorFilter(cm));
+            } else {
+                peintureObjet.setColorFilter(null);
+            }
+
             Matrix absMatrix = getAbsoluteMatrix(objet, objets);
             canvas.save();
             canvas.concat(absMatrix);
+
+            // --- GESTION DE LA SURBRILLANCE (Dessinée sous l'objet ou autour) ---
+            if (objet.surbrillanceActive) {
+                Paint pSurbrillance = new Paint();
+                pSurbrillance.setStyle(Paint.Style.STROKE);
+                pSurbrillance.setStrokeWidth(6f);
+                pSurbrillance.setAntiAlias(true);
+                
+                int colorGlow = Color.YELLOW;
+                switch(objet.couleurSurbrillance) {
+                    case "Bleu": colorGlow = Color.BLUE; break;
+                    case "Rouge": colorGlow = Color.RED; break;
+                    case "Vert": colorGlow = Color.GREEN; break;
+                    case "Blanc": colorGlow = Color.WHITE; break;
+                    case "Magenta": colorGlow = Color.MAGENTA; break;
+                    case "Cyan": colorGlow = Color.CYAN; break;
+                    case "Noir": colorGlow = Color.BLACK; break;
+                }
+                pSurbrillance.setColor(colorGlow);
+                
+                if ("rond".equals(objet.type) || "joystick".equals(objet.type) || "bouton_action".equals(objet.type)) {
+                    float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                    canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon + 3f, pSurbrillance);
+                } else {
+                    canvas.drawRect(-3f, -3f, objet.largeur + 3f, objet.hauteur + 3f, pSurbrillance);
+                }
+            }
 
             String cheminAAfficher = objet.cheminImage;
             
@@ -671,9 +741,3 @@ public class VueJeu extends View {
     }
 }
 // bas 3
-
-
-
-    
-
-
