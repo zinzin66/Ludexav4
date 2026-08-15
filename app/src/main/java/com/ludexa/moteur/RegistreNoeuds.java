@@ -38,7 +38,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
         REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction"));
 
-        // LOGIQUE SPATIALE (NOUVEAU)
+        // LOGIQUE SPATIALE
         REGISTRE.add(new InfoNoeud("Distance entre A et B", "Logique Spatiale", "NoeudConditionDistance"));
         REGISTRE.add(new InfoNoeud("Orienter vers (Look At)", "Logique Spatiale", "NoeudActionOrienterVers"));
 
@@ -87,6 +87,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Ajouter à l'inventaire", "Variables & Inventaire", "NoeudActionAjouterInventaire"));
         REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Variables & Inventaire", "NoeudActionRetirerInventaire"));
         REGISTRE.add(new InfoNoeud("Si dans l'inventaire", "Variables & Inventaire", "NoeudConditionSiDansInventaire"));
+        REGISTRE.add(new InfoNoeud("Combinaison d'Objets", "Variables & Inventaire", "NoeudActionCombinaison"));
+        REGISTRE.add(new InfoNoeud("Point de Sauvegarde", "Variables & Inventaire", "NoeudActionCheckpoint"));
 
         // TEMPS
         REGISTRE.add(new InfoNoeud("Timer", "Temps", "NoeudActionTimer"));
