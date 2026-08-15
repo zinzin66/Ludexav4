@@ -856,13 +856,14 @@ public class InspecteurProprietes extends LinearLayout {
             afficherObjet(objetCourant);
         });
 
+        // --- CORRECTION DE LA PARENTHÈSE MANQUANTE ICI ---
         champRebond.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) { 
                 try { 
                     objetCourant.rebond = Float.parseFloat(texte); 
                 } catch (NumberFormatException ignored) {} 
             }
-        });
+        }));
 
         cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) objetCourant.estRamassable = isChecked;
@@ -903,7 +904,6 @@ public class InspecteurProprietes extends LinearLayout {
         champAlpha.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try {
-                    // --- CORRECTION : Accepter la virgule au lieu du point ---
                     String valeurSaisie = texte.replace(",", "."); 
                     if (valeurSaisie.trim().isEmpty() || valeurSaisie.equals(".")) return;
                     
@@ -977,6 +977,7 @@ public class InspecteurProprietes extends LinearLayout {
     }
 // bas 4
     
+        
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
