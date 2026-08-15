@@ -31,9 +31,21 @@ public class ObjetBase {
     public String cheminImageDesactive = null;
     public boolean estDesactive = false;
     
-    // NOUVEAU : ID de l'objet que le joystick doit contrôler
     public String cibleJoystickId = null;
     
+    // --- NOUVEAUTÉS LOT 2 : EFFETS VISUELS ---
+    public String filtreCouleur = "Aucun"; // "Aucun", "Sepia", "Noir et Blanc", "Inversion"
+    
+    public boolean clignotementActif = false;
+    public long clignotementVitesseMs = 500;
+    public long clignotementDureeTotalMs = 0;
+    public long tempsDebutClignotement = 0;
+    public transient boolean etatVisibleClignotement = true; // Pas besoin de sauvegarder ça
+    
+    public boolean surbrillanceActive = false;
+    public String couleurSurbrillance = "Jaune";
+    // ------------------------------------------
+
     public String type = "carre"; 
     public boolean afficherFondColore = true;
     
@@ -94,9 +106,19 @@ public class ObjetBase {
         copie.cheminImagePresse = this.cheminImagePresse;
         copie.cheminImageDesactive = this.cheminImageDesactive;
         copie.estDesactive = this.estDesactive;
+        copie.cibleJoystickId = this.cibleJoystickId;
         
-        copie.cibleJoystickId = this.cibleJoystickId; // NOUVEAU
-        
+        // --- Copie LOT 2 ---
+        copie.filtreCouleur = this.filtreCouleur;
+        copie.clignotementActif = this.clignotementActif;
+        copie.clignotementVitesseMs = this.clignotementVitesseMs;
+        copie.clignotementDureeTotalMs = this.clignotementDureeTotalMs;
+        copie.tempsDebutClignotement = this.tempsDebutClignotement;
+        copie.etatVisibleClignotement = this.etatVisibleClignotement;
+        copie.surbrillanceActive = this.surbrillanceActive;
+        copie.couleurSurbrillance = this.couleurSurbrillance;
+        // -------------------
+
         copie.type = this.type;
         copie.afficherFondColore = this.afficherFondColore;
         copie.contenuTexte = this.contenuTexte;
