@@ -52,7 +52,11 @@ public class InspecteurProprietes extends LinearLayout {
     private Button btnChargerImageDesactive, btnSupprimerImageDesactive;
     private CheckBox cbDesactive;
 
-    // NOUVEAU : Bloc Physique et Environnement
+    // NOUVEAU : Bloc pour l'Objet Joystick
+    private LinearLayout blocJoystick;
+    private Button btnCibleJoystick;
+
+    // Bloc Physique et Environnement
     private LinearLayout blocPhysique;
     private CheckBox cbEstPhysique;
     private Button btnTogglePhysique;
@@ -163,7 +167,6 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
-
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -562,6 +565,49 @@ public class InspecteurProprietes extends LinearLayout {
         blocBouton.addView(cbDesactive);
 
         blocProprietes.addView(blocBouton);
+
+        // --- NOUVEAU BLOC JOYSTICK ---
+        blocJoystick = new LinearLayout(context);
+        blocJoystick.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocJoystick);
+
+        TextView sepJoystick = new TextView(context);
+        sepJoystick.setText("Contrôle Joystick");
+        styliserSousTitre(sepJoystick);
+        blocJoystick.addView(sepJoystick);
+
+        TextView labelCibleJoystick = new TextView(context);
+        labelCibleJoystick.setText("Objet à déplacer");
+        styliserLabel(labelCibleJoystick);
+        blocJoystick.addView(labelCibleJoystick);
+
+        btnCibleJoystick = new Button(context);
+        btnCibleJoystick.setText("Cible : Aucune");
+        styliserBouton(btnCibleJoystick);
+        blocJoystick.addView(btnCibleJoystick);
+
+        btnCibleJoystick.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            List<String> noms = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            noms.add("Aucune");
+            ids.add(null);
+            for (ObjetBase o : sceneActive.objets) {
+                if (o != objetCourant && !"joystick".equals(o.type)) {
+                    noms.add(o.nom != null ? o.nom : "Objet sans nom");
+                    ids.add(o.id);
+                }
+            }
+            new AlertDialog.Builder(context)
+                .setTitle("Sélectionner la cible")
+                .setItems(noms.toArray(new String[0]), (dialog, which) -> {
+                    objetCourant.cibleJoystickId = ids.get(which);
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                }).show();
+        });
+
+        blocProprietes.addView(blocJoystick);
         
         // --- BLOC PHYSIQUE ET ENVIRONNEMENT ---
         blocPhysique = new LinearLayout(context);
@@ -740,7 +786,6 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null && !miseAJourEnCours) { objetCourant.afficherFondColore = isChecked; canvasEditeur.invalidate(); }
         });
         
-        // Listeners Physique
         cbEstPhysique.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) { 
                 objetCourant.estPhysique = isChecked; 
@@ -753,7 +798,7 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant == null) return;
             objetCourant.estStatique = !objetCourant.estStatique;
             if (!objetCourant.estStatique) {
-                objetCourant.estPhysique = true; // Activer la physique automatiquement pour un dynamique
+                objetCourant.estPhysique = true;
             }
             canvasEditeur.invalidate();
             afficherObjet(objetCourant);
@@ -863,6 +908,7 @@ public class InspecteurProprietes extends LinearLayout {
         }
     }
 // bas 4
+
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
@@ -907,7 +953,6 @@ public class InspecteurProprietes extends LinearLayout {
             cbDeplacable.setChecked(objet.estDeplacable);
             cbVerrouille.setChecked(objet.estVerrouille);
 
-            // Mise à jour de l'affichage de la Physique
             cbEstPhysique.setChecked(objet.estPhysique);
             
             if (!objet.estPhysique) {
@@ -929,6 +974,7 @@ public class InspecteurProprietes extends LinearLayout {
                 blocTexte.setVisibility(View.VISIBLE);
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
+                blocJoystick.setVisibility(View.GONE);
                 
                 champContenu.setText(objet.contenuTexte);
                 champTaille.setText(String.valueOf(objet.tailleFonte));
@@ -958,6 +1004,22 @@ public class InspecteurProprietes extends LinearLayout {
                     cbDesactive.setChecked(objet.estDesactive);
                 } else {
                     blocBouton.setVisibility(View.GONE);
+                }
+
+                if ("joystick".equals(objet.type)) {
+                    blocJoystick.setVisibility(View.VISIBLE);
+                    String nomCible = "Aucune";
+                    if (objet.cibleJoystickId != null) {
+                        for (ObjetBase o : sceneActive.objets) {
+                            if (o.id.equals(objet.cibleJoystickId)) {
+                                nomCible = o.nom != null ? o.nom : "Objet sans nom";
+                                break;
+                            }
+                        }
+                    }
+                    btnCibleJoystick.setText("Cible : " + nomCible);
+                } else {
+                    blocJoystick.setVisibility(View.GONE);
                 }
             }
         }
@@ -1020,17 +1082,16 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-
-
     
 
 
-
         
 
 
 
         
+
+
 
 
 
