@@ -167,6 +167,7 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
+
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -276,8 +277,6 @@ public class InspecteurProprietes extends LinearLayout {
         layoutPos.addView(champY);
         blocProprietes.addView(layoutPos);
 
-        View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
-
         TextView labelDim = new TextView(context);
         labelDim.setText("Largeur / Hauteur");
         styliserLabel(labelDim);
@@ -340,8 +339,7 @@ public class InspecteurProprietes extends LinearLayout {
 
         champAlpha = new EditText(context);
         champAlpha.setHint("Transparence (0-1)");
-        champAlpha.setFocusable(false);
-        champAlpha.setOnClickListener(toastListener);
+        champAlpha.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         styliserChamp(champAlpha);
         blocProprietes.addView(champAlpha);
 
@@ -360,11 +358,49 @@ public class InspecteurProprietes extends LinearLayout {
         styliserLabel(labelZOrder);
         blocProprietes.addView(labelZOrder);
 
+        LinearLayout layoutZOrder = new LinearLayout(context);
+        layoutZOrder.setOrientation(LinearLayout.HORIZONTAL);
+        layoutZOrder.setGravity(Gravity.CENTER_VERTICAL);
+
         champZOrder = new EditText(context);
         champZOrder.setHint("Calque (Z-Order)");
         champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        styliserChamp(champZOrder);
-        blocProprietes.addView(champZOrder);
+        styliserChampFlexible(champZOrder);
+        layoutZOrder.addView(champZOrder);
+
+        Button btnZOrderMoins = new Button(context);
+        btnZOrderMoins.setText("-");
+        styliserBouton(btnZOrderMoins);
+        btnZOrderMoins.setLayoutParams(new LinearLayout.LayoutParams(dp(48), LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        Button btnZOrderPlus = new Button(context);
+        btnZOrderPlus.setText("+");
+        styliserBouton(btnZOrderPlus);
+        btnZOrderPlus.setLayoutParams(new LinearLayout.LayoutParams(dp(48), LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        btnZOrderMoins.setOnClickListener(v -> {
+            if (objetCourant != null) {
+                objetCourant.zOrder--;
+                miseAJourEnCours = true;
+                champZOrder.setText(String.valueOf(objetCourant.zOrder));
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        btnZOrderPlus.setOnClickListener(v -> {
+            if (objetCourant != null) {
+                objetCourant.zOrder++;
+                miseAJourEnCours = true;
+                champZOrder.setText(String.valueOf(objetCourant.zOrder));
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        layoutZOrder.addView(btnZOrderMoins);
+        layoutZOrder.addView(btnZOrderPlus);
+        blocProprietes.addView(layoutZOrder);
 
         TextView labelParent = new TextView(context);
         labelParent.setText("Objet Parent");
@@ -703,7 +739,6 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
-        
 
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
@@ -857,6 +892,18 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null) { try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
 
+        champAlpha.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try {
+                    float val = Float.parseFloat(texte);
+                    if (val < 0.0f) val = 0.0f;
+                    if (val > 1.0f) val = 1.0f;
+                    objetCourant.alpha = val;
+                    canvasEditeur.invalidate();
+                } catch (NumberFormatException ignored) {}
+            }
+        }));
+
         champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) { try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
@@ -918,7 +965,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 // bas 4
 
-
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
@@ -946,6 +992,7 @@ public class InspecteurProprietes extends LinearLayout {
             champScaleX.setText(String.valueOf(objet.scaleX));
             champScaleY.setText(String.valueOf(objet.scaleY));
 
+            champAlpha.setText(String.valueOf(objet.alpha));
             champRotation.setText(String.valueOf((int) objet.rotation));
             champZOrder.setText(String.valueOf(objet.zOrder));
             cbVisible.setChecked(objet.visible);
@@ -1097,7 +1144,6 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-
     
 
 
@@ -1106,7 +1152,6 @@ public class InspecteurProprietes extends LinearLayout {
 
 
         
-
 
 
 
