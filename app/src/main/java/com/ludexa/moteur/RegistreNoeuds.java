@@ -38,6 +38,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
         REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction"));
 
+        // MOUVEMENTS & IA (NOUVEAU)
+        REGISTRE.add(new InfoNoeud("Avancer en continu", "Mouvements & IA", "NoeudActionAvancerContinu"));
+        REGISTRE.add(new InfoNoeud("Poursuivre un objet", "Mouvements & IA", "NoeudActionPoursuivre"));
+        REGISTRE.add(new InfoNoeud("Fuir un objet", "Mouvements & IA", "NoeudActionFuir"));
+        REGISTRE.add(new InfoNoeud("Stopper les mouvements", "Mouvements & IA", "NoeudActionStopperMouvements"));
+
         // LOGIQUE SPATIALE
         REGISTRE.add(new InfoNoeud("Distance entre A et B", "Logique Spatiale", "NoeudConditionDistance"));
         REGISTRE.add(new InfoNoeud("Orienter vers (Look At)", "Logique Spatiale", "NoeudActionOrienterVers"));
