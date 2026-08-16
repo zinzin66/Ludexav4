@@ -59,6 +59,7 @@ public class InspecteurProprietes extends LinearLayout {
     private Button btnTogglePhysique;
     private LinearLayout conteneurPhysiqueDetails;
     private EditText champRebond;
+    private EditText champGravite;
 
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
@@ -441,8 +442,6 @@ public class InspecteurProprietes extends LinearLayout {
         });
 // bas 2
 
-
-
 // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -686,6 +685,17 @@ public class InspecteurProprietes extends LinearLayout {
         styliserChamp(champRebond);
         conteneurPhysiqueDetails.addView(champRebond);
 
+        TextView labelGravite = new TextView(context);
+        labelGravite.setText(Traducteur.get("insp_label_gravite"));
+        styliserLabel(labelGravite);
+        conteneurPhysiqueDetails.addView(labelGravite);
+
+        champGravite = new EditText(context);
+        champGravite.setHint("1.0");
+        champGravite.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChamp(champGravite);
+        conteneurPhysiqueDetails.addView(champGravite);
+
         blocPhysique.addView(conteneurPhysiqueDetails);
         blocProprietes.addView(blocPhysique);
 
@@ -854,6 +864,14 @@ public class InspecteurProprietes extends LinearLayout {
             }
         }));
 
+        champGravite.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try {
+                    objetCourant.graviteScale = Float.parseFloat(texte);
+                } catch (NumberFormatException ignored) {}
+            }
+        }));
+
         cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) objetCourant.estRamassable = isChecked;
         });
@@ -966,6 +984,7 @@ public class InspecteurProprietes extends LinearLayout {
     }
 // bas 4
 
+
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
@@ -1027,6 +1046,7 @@ public class InspecteurProprietes extends LinearLayout {
                 }
             }
             champRebond.setText(String.valueOf(objet.rebond));
+            champGravite.setText(String.valueOf(objet.graviteScale));
 
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
@@ -1146,14 +1166,19 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
+
+
+
+
     
 
 
-
-        
-
         
 
 
 
+        
 
+
+
+    
