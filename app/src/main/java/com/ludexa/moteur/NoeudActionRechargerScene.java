@@ -14,17 +14,28 @@ public class NoeudActionRechargerScene extends NoeudBase {
     @Override
     public void executer() {
         if (contexteApplication != null) {
+            Scene s = null;
             try {
-                if (contexteApplication instanceof VueJeu) {
-                    VueJeu vue = (VueJeu) contexteApplication;
-                    java.lang.reflect.Field sceneField = VueJeu.class.getDeclaredField("sceneActive");
-                    sceneField.setAccessible(true);
-                    Scene s = (Scene) sceneField.get(vue);
-                    if (s != null) {
-                        vue.chargerNouvelleScene(s);
-                    }
-                }
+                // 1. On récupère la scène active
+                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                s = (Scene) sceneField.get(contexteApplication);
             } catch (Exception e) {}
+
+            if (s != null) {
+                try {
+                    // 2. On cherche le champ "VueJeu" dans l'Activity proprement
+                    for (java.lang.reflect.Field field : contexteApplication.getClass().getDeclaredFields()) {
+                        if (field.getType() == VueJeu.class) {
+                            field.setAccessible(true);
+                            VueJeu vue = (VueJeu) field.get(contexteApplication);
+                            if (vue != null) {
+                                vue.chargerNouvelleScene(s);
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception e) {}
+            }
         }
         propagerExecution("Suivant");
     }
