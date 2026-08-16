@@ -44,12 +44,14 @@ public class ObjetBase {
     public boolean surbrillanceActive = false;
     public String couleurSurbrillance = "Jaune";
     
-    // --- NOUVEAUTÉS MOUVEMENTS & IA ---
     public float vitesseAvanceContinue = 0f;
     public String idCiblePoursuite = null;
     public float vitessePoursuite = 0f;
     public boolean fuiteActive = false;
-    // ----------------------------------
+    
+    // --- NOUVEAUTÉ : GESTION DE MASSE ---
+    public String tag = ""; // Permet de regrouper les objets (ex: "Ennemi", "Projectile")
+    // ------------------------------------
 
     public String type = "carre"; 
     public boolean afficherFondColore = true;
@@ -122,12 +124,12 @@ public class ObjetBase {
         copie.surbrillanceActive = this.surbrillanceActive;
         copie.couleurSurbrillance = this.couleurSurbrillance;
         
-        // --- Copie MOUVEMENTS & IA ---
         copie.vitesseAvanceContinue = this.vitesseAvanceContinue;
         copie.idCiblePoursuite = this.idCiblePoursuite;
         copie.vitessePoursuite = this.vitessePoursuite;
         copie.fuiteActive = this.fuiteActive;
-        // -----------------------------
+        
+        copie.tag = this.tag; // Copie du Tag
 
         copie.type = this.type;
         copie.afficherFondColore = this.afficherFondColore;
@@ -184,8 +186,6 @@ public class ObjetBase {
     }
 }
 // bas 1
-
-
 
 
 
