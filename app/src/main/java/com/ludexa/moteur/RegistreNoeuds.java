@@ -53,6 +53,7 @@ public class RegistreNoeuds {
         
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
+        REGISTRE.add(new InfoNoeud("Recharger Scène actuelle", "Scène & HUD", "NoeudActionRechargerScene"));
         REGISTRE.add(new InfoNoeud("Ouvrir HUD", "Scène & HUD", "NoeudActionOuvrirHUD"));
         REGISTRE.add(new InfoNoeud("Fermer HUD", "Scène & HUD", "NoeudActionFermerHUD"));
         REGISTRE.add(new InfoNoeud("Toast", "Scène & HUD", "NoeudActionToast"));
@@ -69,6 +70,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Apparence & Objets", "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud("Changer Z-Order", "Apparence & Objets", "NoeudActionChangerZOrder"));
         REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
+        REGISTRE.add(new InfoNoeud("Rotation", "Apparence & Objets", "NoeudActionRotation"));
+        REGISTRE.add(new InfoNoeud("Définir la taille (Scale)", "Apparence & Objets", "NoeudActionModifierTaille"));
         REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
         REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
         REGISTRE.add(new InfoNoeud("Filtre Couleur", "Apparence & Objets", "NoeudActionFiltre"));
@@ -93,6 +96,7 @@ public class RegistreNoeuds {
         // TEMPS
         REGISTRE.add(new InfoNoeud("Timer", "Temps", "NoeudActionTimer"));
         REGISTRE.add(new InfoNoeud("Chrono", "Temps", "NoeudActionChrono"));
+        REGISTRE.add(new InfoNoeud("Attendre (ms)", "Temps", "NoeudActionAttendre"));
 
         // AUDIO
         REGISTRE.add(new InfoNoeud("Jouer un Son", "Audio", "NoeudActionJouerSon"));
