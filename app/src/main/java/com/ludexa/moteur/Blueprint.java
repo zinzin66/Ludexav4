@@ -216,6 +216,3 @@ public class Blueprint {
 }
 // bas 2
 
-
-
-ˆ
