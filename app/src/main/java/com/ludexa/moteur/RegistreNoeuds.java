@@ -21,113 +21,121 @@ public class RegistreNoeuds {
 
     public static final List<InfoNoeud> REGISTRE = new ArrayList<>();
 
-    static {
+    // La méthode d'initialisation doit maintenant être appelée après le chargement du Traducteur,
+    // on remplace donc le bloc "static {}" par une méthode "initialiser()" à appeler au démarrage.
+    public static void initialiser() {
+        REGISTRE.clear();
+        
         // ÉVÉNEMENTS
-        REGISTRE.add(new InfoNoeud("Au Démarrage", "Événements", "NoeudEventStart"));
-        REGISTRE.add(new InfoNoeud("Fin de Clic", "Événements", "NoeudEventFinClic"));
-        REGISTRE.add(new InfoNoeud("Au Clic sur Objet", "Événements", "NoeudEventClicObjet"));
-        REGISTRE.add(new InfoNoeud("Début de Glisser", "Événements", "NoeudEventDebutGlisser"));
-        REGISTRE.add(new InfoNoeud("Fin de Glisser", "Événements", "NoeudEventFinGlisser"));
-        REGISTRE.add(new InfoNoeud("Collision A/B", "Événements", "NoeudEventCollisionAB"));
-        REGISTRE.add(new InfoNoeud("Entrée de zone", "Événements", "NoeudEventEntreeZone")); 
-        REGISTRE.add(new InfoNoeud("Sortie de zone", "Événements", "NoeudEventSortieZone"));
-        REGISTRE.add(new InfoNoeud("Au Survol", "Événements", "NoeudEventSurvolObjet"));
-        REGISTRE.add(new InfoNoeud("Fin de Survol", "Événements", "NoeudEventFinSurvol"));
-        REGISTRE.add(new InfoNoeud("Au Choc (Physique)", "Événements", "NoeudEventChoc"));
-        REGISTRE.add(new InfoNoeud("Quand Variable Change", "Événements", "NoeudEventVariableChange"));
-        REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
-        REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_demarrage"), Traducteur.get("cat_evenements"), "NoeudEventStart"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fin_de_clic"), Traducteur.get("cat_evenements"), "NoeudEventFinClic"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_clic_sur_objet"), Traducteur.get("cat_evenements"), "NoeudEventClicObjet"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_debut_de_glisser"), Traducteur.get("cat_evenements"), "NoeudEventDebutGlisser"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fin_de_glisser"), Traducteur.get("cat_evenements"), "NoeudEventFinGlisser"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_collision_ab"), Traducteur.get("cat_evenements"), "NoeudEventCollisionAB"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_entree_de_zone"), Traducteur.get("cat_evenements"), "NoeudEventEntreeZone")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_sortie_de_zone"), Traducteur.get("cat_evenements"), "NoeudEventSortieZone"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_survol"), Traducteur.get("cat_evenements"), "NoeudEventSurvolObjet"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fin_de_survol"), Traducteur.get("cat_evenements"), "NoeudEventFinSurvol"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_choc_physique"), Traducteur.get("cat_evenements"), "NoeudEventChoc"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_quand_variable_change"), Traducteur.get("cat_evenements"), "NoeudEventVariableChange"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_evenement_local"), Traducteur.get("cat_evenements"), "NoeudEventPersonnalise"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_clic_action_aventure"), Traducteur.get("cat_evenements"), "NoeudEventBoutonAction"));
 
         // MOUVEMENTS & IA
-        REGISTRE.add(new InfoNoeud("Avancer en continu", "Mouvements & IA", "NoeudActionAvancerContinu"));
-        REGISTRE.add(new InfoNoeud("Poursuivre un objet", "Mouvements & IA", "NoeudActionPoursuivre"));
-        REGISTRE.add(new InfoNoeud("Fuir un objet", "Mouvements & IA", "NoeudActionFuir"));
-        REGISTRE.add(new InfoNoeud("Stopper les mouvements", "Mouvements & IA", "NoeudActionStopperMouvements"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_avancer_en_continu"), Traducteur.get("cat_mouvements_ia"), "NoeudActionAvancerContinu"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_poursuivre_un_objet"), Traducteur.get("cat_mouvements_ia"), "NoeudActionPoursuivre"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fuir_un_objet"), Traducteur.get("cat_mouvements_ia"), "NoeudActionFuir"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_stopper_mouvements"), Traducteur.get("cat_mouvements_ia"), "NoeudActionStopperMouvements"));
 
         // LOGIQUE SPATIALE
-        REGISTRE.add(new InfoNoeud("Distance entre A et B", "Logique Spatiale", "NoeudConditionDistance"));
-        REGISTRE.add(new InfoNoeud("Orienter vers (Look At)", "Logique Spatiale", "NoeudActionOrienterVers"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_distance_entre_a_et_b"), Traducteur.get("cat_logique_spatiale"), "NoeudConditionDistance"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_orienter_vers"), Traducteur.get("cat_logique_spatiale"), "NoeudActionOrienterVers"));
 
         // LOGIQUE & CONDITIONS
-        REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
-        REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique & Conditions", "NoeudConditionSiObjetToucheZone"));
-        REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique & Conditions", "NoeudConditionSiObjetVisible"));
-        REGISTRE.add(new InfoNoeud("Si Objet a le Tag", "Logique & Conditions", "NoeudConditionTag"));
-        REGISTRE.add(new InfoNoeud("Condition Double (ET/OU)", "Logique & Conditions", "NoeudConditionDouble"));
-        REGISTRE.add(new InfoNoeud("Appeler Fonction", "Logique & Conditions", "NoeudAppelFonction"));
-        REGISTRE.add(new InfoNoeud("Appeler Événement Local", "Logique & Conditions", "NoeudActionAppelerEvent"));
-        REGISTRE.add(new InfoNoeud("Si Joystick Actif", "Logique & Conditions", "NoeudConditionSiJoystick"));
-        
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition"), Traducteur.get("cat_logique_conditions"), "NoeudConditionComparaison"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_a_touche_zone_b"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiObjetToucheZone"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_visible"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiObjetVisible"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_a_le_tag"), Traducteur.get("cat_logique_conditions"), "NoeudConditionTag"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition_double"), Traducteur.get("cat_logique_conditions"), "NoeudConditionDouble"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_fonction"), Traducteur.get("cat_logique_conditions"), "NoeudAppelFonction"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
+// bas 1
+// haut 2
         // SCÈNE & HUD
-        REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
-        REGISTRE.add(new InfoNoeud("Recharger Scène actuelle", "Scène & HUD", "NoeudActionRechargerScene"));
-        REGISTRE.add(new InfoNoeud("Ouvrir HUD", "Scène & HUD", "NoeudActionOuvrirHUD"));
-        REGISTRE.add(new InfoNoeud("Fermer HUD", "Scène & HUD", "NoeudActionFermerHUD"));
-        REGISTRE.add(new InfoNoeud("Toast", "Scène & HUD", "NoeudActionToast"));
-        REGISTRE.add(new InfoNoeud("Fixer Caméra", "Scène & HUD", "NoeudActionFixerCamera"));
-        REGISTRE.add(new InfoNoeud("Tremblement de Caméra", "Scène & HUD", "NoeudActionTremblement"));
-        REGISTRE.add(new InfoNoeud("Élasticité Caméra", "Scène & HUD", "NoeudActionParametresCamera"));
-        REGISTRE.add(new InfoNoeud("Afficher/Masquer Joystick", "Scène & HUD", "NoeudActionJoystick"));
-        REGISTRE.add(new InfoNoeud("Afficher/Masquer Action", "Scène & HUD", "NoeudActionBoutonAction"));
-        REGISTRE.add(new InfoNoeud("Vibration", "Scène & HUD", "NoeudActionVibration"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_de_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionChangerScene"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_recharger_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionRechargerScene"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_ouvrir_hud"), Traducteur.get("cat_scene_hud"), "NoeudActionOuvrirHUD"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fermer_hud"), Traducteur.get("cat_scene_hud"), "NoeudActionFermerHUD"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_toast"), Traducteur.get("cat_scene_hud"), "NoeudActionToast"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fixer_camera"), Traducteur.get("cat_scene_hud"), "NoeudActionFixerCamera"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_tremblement_camera"), Traducteur.get("cat_scene_hud"), "NoeudActionTremblement"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_elasticite_camera"), Traducteur.get("cat_scene_hud"), "NoeudActionParametresCamera"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_afficher_masquer_joystick"), Traducteur.get("cat_scene_hud"), "NoeudActionJoystick"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_afficher_masquer_action"), Traducteur.get("cat_scene_hud"), "NoeudActionBoutonAction"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_vibration"), Traducteur.get("cat_scene_hud"), "NoeudActionVibration"));
 
         // APPARENCE & OBJETS
-        REGISTRE.add(new InfoNoeud("Déplacer Objet", "Apparence & Objets", "NoeudActionDeplacer"));
-        REGISTRE.add(new InfoNoeud("Modifier Couleur", "Apparence & Objets", "NoeudActionModifierCouleur"));
-        REGISTRE.add(new InfoNoeud("Visibilité", "Apparence & Objets", "NoeudActionVisibilite"));
-        REGISTRE.add(new InfoNoeud("Modifier Déplaçable", "Apparence & Objets", "NoeudActionModifierDeplacable"));
-        REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Apparence & Objets", "NoeudActionModifierVerrouillage"));
-        REGISTRE.add(new InfoNoeud("Changer Z-Order", "Apparence & Objets", "NoeudActionChangerZOrder"));
-        REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
-        REGISTRE.add(new InfoNoeud("Rotation", "Apparence & Objets", "NoeudActionRotation"));
-        REGISTRE.add(new InfoNoeud("Définir la taille (Scale)", "Apparence & Objets", "NoeudActionModifierTaille"));
-        REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
-        REGISTRE.add(new InfoNoeud("Générer un clone (Spawner)", "Apparence & Objets", "NoeudActionSpawner"));
-        REGISTRE.add(new InfoNoeud("Définir le Tag", "Apparence & Objets", "NoeudActionDefinirTag"));
-        REGISTRE.add(new InfoNoeud("Détruire par Tag", "Apparence & Objets", "NoeudActionDetruireParTag"));
-        REGISTRE.add(new InfoNoeud("Filtre Couleur", "Apparence & Objets", "NoeudActionFiltre"));
-        REGISTRE.add(new InfoNoeud("Clignotement (Blink)", "Apparence & Objets", "NoeudActionClignotement"));
-        REGISTRE.add(new InfoNoeud("Surbrillance (Glow)", "Apparence & Objets", "NoeudActionSurbrillance"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_deplacer_objet"), Traducteur.get("cat_apparence_objets"), "NoeudActionDeplacer"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_couleur"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierCouleur"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_visibilite"), Traducteur.get("cat_apparence_objets"), "NoeudActionVisibilite"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_deplacable"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierDeplacable"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_verrouillage"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierVerrouillage"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_zorder"), Traducteur.get("cat_apparence_objets"), "NoeudActionChangerZOrder"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_image"), Traducteur.get("cat_apparence_objets"), "NoeudActionChangerImage"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_rotation"), Traducteur.get("cat_apparence_objets"), "NoeudActionRotation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_definir_taille"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierTaille"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_detruire_objet"), Traducteur.get("cat_apparence_objets"), "NoeudActionDetruireObjet"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_generer_clone"), Traducteur.get("cat_apparence_objets"), "NoeudActionSpawner"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_definir_tag"), Traducteur.get("cat_apparence_objets"), "NoeudActionDefinirTag"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_detruire_par_tag"), Traducteur.get("cat_apparence_objets"), "NoeudActionDetruireParTag"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_filtre_couleur"), Traducteur.get("cat_apparence_objets"), "NoeudActionFiltre"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_clignotement"), Traducteur.get("cat_apparence_objets"), "NoeudActionClignotement"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_surbrillance"), Traducteur.get("cat_apparence_objets"), "NoeudActionSurbrillance"));
         
         // TEXTES & DIALOGUES
-        REGISTRE.add(new InfoNoeud("Modifier Texte", "Textes & Dialogues", "NoeudActionModifierTexte"));
-        REGISTRE.add(new InfoNoeud("Ajouter au Texte", "Textes & Dialogues", "NoeudActionConcatenerTexte"));
-        REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Textes & Dialogues", "NoeudActionAfficherDialogue"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionModifierTexte"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_ajouter_au_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionConcatenerTexte"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_afficher_dialogue"), Traducteur.get("cat_textes_dialogues"), "NoeudActionAfficherDialogue"));
 
         // VARIABLES & INVENTAIRE
-        REGISTRE.add(new InfoNoeud("Opération Mathématique", "Variables & Inventaire", "NoeudActionOperationMath"));
-        REGISTRE.add(new InfoNoeud("Limiter Valeur (Clamp)", "Variables & Inventaire", "NoeudActionClampVariable"));
-        REGISTRE.add(new InfoNoeud("Modifier Variable", "Variables & Inventaire", "NoeudActionModifierVariable"));
-        REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Variables & Inventaire", "NoeudActionAjouterVariable"));
-        REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Variables & Inventaire", "NoeudActionNombreAleatoire"));
-        REGISTRE.add(new InfoNoeud("Ajouter à l'inventaire", "Variables & Inventaire", "NoeudActionAjouterInventaire"));
-        REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Variables & Inventaire", "NoeudActionRetirerInventaire"));
-        REGISTRE.add(new InfoNoeud("Si dans l'inventaire", "Variables & Inventaire", "NoeudConditionSiDansInventaire"));
-        REGISTRE.add(new InfoNoeud("Combinaison d'Objets", "Variables & Inventaire", "NoeudActionCombinaison"));
-        REGISTRE.add(new InfoNoeud("Point de Sauvegarde", "Variables & Inventaire", "NoeudActionCheckpoint"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_operation_mathematique"), Traducteur.get("cat_variables_inventaire"), "NoeudActionOperationMath"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_limiter_valeur"), Traducteur.get("cat_variables_inventaire"), "NoeudActionClampVariable"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_variable"), Traducteur.get("cat_variables_inventaire"), "NoeudActionModifierVariable"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_ajouter_a_variable"), Traducteur.get("cat_variables_inventaire"), "NoeudActionAjouterVariable"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_nombre_aleatoire"), Traducteur.get("cat_variables_inventaire"), "NoeudActionNombreAleatoire"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_ajouter_inventaire"), Traducteur.get("cat_variables_inventaire"), "NoeudActionAjouterInventaire"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_retirer_inventaire"), Traducteur.get("cat_variables_inventaire"), "NoeudActionRetirerInventaire"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_dans_inventaire"), Traducteur.get("cat_variables_inventaire"), "NoeudConditionSiDansInventaire"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_combinaison_objets"), Traducteur.get("cat_variables_inventaire"), "NoeudActionCombinaison"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_point_de_sauvegarde"), Traducteur.get("cat_variables_inventaire"), "NoeudActionCheckpoint"));
 
         // TEMPS
-        REGISTRE.add(new InfoNoeud("Timer", "Temps", "NoeudActionTimer"));
-        REGISTRE.add(new InfoNoeud("Chrono", "Temps", "NoeudActionChrono"));
-        REGISTRE.add(new InfoNoeud("Attendre (ms)", "Temps", "NoeudActionAttendre"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_timer"), Traducteur.get("cat_temps"), "NoeudActionTimer"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_chrono"), Traducteur.get("cat_temps"), "NoeudActionChrono"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_attendre"), Traducteur.get("cat_temps"), "NoeudActionAttendre"));
 
         // AUDIO
-        REGISTRE.add(new InfoNoeud("Jouer un Son", "Audio", "NoeudActionJouerSon"));
-        REGISTRE.add(new InfoNoeud("Gérer Musique", "Audio", "NoeudActionMusique"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_jouer_son"), Traducteur.get("cat_audio"), "NoeudActionJouerSon"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_gerer_musique"), Traducteur.get("cat_audio"), "NoeudActionMusique"));
 
         // ANIMATIONS
-        REGISTRE.add(new InfoNoeud("Fondu (Alpha)", "Animations", "NoeudActionFondu"));
-        REGISTRE.add(new InfoNoeud("Glisser Vers", "Animations", "NoeudActionGlisserVers"));
-        REGISTRE.add(new InfoNoeud("Jouer Animation", "Animations", "NoeudActionJouerAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fondu_alpha"), Traducteur.get("cat_animations"), "NoeudActionFondu"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_glisser_vers"), Traducteur.get("cat_animations"), "NoeudActionGlisserVers"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_jouer_animation"), Traducteur.get("cat_animations"), "NoeudActionJouerAnimation"));
         
         // PHYSIQUE
-        REGISTRE.add(new InfoNoeud("Activer Physique (Chute)", "Physique", "NoeudActionModifierPhysique"));
-        REGISTRE.add(new InfoNoeud("Appliquer Impulsion (Saut)", "Physique", "NoeudActionImpulsion"));
-        REGISTRE.add(new InfoNoeud("Changer Rebond", "Physique", "NoeudActionChangerRebond"));
-        REGISTRE.add(new InfoNoeud("Si Objet en Chute", "Physique", "NoeudConditionEnMouvement"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_activer_physique"), Traducteur.get("cat_physique"), "NoeudActionModifierPhysique"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appliquer_impulsion"), Traducteur.get("cat_physique"), "NoeudActionImpulsion"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_rebond"), Traducteur.get("cat_physique"), "NoeudActionChangerRebond"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_en_chute"), Traducteur.get("cat_physique"), "NoeudConditionEnMouvement"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
+        if (REGISTRE.isEmpty()) {
+            initialiser(); 
+        }
         Map<String, List<InfoNoeud>> map = new LinkedHashMap<>();
         for (InfoNoeud info : REGISTRE) {
             if (!map.containsKey(info.categorie)) {
@@ -138,4 +146,8 @@ public class RegistreNoeuds {
         return map;
     }
 }
-// bas 1
+// bas 2
+
+
+
+    
