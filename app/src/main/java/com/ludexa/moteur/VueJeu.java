@@ -270,6 +270,24 @@ public class VueJeu extends View {
         }
         return null;
     }
+    
+    // NOUVEAU : Méthode de vérification AABB pour les murs statiques
+    private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, ObjetBase objetCible, List<ObjetBase> objets) {
+        if (objets == null) return false;
+        for (ObjetBase mur : objets) {
+            if (mur == objetCible || !estVisibleEffectif(mur, objets)) continue;
+            if (mur.estPhysique && mur.estStatique) {
+                // Vérification AABB standard
+                if (testX < mur.x + mur.largeur &&
+                    testX + largeur > mur.x &&
+                    testY < mur.y + mur.hauteur &&
+                    testY + hauteur > mur.y) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -431,6 +449,8 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
+
+
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
@@ -681,11 +701,32 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
+        // --- MISE À JOUR : Déplacement au joystick avec collision prédictive AABB ---
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
             ObjetBase joystickObj = trouverObjetParType("joystick");
             if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
                 ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
-                if (joueurCible != null) {
+                
+                if (joueurCible != null && joueurCible.estPhysique && !joueurCible.estStatique) {
+                    float vitesseDefaut = 5f; 
+                    float moveX = GestionnaireControles.joyDirX * vitesseDefaut;
+                    float moveY = GestionnaireControles.joyDirY * vitesseDefaut;
+                    
+                    if (moveX != 0) {
+                        float futurX = joueurCible.x + moveX;
+                        if (!verifierCollisionStatique(futurX, joueurCible.y, joueurCible.largeur, joueurCible.hauteur, joueurCible, sceneActive.objets)) {
+                            joueurCible.x = futurX;
+                        }
+                    }
+                    
+                    if (moveY != 0) {
+                        float futurY = joueurCible.y + moveY;
+                        if (!verifierCollisionStatique(joueurCible.x, futurY, joueurCible.largeur, joueurCible.hauteur, joueurCible, sceneActive.objets)) {
+                            joueurCible.y = futurY;
+                        }
+                    }
+                } else if (joueurCible != null) {
+                    // Mouvement libre si la physique n'est pas activée sur le joueur (ex: fantôme)
                     float vitesseDefaut = 5f; 
                     joueurCible.x += GestionnaireControles.joyDirX * vitesseDefaut;
                     joueurCible.y += GestionnaireControles.joyDirY * vitesseDefaut;
@@ -774,7 +815,8 @@ public class VueJeu extends View {
         }
 
         // --- GESTION TREMBLEMENT ---
-        float shakeX = 0f;
+        
+float shakeX = 0f;
         float shakeY = 0f;
         if (System.currentTimeMillis() < tremblementFin) {
             shakeX = (float) ((Math.random() - 0.5) * 2.0 * tremblementIntensite);
