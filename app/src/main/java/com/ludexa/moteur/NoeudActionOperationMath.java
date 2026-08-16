@@ -22,7 +22,8 @@ public class NoeudActionOperationMath extends NoeudBase {
         Variable var = getCibleVariable();
         if (var != null && var.valeur != null) {
             try {
-                float val1 = Float.parseFloat(var.valeur);
+                String valStr = var.valeur.toString();
+                float val1 = Float.parseFloat(valStr);
                 float val2 = Float.parseFloat(valeurParam);
                 float resultat = val1;
                 
@@ -35,13 +36,14 @@ public class NoeudActionOperationMath extends NoeudBase {
                         break;
                 }
                 
-                var.valeur = String.valueOf(resultat);
-                // Nettoyage visuel pour éviter d'afficher "100.0" au lieu de "100"
-                if (var.valeur.endsWith(".0")) {
-                    var.valeur = var.valeur.substring(0, var.valeur.length() - 2);
+                String resFinal = String.valueOf(resultat);
+                if (resFinal.endsWith(".0")) {
+                    resFinal = resFinal.substring(0, resFinal.length() - 2);
                 }
+                var.valeur = resFinal;
+                
             } catch (Exception e) {
-                // Si la variable contient du texte et non un nombre, on ignore silencieusement
+                // Ignore silencieusement si la variable n'est pas un nombre
             }
         }
         propagerExecution("Suivant");
@@ -107,6 +109,11 @@ public class NoeudActionOperationMath extends NoeudBase {
         }
         return cible;
     }
+
+    // Ajout des méthodes abstraites obligatoires de NoeudBase (Même si on cible une variable)
+    @Override public boolean requiertCibleObjet() { return false; }
+    @Override public void setCibleObjet(ObjetBase objet) {}
+    @Override public ObjetBase getCibleObjet() { return null; }
     
     @Override
     public boolean utiliseClavierTexte() { return true; }
