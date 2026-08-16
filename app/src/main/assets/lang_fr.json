@@ -1,3 +1,20 @@
+// haut 1
+{
+  "app_nom": "Yop2D",
+  "menu_jouer": "Jouer",
+  "menu_editeur": "Éditeur",
+  "bouton_ok": "OK",
+  "bouton_annuler": "Annuler",
+  "bouton_fermer": "Fermer",
+  "hud_ouvrir": "Ouvrir HUD",
+  "hud_fermer": "Fermer HUD",
+  "proprietes_titre": "Propriétés",
+  "proprietes_verrouille": "Verrouillé",
+  "noeud_cible_objet": "Objet",
+  "noeud_cible_objet_b": "Objet B",
+  "noeud_cible_variable": "Variable",
+  "noeud_cible_scene": "Scène",
+  "noeud_comparer_a": "Comparer à",
   "erreur_json_invalide": "ERREUR : JSON vide ou invalide",
   "erreur_creation_noeud": "Échec création du nœud",
   "toast_noeud_copie": "Nœud copié",
@@ -48,3 +65,5 @@
   "hint_nom_projet": "Nom du projet",
   "bouton_creer": "Créer",
   "erreur_creation_fichiers": "Erreur lors de la création des fichiers"
+}
+// bas 1
