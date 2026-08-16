@@ -196,9 +196,10 @@ public class VueJeu extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(boucleDeRendu);
-        GestionnaireAudio.arreterMusique(); 
+        GestionnaireAudio.arreterMusique();
     }
 // bas 1
+
 // haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
@@ -286,7 +287,7 @@ public class VueJeu extends View {
         return false;
     }
 
-    // --- NOUVELLE MÉTHODE CENTRALISÉE DE DÉPLACEMENT ---
+    // --- MÉTHODE CENTRALISÉE DE DÉPLACEMENT ---
     public void deplacerAvecCollision(ObjetBase objet, float deltaX, float deltaY, List<ObjetBase> contexteObjets) {
         if (deltaX == 0 && deltaY == 0) return;
 
@@ -304,12 +305,11 @@ public class VueJeu extends View {
                 }
             }
         } else {
-            // Mouvement libre sans contrainte physique (fantômes, UI, non physiques...)
             objet.x += deltaX;
             objet.y += deltaY;
         }
     }
-    // ---------------------------------------------------
+    // ------------------------------------------
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -339,7 +339,9 @@ public class VueJeu extends View {
         }
         return super.onGenericMotionEvent(event);
     }
+// bas 2
 
+// haut 3
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean touchJoystick = false;
@@ -476,8 +478,7 @@ public class VueJeu extends View {
         }
         return true;
     }
-// bas 2
-  // haut 3
+
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -498,7 +499,9 @@ public class VueJeu extends View {
         }
         return m;
     }
+// bas 3
 
+// haut 4
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
@@ -722,7 +725,10 @@ public class VueJeu extends View {
             }
         }
     }
+// bas 4
 
+
+// haut 5
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -742,6 +748,14 @@ public class VueJeu extends View {
 
         if (sceneActive != null && sceneActive.objets != null) {
             for (ObjetBase obj : sceneActive.objets) {
+                
+                // --- NOUVEAU : Traitement de l'intention de mouvement ---
+                if (obj.intentionDeplacementX != 0f || obj.intentionDeplacementY != 0f) {
+                    deplacerAvecCollision(obj, obj.intentionDeplacementX, obj.intentionDeplacementY, sceneActive.objets);
+                    obj.intentionDeplacementX = 0f;
+                    obj.intentionDeplacementY = 0f;
+                }
+                // --------------------------------------------------------
                 
                 if (obj.vitesseAvanceContinue != 0f) {
                     double rad = Math.toRadians(obj.rotation);
@@ -836,5 +850,13 @@ public class VueJeu extends View {
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
     }
 }
-// bas 3
-                     
+// bas 5
+
+
+
+    
+
+    
+
+
+
