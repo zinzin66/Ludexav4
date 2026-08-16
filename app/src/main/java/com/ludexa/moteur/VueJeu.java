@@ -425,7 +425,6 @@ public class VueJeu extends View {
     }
 // bas 2
 
-
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
@@ -484,7 +483,6 @@ public class VueJeu extends View {
             if (!estVisibleEffectif(objet, objets)) continue; 
             if ("zone".equals(objet.type)) continue;
 
-            // --- GESTION DU CLIGNOTEMENT ---
             if (objet.clignotementActif) {
                 long now = System.currentTimeMillis();
                 if (objet.clignotementDureeTotalMs > 0 && now - objet.tempsDebutClignotement > objet.clignotementDureeTotalMs) {
@@ -498,9 +496,7 @@ public class VueJeu extends View {
                 objet.etatVisibleClignotement = true;
             }
 
-            if (!objet.etatVisibleClignotement) {
-                continue; // On saute le rendu de cet objet (il clignote et est "éteint" sur cette frame)
-            }
+            if (!objet.etatVisibleClignotement) continue;
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
                 List<String> frames = objet.animations.get(objet.animationActive);
@@ -530,7 +526,6 @@ public class VueJeu extends View {
             peintureTexte.setColor(objet.couleur);
             peintureTexte.setAlpha(alphaInt);
 
-            // --- GESTION DU FILTRE COULEUR ---
             if (!"Aucun".equals(objet.filtreCouleur)) {
                 android.graphics.ColorMatrix cm = new android.graphics.ColorMatrix();
                 if ("Noir et Blanc".equals(objet.filtreCouleur)) {
@@ -557,7 +552,6 @@ public class VueJeu extends View {
             canvas.save();
             canvas.concat(absMatrix);
 
-            // --- GESTION DE LA SURBRILLANCE (Dessinée sous l'objet ou autour) ---
             if (objet.surbrillanceActive) {
                 Paint pSurbrillance = new Paint();
                 pSurbrillance.setStyle(Paint.Style.STROKE);
@@ -693,6 +687,52 @@ public class VueJeu extends View {
                 }
             }
         }
+
+        // --- NOUVEAUTÉ IA : GESTION DES MOUVEMENTS CONTINUS ---
+        if (sceneActive != null && sceneActive.objets != null) {
+            for (ObjetBase obj : sceneActive.objets) {
+                
+                // 1. Avancée continue (basée sur l'angle actuel)
+                if (obj.vitesseAvanceContinue != 0f) {
+                    double rad = Math.toRadians(obj.rotation);
+                    obj.x += (float)(Math.cos(rad) * obj.vitesseAvanceContinue);
+                    obj.y += (float)(Math.sin(rad) * obj.vitesseAvanceContinue);
+                }
+                
+                // 2. Poursuite ou Fuite autonome
+                if (obj.idCiblePoursuite != null && obj.vitessePoursuite != 0f) {
+                    ObjetBase cible = getObjetById(obj.idCiblePoursuite, sceneActive.objets);
+                    if (cible != null) {
+                        float centreAX = obj.x + (obj.largeur / 2f);
+                        float centreAY = obj.y + (obj.hauteur / 2f);
+                        float centreBX = cible.x + (cible.largeur / 2f);
+                        float centreBY = cible.y + (cible.hauteur / 2f);
+                        
+                        float dx = centreBX - centreAX;
+                        float dy = centreBY - centreAY;
+                        double dist = Math.hypot(dx, dy);
+                        
+                        if (dist > 0) {
+                            float moveX = (float) ((dx / dist) * obj.vitessePoursuite);
+                            float moveY = (float) ((dy / dist) * obj.vitessePoursuite);
+                            
+                            if (obj.fuiteActive) {
+                                obj.x -= moveX;
+                                obj.y -= moveY;
+                                // Orienter l'objet pour qu'il tourne le dos à la menace
+                                obj.rotation = (float) Math.toDegrees(Math.atan2(-dy, -dx));
+                            } else {
+                                obj.x += moveX;
+                                obj.y += moveY;
+                                // Orienter l'objet pour qu'il regarde sa proie
+                                obj.rotation = (float) Math.toDegrees(Math.atan2(dy, dx));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // ------------------------------------------------------
 
         if (this.moteurPhysique != null && sceneActive != null && sceneActive.objets != null) {
             List<ObjetBase> chocs = this.moteurPhysique.mettreAJour(sceneActive.objets);
