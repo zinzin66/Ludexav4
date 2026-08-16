@@ -65,6 +65,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Fermer HUD", "Scène & HUD", "NoeudActionFermerHUD"));
         REGISTRE.add(new InfoNoeud("Toast", "Scène & HUD", "NoeudActionToast"));
         REGISTRE.add(new InfoNoeud("Fixer Caméra", "Scène & HUD", "NoeudActionFixerCamera"));
+        REGISTRE.add(new InfoNoeud("Tremblement de Caméra", "Scène & HUD", "NoeudActionTremblement"));
+        REGISTRE.add(new InfoNoeud("Élasticité Caméra", "Scène & HUD", "NoeudActionParametresCamera"));
         REGISTRE.add(new InfoNoeud("Afficher/Masquer Joystick", "Scène & HUD", "NoeudActionJoystick"));
         REGISTRE.add(new InfoNoeud("Afficher/Masquer Action", "Scène & HUD", "NoeudActionBoutonAction"));
         REGISTRE.add(new InfoNoeud("Vibration", "Scène & HUD", "NoeudActionVibration"));
