@@ -38,7 +38,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
         REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction"));
 
-        // MOUVEMENTS & IA (NOUVEAU)
+        // MOUVEMENTS & IA
         REGISTRE.add(new InfoNoeud("Avancer en continu", "Mouvements & IA", "NoeudActionAvancerContinu"));
         REGISTRE.add(new InfoNoeud("Poursuivre un objet", "Mouvements & IA", "NoeudActionPoursuivre"));
         REGISTRE.add(new InfoNoeud("Fuir un objet", "Mouvements & IA", "NoeudActionFuir"));
@@ -52,6 +52,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique & Conditions", "NoeudConditionSiObjetToucheZone"));
         REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique & Conditions", "NoeudConditionSiObjetVisible"));
+        REGISTRE.add(new InfoNoeud("Si Objet a le Tag", "Logique & Conditions", "NoeudConditionTag"));
         REGISTRE.add(new InfoNoeud("Condition Double (ET/OU)", "Logique & Conditions", "NoeudConditionDouble"));
         REGISTRE.add(new InfoNoeud("Appeler Fonction", "Logique & Conditions", "NoeudAppelFonction"));
         REGISTRE.add(new InfoNoeud("Appeler Événement Local", "Logique & Conditions", "NoeudActionAppelerEvent"));
@@ -79,7 +80,9 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Rotation", "Apparence & Objets", "NoeudActionRotation"));
         REGISTRE.add(new InfoNoeud("Définir la taille (Scale)", "Apparence & Objets", "NoeudActionModifierTaille"));
         REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
-        REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
+        REGISTRE.add(new InfoNoeud("Générer un clone (Spawner)", "Apparence & Objets", "NoeudActionSpawner"));
+        REGISTRE.add(new InfoNoeud("Définir le Tag", "Apparence & Objets", "NoeudActionDefinirTag"));
+        REGISTRE.add(new InfoNoeud("Détruire par Tag", "Apparence & Objets", "NoeudActionDetruireParTag"));
         REGISTRE.add(new InfoNoeud("Filtre Couleur", "Apparence & Objets", "NoeudActionFiltre"));
         REGISTRE.add(new InfoNoeud("Clignotement (Blink)", "Apparence & Objets", "NoeudActionClignotement"));
         REGISTRE.add(new InfoNoeud("Surbrillance (Glow)", "Apparence & Objets", "NoeudActionSurbrillance"));
