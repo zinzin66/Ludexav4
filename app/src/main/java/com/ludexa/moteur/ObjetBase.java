@@ -71,6 +71,7 @@ public class ObjetBase {
     public boolean estStatique = true;
     public float vitesseY = 0f;
     public float rebond = 0.4f;
+    public float graviteScale = 1.0f;
 
     public HashMap<String, List<String>> animations = new HashMap<>();
     public String animationActive = null;
@@ -146,6 +147,7 @@ public class ObjetBase {
         copie.estStatique = this.estStatique;
         copie.vitesseY = this.vitesseY;
         copie.rebond = this.rebond;
+        copie.graviteScale = this.graviteScale;
         
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
@@ -186,7 +188,3 @@ public class ObjetBase {
     }
 }
 // bas 1
-
-
-
-
