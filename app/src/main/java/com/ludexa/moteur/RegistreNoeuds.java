@@ -38,6 +38,10 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
         REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction"));
 
+        // LOGIQUE SPATIALE
+        REGISTRE.add(new InfoNoeud("Distance entre A et B", "Logique Spatiale", "NoeudConditionDistance"));
+        REGISTRE.add(new InfoNoeud("Orienter vers (Look At)", "Logique Spatiale", "NoeudActionOrienterVers"));
+
         // LOGIQUE & CONDITIONS
         REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique & Conditions", "NoeudConditionSiObjetToucheZone"));
@@ -67,11 +71,9 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
         REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
         REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
-        // --- Nouveautés LOT 2 ---
         REGISTRE.add(new InfoNoeud("Filtre Couleur", "Apparence & Objets", "NoeudActionFiltre"));
         REGISTRE.add(new InfoNoeud("Clignotement (Blink)", "Apparence & Objets", "NoeudActionClignotement"));
         REGISTRE.add(new InfoNoeud("Surbrillance (Glow)", "Apparence & Objets", "NoeudActionSurbrillance"));
-        // -------------------------
         
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud("Modifier Texte", "Textes & Dialogues", "NoeudActionModifierTexte"));
@@ -85,6 +87,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Ajouter à l'inventaire", "Variables & Inventaire", "NoeudActionAjouterInventaire"));
         REGISTRE.add(new InfoNoeud("Retirer de l'inventaire", "Variables & Inventaire", "NoeudActionRetirerInventaire"));
         REGISTRE.add(new InfoNoeud("Si dans l'inventaire", "Variables & Inventaire", "NoeudConditionSiDansInventaire"));
+        REGISTRE.add(new InfoNoeud("Combinaison d'Objets", "Variables & Inventaire", "NoeudActionCombinaison"));
+        REGISTRE.add(new InfoNoeud("Point de Sauvegarde", "Variables & Inventaire", "NoeudActionCheckpoint"));
 
         // TEMPS
         REGISTRE.add(new InfoNoeud("Timer", "Temps", "NoeudActionTimer"));
