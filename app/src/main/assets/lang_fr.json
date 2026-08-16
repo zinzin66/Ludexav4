@@ -30,6 +30,8 @@
   "langue_fr": "Français",
   "langue_en": "English",
   "langue_ru": "Русский",
+  "langue_es": "Español",
+  "langue_pt": "Português"
   "demarrage_creer_projet": "Créer un projet",
   "demarrage_ouvrir_projet": "Ouvrir un projet téléchargé",
   "toast_import_a_venir": "Import de projet : à venir",
@@ -395,6 +397,7 @@
   "noeud_appliquer_impulsion": "Appliquer Impulsion (Saut)",
   "noeud_changer_rebond": "Changer Rebond",
   "noeud_si_objet_en_chute": "Si Objet en Chute"
+  
   
 
   
