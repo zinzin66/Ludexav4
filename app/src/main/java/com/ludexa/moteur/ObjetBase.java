@@ -49,6 +49,9 @@ public class ObjetBase {
     public float vitessePoursuite = 0f;
     public boolean fuiteActive = false;
     
+    public float intentionDeplacementX = 0f;
+    public float intentionDeplacementY = 0f;
+    
     // --- NOUVEAUTÉ : GESTION DE MASSE ---
     public String tag = ""; // Permet de regrouper les objets (ex: "Ennemi", "Projectile")
     // ------------------------------------
@@ -130,6 +133,9 @@ public class ObjetBase {
         copie.vitessePoursuite = this.vitessePoursuite;
         copie.fuiteActive = this.fuiteActive;
         
+        copie.intentionDeplacementX = this.intentionDeplacementX;
+        copie.intentionDeplacementY = this.intentionDeplacementY;
+        
         copie.tag = this.tag; // Copie du Tag
 
         copie.type = this.type;
@@ -188,3 +194,7 @@ public class ObjetBase {
     }
 }
 // bas 1
+
+
+
+
