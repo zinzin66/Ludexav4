@@ -33,18 +33,25 @@ public class ObjetBase {
     
     public String cibleJoystickId = null;
     
-    // --- NOUVEAUTÉS LOT 2 : EFFETS VISUELS ---
-    public String filtreCouleur = "Aucun"; // "Aucun", "Sepia", "Noir et Blanc", "Inversion"
+    public String filtreCouleur = "Aucun";
     
     public boolean clignotementActif = false;
     public long clignotementVitesseMs = 500;
     public long clignotementDureeTotalMs = 0;
     public long tempsDebutClignotement = 0;
-    public transient boolean etatVisibleClignotement = true; // Pas besoin de sauvegarder ça
+    public transient boolean etatVisibleClignotement = true; 
     
     public boolean surbrillanceActive = false;
     public String couleurSurbrillance = "Jaune";
-    // ------------------------------------------
+    
+    public float vitesseAvanceContinue = 0f;
+    public String idCiblePoursuite = null;
+    public float vitessePoursuite = 0f;
+    public boolean fuiteActive = false;
+    
+    // --- NOUVEAUTÉ : GESTION DE MASSE ---
+    public String tag = ""; // Permet de regrouper les objets (ex: "Ennemi", "Projectile")
+    // ------------------------------------
 
     public String type = "carre"; 
     public boolean afficherFondColore = true;
@@ -108,7 +115,6 @@ public class ObjetBase {
         copie.estDesactive = this.estDesactive;
         copie.cibleJoystickId = this.cibleJoystickId;
         
-        // --- Copie LOT 2 ---
         copie.filtreCouleur = this.filtreCouleur;
         copie.clignotementActif = this.clignotementActif;
         copie.clignotementVitesseMs = this.clignotementVitesseMs;
@@ -117,7 +123,13 @@ public class ObjetBase {
         copie.etatVisibleClignotement = this.etatVisibleClignotement;
         copie.surbrillanceActive = this.surbrillanceActive;
         copie.couleurSurbrillance = this.couleurSurbrillance;
-        // -------------------
+        
+        copie.vitesseAvanceContinue = this.vitesseAvanceContinue;
+        copie.idCiblePoursuite = this.idCiblePoursuite;
+        copie.vitessePoursuite = this.vitessePoursuite;
+        copie.fuiteActive = this.fuiteActive;
+        
+        copie.tag = this.tag; // Copie du Tag
 
         copie.type = this.type;
         copie.afficherFondColore = this.afficherFondColore;
@@ -174,3 +186,7 @@ public class ObjetBase {
     }
 }
 // bas 1
+
+
+
+

@@ -16,6 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 public class VueJeu extends View {
+    
+    // --- NOUVEAUTÉS CAMÉRA ---
+    public static float tremblementIntensite = 0f;
+    public static long tremblementFin = 0;
+    public static float vitesseSuiviCamera = 0.1f;
+    // -------------------------
+
     private Scene sceneActive;
     private Scene sceneHudActive;
     private Paint peintureObjet;
@@ -424,8 +431,6 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-
-
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
@@ -484,7 +489,6 @@ public class VueJeu extends View {
             if (!estVisibleEffectif(objet, objets)) continue; 
             if ("zone".equals(objet.type)) continue;
 
-            // --- GESTION DU CLIGNOTEMENT ---
             if (objet.clignotementActif) {
                 long now = System.currentTimeMillis();
                 if (objet.clignotementDureeTotalMs > 0 && now - objet.tempsDebutClignotement > objet.clignotementDureeTotalMs) {
@@ -498,9 +502,7 @@ public class VueJeu extends View {
                 objet.etatVisibleClignotement = true;
             }
 
-            if (!objet.etatVisibleClignotement) {
-                continue; // On saute le rendu de cet objet (il clignote et est "éteint" sur cette frame)
-            }
+            if (!objet.etatVisibleClignotement) continue;
             
             if (objet.animationEnCours && objet.animationActive != null && objet.animations.containsKey(objet.animationActive)) {
                 List<String> frames = objet.animations.get(objet.animationActive);
@@ -530,7 +532,6 @@ public class VueJeu extends View {
             peintureTexte.setColor(objet.couleur);
             peintureTexte.setAlpha(alphaInt);
 
-            // --- GESTION DU FILTRE COULEUR ---
             if (!"Aucun".equals(objet.filtreCouleur)) {
                 android.graphics.ColorMatrix cm = new android.graphics.ColorMatrix();
                 if ("Noir et Blanc".equals(objet.filtreCouleur)) {
@@ -557,7 +558,6 @@ public class VueJeu extends View {
             canvas.save();
             canvas.concat(absMatrix);
 
-            // --- GESTION DE LA SURBRILLANCE (Dessinée sous l'objet ou autour) ---
             if (objet.surbrillanceActive) {
                 Paint pSurbrillance = new Paint();
                 pSurbrillance.setStyle(Paint.Style.STROKE);
@@ -681,7 +681,6 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        // --- MOUVEMENT FLUIDE AUTOMATIQUE DU JOYSTICK ---
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
             ObjetBase joystickObj = trouverObjetParType("joystick");
             if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
@@ -690,6 +689,46 @@ public class VueJeu extends View {
                     float vitesseDefaut = 5f; 
                     joueurCible.x += GestionnaireControles.joyDirX * vitesseDefaut;
                     joueurCible.y += GestionnaireControles.joyDirY * vitesseDefaut;
+                }
+            }
+        }
+
+        if (sceneActive != null && sceneActive.objets != null) {
+            for (ObjetBase obj : sceneActive.objets) {
+                
+                if (obj.vitesseAvanceContinue != 0f) {
+                    double rad = Math.toRadians(obj.rotation);
+                    obj.x += (float)(Math.cos(rad) * obj.vitesseAvanceContinue);
+                    obj.y += (float)(Math.sin(rad) * obj.vitesseAvanceContinue);
+                }
+                
+                if (obj.idCiblePoursuite != null && obj.vitessePoursuite != 0f) {
+                    ObjetBase cible = getObjetById(obj.idCiblePoursuite, sceneActive.objets);
+                    if (cible != null) {
+                        float centreAX = obj.x + (obj.largeur / 2f);
+                        float centreAY = obj.y + (obj.hauteur / 2f);
+                        float centreBX = cible.x + (cible.largeur / 2f);
+                        float centreBY = cible.y + (cible.hauteur / 2f);
+                        
+                        float dx = centreBX - centreAX;
+                        float dy = centreBY - centreAY;
+                        double dist = Math.hypot(dx, dy);
+                        
+                        if (dist > 0) {
+                            float moveX = (float) ((dx / dist) * obj.vitessePoursuite);
+                            float moveY = (float) ((dy / dist) * obj.vitessePoursuite);
+                            
+                            if (obj.fuiteActive) {
+                                obj.x -= moveX;
+                                obj.y -= moveY;
+                                obj.rotation = (float) Math.toDegrees(Math.atan2(-dy, -dx));
+                            } else {
+                                obj.x += moveX;
+                                obj.y += moveY;
+                                obj.rotation = (float) Math.toDegrees(Math.atan2(dy, dx));
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -725,15 +764,26 @@ public class VueJeu extends View {
             if (cible != null) {
                 float cibleCamX = cible.x + (cible.largeur / 2f) - (ConfigurationJeu.LARGEUR_JEU / 2f);
                 float cibleCamY = cible.y + (cible.hauteur / 2f) - (ConfigurationJeu.HAUTEUR_JEU / 2f);
-                GestionnaireControles.cameraX += (cibleCamX - GestionnaireControles.cameraX) * 0.1f; 
-                GestionnaireControles.cameraY += (cibleCamY - GestionnaireControles.cameraY) * 0.1f; 
+                
+                GestionnaireControles.cameraX += (cibleCamX - GestionnaireControles.cameraX) * vitesseSuiviCamera; 
+                GestionnaireControles.cameraY += (cibleCamY - GestionnaireControles.cameraY) * vitesseSuiviCamera; 
+                
                 GestionnaireControles.cameraX = Math.max(GestionnaireControles.limiteMinX, Math.min(GestionnaireControles.cameraX, GestionnaireControles.limiteMaxX - ConfigurationJeu.LARGEUR_JEU));
                 GestionnaireControles.cameraY = Math.max(GestionnaireControles.limiteMinY, Math.min(GestionnaireControles.cameraY, GestionnaireControles.limiteMaxY - ConfigurationJeu.HAUTEUR_JEU));
             }
         }
 
+        // --- GESTION TREMBLEMENT ---
+        float shakeX = 0f;
+        float shakeY = 0f;
+        if (System.currentTimeMillis() < tremblementFin) {
+            shakeX = (float) ((Math.random() - 0.5) * 2.0 * tremblementIntensite);
+            shakeY = (float) ((Math.random() - 0.5) * 2.0 * tremblementIntensite);
+        }
+
         canvas.save();
-        canvas.translate(-GestionnaireControles.cameraX, -GestionnaireControles.cameraY);
+        // Application du décalage (Tremblement) sur le placement de la Caméra
+        canvas.translate(-GestionnaireControles.cameraX + shakeX, -GestionnaireControles.cameraY + shakeY);
         if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false);
         canvas.restore(); 
 
@@ -741,3 +791,4 @@ public class VueJeu extends View {
     }
 }
 // bas 3
+

@@ -38,6 +38,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Événement Local", "Événements", "NoeudEventPersonnalise"));
         REGISTRE.add(new InfoNoeud("Au Clic Action (Aventure)", "Événements", "NoeudEventBoutonAction"));
 
+        // MOUVEMENTS & IA
+        REGISTRE.add(new InfoNoeud("Avancer en continu", "Mouvements & IA", "NoeudActionAvancerContinu"));
+        REGISTRE.add(new InfoNoeud("Poursuivre un objet", "Mouvements & IA", "NoeudActionPoursuivre"));
+        REGISTRE.add(new InfoNoeud("Fuir un objet", "Mouvements & IA", "NoeudActionFuir"));
+        REGISTRE.add(new InfoNoeud("Stopper les mouvements", "Mouvements & IA", "NoeudActionStopperMouvements"));
+
         // LOGIQUE SPATIALE
         REGISTRE.add(new InfoNoeud("Distance entre A et B", "Logique Spatiale", "NoeudConditionDistance"));
         REGISTRE.add(new InfoNoeud("Orienter vers (Look At)", "Logique Spatiale", "NoeudActionOrienterVers"));
@@ -46,6 +52,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Condition", "Logique & Conditions", "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud("Si objet A touche zone B", "Logique & Conditions", "NoeudConditionSiObjetToucheZone"));
         REGISTRE.add(new InfoNoeud("Si Objet Visible", "Logique & Conditions", "NoeudConditionSiObjetVisible"));
+        REGISTRE.add(new InfoNoeud("Si Objet a le Tag", "Logique & Conditions", "NoeudConditionTag"));
         REGISTRE.add(new InfoNoeud("Condition Double (ET/OU)", "Logique & Conditions", "NoeudConditionDouble"));
         REGISTRE.add(new InfoNoeud("Appeler Fonction", "Logique & Conditions", "NoeudAppelFonction"));
         REGISTRE.add(new InfoNoeud("Appeler Événement Local", "Logique & Conditions", "NoeudActionAppelerEvent"));
@@ -53,10 +60,13 @@ public class RegistreNoeuds {
         
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud("Changer de Scène", "Scène & HUD", "NoeudActionChangerScene"));
+        REGISTRE.add(new InfoNoeud("Recharger Scène actuelle", "Scène & HUD", "NoeudActionRechargerScene"));
         REGISTRE.add(new InfoNoeud("Ouvrir HUD", "Scène & HUD", "NoeudActionOuvrirHUD"));
         REGISTRE.add(new InfoNoeud("Fermer HUD", "Scène & HUD", "NoeudActionFermerHUD"));
         REGISTRE.add(new InfoNoeud("Toast", "Scène & HUD", "NoeudActionToast"));
         REGISTRE.add(new InfoNoeud("Fixer Caméra", "Scène & HUD", "NoeudActionFixerCamera"));
+        REGISTRE.add(new InfoNoeud("Tremblement de Caméra", "Scène & HUD", "NoeudActionTremblement"));
+        REGISTRE.add(new InfoNoeud("Élasticité Caméra", "Scène & HUD", "NoeudActionParametresCamera"));
         REGISTRE.add(new InfoNoeud("Afficher/Masquer Joystick", "Scène & HUD", "NoeudActionJoystick"));
         REGISTRE.add(new InfoNoeud("Afficher/Masquer Action", "Scène & HUD", "NoeudActionBoutonAction"));
         REGISTRE.add(new InfoNoeud("Vibration", "Scène & HUD", "NoeudActionVibration"));
@@ -69,8 +79,12 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Modifier Verrouillage", "Apparence & Objets", "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud("Changer Z-Order", "Apparence & Objets", "NoeudActionChangerZOrder"));
         REGISTRE.add(new InfoNoeud("Changer Image", "Apparence & Objets", "NoeudActionChangerImage"));
+        REGISTRE.add(new InfoNoeud("Rotation", "Apparence & Objets", "NoeudActionRotation"));
+        REGISTRE.add(new InfoNoeud("Définir la taille (Scale)", "Apparence & Objets", "NoeudActionModifierTaille"));
         REGISTRE.add(new InfoNoeud("Détruire Objet", "Apparence & Objets", "NoeudActionDetruireObjet"));
-        REGISTRE.add(new InfoNoeud("Créer Objet (Cloner)", "Apparence & Objets", "NoeudActionCreerObjet"));
+        REGISTRE.add(new InfoNoeud("Générer un clone (Spawner)", "Apparence & Objets", "NoeudActionSpawner"));
+        REGISTRE.add(new InfoNoeud("Définir le Tag", "Apparence & Objets", "NoeudActionDefinirTag"));
+        REGISTRE.add(new InfoNoeud("Détruire par Tag", "Apparence & Objets", "NoeudActionDetruireParTag"));
         REGISTRE.add(new InfoNoeud("Filtre Couleur", "Apparence & Objets", "NoeudActionFiltre"));
         REGISTRE.add(new InfoNoeud("Clignotement (Blink)", "Apparence & Objets", "NoeudActionClignotement"));
         REGISTRE.add(new InfoNoeud("Surbrillance (Glow)", "Apparence & Objets", "NoeudActionSurbrillance"));
@@ -81,6 +95,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Textes & Dialogues", "NoeudActionAfficherDialogue"));
 
         // VARIABLES & INVENTAIRE
+        REGISTRE.add(new InfoNoeud("Opération Mathématique", "Variables & Inventaire", "NoeudActionOperationMath"));
+        REGISTRE.add(new InfoNoeud("Limiter Valeur (Clamp)", "Variables & Inventaire", "NoeudActionClampVariable"));
         REGISTRE.add(new InfoNoeud("Modifier Variable", "Variables & Inventaire", "NoeudActionModifierVariable"));
         REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Variables & Inventaire", "NoeudActionAjouterVariable"));
         REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Variables & Inventaire", "NoeudActionNombreAleatoire"));
@@ -93,6 +109,7 @@ public class RegistreNoeuds {
         // TEMPS
         REGISTRE.add(new InfoNoeud("Timer", "Temps", "NoeudActionTimer"));
         REGISTRE.add(new InfoNoeud("Chrono", "Temps", "NoeudActionChrono"));
+        REGISTRE.add(new InfoNoeud("Attendre (ms)", "Temps", "NoeudActionAttendre"));
 
         // AUDIO
         REGISTRE.add(new InfoNoeud("Jouer un Son", "Audio", "NoeudActionJouerSon"));
