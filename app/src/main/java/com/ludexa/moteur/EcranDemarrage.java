@@ -192,14 +192,22 @@ public class EcranDemarrage extends Activity {
     }
 
     private void afficherDialogueLangue() {
-        String[] langues = {Traducteur.get("langue_fr"), Traducteur.get("langue_en"), Traducteur.get("langue_ru")};
+        String[] langues = {
+            Traducteur.get("langue_fr"), 
+            Traducteur.get("langue_en"), 
+            Traducteur.get("langue_es"), 
+            Traducteur.get("langue_pt"), 
+            Traducteur.get("langue_ru")
+        };
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(Traducteur.get("demarrage_choisir_langue"));
         builder.setItems(langues, (dialog, which) -> {
             switch (which) {
                 case 0: langueCourante = "fr"; break;
                 case 1: langueCourante = "en"; break;
-                case 2: langueCourante = "ru"; break;
+                case 2: langueCourante = "es"; break;
+                case 3: langueCourante = "pt"; break;
+                case 4: langueCourante = "ru"; break;
             }
             Traducteur.initialiser(this, langueCourante);
             RegistreNoeuds.initialiser(); 
@@ -208,6 +216,7 @@ public class EcranDemarrage extends Activity {
         builder.show();
     }
 // bas 1
+            
 
 // haut 2
     // ---------------------------------------------------------------- colonne droite
