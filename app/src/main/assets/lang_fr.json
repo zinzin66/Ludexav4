@@ -31,7 +31,7 @@
   "langue_en": "English",
   "langue_ru": "Русский",
   "langue_es": "Español",
-  "langue_pt": "Português"
+  "langue_pt": "Português",
   "demarrage_creer_projet": "Créer un projet",
   "demarrage_ouvrir_projet": "Ouvrir un projet téléchargé",
   "toast_import_a_venir": "Import de projet : à venir",
@@ -66,8 +66,8 @@
   "dialogue_nouveau_titre": "Nouveau projet",
   "hint_nom_projet": "Nom du projet",
   "bouton_creer": "Créer",
-  "erreur_creation_fichiers": "Erreur lors de la création des fichiers"
-    "anim_gestionnaire_titre": "Gestionnaire Global des Animations",
+  "erreur_creation_fichiers": "Erreur lors de la création des fichiers",
+  "anim_gestionnaire_titre": "Gestionnaire Global des Animations",
   "anim_btn_nouvelle": "+ Nouvelle Animation",
   "anim_selectionner": "Sélectionnez une animation",
   "anim_btn_ajouter_frame": "+ Ajouter Image (Frame)",
@@ -104,7 +104,7 @@
   "resume_expression": "Expression",
   "resume_action": "Action",
   "resume_action_objet": "Action Objet",
-    "insp_titre": "INSPECTEUR",
+  "insp_titre": "INSPECTEUR",
   "insp_info_selection": "Sélectionnez un objet sur la scène pour afficher et modifier ses propriétés.",
   "insp_type": "Type : ",
   "insp_type_inconnu": "Inconnu",
@@ -195,8 +195,7 @@
   "insp_msg_renommer_3": " ?",
   "bouton_oui": "Oui",
   "bouton_non": "Non",
-  
-    "hud_ouvert": "HUD ouvert : ",
+  "hud_ouvert": "HUD ouvert : ",
   "hud_ferme": "HUD fermé",
   "objet_nom_defaut": "Objet",
   "toast_objet_copie": "Objet copié",
@@ -234,7 +233,7 @@
   "toast_script_copie": "Script copié dans le presse-papier !",
   "bouton_quitter": "Quitter",
   "code_presse_papier": "Code Yop2D",
-    "panneau_noeuds_titre": "NŒUDS",
+  "panneau_noeuds_titre": "NŒUDS",
   "toast_glisser_noeud": "Maintenez appuyé pour glisser ce nœud",
   "panneau_ress_titre": "RESSOURCES",
   "panneau_ress_scenes": "Scènes",
@@ -305,7 +304,7 @@
   "popup_supprimer_fonction": "Supprimer la fonction",
   "msg_suppr_fonction_1": "Voulez-vous vraiment supprimer la fonction '",
   "msg_suppr_fonction_2": "' ?",
-    "cat_evenements": "Événements",
+  "cat_evenements": "Événements",
   "noeud_au_demarrage": "Au Démarrage",
   "noeud_fin_de_clic": "Fin de Clic",
   "noeud_au_clic_sur_objet": "Au Clic sur Objet",
@@ -397,10 +396,5 @@
   "noeud_appliquer_impulsion": "Appliquer Impulsion (Saut)",
   "noeud_changer_rebond": "Changer Rebond",
   "noeud_si_objet_en_chute": "Si Objet en Chute"
-  
-  
-
-  
-  
 }
 // bas 1
