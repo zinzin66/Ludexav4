@@ -21,8 +21,6 @@ public class RegistreNoeuds {
 
     public static final List<InfoNoeud> REGISTRE = new ArrayList<>();
 
-    // La méthode d'initialisation doit maintenant être appelée après le chargement du Traducteur,
-    // on remplace donc le bloc "static {}" par une méthode "initialiser()" à appeler au démarrage.
     public static void initialiser() {
         REGISTRE.clear();
         
@@ -78,6 +76,7 @@ public class RegistreNoeuds {
 
         // APPARENCE & OBJETS
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_deplacer_objet"), Traducteur.get("cat_apparence_objets"), "NoeudActionDeplacer"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_pousser_objet"), Traducteur.get("cat_apparence_objets"), "NoeudActionPousser"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_couleur"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierCouleur"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_visibilite"), Traducteur.get("cat_apparence_objets"), "NoeudActionVisibilite"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_deplacable"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierDeplacable"));
@@ -147,7 +146,3 @@ public class RegistreNoeuds {
     }
 }
 // bas 2
-
-
-
-    
