@@ -16,14 +16,17 @@ public abstract class NoeudBase {
     public static final String TYPE_CHOIX_LISTE = "TYPE_CHOIX_LISTE";
     public static final String TYPE_CHOIX_IMAGE = "TYPE_CHOIX_IMAGE";
     public static final String TYPE_CHOIX_DIALOGUE = "TYPE_CHOIX_DIALOGUE";
-    // NOUVEAU : Pour le dossier Sons
     public static final String TYPE_CHOIX_SON = "TYPE_CHOIX_SON";
+    public static final String TYPE_CHOIX_FONCTION = "TYPE_CHOIX_FONCTION";
 
     public String id;
     public String nom;
     public String categorie;
     public ArrayList<Port> portsEntree;
     public ArrayList<Port> portsSortie;
+    
+    // NOUVEAU : État de repli visuel
+    public boolean estReplie = false;
 
     public NoeudBase(String id, String nom, String categorie) {
         this.id = id;
@@ -101,9 +104,3 @@ public abstract class NoeudBase {
     }
 }
 // bas 1
-
-
-
-
-
-

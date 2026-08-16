@@ -46,18 +46,20 @@ public class InspecteurProprietes extends LinearLayout {
     private CheckBox cbFondColore;
     private CheckBox cbRamassable, cbZoneDeClic, cbDeplacable;
 
-    // Bloc pour l'Objet Bouton
     private LinearLayout blocBouton;
     private Button btnChargerImagePresse, btnSupprimerImagePresse;
     private Button btnChargerImageDesactive, btnSupprimerImageDesactive;
     private CheckBox cbDesactive;
 
-    // NOUVEAU : Bloc Physique et Environnement
+    private LinearLayout blocJoystick;
+    private Button btnCibleJoystick;
+
     private LinearLayout blocPhysique;
     private CheckBox cbEstPhysique;
     private Button btnTogglePhysique;
     private LinearLayout conteneurPhysiqueDetails;
     private EditText champRebond;
+    private EditText champGravite;
 
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
@@ -180,7 +182,7 @@ public class InspecteurProprietes extends LinearLayout {
         enteteInspecteur.setGravity(Gravity.CENTER_VERTICAL);
 
         titreInspecteur = new TextView(context);
-        titreInspecteur.setText("INSPECTEUR");
+        titreInspecteur.setText(Traducteur.get("insp_titre"));
         titreInspecteur.setTextSize(17f);
         titreInspecteur.setLetterSpacing(0.08f);
         titreInspecteur.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -209,7 +211,7 @@ public class InspecteurProprietes extends LinearLayout {
         contenuInspecteur.setPadding(dp(10), dp(8), dp(10), dp(16));
 
         texteInfo = new TextView(context);
-        texteInfo.setText("Sélectionnez un objet sur la scène pour afficher et modifier ses propriétés.");
+        texteInfo.setText(Traducteur.get("insp_info_selection"));
         texteInfo.setPadding(dp(12), dp(14), dp(12), dp(14));
         texteInfo.setTextSize(13f);
         texteInfo.setTextColor(Palette.texteNormal);
@@ -229,7 +231,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(valeurType);
 
         TextView labelNom = new TextView(context);
-        labelNom.setText("Nom");
+        labelNom.setText(Traducteur.get("insp_label_nom"));
         styliserLabel(labelNom);
         blocProprietes.addView(labelNom);
 
@@ -244,7 +246,7 @@ public class InspecteurProprietes extends LinearLayout {
         layoutNom.addView(champNom);
 
         btnValiderNom = new Button(context);
-        btnValiderNom.setText("OK");
+        btnValiderNom.setText(Traducteur.get("bouton_ok"));
         styliserBouton(btnValiderNom);
         btnValiderNom.setLayoutParams(new LinearLayout.LayoutParams(dp(64), LinearLayout.LayoutParams.WRAP_CONTENT));
         layoutNom.addView(btnValiderNom);
@@ -252,7 +254,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(layoutNom);
 
         TextView labelPos = new TextView(context);
-        labelPos.setText("Position X / Y");
+        labelPos.setText(Traducteur.get("insp_label_pos"));
         styliserLabel(labelPos);
         blocProprietes.addView(labelPos);
 
@@ -260,12 +262,12 @@ public class InspecteurProprietes extends LinearLayout {
         layoutPos.setOrientation(LinearLayout.HORIZONTAL);
 
         champX = new EditText(context);
-        champX.setHint("X");
+        champX.setHint(Traducteur.get("insp_hint_x"));
         champX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         styliserChampFlexible(champX);
 
         champY = new EditText(context);
-        champY.setHint("Y");
+        champY.setHint(Traducteur.get("insp_hint_y"));
         champY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         styliserChampFlexible(champY);
 
@@ -273,10 +275,8 @@ public class InspecteurProprietes extends LinearLayout {
         layoutPos.addView(champY);
         blocProprietes.addView(layoutPos);
 
-        View.OnClickListener toastListener = v -> Toast.makeText(context, "Réglage bientôt disponible", Toast.LENGTH_SHORT).show();
-
         TextView labelDim = new TextView(context);
-        labelDim.setText("Largeur / Hauteur");
+        labelDim.setText(Traducteur.get("insp_label_dim"));
         styliserLabel(labelDim);
         blocProprietes.addView(labelDim);
 
@@ -284,12 +284,12 @@ public class InspecteurProprietes extends LinearLayout {
         layoutDim.setOrientation(LinearLayout.HORIZONTAL);
 
         champLargeur = new EditText(context);
-        champLargeur.setHint("Largeur");
+        champLargeur.setHint(Traducteur.get("insp_hint_largeur"));
         champLargeur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         styliserChampFlexible(champLargeur);
 
         champHauteur = new EditText(context);
-        champHauteur.setHint("Hauteur");
+        champHauteur.setHint(Traducteur.get("insp_hint_hauteur"));
         champHauteur.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         styliserChampFlexible(champHauteur);
 
@@ -298,7 +298,7 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(layoutDim);
 
         TextView labelScale = new TextView(context);
-        labelScale.setText("Echelle X / Y (Scale)");
+        labelScale.setText(Traducteur.get("insp_label_scale"));
         styliserLabel(labelScale);
         blocProprietes.addView(labelScale);
 
@@ -306,12 +306,12 @@ public class InspecteurProprietes extends LinearLayout {
         layoutScale.setOrientation(LinearLayout.HORIZONTAL);
 
         champScaleX = new EditText(context);
-        champScaleX.setHint("Scale X");
+        champScaleX.setHint(Traducteur.get("insp_hint_scalex"));
         champScaleX.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         styliserChampFlexible(champScaleX);
 
         champScaleY = new EditText(context);
-        champScaleY.setHint("Scale Y");
+        champScaleY.setHint(Traducteur.get("insp_hint_scaley"));
         champScaleY.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         styliserChampFlexible(champScaleY);
 
@@ -320,56 +320,98 @@ public class InspecteurProprietes extends LinearLayout {
         blocProprietes.addView(layoutScale);
 
         TextView labelRotation = new TextView(context);
-        labelRotation.setText("Rotation");
+        labelRotation.setText(Traducteur.get("insp_label_rotation"));
         styliserLabel(labelRotation);
         blocProprietes.addView(labelRotation);
 
         champRotation = new EditText(context);
-        champRotation.setHint("Rotation (°)");
+        champRotation.setHint(Traducteur.get("insp_hint_rotation"));
         champRotation.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
         styliserChamp(champRotation);
         blocProprietes.addView(champRotation);
 
         btnCouleur = new Button(context);
-        btnCouleur.setText("Couleur : Sélecteur");
+        btnCouleur.setText(Traducteur.get("insp_btn_couleur"));
         styliserBouton(btnCouleur);
         blocProprietes.addView(btnCouleur);
 
+        TextView labelAlpha = new TextView(context);
+        labelAlpha.setText(Traducteur.get("insp_label_alpha"));
+        styliserLabel(labelAlpha);
+        blocProprietes.addView(labelAlpha);
+
         champAlpha = new EditText(context);
-        champAlpha.setHint("Transparence (0-1)");
-        champAlpha.setFocusable(false);
-        champAlpha.setOnClickListener(toastListener);
+        champAlpha.setHint(Traducteur.get("insp_hint_alpha"));
+        champAlpha.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         styliserChamp(champAlpha);
         blocProprietes.addView(champAlpha);
 
         cbVisible = new CheckBox(context);
-        cbVisible.setText("Visible");
+        cbVisible.setText(Traducteur.get("insp_cb_visible"));
         styliserCase(cbVisible);
         blocProprietes.addView(cbVisible);
 
         cbVerrouille = new CheckBox(context);
-        cbVerrouille.setText("Verrouillé (empêche l'édition)");
+        cbVerrouille.setText(Traducteur.get("insp_cb_verrouille"));
         styliserCase(cbVerrouille);
         blocProprietes.addView(cbVerrouille);
 
         TextView labelZOrder = new TextView(context);
-        labelZOrder.setText("Calque (Z-Order)");
+        labelZOrder.setText(Traducteur.get("insp_label_zorder"));
         styliserLabel(labelZOrder);
         blocProprietes.addView(labelZOrder);
 
+        LinearLayout layoutZOrder = new LinearLayout(context);
+        layoutZOrder.setOrientation(LinearLayout.HORIZONTAL);
+        layoutZOrder.setGravity(Gravity.CENTER_VERTICAL);
+
         champZOrder = new EditText(context);
-        champZOrder.setHint("Calque (Z-Order)");
+        champZOrder.setHint(Traducteur.get("insp_label_zorder"));
         champZOrder.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        styliserChamp(champZOrder);
-        blocProprietes.addView(champZOrder);
+        styliserChampFlexible(champZOrder);
+        layoutZOrder.addView(champZOrder);
+
+        Button btnZOrderMoins = new Button(context);
+        btnZOrderMoins.setText("-");
+        styliserBouton(btnZOrderMoins);
+        btnZOrderMoins.setLayoutParams(new LinearLayout.LayoutParams(dp(48), LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        Button btnZOrderPlus = new Button(context);
+        btnZOrderPlus.setText("+");
+        styliserBouton(btnZOrderPlus);
+        btnZOrderPlus.setLayoutParams(new LinearLayout.LayoutParams(dp(48), LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        btnZOrderMoins.setOnClickListener(v -> {
+            if (objetCourant != null) {
+                objetCourant.zOrder--;
+                miseAJourEnCours = true;
+                champZOrder.setText(String.valueOf(objetCourant.zOrder));
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        btnZOrderPlus.setOnClickListener(v -> {
+            if (objetCourant != null) {
+                objetCourant.zOrder++;
+                miseAJourEnCours = true;
+                champZOrder.setText(String.valueOf(objetCourant.zOrder));
+                miseAJourEnCours = false;
+                canvasEditeur.invalidate();
+            }
+        });
+
+        layoutZOrder.addView(btnZOrderMoins);
+        layoutZOrder.addView(btnZOrderPlus);
+        blocProprietes.addView(layoutZOrder);
 
         TextView labelParent = new TextView(context);
-        labelParent.setText("Objet Parent");
+        labelParent.setText(Traducteur.get("insp_label_parent"));
         styliserLabel(labelParent);
         blocProprietes.addView(labelParent);
 
         btnParent = new Button(context);
-        btnParent.setText("Parent : Aucun");
+        btnParent.setText(Traducteur.get("insp_btn_parent_aucun"));
         styliserBouton(btnParent);
         blocProprietes.addView(btnParent);
 
@@ -377,16 +419,16 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant == null) return;
             List<String> noms = new ArrayList<>();
             List<String> ids = new ArrayList<>();
-            noms.add("Aucun");
+            noms.add(Traducteur.get("valeur_aucune"));
             ids.add(null);
             for (ObjetBase o : sceneActive.objets) {
                 if (o != objetCourant) {
-                    noms.add(o.nom != null ? o.nom : "Objet sans nom");
+                    noms.add(o.nom != null ? o.nom : Traducteur.get("insp_objet_sans_nom"));
                     ids.add(o.id);
                 }
             }
             new AlertDialog.Builder(context)
-                .setTitle("Sélectionner un parent")
+                .setTitle(Traducteur.get("insp_titre_select_parent"))
                 .setItems(noms.toArray(new String[0]), (dialog, which) -> {
                     String idChoisi = ids.get(which);
                     if (ObjetBase.verifierBoucleParent(objetCourant.id, idChoisi, sceneActive.objets)) {
@@ -394,7 +436,7 @@ public class InspecteurProprietes extends LinearLayout {
                         canvasEditeur.invalidate();
                         afficherObjet(objetCourant);
                     } else {
-                        Toast.makeText(context, "Erreur : Boucle hiérarchique détectée", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, Traducteur.get("insp_erreur_boucle_parent"), Toast.LENGTH_SHORT).show();
                     }
                 }).show();
         });
@@ -406,18 +448,18 @@ public class InspecteurProprietes extends LinearLayout {
         styliserSection(blocTexte);
 
         TextView sepTexte = new TextView(context);
-        sepTexte.setText("Propriétés Texte");
+        sepTexte.setText(Traducteur.get("insp_sep_texte"));
         styliserSousTitre(sepTexte);
         blocTexte.addView(sepTexte);
 
         champContenu = new EditText(context);
-        champContenu.setHint("Contenu du texte");
+        champContenu.setHint(Traducteur.get("insp_hint_contenu_texte"));
         champContenu.setFocusable(false);
         styliserChamp(champContenu);
         champContenu.setOnClickListener(v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Modifier le texte");
+            builder.setTitle(Traducteur.get("insp_titre_modif_texte"));
             final EditText input = new EditText(context);
             input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
             input.setSingleLine(false);
@@ -426,7 +468,7 @@ public class InspecteurProprietes extends LinearLayout {
             input.setText(objetCourant.contenuTexte);
             styliserChamp(input);
             builder.setView(input);
-            builder.setPositiveButton("Valider", (dialog, which) -> {
+            builder.setPositiveButton(Traducteur.get("bouton_valider"), (dialog, which) -> {
                 String nouveauTexte = input.getText().toString();
                 objetCourant.contenuTexte = nouveauTexte;
                 miseAJourEnCours = true;
@@ -434,24 +476,24 @@ public class InspecteurProprietes extends LinearLayout {
                 miseAJourEnCours = false;
                 canvasEditeur.invalidate();
             });
-            builder.setNegativeButton("Annuler", null);
+            builder.setNegativeButton(Traducteur.get("bouton_annuler"), null);
             builder.show();
         });
         blocTexte.addView(champContenu);
 
         champTaille = new EditText(context);
-        champTaille.setHint("Taille de police");
+        champTaille.setHint(Traducteur.get("insp_hint_taille_police"));
         champTaille.setFocusable(false);
         champTaille.setOnClickListener(v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Taille de police");
+            builder.setTitle(Traducteur.get("insp_titre_taille_police"));
             final EditText input = new EditText(context);
             input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
             input.setText(String.valueOf(objetCourant.tailleFonte));
             styliserChamp(input);
             builder.setView(input);
-            builder.setPositiveButton("Valider", (dialog, which) -> {
+            builder.setPositiveButton(Traducteur.get("bouton_valider"), (dialog, which) -> {
                 try {
                     float nouvelleTaille = Float.parseFloat(input.getText().toString());
                     objetCourant.tailleFonte = nouvelleTaille;
@@ -460,33 +502,33 @@ public class InspecteurProprietes extends LinearLayout {
                     miseAJourEnCours = false;
                     canvasEditeur.invalidate();
                 } catch (NumberFormatException e) {
-                    Toast.makeText(context, "Valeur invalide", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, Traducteur.get("insp_erreur_valeur_invalide"), Toast.LENGTH_SHORT).show();
                 }
             });
-            builder.setNegativeButton("Annuler", null);
+            builder.setNegativeButton(Traducteur.get("bouton_annuler"), null);
             builder.show();
         });
         styliserChamp(champTaille);
         blocTexte.addView(champTaille);
 
         btnCouleurTexte = new Button(context);
-        btnCouleurTexte.setText("Couleur du texte");
+        btnCouleurTexte.setText(Traducteur.get("insp_btn_couleur_texte"));
         styliserBouton(btnCouleurTexte);
         blocTexte.addView(btnCouleurTexte);
 
         btnPolice = new Button(context);
-        btnPolice.setText("Police : Sélecteur");
+        btnPolice.setText(Traducteur.get("insp_btn_police_selecteur"));
         btnPolice.setOnClickListener(v -> {
             if (objetCourant == null) return;
-            if (cheminProjet == null) { Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show(); return; }
+            if (cheminProjet == null) { Toast.makeText(context, Traducteur.get("erreur_chemin_projet"), Toast.LENGTH_SHORT).show(); return; }
             java.io.File dossierPolices = new java.io.File(cheminProjet, "assets_ludexa/Fonts");
             List<String> polices = listerPolicesLocales(dossierPolices, "assets_ludexa/Fonts/");
-            if (polices.isEmpty()) { Toast.makeText(context, "Aucune police trouvée dans les assets", Toast.LENGTH_SHORT).show(); return; }
+            if (polices.isEmpty()) { Toast.makeText(context, Traducteur.get("insp_aucune_police"), Toast.LENGTH_SHORT).show(); return; }
             List<String> options = new ArrayList<>();
-            options.add("Police par défaut");
+            options.add(Traducteur.get("insp_police_defaut"));
             options.addAll(polices);
             new AlertDialog.Builder(context)
-                .setTitle("Sélectionner une police")
+                .setTitle(Traducteur.get("insp_titre_select_police"))
                 .setItems(options.toArray(new String[0]), (dialog, which) -> {
                     if (which == 0) objetCourant.cheminPolice = null;
                     else objetCourant.cheminPolice = options.get(which);
@@ -499,87 +541,132 @@ public class InspecteurProprietes extends LinearLayout {
 
         blocProprietes.addView(blocTexte);
 
-        // --- BLOC IMAGE ---
         blocImage = new LinearLayout(context);
         blocImage.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocImage);
 
         TextView sepImage = new TextView(context);
-        sepImage.setText("Propriétés Image");
+        sepImage.setText(Traducteur.get("insp_sep_image"));
         styliserSousTitre(sepImage);
         blocImage.addView(sepImage);
 
         btnChargerImage = new Button(context);
-        btnChargerImage.setText("Charger une image (Assets)");
+        btnChargerImage.setText(Traducteur.get("insp_btn_charger_image"));
         styliserBouton(btnChargerImage);
         blocImage.addView(btnChargerImage);
 
         btnSupprimerImage = new Button(context);
-        btnSupprimerImage.setText("Supprimer l'image");
+        btnSupprimerImage.setText(Traducteur.get("insp_btn_supprimer_image"));
         styliserBouton(btnSupprimerImage);
         blocImage.addView(btnSupprimerImage);
 
         cbFondColore = new CheckBox(context);
-        cbFondColore.setText("Afficher le fond coloré");
+        cbFondColore.setText(Traducteur.get("insp_cb_fond_colore"));
         styliserCase(cbFondColore);
         blocImage.addView(cbFondColore);
 
         blocProprietes.addView(blocImage);
         
-        // --- BLOC BOUTON ---
         blocBouton = new LinearLayout(context);
         blocBouton.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocBouton);
 
         TextView sepBouton = new TextView(context);
-        sepBouton.setText("États du Bouton");
+        sepBouton.setText(Traducteur.get("insp_sep_bouton"));
         styliserSousTitre(sepBouton);
         blocBouton.addView(sepBouton);
 
         btnChargerImagePresse = new Button(context);
-        btnChargerImagePresse.setText("Image Pressée (Assets)");
+        btnChargerImagePresse.setText(Traducteur.get("insp_btn_charger_image_presse"));
         styliserBouton(btnChargerImagePresse);
         blocBouton.addView(btnChargerImagePresse);
 
         btnSupprimerImagePresse = new Button(context);
-        btnSupprimerImagePresse.setText("Supprimer Image Pressée");
+        btnSupprimerImagePresse.setText(Traducteur.get("insp_btn_suppr_image_presse"));
         styliserBouton(btnSupprimerImagePresse);
         blocBouton.addView(btnSupprimerImagePresse);
 
         btnChargerImageDesactive = new Button(context);
-        btnChargerImageDesactive.setText("Image Désactivée (Assets)");
+        btnChargerImageDesactive.setText(Traducteur.get("insp_btn_charger_image_desac"));
         styliserBouton(btnChargerImageDesactive);
         blocBouton.addView(btnChargerImageDesactive);
 
         btnSupprimerImageDesactive = new Button(context);
-        btnSupprimerImageDesactive.setText("Supprimer Image Désactivée");
+        btnSupprimerImageDesactive.setText(Traducteur.get("insp_btn_suppr_image_desac"));
         styliserBouton(btnSupprimerImageDesactive);
         blocBouton.addView(btnSupprimerImageDesactive);
 
         cbDesactive = new CheckBox(context);
-        cbDesactive.setText("Démarrer désactivé");
+        cbDesactive.setText(Traducteur.get("insp_cb_desactive"));
         styliserCase(cbDesactive);
         blocBouton.addView(cbDesactive);
 
         blocProprietes.addView(blocBouton);
+
+        blocJoystick = new LinearLayout(context);
+        blocJoystick.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocJoystick);
+
+        TextView sepJoystick = new TextView(context);
+        sepJoystick.setText(Traducteur.get("insp_sep_joystick"));
+        styliserSousTitre(sepJoystick);
+        blocJoystick.addView(sepJoystick);
+
+        TextView labelCibleJoystick = new TextView(context);
+        labelCibleJoystick.setText(Traducteur.get("insp_label_cible_joystick"));
+        styliserLabel(labelCibleJoystick);
+        blocJoystick.addView(labelCibleJoystick);
+
+        btnCibleJoystick = new Button(context);
+        btnCibleJoystick.setText(Traducteur.get("insp_btn_cible_joystick_aucune"));
+        styliserBouton(btnCibleJoystick);
+        blocJoystick.addView(btnCibleJoystick);
+
+        btnCibleJoystick.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            List<String> noms = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            noms.add(Traducteur.get("valeur_aucune"));
+            ids.add(null);
+            
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            for (Scene s : editeur.listeScenes) {
+                for (ObjetBase o : s.objets) {
+                    if (o != objetCourant && !"joystick".equals(o.type)) {
+                        String nomObj = o.nom != null ? o.nom : Traducteur.get("insp_objet_sans_nom");
+                        noms.add(nomObj + " [" + s.nom + "]");
+                        ids.add(o.id);
+                    }
+                }
+            }
+            
+            new AlertDialog.Builder(context)
+                .setTitle(Traducteur.get("insp_titre_select_cible"))
+                .setItems(noms.toArray(new String[0]), (dialog, which) -> {
+                    objetCourant.cibleJoystickId = ids.get(which);
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                }).show();
+        });
+
+        blocProprietes.addView(blocJoystick);
         
-        // --- BLOC PHYSIQUE ET ENVIRONNEMENT ---
         blocPhysique = new LinearLayout(context);
         blocPhysique.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocPhysique);
 
         TextView sepPhysique = new TextView(context);
-        sepPhysique.setText("Physique & Environnement");
+        sepPhysique.setText(Traducteur.get("insp_sep_physique"));
         styliserSousTitre(sepPhysique);
         blocPhysique.addView(sepPhysique);
 
         cbEstPhysique = new CheckBox(context);
-        cbEstPhysique.setText("Activer le corps physique (Collisions)");
+        cbEstPhysique.setText(Traducteur.get("insp_cb_physique"));
         styliserCase(cbEstPhysique);
         blocPhysique.addView(cbEstPhysique);
 
         btnTogglePhysique = new Button(context);
-        btnTogglePhysique.setText("Physique : Statique ►");
+        btnTogglePhysique.setText(Traducteur.get("insp_btn_physique_statique"));
         styliserBouton(btnTogglePhysique);
         blocPhysique.addView(btnTogglePhysique);
 
@@ -588,7 +675,7 @@ public class InspecteurProprietes extends LinearLayout {
         conteneurPhysiqueDetails.setVisibility(View.GONE);
 
         TextView labelRebond = new TextView(context);
-        labelRebond.setText("Force de rebond (ex: 0.4)");
+        labelRebond.setText(Traducteur.get("insp_label_rebond"));
         styliserLabel(labelRebond);
         conteneurPhysiqueDetails.addView(labelRebond);
 
@@ -598,46 +685,56 @@ public class InspecteurProprietes extends LinearLayout {
         styliserChamp(champRebond);
         conteneurPhysiqueDetails.addView(champRebond);
 
+        TextView labelGravite = new TextView(context);
+        labelGravite.setText(Traducteur.get("insp_label_gravite"));
+        styliserLabel(labelGravite);
+        conteneurPhysiqueDetails.addView(labelGravite);
+
+        champGravite = new EditText(context);
+        champGravite.setHint("1.0");
+        champGravite.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChamp(champGravite);
+        conteneurPhysiqueDetails.addView(champGravite);
+
         blocPhysique.addView(conteneurPhysiqueDetails);
         blocProprietes.addView(blocPhysique);
 
-        // Autres propriétés globales
         cbRamassable = new CheckBox(context);
-        cbRamassable.setText("Ramassable (peut aller dans l'inventaire)");
+        cbRamassable.setText(Traducteur.get("insp_cb_ramassable"));
         styliserCase(cbRamassable);
         blocProprietes.addView(cbRamassable);
 
         cbZoneDeClic = new CheckBox(context);
-        cbZoneDeClic.setText("Zone de clic (hitbox invisible)");
+        cbZoneDeClic.setText(Traducteur.get("insp_cb_zone_clic"));
         styliserCase(cbZoneDeClic);
         blocProprietes.addView(cbZoneDeClic);
 
         cbDeplacable = new CheckBox(context);
-        cbDeplacable.setText("Déplaçable (glissable en mode Play)");
+        cbDeplacable.setText(Traducteur.get("insp_cb_deplacable"));
         styliserCase(cbDeplacable);
         blocProprietes.addView(cbDeplacable);
 
         contenuInspecteur.addView(blocProprietes);
 
         boutonSupprimer = new Button(context);
-        boutonSupprimer.setText("Supprimer l'objet");
+        boutonSupprimer.setText(Traducteur.get("insp_btn_supprimer_objet"));
         boutonSupprimer.setAllCaps(false);
         boutonSupprimer.setTextSize(15f);
         boutonSupprimer.setTextColor(Palette.texteNormal);
         boutonSupprimer.setBackground(fond(Color.parseColor("#8B3A3A"), Palette.bordure, 10));
         boutonSupprimer.setPadding(dp(14), dp(11), dp(14), dp(11));
         boutonSupprimer.setOnClickListener(v -> {
-            if (objetCourant == null) { Toast.makeText(context, "Aucun objet sélectionné", Toast.LENGTH_SHORT).show(); return; }
+            if (objetCourant == null) { Toast.makeText(context, Traducteur.get("insp_erreur_aucun_objet"), Toast.LENGTH_SHORT).show(); return; }
             new AlertDialog.Builder(context)
-                    .setTitle("Confirmation de suppression")
-                    .setMessage("Voulez-vous vraiment supprimer cet objet de la scène ?")
-                    .setPositiveButton("Supprimer", (dialog, which) -> {
+                    .setTitle(Traducteur.get("insp_titre_confirm_suppr"))
+                    .setMessage(Traducteur.get("insp_msg_confirm_suppr"))
+                    .setPositiveButton(Traducteur.get("bouton_supprimer"), (dialog, which) -> {
                         sceneActive.objets.remove(objetCourant);
                         canvasEditeur.deselectionner();
                         afficherObjet(null);
                         canvasEditeur.invalidate();
-                        Toast.makeText(context, "Objet supprimé", Toast.LENGTH_SHORT).show();
-                    }).setNegativeButton("Annuler", null).show();
+                        Toast.makeText(context, Traducteur.get("insp_toast_objet_supprime"), Toast.LENGTH_SHORT).show();
+                    }).setNegativeButton(Traducteur.get("bouton_annuler"), null).show();
         });
 
         LinearLayout.LayoutParams paramsBtn = new LinearLayout.LayoutParams(
@@ -649,6 +746,7 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
+
 
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
@@ -678,11 +776,11 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
-            if (cheminProjet == null) { Toast.makeText(context, "Le chemin du projet n'est pas défini", Toast.LENGTH_SHORT).show(); return; }
+            if (cheminProjet == null) { Toast.makeText(context, Traducteur.get("erreur_chemin_projet"), Toast.LENGTH_SHORT).show(); return; }
             java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
             List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
-            if (images.isEmpty()) { Toast.makeText(context, "Aucune image trouvée", Toast.LENGTH_SHORT).show(); return; }
-            new AlertDialog.Builder(context).setTitle("Sélectionner une image").setItems(images.toArray(new String[0]), (dialog, which) -> {
+            if (images.isEmpty()) { Toast.makeText(context, Traducteur.get("insp_aucune_image"), Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_select_image")).setItems(images.toArray(new String[0]), (dialog, which) -> {
                 objetCourant.cheminImage = images.get(which);
                 canvasEditeur.invalidate();
                 afficherObjet(objetCourant);
@@ -701,8 +799,8 @@ public class InspecteurProprietes extends LinearLayout {
             if (cheminProjet == null) return;
             java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
             List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
-            if (images.isEmpty()) { Toast.makeText(context, "Aucune image trouvée", Toast.LENGTH_SHORT).show(); return; }
-            new AlertDialog.Builder(context).setTitle("Image Pressée").setItems(images.toArray(new String[0]), (dialog, which) -> {
+            if (images.isEmpty()) { Toast.makeText(context, Traducteur.get("insp_aucune_image"), Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_image_presse")).setItems(images.toArray(new String[0]), (dialog, which) -> {
                 objetCourant.cheminImagePresse = images.get(which);
                 canvasEditeur.invalidate();
                 afficherObjet(objetCourant);
@@ -721,8 +819,8 @@ public class InspecteurProprietes extends LinearLayout {
             if (cheminProjet == null) return;
             java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
             List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
-            if (images.isEmpty()) { Toast.makeText(context, "Aucune image trouvée", Toast.LENGTH_SHORT).show(); return; }
-            new AlertDialog.Builder(context).setTitle("Image Désactivée").setItems(images.toArray(new String[0]), (dialog, which) -> {
+            if (images.isEmpty()) { Toast.makeText(context, Traducteur.get("insp_aucune_image"), Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_image_desac")).setItems(images.toArray(new String[0]), (dialog, which) -> {
                 objetCourant.cheminImageDesactive = images.get(which);
                 canvasEditeur.invalidate();
                 afficherObjet(objetCourant);
@@ -740,7 +838,6 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null && !miseAJourEnCours) { objetCourant.afficherFondColore = isChecked; canvasEditeur.invalidate(); }
         });
         
-        // Listeners Physique
         cbEstPhysique.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (objetCourant != null && !miseAJourEnCours) { 
                 objetCourant.estPhysique = isChecked; 
@@ -753,7 +850,7 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant == null) return;
             objetCourant.estStatique = !objetCourant.estStatique;
             if (!objetCourant.estStatique) {
-                objetCourant.estPhysique = true; // Activer la physique automatiquement pour un dynamique
+                objetCourant.estPhysique = true;
             }
             canvasEditeur.invalidate();
             afficherObjet(objetCourant);
@@ -764,6 +861,14 @@ public class InspecteurProprietes extends LinearLayout {
                 try { 
                     objetCourant.rebond = Float.parseFloat(texte); 
                 } catch (NumberFormatException ignored) {} 
+            }
+        }));
+
+        champGravite.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try {
+                    objetCourant.graviteScale = Float.parseFloat(texte);
+                } catch (NumberFormatException ignored) {}
             }
         }));
 
@@ -803,6 +908,21 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null) { try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
 
+        champAlpha.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try {
+                    String valeurSaisie = texte.replace(",", "."); 
+                    if (valeurSaisie.trim().isEmpty() || valeurSaisie.equals(".")) return;
+                    
+                    float val = Float.parseFloat(valeurSaisie);
+                    if (val < 0.0f) val = 0.0f;
+                    if (val > 1.0f) val = 1.0f;
+                    objetCourant.alpha = val;
+                    canvasEditeur.invalidate();
+                } catch (NumberFormatException ignored) {}
+            }
+        }));
+
         champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) { try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
@@ -817,8 +937,8 @@ public class InspecteurProprietes extends LinearLayout {
         View.OnClickListener selecteurCouleurListener = v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Sélectionner une couleur");
-            String[] couleursNoms = {"Bleu (Défaut)", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+            builder.setTitle(Traducteur.get("insp_titre_select_couleur"));
+            String[] couleursNoms = {Traducteur.get("couleur_bleu_defaut"), Traducteur.get("couleur_rouge"), Traducteur.get("couleur_vert"), Traducteur.get("couleur_noir"), Traducteur.get("couleur_blanc"), Traducteur.get("couleur_jaune"), Traducteur.get("couleur_magenta"), Traducteur.get("couleur_cyan")};
             int[] couleursValeurs = {Color.BLUE, Color.RED, Color.GREEN, Color.BLACK, Color.WHITE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
 
             builder.setItems(couleursNoms, (dialog, which) -> {
@@ -846,23 +966,25 @@ public class InspecteurProprietes extends LinearLayout {
             if (sceneActive != null && sceneActive.objets != null) {
                 for (ObjetBase obj : sceneActive.objets) {
                     if (!obj.id.equals(objetCourant.id) && obj.nom != null && obj.nom.trim().equalsIgnoreCase(nouveauNom)) {
-                        new AlertDialog.Builder(context).setTitle("Impossible")
-                                .setMessage("Un objet nommé '" + nouveauNom + "' existe déjà dans cette scène.")
+                        new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_impossible"))
+                                .setMessage(Traducteur.get("insp_msg_nom_existe_1") + nouveauNom + Traducteur.get("insp_msg_nom_existe_2"))
                                 .setPositiveButton("OK", null).show();
                         miseAJourEnCours = true; champNom.setText(ancienNom); miseAJourEnCours = false;
                         return; 
                     }
                 }
             }
-            new AlertDialog.Builder(context).setTitle("Confirmation")
-                    .setMessage("Renommer " + ancienNom + " en " + nouveauNom + " ?")
-                    .setPositiveButton("Oui", (dialog, which) -> { objetCourant.nom = nouveauNom; canvasEditeur.invalidate(); })
-                    .setNegativeButton("Non", (dialog, which) -> { miseAJourEnCours = true; champNom.setText(ancienNom); miseAJourEnCours = false; })
+            new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_confirmation"))
+                    .setMessage(Traducteur.get("insp_msg_renommer_1") + ancienNom + Traducteur.get("insp_msg_renommer_2") + nouveauNom + Traducteur.get("insp_msg_renommer_3"))
+                    .setPositiveButton(Traducteur.get("bouton_oui"), (dialog, which) -> { objetCourant.nom = nouveauNom; canvasEditeur.invalidate(); })
+                    .setNegativeButton(Traducteur.get("bouton_non"), (dialog, which) -> { miseAJourEnCours = true; champNom.setText(ancienNom); miseAJourEnCours = false; })
                     .setOnCancelListener(dialog -> { miseAJourEnCours = true; champNom.setText(ancienNom); miseAJourEnCours = false; })
                     .show();
         }
     }
 // bas 4
+
+
 // haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
@@ -881,8 +1003,8 @@ public class InspecteurProprietes extends LinearLayout {
             champX.setText(String.valueOf((int) objet.x));
             champY.setText(String.valueOf((int) objet.y));
 
-            String nomType = objet.type != null ? objet.type.substring(0, 1).toUpperCase() + objet.type.substring(1) : "Inconnu";
-            valeurType.setText("Type : " + nomType);
+            String nomType = objet.type != null ? objet.type.substring(0, 1).toUpperCase() + objet.type.substring(1) : Traducteur.get("insp_type_inconnu");
+            valeurType.setText(Traducteur.get("insp_type") + nomType);
 
             champLargeur.setText(String.valueOf((int) objet.largeur));
             champHauteur.setText(String.valueOf((int) objet.hauteur));
@@ -890,24 +1012,24 @@ public class InspecteurProprietes extends LinearLayout {
             champScaleX.setText(String.valueOf(objet.scaleX));
             champScaleY.setText(String.valueOf(objet.scaleY));
 
+            champAlpha.setText(String.valueOf(objet.alpha));
             champRotation.setText(String.valueOf((int) objet.rotation));
             champZOrder.setText(String.valueOf(objet.zOrder));
             cbVisible.setChecked(objet.visible);
 
-            String nomParent = "Aucun";
+            String nomParent = Traducteur.get("valeur_aucune");
             if (objet.parentId != null) {
                 for (ObjetBase o : sceneActive.objets) {
-                    if (o.id.equals(objet.parentId)) { nomParent = o.nom != null ? o.nom : "Objet sans nom"; break; }
+                    if (o.id.equals(objet.parentId)) { nomParent = o.nom != null ? o.nom : Traducteur.get("insp_objet_sans_nom"); break; }
                 }
             }
-            btnParent.setText("Parent : " + nomParent);
+            btnParent.setText(Traducteur.get("insp_btn_parent") + nomParent);
 
             cbRamassable.setChecked(objet.estRamassable);
             cbZoneDeClic.setChecked(objet.estZoneDeClic);
             cbDeplacable.setChecked(objet.estDeplacable);
             cbVerrouille.setChecked(objet.estVerrouille);
 
-            // Mise à jour de l'affichage de la Physique
             cbEstPhysique.setChecked(objet.estPhysique);
             
             if (!objet.estPhysique) {
@@ -916,27 +1038,29 @@ public class InspecteurProprietes extends LinearLayout {
             } else {
                 btnTogglePhysique.setVisibility(View.VISIBLE);
                 if (objet.estStatique) {
-                    btnTogglePhysique.setText("Physique : Statique ►");
+                    btnTogglePhysique.setText(Traducteur.get("insp_btn_physique_statique"));
                     conteneurPhysiqueDetails.setVisibility(View.GONE);
                 } else {
-                    btnTogglePhysique.setText("Physique : Dynamique ▼");
+                    btnTogglePhysique.setText(Traducteur.get("insp_btn_physique_dynamique"));
                     conteneurPhysiqueDetails.setVisibility(View.VISIBLE);
                 }
             }
             champRebond.setText(String.valueOf(objet.rebond));
+            champGravite.setText(String.valueOf(objet.graviteScale));
 
             if ("texte".equals(objet.type)) {
                 blocTexte.setVisibility(View.VISIBLE);
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
+                blocJoystick.setVisibility(View.GONE);
                 
                 champContenu.setText(objet.contenuTexte);
                 champTaille.setText(String.valueOf(objet.tailleFonte));
                 if (objet.cheminPolice != null) {
                     java.io.File f = new java.io.File(objet.cheminPolice);
-                    btnPolice.setText("Police : " + f.getName());
+                    btnPolice.setText(Traducteur.get("insp_btn_police") + f.getName());
                 } else {
-                    btnPolice.setText("Police : Sélecteur");
+                    btnPolice.setText(Traducteur.get("insp_btn_police_selecteur"));
                 }
             } else {
                 blocTexte.setVisibility(View.GONE);
@@ -958,6 +1082,28 @@ public class InspecteurProprietes extends LinearLayout {
                     cbDesactive.setChecked(objet.estDesactive);
                 } else {
                     blocBouton.setVisibility(View.GONE);
+                }
+
+                if ("joystick".equals(objet.type)) {
+                    blocJoystick.setVisibility(View.VISIBLE);
+                    String nomCible = Traducteur.get("valeur_aucune");
+                    if (objet.cibleJoystickId != null) {
+                        InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+                        boolean trouve = false;
+                        for (Scene s : editeur.listeScenes) {
+                            for (ObjetBase o : s.objets) {
+                                if (o.id.equals(objet.cibleJoystickId)) {
+                                    nomCible = o.nom != null ? o.nom : Traducteur.get("insp_objet_sans_nom");
+                                    trouve = true;
+                                    break;
+                                }
+                            }
+                            if (trouve) break;
+                        }
+                    }
+                    btnCibleJoystick.setText(Traducteur.get("insp_btn_cible_joystick") + nomCible);
+                } else {
+                    blocJoystick.setVisibility(View.GONE);
                 }
             }
         }
@@ -1022,10 +1168,11 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
+
+
     
 
 
-
         
 
 
@@ -1034,3 +1181,4 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
+    
