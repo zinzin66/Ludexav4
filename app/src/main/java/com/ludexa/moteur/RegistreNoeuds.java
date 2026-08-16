@@ -93,6 +93,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud("Afficher Dialogue", "Textes & Dialogues", "NoeudActionAfficherDialogue"));
 
         // VARIABLES & INVENTAIRE
+        REGISTRE.add(new InfoNoeud("Opération Mathématique", "Variables & Inventaire", "NoeudActionOperationMath"));
+        REGISTRE.add(new InfoNoeud("Limiter Valeur (Clamp)", "Variables & Inventaire", "NoeudActionClampVariable"));
         REGISTRE.add(new InfoNoeud("Modifier Variable", "Variables & Inventaire", "NoeudActionModifierVariable"));
         REGISTRE.add(new InfoNoeud("Ajouter à Variable", "Variables & Inventaire", "NoeudActionAjouterVariable"));
         REGISTRE.add(new InfoNoeud("Nombre Aléatoire", "Variables & Inventaire", "NoeudActionNombreAleatoire"));
