@@ -208,8 +208,6 @@ public class EcranDemarrage extends Activity {
         builder.show();
     }
 // bas 1
-        
-
 
 // haut 2
     // ---------------------------------------------------------------- colonne droite
@@ -434,7 +432,6 @@ public class EcranDemarrage extends Activity {
         majEtatActions();
     }
 // bas 2
-
 
 // haut 3
     private JSONObject lireJson(File fichier) throws Exception {
@@ -804,7 +801,8 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 3
-                            
+
+
 
     
 
