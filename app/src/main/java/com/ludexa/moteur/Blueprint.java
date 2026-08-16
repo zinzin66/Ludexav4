@@ -68,10 +68,7 @@ public class Blueprint {
             }
             
             if (n.requiertCibleObjet() && n.getCibleObjet() != null) ndto.cibleNom = n.getCibleObjet().nom;
-            
-            // NOUVEAU : Sauvegarde Cible Objet B
             if (n.requiertCibleObjetB() && n.getCibleObjetB() != null) ndto.cibleNomB = n.getCibleObjetB().nom;
-            
             if (n.requiertCibleVariable() && n.getCibleVariable() != null) ndto.cibleVariableNom = n.getCibleVariable().nom;
             if (n.requiertCibleScene() && n.getCibleScene() != null) ndto.cibleSceneNom = n.getCibleScene().nom;
 
@@ -97,14 +94,15 @@ public class Blueprint {
 
         return gson.toJson(dto);
     }
-
+// bas 1
+    // haut 2
     public static Blueprint fromJson(String json, Scene scene) {
         Gson gson = new Gson();
         BlueprintDTO dto = gson.fromJson(json, BlueprintDTO.class);
         Blueprint bp = new Blueprint();
 
         if (dto == null) {
-            if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, "ERREUR : JSON vide ou invalide", Toast.LENGTH_LONG).show();
+            if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, Traducteur.get("erreur_json_invalide"), Toast.LENGTH_LONG).show();
             return bp;
         }
 
@@ -126,7 +124,6 @@ public class Blueprint {
                     }
                 }
                 
-                // NOUVEAU : Restauration Cible Objet B
                 if (ndto.cibleNomB != null && scene != null && scene.objets != null) {
                     for (ObjetBase obj : scene.objets) {
                         if (ndto.cibleNomB.equals(obj.nom)) { n.setCibleObjetB(obj); break; }
@@ -171,7 +168,7 @@ public class Blueprint {
                 bp.ajouterNoeud(n, ndto.x, ndto.y);
                 dictionnaireNoeuds.put(n.id, n);
             } catch (Exception e) {
-                if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, "Échec création du nœud : " + ndto.classeType, Toast.LENGTH_LONG).show();
+                if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, Traducteur.get("erreur_creation_noeud") + " : " + ndto.classeType, Toast.LENGTH_LONG).show();
             }
         }
 
@@ -200,7 +197,7 @@ public class Blueprint {
         List<PortDTO> portsEntree = new ArrayList<>();
         Map<String, String> parametres = new HashMap<>(); 
         String cibleNom; 
-        String cibleNomB; // NOUVEAU
+        String cibleNomB; 
         String cibleVariableNom; 
         String cibleSceneNom;
     }
@@ -217,4 +214,8 @@ public class Blueprint {
         String portArrivee;
     }
 }
-// bas 1
+// bas 2
+
+
+
+ˆ
