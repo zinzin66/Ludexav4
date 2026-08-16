@@ -22,17 +22,20 @@ public class NoeudActionClampVariable extends NoeudBase {
         Variable var = getCibleVariable();
         if (var != null && var.valeur != null) {
             try {
-                float val = Float.parseFloat(var.valeur);
+                String valStr = var.valeur.toString();
+                float val = Float.parseFloat(valStr);
                 float min = Float.parseFloat(minValeur);
                 float max = Float.parseFloat(maxValeur);
                 
                 if (val < min) val = min;
                 if (val > max) val = max;
                 
-                var.valeur = String.valueOf(val);
-                if (var.valeur.endsWith(".0")) {
-                    var.valeur = var.valeur.substring(0, var.valeur.length() - 2);
+                String resFinal = String.valueOf(val);
+                if (resFinal.endsWith(".0")) {
+                    resFinal = resFinal.substring(0, resFinal.length() - 2);
                 }
+                var.valeur = resFinal;
+                
             } catch (Exception e) {}
         }
         propagerExecution("Suivant");
@@ -91,6 +94,11 @@ public class NoeudActionClampVariable extends NoeudBase {
         }
         return cible;
     }
+
+    // Ajout des méthodes abstraites obligatoires de NoeudBase
+    @Override public boolean requiertCibleObjet() { return false; }
+    @Override public void setCibleObjet(ObjetBase objet) {}
+    @Override public ObjetBase getCibleObjet() { return null; }
     
     @Override
     public boolean utiliseClavierTexte() { return true; }
