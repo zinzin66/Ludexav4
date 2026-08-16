@@ -127,9 +127,9 @@ public class InterfaceBlueprint extends Activity {
 
         TextView titreBlueprint = new TextView(this);
         if (estModeFonction) {
-            titreBlueprint.setText("Fonction : " + nomFonctionActive);
+            titreBlueprint.setText(Traducteur.get("titre_fonction") + nomFonctionActive);
         } else {
-            titreBlueprint.setText("Blueprint");
+            titreBlueprint.setText(Traducteur.get("titre_blueprint"));
         }
         titreBlueprint.setTextSize(15f);
         titreBlueprint.setTextColor(Palette.texteSelectionne);
@@ -162,7 +162,9 @@ public class InterfaceBlueprint extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
- // haut 2
+
+
+// haut 2
         ImageButton boutonZoomMoins = new ImageButton(this);
         boutonZoomMoins.setImageResource(R.drawable.zoom_out_24px);
         styliserBoutonBandeau(boutonZoomMoins);
@@ -222,21 +224,19 @@ public class InterfaceBlueprint extends Activity {
         boutonCode.setOnClickListener(v -> afficherFenetreCode());
         bandeauHaut.addView(boutonCode);
 
-        // --- NOUVEAUTÉ : Bouton d'Aide [?] ---
         Button boutonAide = new Button(this);
         boutonAide.setText("?");
         boutonAide.setTextSize(18f);
         boutonAide.setTextColor(Palette.texteNormal);
         boutonAide.setTypeface(null, android.graphics.Typeface.BOLD);
         boutonAide.setBackground(fond(Palette.boutonNormal, 6, Palette.bordure, 1));
-        boutonAide.setPadding(0, 0, 0, 0); // Padding réduit pour un bouton texte carré
+        boutonAide.setPadding(0, 0, 0, 0); 
         LinearLayout.LayoutParams lpAide = new LinearLayout.LayoutParams(dp(38), dp(38));
         lpAide.setMargins(0, 0, dp(6), 0);
         lpAide.gravity = Gravity.CENTER_VERTICAL;
         boutonAide.setLayoutParams(lpAide);
         boutonAide.setOnClickListener(v -> afficherFenetreAide());
         bandeauHaut.addView(boutonAide);
-        // ------------------------------------
 
         // ---- Zone Milieu ----
         LinearLayout zoneMilieu = new LinearLayout(this);
@@ -253,7 +253,7 @@ public class InterfaceBlueprint extends Activity {
         } else if (sceneACharger != null) {
             canvasBlueprint.sceneActive = sceneACharger;
         } else {
-            canvasBlueprint.sceneActive = new Scene("Scène Vide (Fallback)");
+            canvasBlueprint.sceneActive = new Scene(Traducteur.get("scene_vide_fallback"));
         }
 
         chargerBlueprintLocal(true);
@@ -284,10 +284,10 @@ public class InterfaceBlueprint extends Activity {
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(json.getBytes());
             fos.close();
-            Toast.makeText(this, "Blueprint sauvegardé", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_blueprint_sauvegarde"), Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur de sauvegarde", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_sauvegarde"), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -304,7 +304,7 @@ public class InterfaceBlueprint extends Activity {
             
             if (!file.exists()) {
                 if (!estChargementAuto) {
-                    Toast.makeText(this, "Aucune sauvegarde trouvée", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, Traducteur.get("toast_aucune_sauvegarde"), Toast.LENGTH_SHORT).show();
                 }
                 if (blueprintActif == null) {
                     blueprintActif = new Blueprint();
@@ -328,12 +328,12 @@ public class InterfaceBlueprint extends Activity {
             canvasBlueprint.invalidate();
             
             if (!estChargementAuto) {
-                Toast.makeText(this, "Blueprint chargé avec succès !", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("toast_blueprint_charge"), Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             e.printStackTrace();
             if (!estChargementAuto) {
-                Toast.makeText(this, "Erreur lors du chargement", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_chargement"), Toast.LENGTH_SHORT).show();
             }
             if (blueprintActif == null) {
                 blueprintActif = new Blueprint();
@@ -343,6 +343,7 @@ public class InterfaceBlueprint extends Activity {
     }
 // bas 2
 
+
 // haut 3
     private String formaterNoeud(NoeudBase noeud) {
         StringBuilder sb = new StringBuilder();
@@ -350,16 +351,16 @@ public class InterfaceBlueprint extends Activity {
         
         List<String> details = new ArrayList<>();
         if (noeud.requiertCibleObjet() && noeud.getCibleObjet() != null) {
-            details.add("Cible : " + noeud.getCibleObjet().nom);
+            details.add(Traducteur.get("noeud_format_cible") + noeud.getCibleObjet().nom);
         }
         if (noeud.requiertCibleObjetB() && noeud.getCibleObjetB() != null) {
-            details.add("Objet B : " + noeud.getCibleObjetB().nom);
+            details.add(Traducteur.get("noeud_format_objet_b") + noeud.getCibleObjetB().nom);
         }
         if (noeud.requiertCibleVariable() && noeud.getCibleVariable() != null) {
-            details.add("Var : " + noeud.getCibleVariable().nom);
+            details.add(Traducteur.get("noeud_format_var") + noeud.getCibleVariable().nom);
         }
         if (noeud.requiertCibleScene() && noeud.getCibleScene() != null) {
-            details.add("Scène : " + noeud.getCibleScene().nom);
+            details.add(Traducteur.get("noeud_format_scene") + noeud.getCibleScene().nom);
         }
         
         if (noeud.getNomsParametres() != null) {
@@ -401,10 +402,9 @@ public class InterfaceBlueprint extends Activity {
         }
     }
 
-    // --- NOUVEAUTÉ : Fenêtre d'aide lisant le fichier de traduction ---
     private void afficherFenetreAide() {
         Dialog dialog = new Dialog(this);
-        dialog.setTitle("Aide Blueprint");
+        dialog.setTitle(Traducteur.get("titre_aide_blueprint"));
 
         LinearLayout layoutDialog = new LinearLayout(this);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
@@ -412,7 +412,7 @@ public class InterfaceBlueprint extends Activity {
         layoutDialog.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
 
         TextView enTeteDialog = new TextView(this);
-        enTeteDialog.setText("DOCUMENTATION DES NOEUDS (" + EcranDemarrage.langueCourante.toUpperCase() + ")");
+        enTeteDialog.setText(Traducteur.get("doc_noeuds_titre_1") + EcranDemarrage.langueCourante.toUpperCase() + Traducteur.get("doc_noeuds_titre_2"));
         enTeteDialog.setTextSize(14f);
         enTeteDialog.setTextColor(Palette.texteSelectionne);
         enTeteDialog.setBackground(fond(Palette.enTeteDialogues, 6, Palette.bordure, 1));
@@ -425,7 +425,6 @@ public class InterfaceBlueprint extends Activity {
 
         StringBuilder res = new StringBuilder();
         try {
-            // Lecture depuis le dossier interne "assets/" de l'APK
             String nomFichier = "doc_noeuds_" + EcranDemarrage.langueCourante + ".txt";
             java.io.InputStream is = getAssets().open(nomFichier);
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -435,11 +434,12 @@ public class InterfaceBlueprint extends Activity {
             }
             br.close();
         } catch (Exception e) {
-            res.append("Erreur : Impossible de trouver le fichier d'aide pour la langue '")
-               .append(EcranDemarrage.langueCourante).append("'.\n\n")
-               .append("Vérifiez que le fichier 'doc_noeuds_")
+            res.append(Traducteur.get("erreur_doc_1"))
                .append(EcranDemarrage.langueCourante)
-               .append(".txt' est bien placé dans le dossier 'app/src/main/assets/' de votre projet sur GitHub.");
+               .append(Traducteur.get("erreur_doc_2"))
+               .append(Traducteur.get("erreur_doc_3"))
+               .append(EcranDemarrage.langueCourante)
+               .append(Traducteur.get("erreur_doc_4"));
         }
 
         TextView textViewAide = new TextView(this);
@@ -463,7 +463,7 @@ public class InterfaceBlueprint extends Activity {
         boutonsDialog.setGravity(Gravity.END);
 
         Button btnQuitter = new Button(this);
-        btnQuitter.setText("Fermer");
+        btnQuitter.setText(Traducteur.get("bouton_fermer"));
         styliserBoutonDialog(btnQuitter);
         btnQuitter.setOnClickListener(v -> dialog.dismiss());
         boutonsDialog.addView(btnQuitter);
@@ -472,7 +472,6 @@ public class InterfaceBlueprint extends Activity {
         
         dialog.setContentView(layoutDialog);
         
-        // Ajustement de la taille de la fenêtre pour le confort de lecture
         android.view.Window window = dialog.getWindow();
         if (window != null) {
             android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
@@ -483,11 +482,10 @@ public class InterfaceBlueprint extends Activity {
         
         dialog.show();
     }
-    // ------------------------------------------------------------------
 
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
-        dialog.setTitle("Résumé du Blueprint");
+        dialog.setTitle(Traducteur.get("titre_resume_blueprint"));
 
         LinearLayout layoutDialog = new LinearLayout(this);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
@@ -495,7 +493,7 @@ public class InterfaceBlueprint extends Activity {
         layoutDialog.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
 
         TextView enTeteDialog = new TextView(this);
-        enTeteDialog.setText("SCRIPT BLUEPRINT (Pseudo-Code)");
+        enTeteDialog.setText(Traducteur.get("titre_script_blueprint"));
         enTeteDialog.setTextSize(14f);
         enTeteDialog.setTextColor(Palette.texteSelectionne);
         enTeteDialog.setBackground(fond(Palette.enTeteDialogues, 6, Palette.bordure, 1));
@@ -507,10 +505,10 @@ public class InterfaceBlueprint extends Activity {
         layoutDialog.addView(enTeteDialog);
 
         StringBuilder res = new StringBuilder();
-        res.append("=== SCRIPT BLUEPRINT ===\n\n");
+        res.append(Traducteur.get("en_tete_script"));
         
         if (blueprintActif == null || blueprintActif.noeuds.isEmpty()) {
-            res.append("Le Blueprint est vide.\n");
+            res.append(Traducteur.get("msg_blueprint_vide"));
         } else {
             Set<String> noeudsVisites = new HashSet<>();
             List<NoeudBase> evenements = new ArrayList<>();
@@ -522,11 +520,11 @@ public class InterfaceBlueprint extends Activity {
             }
             
             if (evenements.isEmpty()) {
-                res.append("⚠️ Aucun Événement de départ détecté.\n\n");
+                res.append(Traducteur.get("msg_aucun_evenement"));
             } else {
                 for (NoeudBase evt : evenements) {
                     noeudsVisites.add(evt.id);
-                    res.append("ÉVÉNEMENT : ").append(formaterNoeud(evt)).append("\n");
+                    res.append(Traducteur.get("msg_evenement")).append(formaterNoeud(evt)).append("\n");
                     genererCheminLogique(evt, "Sortie", "  ", res, noeudsVisites);
                     genererCheminLogique(evt, "Suivant", "  ", res, noeudsVisites);
                     res.append("\n");
@@ -535,7 +533,7 @@ public class InterfaceBlueprint extends Activity {
             
             boolean aOrphelins = false;
             StringBuilder orphelinsRes = new StringBuilder();
-            orphelinsRes.append("--- Nœuds Orphelins (Non reliés) ---\n");
+            orphelinsRes.append(Traducteur.get("msg_noeuds_orphelins"));
             for (NoeudBase noeud : blueprintActif.noeuds) {
                 if (!noeudsVisites.contains(noeud.id)) {
                     aOrphelins = true;
@@ -568,18 +566,18 @@ public class InterfaceBlueprint extends Activity {
         boutonsDialog.setGravity(Gravity.END);
 
         Button btnCopier = new Button(this);
-        btnCopier.setText("Copier");
+        btnCopier.setText(Traducteur.get("bouton_copier"));
         styliserBoutonDialog(btnCopier);
         btnCopier.setOnClickListener(v -> {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("Code LUDEXA", textViewCode.getText());
+            ClipData clip = ClipData.newPlainText(Traducteur.get("code_presse_papier"), textViewCode.getText());
             clipboard.setPrimaryClip(clip);
-            Toast.makeText(this, "Script copié dans le presse-papier !", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_script_copie"), Toast.LENGTH_SHORT).show();
         });
         boutonsDialog.addView(btnCopier);
 
         Button btnQuitter = new Button(this);
-        btnQuitter.setText("Quitter");
+        btnQuitter.setText(Traducteur.get("bouton_quitter"));
         styliserBoutonDialog(btnQuitter);
         btnQuitter.setOnClickListener(v -> dialog.dismiss());
         boutonsDialog.addView(btnQuitter);
@@ -591,4 +589,9 @@ public class InterfaceBlueprint extends Activity {
     }
 }
 // bas 3
-            
+
+
+
+    
+
+    
