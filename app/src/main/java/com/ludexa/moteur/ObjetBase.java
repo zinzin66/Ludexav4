@@ -49,6 +49,9 @@ public class ObjetBase {
     public float vitessePoursuite = 0f;
     public boolean fuiteActive = false;
     
+    public float intentionDeplacementX = 0f;
+    public float intentionDeplacementY = 0f;
+    
     // --- NOUVEAUTÉ : GESTION DE MASSE ---
     public String tag = ""; // Permet de regrouper les objets (ex: "Ennemi", "Projectile")
     // ------------------------------------
@@ -71,6 +74,7 @@ public class ObjetBase {
     public boolean estStatique = true;
     public float vitesseY = 0f;
     public float rebond = 0.4f;
+    public float graviteScale = 1.0f;
 
     public HashMap<String, List<String>> animations = new HashMap<>();
     public String animationActive = null;
@@ -129,6 +133,9 @@ public class ObjetBase {
         copie.vitessePoursuite = this.vitessePoursuite;
         copie.fuiteActive = this.fuiteActive;
         
+        copie.intentionDeplacementX = this.intentionDeplacementX;
+        copie.intentionDeplacementY = this.intentionDeplacementY;
+        
         copie.tag = this.tag; // Copie du Tag
 
         copie.type = this.type;
@@ -146,6 +153,7 @@ public class ObjetBase {
         copie.estStatique = this.estStatique;
         copie.vitesseY = this.vitesseY;
         copie.rebond = this.rebond;
+        copie.graviteScale = this.graviteScale;
         
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));

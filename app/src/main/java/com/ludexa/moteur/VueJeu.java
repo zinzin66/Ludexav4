@@ -270,6 +270,46 @@ public class VueJeu extends View {
         }
         return null;
     }
+    
+    private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, ObjetBase objetCible, List<ObjetBase> objets) {
+        if (objets == null) return false;
+        for (ObjetBase mur : objets) {
+            if (mur == objetCible || !estVisibleEffectif(mur, objets)) continue;
+            if (mur.estPhysique && mur.estStatique) {
+                if (testX < mur.x + mur.largeur &&
+                    testX + largeur > mur.x &&
+                    testY < mur.y + mur.hauteur &&
+                    testY + hauteur > mur.y) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // --- MÉTHODE CENTRALISÉE DE DÉPLACEMENT ---
+    public void deplacerAvecCollision(ObjetBase objet, float deltaX, float deltaY, List<ObjetBase> contexteObjets) {
+        if (deltaX == 0 && deltaY == 0) return;
+
+        if (objet.estPhysique && !objet.estStatique) {
+            if (deltaX != 0) {
+                float futurX = objet.x + deltaX;
+                if (!verifierCollisionStatique(futurX, objet.y, objet.largeur, objet.hauteur, objet, contexteObjets)) {
+                    objet.x = futurX;
+                }
+            }
+            if (deltaY != 0) {
+                float futurY = objet.y + deltaY;
+                if (!verifierCollisionStatique(objet.x, futurY, objet.largeur, objet.hauteur, objet, contexteObjets)) {
+                    objet.y = futurY;
+                }
+            }
+        } else {
+            objet.x += deltaX;
+            objet.y += deltaY;
+        }
+    }
+    // ------------------------------------------
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -299,7 +339,9 @@ public class VueJeu extends View {
         }
         return super.onGenericMotionEvent(event);
     }
+// bas 2
 
+// haut 3
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean touchJoystick = false;
@@ -384,10 +426,16 @@ public class VueJeu extends View {
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (objetEnGlissement != null && objetEnGlissement.estDeplacable) {
                 boolean isHudDrag = sceneHudActive != null && sceneHudActive.objets.contains(objetEnGlissement);
-                objetEnGlissement.x += (isHudDrag ? xVue : xMonde) - lastXJeu;
-                objetEnGlissement.y += (isHudDrag ? yVue : yMonde) - lastYJeu;
-                lastXJeu = isHudDrag ? xVue : xMonde;
-                lastYJeu = isHudDrag ? yVue : yMonde;
+                float newX = isHudDrag ? xVue : xMonde;
+                float newY = isHudDrag ? yVue : yMonde;
+                
+                float deltaX = newX - lastXJeu;
+                float deltaY = newY - lastYJeu;
+                
+                deplacerAvecCollision(objetEnGlissement, deltaX, deltaY, isHudDrag ? sceneHudActive.objets : sceneActive.objets);
+                
+                lastXJeu = newX;
+                lastYJeu = newY;
             } else {
                 ObjetBase objSurvole = trouverObjetSousPoint(xVue, yVue, false);
                 if (objSurvole != dernierObjetSurvole) {
@@ -430,8 +478,7 @@ public class VueJeu extends View {
         }
         return true;
     }
-// bas 2
-// haut 3
+
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -452,7 +499,9 @@ public class VueJeu extends View {
         }
         return m;
     }
+// bas 3
 
+// haut 4
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
@@ -676,7 +725,10 @@ public class VueJeu extends View {
             }
         }
     }
+// bas 4
 
+
+// haut 5
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -687,8 +739,9 @@ public class VueJeu extends View {
                 ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
-                    joueurCible.x += GestionnaireControles.joyDirX * vitesseDefaut;
-                    joueurCible.y += GestionnaireControles.joyDirY * vitesseDefaut;
+                    float moveX = GestionnaireControles.joyDirX * vitesseDefaut;
+                    float moveY = GestionnaireControles.joyDirY * vitesseDefaut;
+                    deplacerAvecCollision(joueurCible, moveX, moveY, sceneActive.objets);
                 }
             }
         }
@@ -696,10 +749,19 @@ public class VueJeu extends View {
         if (sceneActive != null && sceneActive.objets != null) {
             for (ObjetBase obj : sceneActive.objets) {
                 
+                // --- NOUVEAU : Traitement de l'intention de mouvement ---
+                if (obj.intentionDeplacementX != 0f || obj.intentionDeplacementY != 0f) {
+                    deplacerAvecCollision(obj, obj.intentionDeplacementX, obj.intentionDeplacementY, sceneActive.objets);
+                    obj.intentionDeplacementX = 0f;
+                    obj.intentionDeplacementY = 0f;
+                }
+                // --------------------------------------------------------
+                
                 if (obj.vitesseAvanceContinue != 0f) {
                     double rad = Math.toRadians(obj.rotation);
-                    obj.x += (float)(Math.cos(rad) * obj.vitesseAvanceContinue);
-                    obj.y += (float)(Math.sin(rad) * obj.vitesseAvanceContinue);
+                    float dX = (float)(Math.cos(rad) * obj.vitesseAvanceContinue);
+                    float dY = (float)(Math.sin(rad) * obj.vitesseAvanceContinue);
+                    deplacerAvecCollision(obj, dX, dY, sceneActive.objets);
                 }
                 
                 if (obj.idCiblePoursuite != null && obj.vitessePoursuite != 0f) {
@@ -719,12 +781,10 @@ public class VueJeu extends View {
                             float moveY = (float) ((dy / dist) * obj.vitessePoursuite);
                             
                             if (obj.fuiteActive) {
-                                obj.x -= moveX;
-                                obj.y -= moveY;
+                                deplacerAvecCollision(obj, -moveX, -moveY, sceneActive.objets);
                                 obj.rotation = (float) Math.toDegrees(Math.atan2(-dy, -dx));
                             } else {
-                                obj.x += moveX;
-                                obj.y += moveY;
+                                deplacerAvecCollision(obj, moveX, moveY, sceneActive.objets);
                                 obj.rotation = (float) Math.toDegrees(Math.atan2(dy, dx));
                             }
                         }
@@ -790,5 +850,13 @@ public class VueJeu extends View {
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
     }
 }
-// bas 3
+// bas 5
+
+
+
+    
+
+    
+
+
 

@@ -118,7 +118,7 @@ public class InterfaceEditeur extends Activity {
         if (vueJeu != null) {
             vueJeu.ouvrirHudDynamique(scene, blueprintHud);
         }
-        Toast.makeText(this, "HUD ouvert : " + (scene != null ? scene.nom : "null"), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, Traducteur.get("hud_ouvert") + (scene != null ? scene.nom : Traducteur.get("valeur_aucune")), Toast.LENGTH_SHORT).show();
     }
 
     public void fermerHUD() {
@@ -126,7 +126,7 @@ public class InterfaceEditeur extends Activity {
         if (vueJeu != null) {
             vueJeu.setSceneHud(null);
         }
-        Toast.makeText(this, "HUD fermé", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, Traducteur.get("hud_ferme"), Toast.LENGTH_SHORT).show();
     }
 
     public void ajouterCommande(Commande c) {
@@ -166,7 +166,7 @@ public class InterfaceEditeur extends Activity {
 
         TextView nomProjet = new TextView(this);
         
-        String texteNomProjet = "Projet sans nom";
+        String texteNomProjet = Traducteur.get("projet_sans_nom");
         if (cheminProjet != null) {
             try {
                 File metaFile = new File(cheminProjet, "meta.json");
@@ -237,7 +237,7 @@ public class InterfaceEditeur extends Activity {
         bandeauHaut.addView(separateurVertical());
 // bas 1
 
-   // haut 2
+// haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
             try {
@@ -363,10 +363,8 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonDeplacerScene);
         
-        // --- NOUVEAU SÉPARATEUR POUR ISOLER LES OUTILS OBJETS ---
         bandeauHaut.addView(separateurVertical());
         
-        // --- NOUVEAU BOUTON : Déplacer Objet ---
         ImageButton boutonDeplacerObjet = new ImageButton(this);
         boutonDeplacerObjet.setImageResource(R.drawable.open_with_24px);
         styliserBoutonBandeau(boutonDeplacerObjet);
@@ -380,7 +378,6 @@ public class InterfaceEditeur extends Activity {
         });
         bandeauHaut.addView(boutonDeplacerObjet);
         
-        // --- NOUVEAU BOUTON : Copier Objet ---
         ImageButton boutonCopierObjet = new ImageButton(this);
         boutonCopierObjet.setImageResource(R.drawable.content_copy_24px);
         styliserBoutonBandeau(boutonCopierObjet);
@@ -389,7 +386,7 @@ public class InterfaceEditeur extends Activity {
             if (objSel != null) {
                 ObjetBase copie = objSel.clonerProfond();
                 copie.id = java.util.UUID.randomUUID().toString();
-                copie.nom = (copie.nom != null ? copie.nom : "Objet") + " (copie)";
+                copie.nom = (copie.nom != null ? copie.nom : Traducteur.get("objet_nom_defaut")) + " " + Traducteur.get("projet_copie");
                 copie.x += 20;
                 copie.y += 20;
                 
@@ -402,9 +399,9 @@ public class InterfaceEditeur extends Activity {
                     menuInspecteur.afficherObjet(copie);
                 }
                 canvasEditeur.invalidate();
-                Toast.makeText(this, "Objet copié", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("toast_objet_copie"), Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Sélectionnez un objet à copier", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("toast_select_objet_copie"), Toast.LENGTH_SHORT).show();
             }
         });
         bandeauHaut.addView(boutonCopierObjet);
@@ -482,7 +479,6 @@ public class InterfaceEditeur extends Activity {
         }
     }
 // bas 2
-    
 
 // haut 3
     private void basculerVersJeu() {
@@ -527,10 +523,10 @@ public class InterfaceEditeur extends Activity {
                 blueprintActif = Blueprint.fromJson(json, sceneActive);
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Erreur lors de la lecture du Blueprint.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_lecture_blueprint"), Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, Traducteur.get("erreur_aucun_blueprint_sauvegarde"), Toast.LENGTH_LONG).show();
         }
 
         Blueprint blueprintHud = null;
@@ -674,10 +670,10 @@ public class InterfaceEditeur extends Activity {
                 e.printStackTrace();
             }
 
-            Toast.makeText(this, "Projet sauvegardé avec succès.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, Traducteur.get("toast_projet_sauvegarde"), Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_sauvegarde"), Toast.LENGTH_SHORT).show();
         }
     }
 }
@@ -685,11 +681,6 @@ public class InterfaceEditeur extends Activity {
 
 
 
-
-
     
-
-
-
 
     

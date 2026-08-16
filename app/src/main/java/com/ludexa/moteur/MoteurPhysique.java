@@ -16,7 +16,9 @@ public class MoteurPhysique {
         // Phase 1 : Application de la gravité
         for (ObjetBase obj : objets) {
             if (obj.estPhysique && !obj.estStatique) {
-                obj.vitesseY += GRAVITE;
+                
+                // Application de la gravité modulée par l'échelle de l'objet
+                obj.vitesseY += (GRAVITE * obj.graviteScale);
                 
                 if (obj.vitesseY > VITESSE_MAX_CHUTE) {
                     obj.vitesseY = VITESSE_MAX_CHUTE;
@@ -38,8 +40,8 @@ public class MoteurPhysique {
                     if (statique.estPhysique && statique.estStatique) {
                         if (testerCollisionAABB(dynamique, statique)) {
                             
-                            // On ne déclenche l'arrêt que si l'objet chute vers le bas (Sol)
-                            if (dynamique.vitesseY >= 0) {
+                            // On ne déclenche l'arrêt type plateforme que si la gravité est active
+                            if (dynamique.vitesseY >= 0 && dynamique.graviteScale != 0f) {
                                 float statCentreY = statique.y + (statique.hauteur / 2f);
                                 float statDemiHauteur = (statique.hauteur * Math.abs(statique.scaleY)) / 2f;
                                 float statHaut = statCentreY - statDemiHauteur;

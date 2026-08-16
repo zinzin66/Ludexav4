@@ -1,4 +1,4 @@
-// haut 1 07
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -30,14 +30,10 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Écran de démarrage YOP.2D — mise en page façon Godot :
- *  - colonne gauche : identité (logo, baseline, langue)
- *  - colonne droite : bandeau d'outils compact en haut, liste des projets au centre,
- *                     barre d'actions contextuelles en bas (Éditer / Renommer /
- *                     Dupliquer / Exporter / Supprimer).
- */
 public class EcranDemarrage extends Activity {
+
+    public static String langueCourante = "fr";
+    private TextView libelleLangue;
 
     private ListView listeProjets;
     private AdaptateurProjets adaptateurProjets;
@@ -49,13 +45,11 @@ public class EcranDemarrage extends Activity {
 
     // ---------------------------------------------------------------- outils UI
 
-    /** Conversion dp -> pixels : indispensable pour rester net sur toutes les tablettes. */
     private int dp(float valeur) {
         return Math.round(TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, valeur, getResources().getDisplayMetrics()));
     }
 
-    /** Fond arrondi réutilisable (panneaux, boutons, champs). */
     private GradientDrawable fond(int couleur, int rayonDp, int couleurBordure, int epaisseurDp) {
         GradientDrawable g = new GradientDrawable();
         g.setColor(couleur);
@@ -66,28 +60,12 @@ public class EcranDemarrage extends Activity {
         return g;
     }
 
-    // --- Couleurs dérivées directement de Palette.java (aucune valeur en dur) ---
-    private int couleurSurface() {
-        return Palette.canvasFond;      // panneau de droite
-    }
+    private int couleurSurface() { return Palette.canvasFond; }
+    private int couleurFondListe() { return Palette.fondListe; }
+    private int couleurBordure() { return Palette.bordure; }
+    private int couleurSelection() { return Palette.boutonSurvol; }
+    private int couleurTexteSecondaire() { return Palette.texteSelectionne; }
 
-    private int couleurFondListe() {
-        return Palette.fondListe;       // zone de liste des projets
-    }
-
-    private int couleurBordure() {
-        return Palette.bordure;
-    }
-
-    private int couleurSelection() {
-        return Palette.boutonSurvol;    // ligne sélectionnée
-    }
-
-    private int couleurTexteSecondaire() {
-        return Palette.texteSelectionne;
-    }
-
-    /** Petit bouton icône du bandeau (style Godot : compact, carré, discret). */
     private ImageButton boutonBandeau(int idIcone, String description, View.OnClickListener action) {
         ImageButton b = new ImageButton(this);
         b.setImageResource(idIcone);
@@ -103,7 +81,6 @@ public class EcranDemarrage extends Activity {
         return b;
     }
 
-    /** Bouton texte compact de la barre d'actions du bas. */
     private TextView boutonAction(String libelle, boolean destructif, View.OnClickListener action) {
         TextView t = new TextView(this);
         t.setText(libelle);
@@ -139,6 +116,8 @@ public class EcranDemarrage extends Activity {
         super.onCreate(savedInstanceState);
 
         NoeudBase.contexteApplication = this;
+        Traducteur.initialiser(this, langueCourante); 
+        RegistreNoeuds.initialiser(); 
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
@@ -177,7 +156,7 @@ public class EcranDemarrage extends Activity {
         colonneGauche.addView(logo, pLogo);
 
         TextView titre = new TextView(this);
-        titre.setText("YOP.2D");
+        titre.setText(Traducteur.get("app_nom"));
         titre.setTextSize(28f);
         titre.setGravity(Gravity.CENTER);
         titre.setLetterSpacing(0.12f);
@@ -186,7 +165,7 @@ public class EcranDemarrage extends Activity {
         colonneGauche.addView(titre);
 
         TextView baseline = new TextView(this);
-        baseline.setText("Moteur de jeu 2D — créez sans coder.");
+        baseline.setText(Traducteur.get("demarrage_baseline"));
         baseline.setTextSize(13f);
         baseline.setGravity(Gravity.CENTER);
         baseline.setPadding(0, dp(6), 0, dp(20));
@@ -196,11 +175,12 @@ public class EcranDemarrage extends Activity {
         LinearLayout rangeeLangue = new LinearLayout(this);
         rangeeLangue.setOrientation(LinearLayout.HORIZONTAL);
         rangeeLangue.setGravity(Gravity.CENTER);
-        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, "Langue : Français", v ->
-                Toast.makeText(this, "Langue : Français", Toast.LENGTH_SHORT).show()));
+        
+        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, Traducteur.get("demarrage_langue"), v -> afficherDialogueLangue()));
 
-        TextView libelleLangue = new TextView(this);
-        libelleLangue.setText("Français");
+        libelleLangue = new TextView(this);
+        String labelCourant = Traducteur.get("langue_" + langueCourante);
+        libelleLangue.setText(labelCourant);
         libelleLangue.setTextSize(13f);
         libelleLangue.setTextColor(couleurTexteSecondaire());
         libelleLangue.setGravity(Gravity.CENTER_VERTICAL);
@@ -211,6 +191,34 @@ public class EcranDemarrage extends Activity {
         return colonneGauche;
     }
 
+    private void afficherDialogueLangue() {
+        String[] langues = {
+            Traducteur.get("langue_fr"), 
+            Traducteur.get("langue_en"), 
+            Traducteur.get("langue_es"), 
+            Traducteur.get("langue_pt"), 
+            Traducteur.get("langue_ru")
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(Traducteur.get("demarrage_choisir_langue"));
+        builder.setItems(langues, (dialog, which) -> {
+            switch (which) {
+                case 0: langueCourante = "fr"; break;
+                case 1: langueCourante = "en"; break;
+                case 2: langueCourante = "es"; break;
+                case 3: langueCourante = "pt"; break;
+                case 4: langueCourante = "ru"; break;
+            }
+            Traducteur.initialiser(this, langueCourante);
+            RegistreNoeuds.initialiser(); 
+            recreate(); 
+        });
+        builder.show();
+    }
+// bas 1
+            
+
+// haut 2
     // ---------------------------------------------------------------- colonne droite
 
     private View construireColonneDroite() {
@@ -231,7 +239,6 @@ public class EcranDemarrage extends Activity {
         return colonneDroite;
     }
 
-    /** Bandeau supérieur type Godot : petits boutons icônes alignés à gauche. */
     private View construireBandeauOutils() {
         LinearLayout bandeau = new LinearLayout(this);
         bandeau.setOrientation(LinearLayout.HORIZONTAL);
@@ -239,19 +246,18 @@ public class EcranDemarrage extends Activity {
         bandeau.setPadding(dp(6), dp(6), dp(6), dp(6));
         bandeau.setBackground(fond(Palette.fondPanneaux, 8, couleurBordure(), 1));
 
-        bandeau.addView(boutonBandeau(R.drawable.add_24px, "Créer un projet",
+        bandeau.addView(boutonBandeau(R.drawable.add_24px, Traducteur.get("demarrage_creer_projet"),
                 v -> afficherDialogueCreationProjet()));
-        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, "Ouvrir un projet téléchargé",
-                v -> Toast.makeText(this, "Import de projet : à venir", Toast.LENGTH_SHORT).show()));
+        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, Traducteur.get("demarrage_ouvrir_projet"),
+                v -> Toast.makeText(this, Traducteur.get("toast_import_a_venir"), Toast.LENGTH_SHORT).show()));
 
         bandeau.addView(separateurVertical());
 
-        bandeau.addView(boutonBandeau(R.drawable.bug_report_24px, "Diagnostic du dossier projets",
+        bandeau.addView(boutonBandeau(R.drawable.bug_report_24px, Traducteur.get("demarrage_diagnostic"),
                 v -> afficherDiagnosticDossier()));
-        bandeau.addView(boutonBandeau(R.drawable.build_24px, "Test mkdirs",
+        bandeau.addView(boutonBandeau(R.drawable.build_24px, Traducteur.get("demarrage_test_mkdirs"),
                 v -> afficherTestMkdirs()));
 
-        // Espace élastique puis compteur de projets, aligné à droite.
         View espace = new View(this);
         espace.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeau.addView(espace);
@@ -267,7 +273,7 @@ public class EcranDemarrage extends Activity {
 
     private View construireEnteteListe() {
         TextView titreListe = new TextView(this);
-        titreListe.setText("PROJETS");
+        titreListe.setText(Traducteur.get("demarrage_titre_projets"));
         titreListe.setTextSize(11f);
         titreListe.setLetterSpacing(0.18f);
         titreListe.setPadding(dp(4), dp(14), 0, dp(6));
@@ -294,17 +300,16 @@ public class EcranDemarrage extends Activity {
         return conteneur;
     }
 
-    /** Barre d'actions contextuelles, en bas de la colonne des projets. */
     private View construireBarreActions() {
         barreActions = new LinearLayout(this);
         barreActions.setOrientation(LinearLayout.HORIZONTAL);
         barreActions.setPadding(dp(6), dp(8), dp(0), dp(2));
 
-        barreActions.addView(boutonAction("Éditer", false, v -> actionEditer()));
-        barreActions.addView(boutonAction("Renommer", false, v -> actionRenommer()));
-        barreActions.addView(boutonAction("Dupliquer", false, v -> actionDupliquer()));
-        barreActions.addView(boutonAction("Exporter", false, v -> actionExporter()));
-        barreActions.addView(boutonAction("Supprimer", true, v -> actionSupprimer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_editer"), false, v -> actionEditer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_renommer"), false, v -> actionRenommer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_dupliquer"), false, v -> actionDupliquer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_exporter"), false, v -> actionExporter()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_supprimer"), true, v -> actionSupprimer()));
 
         majEtatActions();
         return barreActions;
@@ -322,13 +327,10 @@ public class EcranDemarrage extends Activity {
         if (etiquetteSelection != null) {
             int total = dossiersProjets.size();
             etiquetteSelection.setText(actif
-                    ? "1 projet sélectionné · " + total + " au total"
-                    : total + " projet(s)");
+                    ? Traducteur.get("demarrage_un_projet_select") + total + Traducteur.get("demarrage_au_total")
+                    : total + " " + Traducteur.get("demarrage_projets"));
         }
     }
-// bas 1
-            
-// haut 2
 
     // ---------------------------------------------------------------- adaptateur liste
 
@@ -405,8 +407,8 @@ public class EcranDemarrage extends Activity {
                     if (!metaFile.exists()) continue;
                     try {
                         JSONObject metaJson = lireJson(metaFile);
-                        noms.add(metaJson.optString("nom", "Projet Sans Nom"));
-                        sousTitres.add("Modifié le " + metaJson.optString("dateModif", "date inconnue"));
+                        noms.add(metaJson.optString("nom", Traducteur.get("projet_sans_nom")));
+                        sousTitres.add(Traducteur.get("projet_modifie_le") + " " + metaJson.optString("dateModif", Traducteur.get("date_inconnue")));
                         dossiersProjets.add(sousDossier);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -438,7 +440,9 @@ public class EcranDemarrage extends Activity {
 
         majEtatActions();
     }
+// bas 2
 
+// haut 3
     private JSONObject lireJson(File fichier) throws Exception {
         StringBuilder sb = new StringBuilder();
         Scanner scanner = new Scanner(fichier);
@@ -451,7 +455,7 @@ public class EcranDemarrage extends Activity {
 
     private File dossierSelectionne() {
         if (positionSelectionnee < 0 || positionSelectionnee >= dossiersProjets.size()) {
-            Toast.makeText(this, "Sélectionnez d'abord un projet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_select_projet"), Toast.LENGTH_SHORT).show();
             return null;
         }
         return dossiersProjets.get(positionSelectionnee);
@@ -459,9 +463,9 @@ public class EcranDemarrage extends Activity {
 
     private String nomProjet(File dossier) {
         try {
-            return lireJson(new File(dossier, "meta.json")).optString("nom", "Projet Sans Nom");
+            return lireJson(new File(dossier, "meta.json")).optString("nom", Traducteur.get("projet_sans_nom"));
         } catch (Exception e) {
-            return "Projet Sans Nom";
+            return Traducteur.get("projet_sans_nom");
         }
     }
 
@@ -478,7 +482,7 @@ public class EcranDemarrage extends Activity {
                 File metaFile = new File(sousDossier, "meta.json");
                 if (sousDossier.isDirectory() && metaFile.exists()) {
                     try {
-                        noms.add(lireJson(metaFile).optString("nom", "Projet Sans Nom"));
+                        noms.add(lireJson(metaFile).optString("nom", Traducteur.get("projet_sans_nom")));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -518,21 +522,21 @@ public class EcranDemarrage extends Activity {
         champ.setSelectAllOnFocus(true);
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
-                .setTitle("Renommer le projet")
+                .setTitle(Traducteur.get("dialogue_renommer_titre"))
                 .setView(champ)
-                .setPositiveButton("Valider", null)
-                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .setPositiveButton(Traducteur.get("bouton_valider"), null)
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
                 .create();
         dialogue.show();
 
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nouveauNom = champ.getText().toString().trim();
             if (nouveauNom.isEmpty()) {
-                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_vide"), Toast.LENGTH_SHORT).show();
                 return;
             }
             if (nomDejaUtilise(nouveauNom, nomActuel)) {
-                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_utilise"), Toast.LENGTH_SHORT).show();
                 return;
             }
             try {
@@ -546,7 +550,7 @@ public class EcranDemarrage extends Activity {
                 dialogue.dismiss();
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Erreur lors du renommage", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_renommage"), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -555,7 +559,7 @@ public class EcranDemarrage extends Activity {
         File source = dossierSelectionne();
         if (source == null) return;
 
-        String base = nomProjet(source) + " (copie)";
+        String base = nomProjet(source) + " " + Traducteur.get("projet_copie");
         String nomFinal = base;
         int index = 2;
         while (nomDejaUtilise(nomFinal, null)) {
@@ -574,11 +578,11 @@ public class EcranDemarrage extends Activity {
             fw.write(metaJson.toString(4));
             fw.close();
             chargerListeProjets();
-            Toast.makeText(this, "Projet dupliqué : " + nomFinal, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_projet_duplique") + " " + nomFinal, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
             supprimerDossierRecursif(cible);
-            Toast.makeText(this, "Erreur lors de la duplication", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_duplication"), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -597,58 +601,57 @@ public class EcranDemarrage extends Activity {
             zip.close();
 
             new AlertDialog.Builder(this)
-                    .setTitle("Export terminé")
-                    .setMessage("Archive créée :\n" + archive.getAbsolutePath())
-                    .setPositiveButton("OK", null)
+                    .setTitle(Traducteur.get("export_termine"))
+                    .setMessage(Traducteur.get("archive_creee") + "\n" + archive.getAbsolutePath())
+                    .setPositiveButton(Traducteur.get("bouton_ok"), null)
                     .show();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de l'export", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_export"), Toast.LENGTH_SHORT).show();
         }
     }
 
-        private void actionSupprimer() {
+    private void actionSupprimer() {
         File dossier = dossierSelectionne();
         if (dossier == null) return;
         String nom = nomProjet(dossier);
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
-                .setTitle("Supprimer le projet")
-                .setMessage("Voulez-vous vraiment supprimer le projet " + nom + " ?")
-                .setPositiveButton("Supprimer", (d, w) -> {
+                .setTitle(Traducteur.get("dialogue_supprimer_titre"))
+                .setMessage(Traducteur.get("dialogue_supprimer_msg1") + nom + Traducteur.get("dialogue_supprimer_msg2"))
+                .setPositiveButton(Traducteur.get("bouton_supprimer"), (d, w) -> {
                     supprimerDossierRecursif(dossier);
                     positionSelectionnee = -1;
                     chargerListeProjets();
                 })
-                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
                 .create();
         dialogue.show();
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
     }
 
-
     // ---------------------------------------------------------------- création projet
 
     private void afficherDialogueCreationProjet() {
         final EditText champ = new EditText(this);
-        champ.setHint("Nom du projet");
+        champ.setHint(Traducteur.get("hint_nom_projet"));
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
-                .setTitle("Nouveau projet")
+                .setTitle(Traducteur.get("dialogue_nouveau_titre"))
                 .setView(champ)
-                .setPositiveButton("Créer", null)
-                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .setPositiveButton(Traducteur.get("bouton_creer"), null)
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
                 .create();
         dialogue.show();
 
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nomProjet = champ.getText().toString().trim();
             if (nomProjet.isEmpty()) {
-                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_vide"), Toast.LENGTH_SHORT).show();
                 return;
             }
             if (nomDejaUtilise(nomProjet, null)) {
-                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_utilise"), Toast.LENGTH_SHORT).show();
                 return;
             }
             creerNouveauProjet(nomProjet);
@@ -686,7 +689,7 @@ public class EcranDemarrage extends Activity {
             fwBlueprint.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de la création des fichiers", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_creation_fichiers"), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -806,6 +809,10 @@ public class EcranDemarrage extends Activity {
                 .show();
     }
 }
-// bas 2
+// bas 3
+
+
+
+    
 
 

@@ -1,0 +1,245 @@
+================================================
+  OFFICIAL YOP.2D DOCUMENTATION - BLUEPRINT
+================================================
+
+--- EVENTS ---
+[On Start]
+Executes automatically and only once as soon as the scene is loaded on the screen.
+
+[End of Click]
+Triggers when the player releases their finger from the screen, anywhere.
+
+[On Object Click]
+Triggers when the player's finger touches the targeted Object.
+
+[Drag Start] / [Drag End]
+Triggers when the player starts dragging a movable object, and when they release it.
+
+[Collision A/B]
+Triggers at the exact moment Object A comes into physical contact with Object B.
+
+[Enter Zone] / [Exit Zone]
+Ideal for invisible triggers. Activates when an object enters or exits a defined zone.
+
+[On Hover] / [End of Hover]
+Manages the passage of a finger or pointer over an object, without needing to click.
+
+[On Impact (Physics)]
+Detects when the object bounces or hits a solid element with gravity enabled.
+
+[When Variable Changes]
+Continuously monitors a Variable. As soon as its value is modified, this node launches the logical sequence.
+
+[Local Event]
+A custom event that you can trigger remotely using the "Call Local Event" node.
+
+[On Action Click (Adventure)]
+Triggers specifically when the virtual "ACTION" button of the interface is pressed.
+
+
+--- MOVEMENTS & AI ---
+[Move forward continuously]
+Applies constant velocity. The object will move forward on its own in the direction of its Rotation Angle.
+
+[Chase an object]
+Automatically moves Object A towards Object B (like a guided missile or an enemy).
+
+[Flee an object]
+The opposite behavior of chase. Object A moves away from Object B.
+
+[Stop movements]
+Instantly cancels all chase, flee, or continuous forward commands on an object.
+
+
+--- SPATIAL LOGIC ---
+[Distance between A and B]
+Calculates the gap in pixels between Object A and Object B. Has two outputs (True/False) depending on whether the distance meets the condition.
+
+[Orient towards (Look At)]
+Rotates Object A so that it looks at Object B. The "Angle Offset" allows you to compensate if your object's image wasn't drawn facing right.
+
+
+--- LOGIC & CONDITIONS ---
+[Condition]
+Compares the value of a Variable with a number or text. True or False output.
+
+[If object A touches zone B]
+Instantly checks if two objects overlap at the precise moment the node is called.
+
+[If Object is Visible]
+Checks if the targeted object is currently displayed on the screen.
+
+[If Object has Tag]
+Checks if the object has the requested tag (e.g., "Enemy", "Key").
+
+[Double Condition (AND/OR)]
+Allows checking two conditions at the same time.
+
+[Call Function]
+Executes an external Blueprint saved in the "fonctions" folder. Ideal for repetitive mechanics.
+
+[Call Local Event]
+Remotely triggers a "Local Event" block located elsewhere in the current Blueprint.
+
+[If Joystick is Active]
+Checks if the player is currently manipulating the virtual joystick.
+
+
+--- SCENE & HUD ---
+[Change Scene]
+Loads a new room/level. The current scene is automatically saved.
+
+[Reload current Scene]
+Resets the current level. Perfect if the player fails a puzzle.
+
+[Open HUD] / [Close HUD]
+Displays a Scene over the game without pausing it. Ideal for an inventory or a settings menu.
+
+[Toast]
+Displays a short, temporary system message at the bottom of the screen.
+
+[Lock Camera]
+Locks the camera onto the targeted Object to automatically follow its movements.
+
+[Camera Shake]
+Shakes the screen. Useful for giving impact to an explosion or a heavy door.
+
+[Camera Elasticity]
+Changes the speed (between 0.01 and 1.0) at which the camera follows its target for a smoother or stiffer effect.
+
+[Show/Hide Joystick] / [Show/Hide Action]
+Controls the visibility of the on-screen movement interfaces (useful during a cutscene).
+
+[Vibration]
+Vibrates the tablet for the specified duration in milliseconds.
+
+
+--- APPEARANCE & OBJECTS ---
+[Move Object]
+Instantly teleports the object to the specified X and Y coordinates.
+
+[Modify Color]
+Changes the base tint of the object (if it is not an image).
+
+[Visibility]
+Shows or hides an object from the scene.
+
+[Modify Draggable]
+Allows or forbids the player to drag this object with their finger.
+
+[Modify Locked]
+Locks an object in the editor to prevent accidental movement when creating the level.
+
+[Change Z-Order]
+Changes the depth of the object (moves to the foreground or background).
+
+[Change Image]
+Replaces the visual (Sprite) of the object with another file.
+
+[Rotation]
+Instantly sets the angle (in degrees) of the object.
+
+[Set size (Scale)]
+Modifies the scale (zoom) of the object in width (X) and height (Y).
+
+[Destroy Object]
+Permanently removes the object from the scene.
+
+[Generate clone (Spawner)]
+Clones the requested Model object and makes it appear at the center of the Target Object (the spawn point).
+
+[Set Tag]
+Assigns a tag (e.g., "Projectile") to the targeted object.
+
+[Destroy by Tag]
+Instantly deletes all objects in the scene carrying the requested tag.
+
+[Color Filter]
+Applies a matrix effect to the object (Sepia, Black & White, Invert).
+
+[Blink]
+Makes the object appear/disappear at a given speed (in ms).
+
+[Glow]
+Surrounds the object with a colored luminous outline.
+
+
+--- TEXTS & DIALOGUES ---
+[Modify Text]
+Entirely replaces the content of a Text object.
+
+[Append to Text]
+Adds words to the end of an existing Text object (concatenation).
+
+[Show Dialogue]
+Reads a sentence from the dialogues file via its Key, and injects it into a Text object.
+
+
+--- VARIABLES & INVENTORY ---
+[Math Operation]
+Performs a calculation (+, -, *, /) on the targeted Variable with a given value.
+
+[Limit Value (Clamp)]
+Prevents a Variable from dropping below a Minimum or exceeding a Maximum.
+
+[Modify Variable] / [Add to Variable]
+Replaces or adds a simple value to a Variable.
+
+[Random Number]
+Generates a random number between a Minimum and a Maximum and stores it in the target Variable.
+
+[Add to inventory] / [Remove from inventory]
+Manages the list of objects possessed by the player.
+
+[If in inventory]
+Checks if a specific object is possessed by the player. (True/False output).
+
+[Combine Objects]
+Destroys Object A and Object B to spawn the "Result Model" (e.g., Broken Key + Tape = Repaired Key).
+
+[Checkpoint]
+Immediately forces the saving of the scene state and inventory to the database.
+
+
+--- TIME ---
+[Timer]
+Starts a standalone countdown. Is not affected by the rest of the Blueprint.
+
+[Stopwatch]
+Starts a global stopwatch to measure the time spent in a level.
+
+[Wait (ms)]
+Pauses (Delay) before continuing the execution of the following nodes.
+
+
+--- AUDIO ---
+[Play a Sound]
+Plays a short sound effect. Can overlap with other sounds.
+
+[Manage Music]
+Starts a long audio track. Automatically stops the previous music.
+
+
+--- ANIMATIONS ---
+[Fade (Alpha)]
+Makes the object progressively transparent or opaque.
+
+[Slide To]
+Moves the object to new coordinates smoothly, with a defined duration.
+
+[Play Animation]
+Plays a predefined sequence of images (Sprite animation) on the object.
+
+
+--- PHYSICS ---
+[Enable Physics (Fall)]
+Subjects the object to the engine's gravity.
+
+[Apply Impulse (Jump)]
+Applies an upward force to a physics object.
+
+[Change Bounce]
+Modifies the energy restitution of the object (0 = lead block, 1.0 = bouncing ball).
+
+[If Object is Falling]
+Checks if a physics object is currently falling or if it is resting on the ground.
