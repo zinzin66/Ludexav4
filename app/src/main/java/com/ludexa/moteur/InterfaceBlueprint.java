@@ -162,7 +162,7 @@ public class InterfaceBlueprint extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
-// haut 2
+ // haut 2
         ImageButton boutonZoomMoins = new ImageButton(this);
         boutonZoomMoins.setImageResource(R.drawable.zoom_out_24px);
         styliserBoutonBandeau(boutonZoomMoins);
@@ -205,7 +205,6 @@ public class InterfaceBlueprint extends Activity {
         boutonCopierNode.setOnClickListener(v -> canvasBlueprint.dupliquerNoeudSelectionne());
         bandeauHaut.addView(boutonCopierNode);
 
-        // NOUVEAU : Bouton Replier/Déplier
         ImageButton boutonReplierNode = new ImageButton(this);
         boutonReplierNode.setImageResource(R.drawable.hide_image_24px);
         styliserBoutonBandeau(boutonReplierNode);
@@ -222,6 +221,22 @@ public class InterfaceBlueprint extends Activity {
         boutonCode.setBackground(fond(Palette.boutonSurvol, 6, Palette.bordure, 1));
         boutonCode.setOnClickListener(v -> afficherFenetreCode());
         bandeauHaut.addView(boutonCode);
+
+        // --- NOUVEAUTÉ : Bouton d'Aide [?] ---
+        Button boutonAide = new Button(this);
+        boutonAide.setText("?");
+        boutonAide.setTextSize(18f);
+        boutonAide.setTextColor(Palette.texteNormal);
+        boutonAide.setTypeface(null, android.graphics.Typeface.BOLD);
+        boutonAide.setBackground(fond(Palette.boutonNormal, 6, Palette.bordure, 1));
+        boutonAide.setPadding(0, 0, 0, 0); // Padding réduit pour un bouton texte carré
+        LinearLayout.LayoutParams lpAide = new LinearLayout.LayoutParams(dp(38), dp(38));
+        lpAide.setMargins(0, 0, dp(6), 0);
+        lpAide.gravity = Gravity.CENTER_VERTICAL;
+        boutonAide.setLayoutParams(lpAide);
+        boutonAide.setOnClickListener(v -> afficherFenetreAide());
+        bandeauHaut.addView(boutonAide);
+        // ------------------------------------
 
         // ---- Zone Milieu ----
         LinearLayout zoneMilieu = new LinearLayout(this);
@@ -327,6 +342,7 @@ public class InterfaceBlueprint extends Activity {
         }
     }
 // bas 2
+
 // haut 3
     private String formaterNoeud(NoeudBase noeud) {
         StringBuilder sb = new StringBuilder();
@@ -384,6 +400,90 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
+
+    // --- NOUVEAUTÉ : Fenêtre d'aide lisant le fichier de traduction ---
+    private void afficherFenetreAide() {
+        Dialog dialog = new Dialog(this);
+        dialog.setTitle("Aide Blueprint");
+
+        LinearLayout layoutDialog = new LinearLayout(this);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(dp(16), dp(16), dp(16), dp(16));
+        layoutDialog.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
+
+        TextView enTeteDialog = new TextView(this);
+        enTeteDialog.setText("DOCUMENTATION DES NOEUDS (" + EcranDemarrage.langueCourante.toUpperCase() + ")");
+        enTeteDialog.setTextSize(14f);
+        enTeteDialog.setTextColor(Palette.texteSelectionne);
+        enTeteDialog.setBackground(fond(Palette.enTeteDialogues, 6, Palette.bordure, 1));
+        enTeteDialog.setPadding(dp(10), dp(8), dp(10), dp(8));
+        LinearLayout.LayoutParams paramsEnTete = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        paramsEnTete.setMargins(0, 0, 0, dp(10));
+        enTeteDialog.setLayoutParams(paramsEnTete);
+        layoutDialog.addView(enTeteDialog);
+
+        StringBuilder res = new StringBuilder();
+        try {
+            // Lecture depuis le dossier interne "assets/" de l'APK
+            String nomFichier = "doc_noeuds_" + EcranDemarrage.langueCourante + ".txt";
+            java.io.InputStream is = getAssets().open(nomFichier);
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line;
+            while ((line = br.readLine()) != null) {
+                res.append(line).append("\n");
+            }
+            br.close();
+        } catch (Exception e) {
+            res.append("Erreur : Impossible de trouver le fichier d'aide pour la langue '")
+               .append(EcranDemarrage.langueCourante).append("'.\n\n")
+               .append("Vérifiez que le fichier 'doc_noeuds_")
+               .append(EcranDemarrage.langueCourante)
+               .append(".txt' est bien placé dans le dossier 'app/src/main/assets/' de votre projet sur GitHub.");
+        }
+
+        TextView textViewAide = new TextView(this);
+        textViewAide.setText(res.toString());
+        textViewAide.setTextSize(14f); 
+        textViewAide.setTextColor(Palette.texteNormal);
+        textViewAide.setPadding(dp(10), dp(10), dp(10), dp(10));
+
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setBackground(fond(Palette.fondListe, 6, Palette.bordure, 1));
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scrollParams.setMargins(0, 0, 0, dp(12));
+        scrollView.setLayoutParams(scrollParams);
+        scrollView.addView(textViewAide);
+
+        layoutDialog.addView(scrollView);
+
+        LinearLayout boutonsDialog = new LinearLayout(this);
+        boutonsDialog.setOrientation(LinearLayout.HORIZONTAL);
+        boutonsDialog.setGravity(Gravity.END);
+
+        Button btnQuitter = new Button(this);
+        btnQuitter.setText("Fermer");
+        styliserBoutonDialog(btnQuitter);
+        btnQuitter.setOnClickListener(v -> dialog.dismiss());
+        boutonsDialog.addView(btnQuitter);
+
+        layoutDialog.addView(boutonsDialog);
+        
+        dialog.setContentView(layoutDialog);
+        
+        // Ajustement de la taille de la fenêtre pour le confort de lecture
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+            int width = (int) (metrics.widthPixels * 0.85);
+            int height = (int) (metrics.heightPixels * 0.85);
+            window.setLayout(width, height);
+        }
+        
+        dialog.show();
+    }
+    // ------------------------------------------------------------------
 
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
@@ -491,8 +591,4 @@ public class InterfaceBlueprint extends Activity {
     }
 }
 // bas 3
-
-    
-
-
-        
+            
