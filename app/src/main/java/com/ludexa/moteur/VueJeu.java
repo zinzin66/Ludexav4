@@ -196,10 +196,9 @@ public class VueJeu extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(boucleDeRendu);
-        GestionnaireAudio.arreterMusique();
+        GestionnaireAudio.arreterMusique(); 
     }
 // bas 1
-
 // haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
@@ -271,13 +270,11 @@ public class VueJeu extends View {
         return null;
     }
     
-    // NOUVEAU : Méthode de vérification AABB pour les murs statiques
     private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, ObjetBase objetCible, List<ObjetBase> objets) {
         if (objets == null) return false;
         for (ObjetBase mur : objets) {
             if (mur == objetCible || !estVisibleEffectif(mur, objets)) continue;
             if (mur.estPhysique && mur.estStatique) {
-                // Vérification AABB standard
                 if (testX < mur.x + mur.largeur &&
                     testX + largeur > mur.x &&
                     testY < mur.y + mur.hauteur &&
@@ -288,6 +285,31 @@ public class VueJeu extends View {
         }
         return false;
     }
+
+    // --- NOUVELLE MÉTHODE CENTRALISÉE DE DÉPLACEMENT ---
+    public void deplacerAvecCollision(ObjetBase objet, float deltaX, float deltaY, List<ObjetBase> contexteObjets) {
+        if (deltaX == 0 && deltaY == 0) return;
+
+        if (objet.estPhysique && !objet.estStatique) {
+            if (deltaX != 0) {
+                float futurX = objet.x + deltaX;
+                if (!verifierCollisionStatique(futurX, objet.y, objet.largeur, objet.hauteur, objet, contexteObjets)) {
+                    objet.x = futurX;
+                }
+            }
+            if (deltaY != 0) {
+                float futurY = objet.y + deltaY;
+                if (!verifierCollisionStatique(objet.x, futurY, objet.largeur, objet.hauteur, objet, contexteObjets)) {
+                    objet.y = futurY;
+                }
+            }
+        } else {
+            // Mouvement libre sans contrainte physique (fantômes, UI, non physiques...)
+            objet.x += deltaX;
+            objet.y += deltaY;
+        }
+    }
+    // ---------------------------------------------------
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -402,10 +424,16 @@ public class VueJeu extends View {
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (objetEnGlissement != null && objetEnGlissement.estDeplacable) {
                 boolean isHudDrag = sceneHudActive != null && sceneHudActive.objets.contains(objetEnGlissement);
-                objetEnGlissement.x += (isHudDrag ? xVue : xMonde) - lastXJeu;
-                objetEnGlissement.y += (isHudDrag ? yVue : yMonde) - lastYJeu;
-                lastXJeu = isHudDrag ? xVue : xMonde;
-                lastYJeu = isHudDrag ? yVue : yMonde;
+                float newX = isHudDrag ? xVue : xMonde;
+                float newY = isHudDrag ? yVue : yMonde;
+                
+                float deltaX = newX - lastXJeu;
+                float deltaY = newY - lastYJeu;
+                
+                deplacerAvecCollision(objetEnGlissement, deltaX, deltaY, isHudDrag ? sceneHudActive.objets : sceneActive.objets);
+                
+                lastXJeu = newX;
+                lastYJeu = newY;
             } else {
                 ObjetBase objSurvole = trouverObjetSousPoint(xVue, yVue, false);
                 if (objSurvole != dernierObjetSurvole) {
@@ -449,9 +477,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 2
-
-
-// haut 3
+  // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -701,35 +727,15 @@ public class VueJeu extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         
-        // --- MISE À JOUR : Déplacement au joystick avec collision prédictive AABB ---
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
             ObjetBase joystickObj = trouverObjetParType("joystick");
             if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
                 ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
-                
-                if (joueurCible != null && joueurCible.estPhysique && !joueurCible.estStatique) {
+                if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
                     float moveX = GestionnaireControles.joyDirX * vitesseDefaut;
                     float moveY = GestionnaireControles.joyDirY * vitesseDefaut;
-                    
-                    if (moveX != 0) {
-                        float futurX = joueurCible.x + moveX;
-                        if (!verifierCollisionStatique(futurX, joueurCible.y, joueurCible.largeur, joueurCible.hauteur, joueurCible, sceneActive.objets)) {
-                            joueurCible.x = futurX;
-                        }
-                    }
-                    
-                    if (moveY != 0) {
-                        float futurY = joueurCible.y + moveY;
-                        if (!verifierCollisionStatique(joueurCible.x, futurY, joueurCible.largeur, joueurCible.hauteur, joueurCible, sceneActive.objets)) {
-                            joueurCible.y = futurY;
-                        }
-                    }
-                } else if (joueurCible != null) {
-                    // Mouvement libre si la physique n'est pas activée sur le joueur (ex: fantôme)
-                    float vitesseDefaut = 5f; 
-                    joueurCible.x += GestionnaireControles.joyDirX * vitesseDefaut;
-                    joueurCible.y += GestionnaireControles.joyDirY * vitesseDefaut;
+                    deplacerAvecCollision(joueurCible, moveX, moveY, sceneActive.objets);
                 }
             }
         }
@@ -739,8 +745,9 @@ public class VueJeu extends View {
                 
                 if (obj.vitesseAvanceContinue != 0f) {
                     double rad = Math.toRadians(obj.rotation);
-                    obj.x += (float)(Math.cos(rad) * obj.vitesseAvanceContinue);
-                    obj.y += (float)(Math.sin(rad) * obj.vitesseAvanceContinue);
+                    float dX = (float)(Math.cos(rad) * obj.vitesseAvanceContinue);
+                    float dY = (float)(Math.sin(rad) * obj.vitesseAvanceContinue);
+                    deplacerAvecCollision(obj, dX, dY, sceneActive.objets);
                 }
                 
                 if (obj.idCiblePoursuite != null && obj.vitessePoursuite != 0f) {
@@ -760,12 +767,10 @@ public class VueJeu extends View {
                             float moveY = (float) ((dy / dist) * obj.vitessePoursuite);
                             
                             if (obj.fuiteActive) {
-                                obj.x -= moveX;
-                                obj.y -= moveY;
+                                deplacerAvecCollision(obj, -moveX, -moveY, sceneActive.objets);
                                 obj.rotation = (float) Math.toDegrees(Math.atan2(-dy, -dx));
                             } else {
-                                obj.x += moveX;
-                                obj.y += moveY;
+                                deplacerAvecCollision(obj, moveX, moveY, sceneActive.objets);
                                 obj.rotation = (float) Math.toDegrees(Math.atan2(dy, dx));
                             }
                         }
@@ -815,8 +820,7 @@ public class VueJeu extends View {
         }
 
         // --- GESTION TREMBLEMENT ---
-        
-float shakeX = 0f;
+        float shakeX = 0f;
         float shakeY = 0f;
         if (System.currentTimeMillis() < tremblementFin) {
             shakeX = (float) ((Math.random() - 0.5) * 2.0 * tremblementIntensite);
@@ -833,4 +837,4 @@ float shakeX = 0f;
     }
 }
 // bas 3
-
+                     
