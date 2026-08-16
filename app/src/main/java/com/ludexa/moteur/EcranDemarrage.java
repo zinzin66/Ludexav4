@@ -117,6 +117,7 @@ public class EcranDemarrage extends Activity {
 
         NoeudBase.contexteApplication = this;
         Traducteur.initialiser(this, langueCourante); 
+        RegistreNoeuds.initialiser(); 
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
@@ -201,11 +202,13 @@ public class EcranDemarrage extends Activity {
                 case 2: langueCourante = "ru"; break;
             }
             Traducteur.initialiser(this, langueCourante);
+            RegistreNoeuds.initialiser(); 
             recreate(); 
         });
         builder.show();
     }
 // bas 1
+        
 
 
 // haut 2
