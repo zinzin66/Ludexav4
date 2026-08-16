@@ -31,7 +31,6 @@ public class EditeurAnimationsDialog extends Dialog {
     private String cheminProjet;
     private String animationSelectionnee = null;
     
-    // Base de données globale des animations
     private Map<String, List<String>> animationsGlobales = new LinkedHashMap<>();
     
     private LinearLayout conteneurAnimations;
@@ -53,7 +52,7 @@ public class EditeurAnimationsDialog extends Dialog {
     public EditeurAnimationsDialog(Context context, String cheminProjet) {
         super(context);
         this.cheminProjet = cheminProjet;
-        setTitle("Gestionnaire Global des Animations");
+        setTitle(Traducteur.get("anim_gestionnaire_titre"));
 
         chargerFichierAnimations();
 
@@ -62,7 +61,6 @@ public class EditeurAnimationsDialog extends Dialog {
         root.setBackgroundColor(Palette.fondPanneaux);
         root.setPadding(dp(context, 8), dp(context, 8), dp(context, 8), dp(context, 8));
 
-        // COLONNE GAUCHE (Liste des animations)
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lpGauche = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
@@ -72,7 +70,7 @@ public class EditeurAnimationsDialog extends Dialog {
         colonneGauche.setPadding(dp(context, 8), dp(context, 8), dp(context, 8), dp(context, 8));
 
         Button btnNouvelleAnim = new Button(context);
-        btnNouvelleAnim.setText("+ Nouvelle Animation");
+        btnNouvelleAnim.setText(Traducteur.get("anim_btn_nouvelle"));
         btnNouvelleAnim.setAllCaps(false);
         btnNouvelleAnim.setBackground(fond(context, Color.parseColor("#4CAF50"), Palette.bordure, 8));
         btnNouvelleAnim.setTextColor(Palette.texteNormal);
@@ -86,7 +84,6 @@ public class EditeurAnimationsDialog extends Dialog {
         scrollGauche.addView(conteneurAnimations);
         colonneGauche.addView(scrollGauche);
 
-        // COLONNE DROITE (Liste des frames)
         LinearLayout colonneDroite = new LinearLayout(context);
         colonneDroite.setOrientation(LinearLayout.VERTICAL);
         colonneDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f));
@@ -94,14 +91,14 @@ public class EditeurAnimationsDialog extends Dialog {
         colonneDroite.setPadding(dp(context, 8), dp(context, 8), dp(context, 8), dp(context, 8));
 
         titreFrames = new TextView(context);
-        titreFrames.setText("Sélectionnez une animation");
+        titreFrames.setText(Traducteur.get("anim_selectionner"));
         titreFrames.setTextColor(Palette.texteSelectionne);
         titreFrames.setTextSize(16f);
         titreFrames.setPadding(0, 0, 0, dp(context, 8));
         colonneDroite.addView(titreFrames);
 
         Button btnAjouterFrame = new Button(context);
-        btnAjouterFrame.setText("+ Ajouter Image (Frame)");
+        btnAjouterFrame.setText(Traducteur.get("anim_btn_ajouter_frame"));
         btnAjouterFrame.setAllCaps(false);
         btnAjouterFrame.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
         btnAjouterFrame.setTextColor(Palette.texteNormal);
@@ -124,7 +121,7 @@ public class EditeurAnimationsDialog extends Dialog {
         grandLayout.addView(root, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
         Button btnFermer = new Button(context);
-        btnFermer.setText("Fermer & Sauvegarder");
+        btnFermer.setText(Traducteur.get("bouton_fermer_sauvegarder"));
         btnFermer.setAllCaps(false);
         btnFermer.setBackground(fond(context, Color.parseColor("#3F51B5"), Palette.bordure, 8));
         btnFermer.setTextColor(Color.WHITE);
@@ -149,7 +146,8 @@ public class EditeurAnimationsDialog extends Dialog {
 
         rafraichirListeAnimations(context);
     }
-
+// bas 1
+// haut 2
     private void chargerFichierAnimations() {
         animationsGlobales.clear();
         if (cheminProjet == null) return;
@@ -254,7 +252,7 @@ public class EditeurAnimationsDialog extends Dialog {
     private void rafraichirListeFrames(Context context) {
         conteneurFrames.removeAllViews();
         if (animationSelectionnee == null) {
-            titreFrames.setText("Sélectionnez une animation");
+            titreFrames.setText(Traducteur.get("anim_selectionner"));
             return;
         }
         titreFrames.setText("Séquence de l'animation : " + animationSelectionnee);
@@ -323,14 +321,14 @@ public class EditeurAnimationsDialog extends Dialog {
 
     private void demanderNomNouvelleAnimation(Context context, String ancienNom) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(ancienNom == null ? "Nouvelle Animation" : "Renommer l'animation");
+        builder.setTitle(ancienNom == null ? Traducteur.get("anim_titre_nouvelle") : Traducteur.get("anim_titre_renommer"));
         final EditText input = new EditText(context);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         if (ancienNom != null) input.setText(ancienNom);
-        else input.setHint("Ex: PorteOuverture");
+        else input.setHint(Traducteur.get("anim_hint_nom"));
         builder.setView(input);
         
-        builder.setPositiveButton("Valider", (dialog, which) -> {
+        builder.setPositiveButton(Traducteur.get("bouton_valider"), (dialog, which) -> {
             String nom = input.getText().toString().trim();
             if (!nom.isEmpty() && !animationsGlobales.containsKey(nom)) {
                 if (ancienNom != null) {
@@ -343,7 +341,7 @@ public class EditeurAnimationsDialog extends Dialog {
                 rafraichirListeAnimations(context);
             }
         });
-        builder.setNegativeButton("Annuler", null);
+        builder.setNegativeButton(Traducteur.get("bouton_annuler"), null);
         builder.show();
     }
 
@@ -362,13 +360,13 @@ public class EditeurAnimationsDialog extends Dialog {
                 }
             }
         }
-        if (images.isEmpty()) images.add("Aucune image trouvée");
+        if (images.isEmpty()) images.add(Traducteur.get("anim_aucune_image"));
         
         AlertDialog.Builder builderImage = new AlertDialog.Builder(context);
-        builderImage.setTitle("Choisir une image");
+        builderImage.setTitle(Traducteur.get("anim_choisir_image"));
         String[] imagesArray = images.toArray(new String[0]);
         builderImage.setItems(imagesArray, (dialog, which) -> {
-            if (!imagesArray[which].equals("Aucune image trouvée")) {
+            if (!imagesArray[which].equals(Traducteur.get("anim_aucune_image"))) {
                 animationsGlobales.get(animationSelectionnee).add(imagesArray[which]);
                 rafraichirListeFrames(context);
             }
@@ -376,4 +374,7 @@ public class EditeurAnimationsDialog extends Dialog {
         builderImage.show();
     }
 }
-// bas 1
+// bas 2
+
+
+
