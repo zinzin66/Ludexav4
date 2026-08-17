@@ -1,12 +1,15 @@
 // haut 1
 package com.ludexa.moteur;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class NoeudActionFixerCamera extends NoeudBase {
 
     private ObjetBase cible;
+    private boolean suivreX = true;
+    private boolean suivreY = true;
+    private boolean parallaxeXSeulement = true;
 
     public NoeudActionFixerCamera() {
         super(genererId(), "Fixer Caméra", "Action");
@@ -18,6 +21,9 @@ public class NoeudActionFixerCamera extends NoeudBase {
     public void executer() {
         if (cible != null) {
             GestionnaireControles.cameraCibleId = cible.id;
+            GestionnaireControles.cameraSuitAxeX = suivreX;
+            GestionnaireControles.cameraSuitAxeY = suivreY;
+            GestionnaireControles.parallaxeUniquementX = parallaxeXSeulement;
         } else {
             GestionnaireControles.cameraCibleId = null; // Libère la caméra
         }
@@ -33,15 +39,25 @@ public class NoeudActionFixerCamera extends NoeudBase {
     @Override
     public ObjetBase getCibleObjet() { return this.cible; }
 
-    // --- Méthodes obligatoires de NoeudBase (même vides) ---
     @Override
-    public List<String> getNomsParametres() { return new ArrayList<>(); }
+    public List<String> getNomsParametres() { 
+        return Arrays.asList("Suivre X", "Suivre Y", "Parallaxe X uniq."); 
+    }
 
     @Override
-    public String getValeurParametre(String nom) { return ""; }
+    public String getValeurParametre(String nom) {
+        if ("Suivre X".equals(nom)) return String.valueOf(suivreX);
+        if ("Suivre Y".equals(nom)) return String.valueOf(suivreY);
+        if ("Parallaxe X uniq.".equals(nom)) return String.valueOf(parallaxeXSeulement);
+        return "";
+    }
 
     @Override
-    public void setValeurParametre(String nom, String valeur) {}
+    public void setValeurParametre(String nom, String valeur) {
+        if ("Suivre X".equals(nom)) suivreX = Boolean.parseBoolean(valeur);
+        if ("Suivre Y".equals(nom)) suivreY = Boolean.parseBoolean(valeur);
+        if ("Parallaxe X uniq.".equals(nom)) parallaxeXSeulement = Boolean.parseBoolean(valeur);
+    }
 
     @Override
     public boolean utiliseClavierTexte() { return false; }
