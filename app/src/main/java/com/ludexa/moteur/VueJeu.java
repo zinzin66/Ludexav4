@@ -17,11 +17,9 @@ import java.util.Map;
 
 public class VueJeu extends View {
     
-    // --- NOUVEAUTÉS CAMÉRA ---
     public static float tremblementIntensite = 0f;
     public static long tremblementFin = 0;
     public static float vitesseSuiviCamera = 0.1f;
-    // -------------------------
 
     private Scene sceneActive;
     private Scene sceneHudActive;
@@ -82,7 +80,7 @@ public class VueJeu extends View {
         peintureDebug.setAntiAlias(true);
         
         peintureFondBlanc = new Paint();
-        peintureFondBlanc.setColor(Color.WHITE);
+        peintureFondBlanc.setColor(Color.BLACK);
 
         this.moteurPhysique = new MoteurPhysique(); 
 
@@ -232,14 +230,12 @@ public class VueJeu extends View {
         return null;
     }
     
-    // --- CORRECTION : Méthode de secours pour la rétrocompatibilité avec UtilCollision ---
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         float camX = isHud ? 0f : GestionnaireControles.cameraX;
         float camY = isHud ? 0f : GestionnaireControles.cameraY;
         return getAbsoluteMatrix(obj, contexteObjets, camX, camY);
     }
-    // -----------------------------------------------------------------------------------
 
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets, float camX, float camY) {
         Matrix m = new Matrix();
@@ -259,7 +255,9 @@ public class VueJeu extends View {
             local.postTranslate(o.x + o.largeur / 2f, o.y + o.hauteur / 2f);
             
             if (o.facteurParallaxe != 1.0f) {
-                local.postTranslate(camX * (1.0f - o.facteurParallaxe), camY * (1.0f - o.facteurParallaxe));
+                float shiftX = camX * (1.0f - o.facteurParallaxe);
+                float shiftY = GestionnaireControles.parallaxeUniquementX ? 0f : camY * (1.0f - o.facteurParallaxe);
+                local.postTranslate(shiftX, shiftY);
             }
             
             m.preConcat(local); 
@@ -310,7 +308,9 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
-   // haut 3
+
+
+// haut 3
     private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, float scaleX, float scaleY, ObjetBase objetCible, List<ObjetBase> objets) {
         if (objets == null) return false;
 
@@ -762,6 +762,8 @@ public class VueJeu extends View {
         }
     }
 // bas 5
+
+
 // haut 6
     @Override
     protected void onDraw(Canvas canvas) {
@@ -856,8 +858,12 @@ public class VueJeu extends View {
                 float cibleCamX = cible.x + (cible.largeur / 2f) - (ConfigurationJeu.LARGEUR_JEU / 2f);
                 float cibleCamY = cible.y + (cible.hauteur / 2f) - (ConfigurationJeu.HAUTEUR_JEU / 2f);
                 
-                GestionnaireControles.cameraX += (cibleCamX - GestionnaireControles.cameraX) * vitesseSuiviCamera; 
-                GestionnaireControles.cameraY += (cibleCamY - GestionnaireControles.cameraY) * vitesseSuiviCamera; 
+                if (GestionnaireControles.cameraSuitAxeX) {
+                    GestionnaireControles.cameraX += (cibleCamX - GestionnaireControles.cameraX) * vitesseSuiviCamera; 
+                }
+                if (GestionnaireControles.cameraSuitAxeY) {
+                    GestionnaireControles.cameraY += (cibleCamY - GestionnaireControles.cameraY) * vitesseSuiviCamera; 
+                }
                 
                 GestionnaireControles.cameraX = Math.max(GestionnaireControles.limiteMinX, Math.min(GestionnaireControles.cameraX, GestionnaireControles.limiteMaxX - ConfigurationJeu.LARGEUR_JEU));
                 GestionnaireControles.cameraY = Math.max(GestionnaireControles.limiteMinY, Math.min(GestionnaireControles.cameraY, GestionnaireControles.limiteMaxY - ConfigurationJeu.HAUTEUR_JEU));
@@ -888,6 +894,7 @@ public class VueJeu extends View {
 
 
 
+    
 
 
     
@@ -895,6 +902,7 @@ public class VueJeu extends View {
 
 
     
+
 
     
 
