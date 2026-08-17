@@ -52,9 +52,9 @@ public class ObjetBase {
     public float intentionDeplacementX = 0f;
     public float intentionDeplacementY = 0f;
     
-    // --- NOUVEAUTÉ : GESTION DE MASSE ---
-    public String tag = ""; // Permet de regrouper les objets (ex: "Ennemi", "Projectile")
-    // ------------------------------------
+    public float facteurParallaxe = 1.0f; // 1.0 = normal, < 1 = fond, > 1 = premier plan
+    
+    public String tag = ""; 
 
     public String type = "carre"; 
     public boolean afficherFondColore = true;
@@ -136,7 +136,9 @@ public class ObjetBase {
         copie.intentionDeplacementX = this.intentionDeplacementX;
         copie.intentionDeplacementY = this.intentionDeplacementY;
         
-        copie.tag = this.tag; // Copie du Tag
+        copie.facteurParallaxe = this.facteurParallaxe;
+        
+        copie.tag = this.tag; 
 
         copie.type = this.type;
         copie.afficherFondColore = this.afficherFondColore;
@@ -194,7 +196,3 @@ public class ObjetBase {
     }
 }
 // bas 1
-
-
-
-
