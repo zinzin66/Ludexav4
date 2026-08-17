@@ -232,10 +232,42 @@ public class VueJeu extends View {
         return null;
     }
     
+    public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets, float camX, float camY) {
+        Matrix m = new Matrix();
+        List<ObjetBase> chaine = new ArrayList<>();
+        ObjetBase cur = obj;
+        while (cur != null) {
+            chaine.add(cur);
+            cur = getObjetById(cur.parentId, contexteObjets);
+        }
+        
+        for (int i = chaine.size() - 1; i >= 0; i--) {
+            ObjetBase o = chaine.get(i);
+            Matrix local = new Matrix();
+            local.postTranslate(-o.largeur / 2f, -o.hauteur / 2f);
+            local.postScale(o.scaleX, o.scaleY);
+            local.postRotate(o.rotation);
+            local.postTranslate(o.x + o.largeur / 2f, o.y + o.hauteur / 2f);
+            
+            // --- NOUVEAU : Application du parallaxe dans la matrice absolue ---
+            if (o.facteurParallaxe != 1.0f) {
+                local.postTranslate(camX * (1.0f - o.facteurParallaxe), camY * (1.0f - o.facteurParallaxe));
+            }
+            // ------------------------------------------------------------------
+            
+            m.preConcat(local); 
+        }
+        return m;
+    }
+    
     private boolean pointDansObjet(float xVue, float yVue, float xMonde, float yMonde, ObjetBase obj) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         List<ObjetBase> contexte = isHud ? sceneHudActive.objets : sceneActive.objets;
-        Matrix absMatrix = getAbsoluteMatrix(obj, contexte);
+        
+        float camX = isHud ? 0f : GestionnaireControles.cameraX;
+        float camY = isHud ? 0f : GestionnaireControles.cameraY;
+        
+        Matrix absMatrix = getAbsoluteMatrix(obj, contexte, camX, camY);
         Matrix inverseMatrix = new Matrix();
         if (absMatrix.invert(inverseMatrix)) {
             float[] ptLocal = new float[]{isHud ? xVue : xMonde, isHud ? yVue : yMonde};
@@ -270,16 +302,37 @@ public class VueJeu extends View {
         }
         return null;
     }
-    
-    private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, ObjetBase objetCible, List<ObjetBase> objets) {
+// bas 2
+
+// haut 3
+    private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, float scaleX, float scaleY, ObjetBase objetCible, List<ObjetBase> objets) {
         if (objets == null) return false;
+
+        float aCentreX = testX + (largeur / 2f);
+        float aCentreY = testY + (hauteur / 2f);
+        float aDemiLargeur = (largeur * Math.abs(scaleX)) / 2f;
+        float aDemiHauteur = (hauteur * Math.abs(scaleY)) / 2f;
+
+        float aGauche = aCentreX - aDemiLargeur;
+        float aDroite = aCentreX + aDemiLargeur;
+        float aHaut = aCentreY - aDemiHauteur;
+        float aBas = aCentreY + aDemiHauteur;
+
         for (ObjetBase mur : objets) {
             if (mur == objetCible || !estVisibleEffectif(mur, objets)) continue;
             if (mur.estPhysique && mur.estStatique) {
-                if (testX < mur.x + mur.largeur &&
-                    testX + largeur > mur.x &&
-                    testY < mur.y + mur.hauteur &&
-                    testY + hauteur > mur.y) {
+                
+                float bCentreX = mur.x + (mur.largeur / 2f);
+                float bCentreY = mur.y + (mur.hauteur / 2f);
+                float bDemiLargeur = (mur.largeur * Math.abs(mur.scaleX)) / 2f;
+                float bDemiHauteur = (mur.hauteur * Math.abs(mur.scaleY)) / 2f;
+
+                float bGauche = bCentreX - bDemiLargeur;
+                float bDroite = bCentreX + bDemiLargeur;
+                float bHaut = bCentreY - bDemiHauteur;
+                float bBas = bCentreY + bDemiHauteur;
+
+                if (aGauche < bDroite && aDroite > bGauche && aHaut < bBas && aBas > bHaut) {
                     return true;
                 }
             }
@@ -287,20 +340,19 @@ public class VueJeu extends View {
         return false;
     }
 
-    // --- MÉTHODE CENTRALISÉE DE DÉPLACEMENT ---
     public void deplacerAvecCollision(ObjetBase objet, float deltaX, float deltaY, List<ObjetBase> contexteObjets) {
         if (deltaX == 0 && deltaY == 0) return;
 
         if (objet.estPhysique && !objet.estStatique) {
             if (deltaX != 0) {
                 float futurX = objet.x + deltaX;
-                if (!verifierCollisionStatique(futurX, objet.y, objet.largeur, objet.hauteur, objet, contexteObjets)) {
+                if (!verifierCollisionStatique(futurX, objet.y, objet.largeur, objet.hauteur, objet.scaleX, objet.scaleY, objet, contexteObjets)) {
                     objet.x = futurX;
                 }
             }
             if (deltaY != 0) {
                 float futurY = objet.y + deltaY;
-                if (!verifierCollisionStatique(objet.x, futurY, objet.largeur, objet.hauteur, objet, contexteObjets)) {
+                if (!verifierCollisionStatique(objet.x, futurY, objet.largeur, objet.hauteur, objet.scaleX, objet.scaleY, objet, contexteObjets)) {
                     objet.y = futurY;
                 }
             }
@@ -309,7 +361,6 @@ public class VueJeu extends View {
             objet.y += deltaY;
         }
     }
-    // ------------------------------------------
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -339,9 +390,9 @@ public class VueJeu extends View {
         }
         return super.onGenericMotionEvent(event);
     }
-// bas 2
+// bas 3
 
-// haut 3
+// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean touchJoystick = false;
@@ -478,30 +529,10 @@ public class VueJeu extends View {
         }
         return true;
     }
+// bas 4
 
-    public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
-        Matrix m = new Matrix();
-        List<ObjetBase> chaine = new ArrayList<>();
-        ObjetBase cur = obj;
-        while (cur != null) {
-            chaine.add(cur);
-            cur = getObjetById(cur.parentId, contexteObjets);
-        }
-        
-        for (int i = chaine.size() - 1; i >= 0; i--) {
-            ObjetBase o = chaine.get(i);
-            Matrix local = new Matrix();
-            local.postTranslate(-o.largeur / 2f, -o.hauteur / 2f);
-            local.postScale(o.scaleX, o.scaleY);
-            local.postRotate(o.rotation);
-            local.postTranslate(o.x + o.largeur / 2f, o.y + o.hauteur / 2f);
-            m.preConcat(local); 
-        }
-        return m;
-    }
-// bas 3
 
-// haut 4
+// haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
@@ -530,7 +561,7 @@ public class VueJeu extends View {
         }
     }
 
-    private void dessinerListeObjets(Canvas canvas, List<ObjetBase> objets, boolean avecDebugPosition) {
+    private void dessinerListeObjets(Canvas canvas, List<ObjetBase> objets, boolean avecDebugPosition, float camX, float camY) {
         List<ObjetBase> objetsTries = new ArrayList<>(objets);
         Collections.sort(objetsTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
 
@@ -603,7 +634,7 @@ public class VueJeu extends View {
                 peintureObjet.setColorFilter(null);
             }
 
-            Matrix absMatrix = getAbsoluteMatrix(objet, objets);
+            Matrix absMatrix = getAbsoluteMatrix(objet, objets, camX, camY);
             canvas.save();
             canvas.concat(absMatrix);
 
@@ -725,10 +756,9 @@ public class VueJeu extends View {
             }
         }
     }
-// bas 4
-
-
-// haut 5
+// bas 5
+    
+// haut 6
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -749,13 +779,11 @@ public class VueJeu extends View {
         if (sceneActive != null && sceneActive.objets != null) {
             for (ObjetBase obj : sceneActive.objets) {
                 
-                // --- NOUVEAU : Traitement de l'intention de mouvement ---
                 if (obj.intentionDeplacementX != 0f || obj.intentionDeplacementY != 0f) {
                     deplacerAvecCollision(obj, obj.intentionDeplacementX, obj.intentionDeplacementY, sceneActive.objets);
                     obj.intentionDeplacementX = 0f;
                     obj.intentionDeplacementY = 0f;
                 }
-                // --------------------------------------------------------
                 
                 if (obj.vitesseAvanceContinue != 0f) {
                     double rad = Math.toRadians(obj.rotation);
@@ -818,7 +846,6 @@ public class VueJeu extends View {
         canvas.scale(echelle, echelle);
         canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
-        // --- GESTION CAMERA ---
         if (GestionnaireControles.cameraCibleId != null && sceneActive != null) {
             ObjetBase cible = getObjetById(GestionnaireControles.cameraCibleId, sceneActive.objets);
             if (cible != null) {
@@ -833,7 +860,6 @@ public class VueJeu extends View {
             }
         }
 
-        // --- GESTION TREMBLEMENT ---
         float shakeX = 0f;
         float shakeY = 0f;
         if (System.currentTimeMillis() < tremblementFin) {
@@ -842,19 +868,27 @@ public class VueJeu extends View {
         }
 
         canvas.save();
-        // Application du décalage (Tremblement) sur le placement de la Caméra
         canvas.translate(-GestionnaireControles.cameraX + shakeX, -GestionnaireControles.cameraY + shakeY);
-        if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false);
+        if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false, GestionnaireControles.cameraX, GestionnaireControles.cameraY);
         canvas.restore(); 
 
-        if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false);
+        if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false, 0f, 0f);
     }
 }
-// bas 5
+// bas 6
+
+
+
 
 
 
     
+
+
+
+    
+
+
 
     
 
