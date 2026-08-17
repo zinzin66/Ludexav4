@@ -32,7 +32,7 @@ public class InspecteurProprietes extends LinearLayout {
 
     private TextView valeurType;
     private EditText champLargeur, champHauteur, champRotation, champAlpha, champZOrder;
-    private EditText champScaleX, champScaleY;
+    private EditText champScaleX, champScaleY, champParallaxe;
     private CheckBox cbVisible, cbVerrouille;
     private Button btnCouleur;
     private Button btnParent;
@@ -165,7 +165,6 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
-
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -404,6 +403,17 @@ public class InspecteurProprietes extends LinearLayout {
         layoutZOrder.addView(btnZOrderMoins);
         layoutZOrder.addView(btnZOrderPlus);
         blocProprietes.addView(layoutZOrder);
+        
+        TextView labelParallaxe = new TextView(context);
+        labelParallaxe.setText(Traducteur.get("insp_label_parallaxe"));
+        styliserLabel(labelParallaxe);
+        blocProprietes.addView(labelParallaxe);
+        
+        champParallaxe = new EditText(context);
+        champParallaxe.setHint("1.0");
+        champParallaxe.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+        styliserChamp(champParallaxe);
+        blocProprietes.addView(champParallaxe);
 
         TextView labelParent = new TextView(context);
         labelParent.setText(Traducteur.get("insp_label_parent"));
@@ -441,6 +451,7 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 // bas 2
+
 
 // haut 3
         blocTexte = new LinearLayout(context);
@@ -747,7 +758,6 @@ public class InspecteurProprietes extends LinearLayout {
         this.addView(scrollInspecteur);
 // bas 3
 
-
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
@@ -908,6 +918,15 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null) { try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
         }));
 
+        champParallaxe.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { 
+                try { 
+                    objetCourant.facteurParallaxe = Float.parseFloat(texte); 
+                    canvasEditeur.invalidate(); 
+                } catch (NumberFormatException ignored) {} 
+            }
+        }));
+
         champAlpha.addTextChangedListener(creerWatcherSimple(texte -> {
             if (objetCourant != null) {
                 try {
@@ -956,7 +975,9 @@ public class InspecteurProprietes extends LinearLayout {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
+// bas 4
 
+// haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
         String nouveauNom = champNom.getText().toString().trim();
@@ -982,10 +1003,7 @@ public class InspecteurProprietes extends LinearLayout {
                     .show();
         }
     }
-// bas 4
 
-
-// haut 5
     public void afficherObjet(ObjetBase objet) {
         this.objetCourant = objet;
         miseAJourEnCours = true;
@@ -1015,6 +1033,7 @@ public class InspecteurProprietes extends LinearLayout {
             champAlpha.setText(String.valueOf(objet.alpha));
             champRotation.setText(String.valueOf((int) objet.rotation));
             champZOrder.setText(String.valueOf(objet.zOrder));
+            champParallaxe.setText(String.valueOf(objet.facteurParallaxe));
             cbVisible.setChecked(objet.visible);
 
             String nomParent = Traducteur.get("valeur_aucune");
@@ -1170,15 +1189,18 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
+
+
+
     
+
+
+
+        
 
 
         
 
 
 
-        
 
-
-
-    
