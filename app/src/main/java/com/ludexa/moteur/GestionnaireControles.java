@@ -14,6 +14,11 @@ public class GestionnaireControles {
     public static float cameraX = 0f;
     public static float cameraY = 0f;
     
+    // --- NOUVEAUX REGLAGES DE CAMERA ---
+    public static boolean cameraSuitAxeX = true;
+    public static boolean cameraSuitAxeY = true;
+    public static boolean parallaxeUniquementX = true;
+    
     // Bornes de la caméra repoussées à "l'infini" (valeurs extrêmes)
     public static float limiteMinX = -999999f;
     public static float limiteMaxX = 999999f; 
@@ -29,6 +34,11 @@ public class GestionnaireControles {
         cameraCibleId = null;
         cameraX = 0f;
         cameraY = 0f;
+        
+        cameraSuitAxeX = true;
+        cameraSuitAxeY = true;
+        parallaxeUniquementX = true;
+        
         limiteMinX = -999999f;
         limiteMaxX = 999999f;
         limiteMinY = -999999f;
