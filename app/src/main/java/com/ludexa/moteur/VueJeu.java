@@ -232,6 +232,15 @@ public class VueJeu extends View {
         return null;
     }
     
+    // --- CORRECTION : Méthode de secours pour la rétrocompatibilité avec UtilCollision ---
+    public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
+        boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
+        float camX = isHud ? 0f : GestionnaireControles.cameraX;
+        float camY = isHud ? 0f : GestionnaireControles.cameraY;
+        return getAbsoluteMatrix(obj, contexteObjets, camX, camY);
+    }
+    // -----------------------------------------------------------------------------------
+
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets, float camX, float camY) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
@@ -249,11 +258,9 @@ public class VueJeu extends View {
             local.postRotate(o.rotation);
             local.postTranslate(o.x + o.largeur / 2f, o.y + o.hauteur / 2f);
             
-            // --- NOUVEAU : Application du parallaxe dans la matrice absolue ---
             if (o.facteurParallaxe != 1.0f) {
                 local.postTranslate(camX * (1.0f - o.facteurParallaxe), camY * (1.0f - o.facteurParallaxe));
             }
-            // ------------------------------------------------------------------
             
             m.preConcat(local); 
         }
@@ -303,8 +310,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
-
-// haut 3
+   // haut 3
     private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, float scaleX, float scaleY, ObjetBase objetCible, List<ObjetBase> objets) {
         if (objets == null) return false;
 
@@ -531,7 +537,6 @@ public class VueJeu extends View {
     }
 // bas 4
 
-
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -757,7 +762,6 @@ public class VueJeu extends View {
         }
     }
 // bas 5
-    
 // haut 6
     @Override
     protected void onDraw(Canvas canvas) {
@@ -882,13 +886,15 @@ public class VueJeu extends View {
 
 
 
+
+
+
+
     
 
 
 
     
-
-
 
     
 
