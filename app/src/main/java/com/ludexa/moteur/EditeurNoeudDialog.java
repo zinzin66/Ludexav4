@@ -40,7 +40,7 @@ public class EditeurNoeudDialog extends Dialog {
 
     public EditeurNoeudDialog(Context context, NoeudBase noeud, Scene scene, Runnable onValidate) {
         super(context);
-        setTitle(Traducteur.get("noeud_edit_valeur") + " - " + noeud.nom);
+        setTitle(Traducteur.get("noeud_edit_valeur") + " - " + Traducteur.get(noeud.nom));
 
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
@@ -121,6 +121,7 @@ public class EditeurNoeudDialog extends Dialog {
                         String[] couleurs = {"Bleu", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
                         builder.setItems(couleurs, (dialog, which) -> {
                             champSaisie.setText(couleurs[which]);
+                            champSaisie.setSelection(champSaisie.getText().length());
                         });
                         builder.show();
                         break;
@@ -131,6 +132,7 @@ public class EditeurNoeudDialog extends Dialog {
                         String[] optionsArray = optionsListe.toArray(new String[0]);
                         builderListe.setItems(optionsArray, (dialog, which) -> {
                             champSaisie.setText(optionsArray[which]);
+                            champSaisie.setSelection(champSaisie.getText().length());
                         });
                         builderListe.show();
                         break;
@@ -156,6 +158,7 @@ public class EditeurNoeudDialog extends Dialog {
                             builderImage.setItems(imagesArray, (dialog, which) -> {
                                 if (which == 0) champSaisie.setText("");
                                 else champSaisie.setText(imagesArray[which]);
+                                champSaisie.setSelection(champSaisie.getText().length());
                             });
                             builderImage.show();
                         }
@@ -189,6 +192,7 @@ public class EditeurNoeudDialog extends Dialog {
                             builderDial.setItems(arrayDial, (dialog, which) -> {
                                 if (!arrayDial[which].equals(Traducteur.get("noeud_aucune_cle_dialogue"))) {
                                     champSaisie.setText(arrayDial[which]);
+                                    champSaisie.setSelection(champSaisie.getText().length());
                                 }
                             });
                             builderDial.show();
@@ -217,6 +221,7 @@ public class EditeurNoeudDialog extends Dialog {
                             builderSon.setItems(sonsArray, (dialog, which) -> {
                                 if (which == 0) champSaisie.setText("");
                                 else champSaisie.setText(sonsArray[which]);
+                                champSaisie.setSelection(champSaisie.getText().length());
                             });
                             builderSon.show();
                         }
@@ -242,6 +247,7 @@ public class EditeurNoeudDialog extends Dialog {
                             builderFonc.setItems(arrayFonc, (dialog, which) -> {
                                 if (!arrayFonc[which].equals(Traducteur.get("noeud_aucune_fonction"))) {
                                     champSaisie.setText(arrayFonc[which]);
+                                    champSaisie.setSelection(champSaisie.getText().length());
                                 }
                             });
                             builderFonc.show();
@@ -276,6 +282,7 @@ public class EditeurNoeudDialog extends Dialog {
                             builderAnim.setItems(arrayAnim, (dialog, which) -> {
                                 if (!arrayAnim[which].equals(Traducteur.get("noeud_aucune_animation"))) {
                                     champSaisie.setText(arrayAnim[which]);
+                                    champSaisie.setSelection(champSaisie.getText().length());
                                 }
                             });
                             builderAnim.show();
@@ -432,7 +439,7 @@ public class EditeurNoeudDialog extends Dialog {
 
             for (String paramName : params) {
                 Button btnParam = new Button(context);
-                btnParam.setText(paramName);
+                btnParam.setText(Traducteur.get(paramName)); // TRADUCTION AJOUTÉE ICI
                 btnParam.setAllCaps(false);
                 btnParam.setTextSize(13f);
                 btnParam.setTextColor(Palette.texteNormal);
@@ -451,11 +458,12 @@ public class EditeurNoeudDialog extends Dialog {
                     champActif = paramName;
                     String val = noeud.getValeurParametre(champActif);
                     champSaisie.setText(val != null ? val : "");
+                    champSaisie.setSelection(champSaisie.getText().length());
 
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
-                        if (child instanceof Button && params.contains(((Button)child).getText().toString())) {
-                            if (((Button)child).getText().toString().equals(champActif)) {
+                        if (child instanceof Button) {
+                            if (((Button)child).getText().toString().equals(Traducteur.get(champActif))) {
                                 child.setBackground(fond(context, Color.parseColor("#4CAF50"), Palette.bordure, 8));
                             } else {
                                 child.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
@@ -520,8 +528,10 @@ public class EditeurNoeudDialog extends Dialog {
                     if (touche.equals("DEL")) btn.setBackground(fond(context, Color.parseColor("#5c2323"), Palette.bordure, 8));
 
                     btn.setOnClickListener(v -> {
-                        int start = Math.max(champSaisie.getSelectionStart(), 0);
-                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                        int start = champSaisie.getSelectionStart();
+                        int end = champSaisie.getSelectionEnd();
+                        if (start < 0) start = champSaisie.getText().length();
+                        if (end < 0) end = champSaisie.getText().length();
 
                         if (touche.equals("DEL")) {
                             if (start > 0 && start == end) {
@@ -552,7 +562,10 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout.LayoutParams paramVrai = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramVrai.setMargins(margeBooleenDp, margeBooleenDp, margeBooleenDp, margeBooleenDp);
         btnVrai.setLayoutParams(paramVrai);
-        btnVrai.setOnClickListener(v -> champSaisie.setText("true"));
+        btnVrai.setOnClickListener(v -> {
+            champSaisie.setText("true");
+            champSaisie.setSelection(champSaisie.getText().length());
+        });
 
         Button btnFaux = new Button(context);
         btnFaux.setText("Faux (false)");
@@ -563,7 +576,10 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout.LayoutParams paramFaux = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramFaux.setMargins(margeBooleenDp, margeBooleenDp, margeBooleenDp, margeBooleenDp);
         btnFaux.setLayoutParams(paramFaux);
-        btnFaux.setOnClickListener(v -> champSaisie.setText("false"));
+        btnFaux.setOnClickListener(v -> {
+            champSaisie.setText("false");
+            champSaisie.setSelection(champSaisie.getText().length());
+        });
 
         conteneurBooleen.addView(btnVrai);
         conteneurBooleen.addView(btnFaux);
@@ -573,9 +589,7 @@ public class EditeurNoeudDialog extends Dialog {
         wrapperDroite.addView(scrollDroit);
 // bas 3
 
-
-
-        // haut 4
+// haut 4
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lpGauche = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.5f);
@@ -884,6 +898,11 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 4
+
+
+
+        
+
 
 
 
