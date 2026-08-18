@@ -37,10 +37,10 @@ public class Traducteur {
                 String key = keys.next();
                 dictionnaire.put(key, jsonObject.getString(key));
             }
-            Log.d(TAG, "Dictionnaire " + langueActuelle + " chargé avec succès. (" + dictionnaire.size() + " entrées)");
+            Log.d(TAG, "Dictionnaire " + langueActuelle + " chargé.");
             
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors du chargement du fichier de langue : " + nomFichier, e);
+            Log.e(TAG, "Erreur fichier de langue : " + nomFichier, e);
         }
     }
 
@@ -50,7 +50,7 @@ public class Traducteur {
             return dictionnaire.get(cle);
         }
         
-        // TACHE 3 : Fallbacks de sécurité pour les nouvelles traductions (évite de casser l'UI si le JSON est incomplet)
+        // Securités (Fallbacks) au cas où le JSON n'est pas encore à jour
         if (cle.equals("dossier_images")) return "Images";
         if (cle.equals("dossier_sons")) return "Audio";
         if (cle.equals("dossier_fonts")) return "Polices";
@@ -59,11 +59,12 @@ public class Traducteur {
         if (cle.equals("Suivre X")) return "Suivre l'axe X";
         if (cle.equals("Suivre Y")) return "Suivre l'axe Y";
         
-        if (cle.equals("Entrée")) return "Entrée";
-        if (cle.equals("Sortie")) return "Sortie";
-        if (cle.equals("Suivant")) return "Suivant";
-        if (cle.equals("Vrai")) return "Vrai";
-        if (cle.equals("Faux")) return "Faux";
+        if (cle.equals("Intensite")) return "Intensité";
+        if (cle.equals("Duree")) return "Durée (ms)";
+        if (cle.equals("noeud_sautiller")) return "Sautillement";
+        if (cle.equals("port_entree")) return "Entrée";
+        if (cle.equals("port_sortie")) return "Sortie";
+        if (cle.equals("cat_animations")) return "Animations";
 
         return "[" + cle + "]";
     }
