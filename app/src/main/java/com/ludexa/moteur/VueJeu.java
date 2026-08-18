@@ -128,6 +128,7 @@ public class VueJeu extends View {
     }
 // bas 1
 
+
 // haut 2
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
@@ -367,6 +368,7 @@ public class VueJeu extends View {
         }
     }
 // bas 3
+
 // haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -543,7 +545,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-
+    
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -648,16 +650,33 @@ public class VueJeu extends View {
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets, camX, camY);
             
+            // NOUVEAU : Détection du mouvement pour le sautillement infini
+            boolean estEnMouvement = (Math.abs(objet.x - objet.ancienneX) > 0.1f) || (Math.abs(objet.y - objet.ancienneY) > 0.1f);
+            
             if (objet.sautillementActif) {
-                long now = System.currentTimeMillis();
-                if (now - objet.tempsDebutSautillement < objet.sautillementDureeMs) {
+                boolean doitSautiller = false;
+                
+                if (objet.sautillementInfiniMouvement) {
+                    doitSautiller = estEnMouvement;
+                } else {
+                    long now = System.currentTimeMillis();
+                    if (now - objet.tempsDebutSautillement < objet.sautillementDureeMs) {
+                        doitSautiller = true;
+                    } else {
+                        objet.sautillementActif = false;
+                    }
+                }
+                
+                if (doitSautiller) {
                     float shakeX = (float) ((Math.random() - 0.5) * 2.0 * objet.sautillementIntensite);
                     float shakeY = (float) ((Math.random() - 0.5) * 2.0 * objet.sautillementIntensite);
                     absMatrix.postTranslate(shakeX, shakeY);
-                } else {
-                    objet.sautillementActif = false;
                 }
             }
+            
+            // Mise à jour de la mémoire de position pour la frame suivante
+            objet.ancienneX = objet.x;
+            objet.ancienneY = objet.y;
             
             canvas.save();
             canvas.concat(absMatrix);
@@ -906,12 +925,5 @@ public class VueJeu extends View {
 
 
     
-
-
-    
-
-
-    
-
 
 
