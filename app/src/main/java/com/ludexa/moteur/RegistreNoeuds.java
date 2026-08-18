@@ -92,6 +92,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_filtre_couleur"), Traducteur.get("cat_apparence_objets"), "NoeudActionFiltre"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_clignotement"), Traducteur.get("cat_apparence_objets"), "NoeudActionClignotement"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_surbrillance"), Traducteur.get("cat_apparence_objets"), "NoeudActionSurbrillance"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_sautiller"), Traducteur.get("cat_apparence_objets"), "NoeudActionSautiller")); // TACHE 4
         
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionModifierTexte"));
@@ -146,3 +147,4 @@ public class RegistreNoeuds {
     }
 }
 // bas 2
+    
