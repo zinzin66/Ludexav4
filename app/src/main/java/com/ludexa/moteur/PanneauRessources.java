@@ -728,7 +728,155 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 5
 
+
     // haut 6
+    private boolean isRacineIndestructible(File dir) {
+        if (dir == null) return false;
+        String nom = dir.getName();
+        return (dir.getParentFile() != null && dir.getParentFile().equals(rootAssetsDir)) &&
+               (nom.equals("Images") || nom.equals("Sons") || nom.equals("Fonts") || nom.equals("Textes"));
+    }
+
+    private View creerSectionAssets(Context context) {
+        LinearLayout section = new LinearLayout(context);
+        section.setOrientation(LinearLayout.VERTICAL);
+
+        Button btnTitre = new Button(context);
+        btnTitre.setText(Traducteur.get("panneau_ress_assets") + " ▼");
+        styliserTitreSection(btnTitre);
+
+        LinearLayout contenu = new LinearLayout(context);
+        contenu.setOrientation(LinearLayout.VERTICAL);
+        styliserContenuSection(contenu);
+
+        conteneurArborescenceDossiers = new LinearLayout(context);
+        conteneurArborescenceDossiers.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout boutonsDossiers = new LinearLayout(context);
+        boutonsDossiers.setOrientation(LinearLayout.HORIZONTAL);
+        
+        ImageButton btnAddFolder = new ImageButton(context);
+        btnAddFolder.setImageResource(R.drawable.add_24px);
+        styliserBoutonIcone(btnAddFolder);
+        
+        ImageButton btnEditFolder = new ImageButton(context);
+        btnEditFolder.setImageResource(R.drawable.edit_square_24px);
+        styliserBoutonIcone(btnEditFolder);
+        
+        ImageButton btnDelFolder = new ImageButton(context);
+        btnDelFolder.setImageResource(R.drawable.delete_24px);
+        styliserBoutonIcone(btnDelFolder);
+
+        btnAddFolder.setOnClickListener(v -> {
+            if (currentFolderSelected != null) afficherPopupNouveauDossier(context);
+        });
+        btnEditFolder.setOnClickListener(v -> {
+            if (currentFolderSelected != null && !isRacineIndestructible(currentFolderSelected)) {
+                afficherPopupRenommerDossier(context, currentFolderSelected);
+            }
+        });
+        btnDelFolder.setOnClickListener(v -> {
+            if (currentFolderSelected != null && !isRacineIndestructible(currentFolderSelected)) {
+                afficherPopupSupprimerDossier(context, currentFolderSelected);
+            }
+        });
+
+        boutonsDossiers.addView(btnAddFolder);
+        boutonsDossiers.addView(btnEditFolder);
+        boutonsDossiers.addView(btnDelFolder);
+
+        conteneurListeAssets = new LinearLayout(context);
+        conteneurListeAssets.setOrientation(LinearLayout.VERTICAL);
+        conteneurListeAssets.setPadding(0, dp(10), 0, 0);
+
+        LinearLayout boutonsAssets = new LinearLayout(context);
+        boutonsAssets.setOrientation(LinearLayout.HORIZONTAL);
+
+        ImageButton btnImportAsset = new ImageButton(context);
+        btnImportAsset.setImageResource(R.drawable.upload_file_24px);
+        styliserBoutonIcone(btnImportAsset);
+        
+        ImageButton btnEditAsset = new ImageButton(context);
+        btnEditAsset.setImageResource(R.drawable.edit_square_24px);
+        styliserBoutonIcone(btnEditAsset);
+        
+        ImageButton btnDelAsset = new ImageButton(context);
+        btnDelAsset.setImageResource(R.drawable.delete_24px);
+        styliserBoutonIcone(btnDelAsset);
+
+        btnImportAsset.setOnClickListener(v -> {
+            if (currentFolderSelected == null) return;
+            String chemin = currentFolderSelected.getAbsolutePath();
+            String mime = chemin.contains("/Images") ? "image/*" : "*/*";
+            ((InterfaceEditeur)context).lancerImportAsset(mime);
+        });
+        btnEditAsset.setOnClickListener(v -> {
+            if (currentAssetSelected != null) afficherPopupRenommerAsset(context, currentAssetSelected);
+        });
+        btnDelAsset.setOnClickListener(v -> {
+            if (currentAssetSelected != null) afficherPopupSupprimerAsset(context, currentAssetSelected);
+        });
+
+        boutonsAssets.addView(btnImportAsset);
+        boutonsAssets.addView(btnEditAsset);
+        boutonsAssets.addView(btnDelAsset);
+
+        Button btnEditeurDial = new Button(context);
+        btnEditeurDial.setText(Traducteur.get("btn_ouvrir_dialogues"));
+        btnEditeurDial.setAllCaps(false);
+        btnEditeurDial.setTextColor(Color.WHITE);
+        btnEditeurDial.setBackground(fond(Color.parseColor("#4CAF50"), Palette.bordure, 8));
+        LinearLayout.LayoutParams lpBtnDial = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpBtnDial.setMargins(0, dp(8), 0, 0);
+        btnEditeurDial.setLayoutParams(lpBtnDial);
+        btnEditeurDial.setOnClickListener(v -> {
+            afficherEditeurTexteGeant(context);
+        });
+        
+        Button btnAnimations = new Button(context);
+        btnAnimations.setText(Traducteur.get("btn_gerer_animations"));
+        btnAnimations.setAllCaps(false);
+        btnAnimations.setTextColor(Color.WHITE);
+        btnAnimations.setBackground(fond(Color.parseColor("#673AB7"), Palette.bordure, 8)); 
+        LinearLayout.LayoutParams lpBtnAnim = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpBtnAnim.setMargins(0, dp(8), 0, 0);
+        btnAnimations.setLayoutParams(lpBtnAnim);
+        btnAnimations.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            EditeurAnimationsDialog dialog = new EditeurAnimationsDialog(context, editeur.cheminProjet);
+            dialog.show();
+        });
+
+        contenu.addView(conteneurArborescenceDossiers);
+        contenu.addView(boutonsDossiers);
+        contenu.addView(conteneurListeAssets);
+        contenu.addView(boutonsAssets);
+        contenu.addView(btnEditeurDial);
+        contenu.addView(btnAnimations);
+
+        rafraichirSectionAssetsTotale();
+
+        btnTitre.setOnClickListener(v -> {
+            if (contenu.getVisibility() == View.VISIBLE) {
+                contenu.setVisibility(View.GONE);
+                btnTitre.setText(Traducteur.get("panneau_ress_assets") + " ▶");
+            } else {
+                contenu.setVisibility(View.VISIBLE);
+                btnTitre.setText(Traducteur.get("panneau_ress_assets") + " ▼");
+                rafraichirSectionAssetsTotale();
+            }
+        });
+
+        section.addView(btnTitre);
+        section.addView(contenu);
+        return section;
+    }
+
+    public void rafraichirSectionAssetsTotale() {
+        rafraichirArborescenceDossiers();
+        rafraichirListeAssets();
+    }
+
     private void rafraichirArborescenceDossiers() {
         if (conteneurArborescenceDossiers == null) return;
         conteneurArborescenceDossiers.removeAllViews();
