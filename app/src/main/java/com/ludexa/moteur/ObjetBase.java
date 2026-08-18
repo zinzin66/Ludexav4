@@ -52,7 +52,7 @@ public class ObjetBase {
     public float intentionDeplacementX = 0f;
     public float intentionDeplacementY = 0f;
     
-    public float facteurParallaxe = 1.0f; // 1.0 = normal, < 1 = fond, > 1 = premier plan
+    public float facteurParallaxe = 1.0f;
     
     public String tag = ""; 
 
@@ -83,6 +83,12 @@ public class ObjetBase {
     public int vitesseFps = 8;
     public boolean boucleAnimation = false;
     public boolean animationEnCours = false;
+
+    // --- NOUVEAU : GESTION DU SAUTILLEMENT ---
+    public boolean sautillementActif = false;
+    public float sautillementIntensite = 10f;
+    public long sautillementDureeMs = 500;
+    public long tempsDebutSautillement = 0;
 
     public ObjetBase() {
         this.id = UUID.randomUUID().toString();
@@ -156,6 +162,12 @@ public class ObjetBase {
         copie.vitesseY = this.vitesseY;
         copie.rebond = this.rebond;
         copie.graviteScale = this.graviteScale;
+
+        // --- NOUVEAU : CLONAGE DU SAUTILLEMENT ---
+        copie.sautillementActif = this.sautillementActif;
+        copie.sautillementIntensite = this.sautillementIntensite;
+        copie.sautillementDureeMs = this.sautillementDureeMs;
+        copie.tempsDebutSautillement = this.tempsDebutSautillement;
         
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
@@ -196,3 +208,7 @@ public class ObjetBase {
     }
 }
 // bas 1
+
+
+
+
