@@ -60,6 +60,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
 // bas 1
+
 // haut 2
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_de_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionChangerScene"));
@@ -92,7 +93,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_filtre_couleur"), Traducteur.get("cat_apparence_objets"), "NoeudActionFiltre"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_clignotement"), Traducteur.get("cat_apparence_objets"), "NoeudActionClignotement"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_surbrillance"), Traducteur.get("cat_apparence_objets"), "NoeudActionSurbrillance"));
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_sautiller"), Traducteur.get("cat_apparence_objets"), "NoeudActionSautiller")); // TACHE 4
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_sautiller"), Traducteur.get("cat_animations"), "NoeudActionSautiller"));
         
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionModifierTexte"));
@@ -147,4 +148,7 @@ public class RegistreNoeuds {
     }
 }
 // bas 2
+
+
+
     
