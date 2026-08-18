@@ -34,22 +34,22 @@ public class NoeudActionSautiller extends NoeudBase {
     @Override
     public List<String> getNomsParametres() {
         List<String> p = new ArrayList<>();
-        p.add("Intensité");
-        p.add("Durée (ms)");
+        p.add("Intensite");
+        p.add("Duree");
         return p;
     }
 
     @Override
     public String getValeurParametre(String nom) {
-        if (nom.equals("Intensité")) return paramIntensite;
-        if (nom.equals("Durée (ms)")) return paramDuree;
+        if (nom.equals("Intensite")) return paramIntensite;
+        if (nom.equals("Duree")) return paramDuree;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        if (nom.equals("Intensité")) paramIntensite = valeur;
-        if (nom.equals("Durée (ms)")) paramDuree = valeur;
+        if (nom.equals("Intensite")) paramIntensite = valeur;
+        if (nom.equals("Duree")) paramDuree = valeur;
     }
 
     @Override
@@ -63,6 +63,10 @@ public class NoeudActionSautiller extends NoeudBase {
     
     @Override
     public boolean utiliseClavierTexte() { return false; }
+
+    @Override
+    public String getTypeEditeurParametre(String nomParametre) { 
+        return TYPE_NOMBRE; 
+    }
 }
 // bas 1
-
