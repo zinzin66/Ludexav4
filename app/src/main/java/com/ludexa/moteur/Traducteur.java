@@ -61,9 +61,16 @@ public class Traducteur {
         
         if (cle.equals("Intensite")) return "Intensité";
         if (cle.equals("Duree")) return "Durée (ms)";
+        if (cle.equals("Infini")) return "En Boucle / Infini";
+        
         if (cle.equals("noeud_sautiller")) return "Sautillement";
+        if (cle.equals("noeud_si_mouvement")) return "Si Objet en Mouvement";
+        
         if (cle.equals("port_entree")) return "Entrée";
         if (cle.equals("port_sortie")) return "Sortie";
+        if (cle.equals("port_vrai")) return "Vrai";
+        if (cle.equals("port_faux")) return "Faux";
+        
         if (cle.equals("cat_animations")) return "Animations";
 
         return "[" + cle + "]";
