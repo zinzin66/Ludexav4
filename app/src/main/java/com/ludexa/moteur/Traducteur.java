@@ -16,10 +16,6 @@ public class Traducteur {
     private static final Map<String, String> dictionnaire = new HashMap<>();
     private static String langueActuelle = "fr";
 
-    /**
-     * Initialise le dictionnaire en lisant le fichier JSON correspondant.
-     * À appeler au démarrage (ex: EcranDemarrage) ou lors d'un changement de langue.
-     */
     public static void initialiser(Context context, String langue) {
         langueActuelle = langue;
         dictionnaire.clear();
@@ -48,15 +44,13 @@ public class Traducteur {
         }
     }
 
-    /**
-     * Récupère la valeur traduite pour une clé donnée.
-     * Retourne la clé entre crochets si introuvable (ex: [menu_jouer]).
-     */
     public static String get(String cle) {
         if (dictionnaire.containsKey(cle)) {
             return dictionnaire.get(cle);
         }
-        return "[" + cle + "]";
+        // MODIFICATION : On renvoie la clé elle-même au lieu de "[cle]"
+        // Cela permet de ne pas casser l'affichage si on demande la traduction d'un nom de dossier ou de nœud non traduit !
+        return cle; 
     }
 
     public static String getLangueActuelle() {
