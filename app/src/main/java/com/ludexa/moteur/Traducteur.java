@@ -45,12 +45,27 @@ public class Traducteur {
     }
 
     public static String get(String cle) {
+        if (cle == null) return "";
         if (dictionnaire.containsKey(cle)) {
             return dictionnaire.get(cle);
         }
-        // MODIFICATION : On renvoie la clé elle-même au lieu de "[cle]"
-        // Cela permet de ne pas casser l'affichage si on demande la traduction d'un nom de dossier ou de nœud non traduit !
-        return cle; 
+        
+        // TACHE 3 : Fallbacks de sécurité pour les nouvelles traductions (évite de casser l'UI si le JSON est incomplet)
+        if (cle.equals("dossier_images")) return "Images";
+        if (cle.equals("dossier_sons")) return "Audio";
+        if (cle.equals("dossier_fonts")) return "Polices";
+        if (cle.equals("dossier_textes")) return "Textes";
+        
+        if (cle.equals("Suivre X")) return "Suivre l'axe X";
+        if (cle.equals("Suivre Y")) return "Suivre l'axe Y";
+        
+        if (cle.equals("Entrée")) return "Entrée";
+        if (cle.equals("Sortie")) return "Sortie";
+        if (cle.equals("Suivant")) return "Suivant";
+        if (cle.equals("Vrai")) return "Vrai";
+        if (cle.equals("Faux")) return "Faux";
+
+        return "[" + cle + "]";
     }
 
     public static String getLangueActuelle() {
