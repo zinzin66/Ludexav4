@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -42,6 +43,9 @@ public class EcranDemarrage extends Activity {
 
     private LinearLayout barreActions;
     private TextView etiquetteSelection;
+    
+    private static final int REQUEST_CODE_EXPORT = 2001;
+    private File projetAExporter = null;
 
     // ---------------------------------------------------------------- outils UI
 
@@ -138,6 +142,32 @@ public class EcranDemarrage extends Activity {
         chargerListeProjets();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_EXPORT && resultCode == Activity.RESULT_OK) {
+            if (data != null && data.getData() != null && projetAExporter != null) {
+                try {
+                    OutputStream out = getContentResolver().openOutputStream(data.getData());
+                    ZipOutputStream zip = new ZipOutputStream(out);
+                    zipperRecursif(projetAExporter, "", zip);
+                    zip.close();
+                    if (out != null) out.close();
+
+                    new AlertDialog.Builder(this)
+                            .setTitle(Traducteur.get("export_termine"))
+                            .setMessage(Traducteur.get("archive_creee"))
+                            .setPositiveButton(Traducteur.get("bouton_ok"), null)
+                            .show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, Traducteur.get("erreur_export"), Toast.LENGTH_SHORT).show();
+                }
+                projetAExporter = null; 
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- colonne gauche
 
     private View construireColonneGauche() {
@@ -216,7 +246,7 @@ public class EcranDemarrage extends Activity {
         builder.show();
     }
 // bas 1
-            
+
 
 // haut 2
     // ---------------------------------------------------------------- colonne droite
@@ -442,6 +472,7 @@ public class EcranDemarrage extends Activity {
     }
 // bas 2
 
+
 // haut 3
     private JSONObject lireJson(File fichier) throws Exception {
         StringBuilder sb = new StringBuilder();
@@ -589,26 +620,16 @@ public class EcranDemarrage extends Activity {
     private void actionExporter() {
         File source = dossierSelectionne();
         if (source == null) return;
+        
+        projetAExporter = source;
 
         String nom = nomProjet(source).replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
-        File dossierExports = new File(getExternalFilesDir(null), "exports");
-        dossierExports.mkdirs();
-        File archive = new File(dossierExports, nom + ".zip");
-
-        try {
-            ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(archive));
-            zipperRecursif(source, "", zip);
-            zip.close();
-
-            new AlertDialog.Builder(this)
-                    .setTitle(Traducteur.get("export_termine"))
-                    .setMessage(Traducteur.get("archive_creee") + "\n" + archive.getAbsolutePath())
-                    .setPositiveButton(Traducteur.get("bouton_ok"), null)
-                    .show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, Traducteur.get("erreur_export"), Toast.LENGTH_SHORT).show();
-        }
+        
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/zip");
+        intent.putExtra(Intent.EXTRA_TITLE, nom + ".zip");
+        startActivityForResult(intent, REQUEST_CODE_EXPORT);
     }
 
     private void actionSupprimer() {
@@ -810,6 +831,11 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 3
+
+
+
+
+
 
 
 
