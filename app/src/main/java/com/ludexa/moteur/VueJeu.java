@@ -126,7 +126,9 @@ public class VueJeu extends View {
             }
         }
     }
+// bas 1
 
+// haut 2
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
@@ -196,9 +198,7 @@ public class VueJeu extends View {
         removeCallbacks(boucleDeRendu);
         GestionnaireAudio.arreterMusique();
     }
-// bas 1
 
-// haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -215,7 +215,7 @@ public class VueJeu extends View {
         }
         return true;
     }
-    
+
     private ObjetBase trouverObjetParType(String type) {
         if (sceneHudActive != null && sceneHudActive.objets != null) {
             for (ObjetBase o : sceneHudActive.objets) {
@@ -229,7 +229,9 @@ public class VueJeu extends View {
         }
         return null;
     }
-    
+// bas 2
+
+// haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         float camX = isHud ? 0f : GestionnaireControles.cameraX;
@@ -307,10 +309,7 @@ public class VueJeu extends View {
         }
         return null;
     }
-// bas 2
 
-
-// haut 3
     private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, float scaleX, float scaleY, ObjetBase objetCible, List<ObjetBase> objets) {
         if (objets == null) return false;
 
@@ -367,7 +366,8 @@ public class VueJeu extends View {
             objet.y += deltaY;
         }
     }
-
+// bas 3
+// haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
@@ -396,14 +396,12 @@ public class VueJeu extends View {
         }
         return super.onGenericMotionEvent(event);
     }
-// bas 3
-// haut 4
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean touchJoystick = false;
         boolean touchAction = false;
         
-        // On calcule une nouvelle intention. On ne l'applique qu'après.
         float newJoyDirX = 0f;
         float newJoyDirY = 0f;
         GestionnaireControles.isActionJustPressed = false;
@@ -414,7 +412,6 @@ public class VueJeu extends View {
         if (GestionnaireControles.modeAventureActif) {
             for (int i = 0; i < event.getPointerCount(); i++) {
                 
-                // TACHE 2 : ON IGNORE LE DOIGT QUI EST EN TRAIN DE SE LEVER ! (Empêche le snapback)
                 if ((event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) && event.getActionIndex() == i) {
                     continue; 
                 }
@@ -459,7 +456,6 @@ public class VueJeu extends View {
             }
         }
         
-        // Application propre (si on a levé le doigt, newJoy restera à 0)
         GestionnaireControles.joyDirX = newJoyDirX;
         GestionnaireControles.joyDirY = newJoyDirY;
         
@@ -547,8 +543,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-    
- 
+
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -652,6 +647,18 @@ public class VueJeu extends View {
             }
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets, camX, camY);
+            
+            if (objet.sautillementActif) {
+                long now = System.currentTimeMillis();
+                if (now - objet.tempsDebutSautillement < objet.sautillementDureeMs) {
+                    float shakeX = (float) ((Math.random() - 0.5) * 2.0 * objet.sautillementIntensite);
+                    float shakeY = (float) ((Math.random() - 0.5) * 2.0 * objet.sautillementIntensite);
+                    absMatrix.postTranslate(shakeX, shakeY);
+                } else {
+                    objet.sautillementActif = false;
+                }
+            }
+            
             canvas.save();
             canvas.concat(absMatrix);
 
@@ -773,10 +780,7 @@ public class VueJeu extends View {
             }
         }
     }
-// bas 5
 
-
-// haut 6
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -897,20 +901,11 @@ public class VueJeu extends View {
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false, 0f, 0f);
     }
 }
-// bas 6
-
-
-
-
-
+// bas 5
 
 
 
     
-
-
-    
-
 
 
     
