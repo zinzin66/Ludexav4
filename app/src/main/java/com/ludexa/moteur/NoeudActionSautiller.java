@@ -7,6 +7,7 @@ import java.util.List;
 public class NoeudActionSautiller extends NoeudBase {
     private String paramIntensite = "10.0";
     private String paramDuree = "500";
+    private String paramInfini = "false";
     private ObjetBase cibleObj;
 
     public NoeudActionSautiller() {
@@ -22,10 +23,17 @@ public class NoeudActionSautiller extends NoeudBase {
             try {
                 float intensite = Float.parseFloat(paramIntensite);
                 long duree = Long.parseLong(paramDuree);
-                cible.sautillementActif = true;
-                cible.sautillementIntensite = intensite;
-                cible.sautillementDureeMs = duree;
-                cible.tempsDebutSautillement = System.currentTimeMillis();
+                boolean estInfini = Boolean.parseBoolean(paramInfini);
+                
+                if (intensite <= 0f) {
+                    cible.sautillementActif = false; // Permet de l'arrêter manuellement
+                } else {
+                    cible.sautillementActif = true;
+                    cible.sautillementIntensite = intensite;
+                    // Si infini est coché, on met une durée colossale
+                    cible.sautillementDureeMs = estInfini ? 999999999L : duree; 
+                    cible.tempsDebutSautillement = System.currentTimeMillis();
+                }
             } catch (Exception e) {}
         }
         propagerExecution(Traducteur.get("port_sortie"));
@@ -36,6 +44,7 @@ public class NoeudActionSautiller extends NoeudBase {
         List<String> p = new ArrayList<>();
         p.add("Intensite");
         p.add("Duree");
+        p.add("Infini");
         return p;
     }
 
@@ -43,6 +52,7 @@ public class NoeudActionSautiller extends NoeudBase {
     public String getValeurParametre(String nom) {
         if (nom.equals("Intensite")) return paramIntensite;
         if (nom.equals("Duree")) return paramDuree;
+        if (nom.equals("Infini")) return paramInfini;
         return "";
     }
 
@@ -50,6 +60,7 @@ public class NoeudActionSautiller extends NoeudBase {
     public void setValeurParametre(String nom, String valeur) {
         if (nom.equals("Intensite")) paramIntensite = valeur;
         if (nom.equals("Duree")) paramDuree = valeur;
+        if (nom.equals("Infini")) paramInfini = valeur;
     }
 
     @Override
@@ -66,6 +77,7 @@ public class NoeudActionSautiller extends NoeudBase {
 
     @Override
     public String getTypeEditeurParametre(String nomParametre) { 
+        if (nomParametre.equals("Infini")) return "TYPE_BOOLEEN";
         return TYPE_NOMBRE; 
     }
 }
