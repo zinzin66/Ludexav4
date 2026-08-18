@@ -105,11 +105,12 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         });
+// bas 1
 
+// haut 2
         champSaisie.setOnClickListener(v -> {
             if (champActif != null) {
                 String typeEditeur = noeud.getTypeEditeurParametre(champActif);
-                
                 String cheminProj = null;
                 if (context instanceof InterfaceBlueprint) cheminProj = ((InterfaceBlueprint) context).cheminProjet;
                 else if (context instanceof InterfaceEditeur) cheminProj = ((InterfaceEditeur) context).cheminProjet;
@@ -139,7 +140,6 @@ public class EditeurNoeudDialog extends Dialog {
                             java.io.File dossierImages = new java.io.File(cheminProj, "assets_ludexa/Images");
                             List<String> images = new ArrayList<>();
                             images.add(Traducteur.get("noeud_aucune_image")); 
-                            
                             if (dossierImages.exists() && dossierImages.isDirectory()) {
                                 java.io.File[] fichiers = dossierImages.listFiles();
                                 if (fichiers != null) {
@@ -160,7 +160,6 @@ public class EditeurNoeudDialog extends Dialog {
                             builderImage.show();
                         }
                         break;
-                        
                     case NoeudBase.TYPE_CHOIX_DIALOGUE:
                         if (cheminProj != null) {
                             java.io.File fichierDialogues = new java.io.File(cheminProj, "assets_ludexa/Textes/dialogues.txt");
@@ -182,7 +181,6 @@ public class EditeurNoeudDialog extends Dialog {
                                 } catch (Exception e) {}
                             }
                             if (clesDialogue.isEmpty()) clesDialogue.add(Traducteur.get("noeud_aucune_cle_dialogue"));
-                            
                             android.app.AlertDialog.Builder builderDial = new android.app.AlertDialog.Builder(context);
                             builderDial.setTitle(Traducteur.get("noeud_choisir_dialogue"));
                             String[] arrayDial = clesDialogue.toArray(new String[0]);
@@ -194,13 +192,11 @@ public class EditeurNoeudDialog extends Dialog {
                             builderDial.show();
                         }
                         break;
-                        
                     case NoeudBase.TYPE_CHOIX_SON:
                         if (cheminProj != null) {
                             java.io.File dossierSons = new java.io.File(cheminProj, "assets_ludexa/Sons");
                             List<String> sons = new ArrayList<>();
                             sons.add(Traducteur.get("noeud_aucun_fichier_audio")); 
-                            
                             if (dossierSons.exists() && dossierSons.isDirectory()) {
                                 java.io.File[] fichiers = dossierSons.listFiles();
                                 if (fichiers != null) {
@@ -221,7 +217,6 @@ public class EditeurNoeudDialog extends Dialog {
                             builderSon.show();
                         }
                         break;
-
                     case NoeudBase.TYPE_CHOIX_FONCTION: 
                         if (cheminProj != null) {
                             java.io.File dossierFonctions = new java.io.File(cheminProj, "fonctions");
@@ -235,7 +230,6 @@ public class EditeurNoeudDialog extends Dialog {
                                 }
                             }
                             if (fonctions.isEmpty()) fonctions.add(Traducteur.get("noeud_aucune_fonction"));
-                            
                             android.app.AlertDialog.Builder builderFonc = new android.app.AlertDialog.Builder(context);
                             builderFonc.setTitle(Traducteur.get("noeud_choisir_fonction"));
                             String[] arrayFonc = fonctions.toArray(new String[0]);
@@ -247,7 +241,6 @@ public class EditeurNoeudDialog extends Dialog {
                             builderFonc.show();
                         }
                         break;
-                        
                     case "CHOIX_ANIMATION":
                         if (cheminProj != null) {
                             java.io.File fichierAnimations = new java.io.File(cheminProj, "assets_ludexa/Textes/animations.txt");
@@ -269,7 +262,6 @@ public class EditeurNoeudDialog extends Dialog {
                                 } catch (Exception e) {}
                             }
                             if (clesAnimation.isEmpty()) clesAnimation.add(Traducteur.get("noeud_aucune_animation"));
-                            
                             android.app.AlertDialog.Builder builderAnim = new android.app.AlertDialog.Builder(context);
                             builderAnim.setTitle(Traducteur.get("noeud_choisir_animation"));
                             String[] arrayAnim = clesAnimation.toArray(new String[0]);
@@ -284,9 +276,9 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         });
-// bas 1
+// bas 2
 
-// haut 2
+// haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
         wrapperDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f));
@@ -309,7 +301,6 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_a"));
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
-
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
                     String[] noms = new String[scene.objets.size()];
@@ -330,7 +321,6 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_b"));
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
-
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
                     String[] noms = new String[scene.objets.size()];
@@ -351,11 +341,9 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_variable"));
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : null);
-
             btnCible.setOnClickListener(v -> {
                 List<String> nomsVars = new ArrayList<>();
                 List<Variable> refsVars = new ArrayList<>();
-
                 if (scene != null && scene.variablesLocales != null) {
                     for (Variable var : scene.variablesLocales) {
                         nomsVars.add(var.nom + " (" + Traducteur.get("variable_locale") + ")");
@@ -392,7 +380,6 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_scene"));
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleScene() != null ? noeud.getCibleScene().nom : null);
-
             btnCible.setOnClickListener(v -> {
                 List<Scene> tempScenes = null;
                 if (NoeudBase.contexteApplication != null) {
@@ -402,7 +389,6 @@ public class EditeurNoeudDialog extends Dialog {
                     } catch (Exception e) {}
                 }
                 final List<Scene> scenesRecuperees = tempScenes;
-
                 if (scenesRecuperees != null && !scenesRecuperees.isEmpty()) {
                     String[] noms = new String[scenesRecuperees.size()];
                     for (int i = 0; i < scenesRecuperees.size(); i++) noms[i] = scenesRecuperees.get(i).nom;
@@ -420,23 +406,20 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
-// bas 2
-
-
-
-// haut 3
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
+// bas 3
 
+
+// haut 4
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
             champSaisie.setText(valInit != null ? valInit : "");
 
             for (String paramName : params) {
                 Button btnParam = new Button(context);
-                // TACHE 3 : TRADUCTION DES BOUTONS DE PARAMETRES
                 btnParam.setText(Traducteur.get(paramName)); 
-                btnParam.setTag(paramName); // On conserve la clé originale pour la logique !
+                btnParam.setTag(paramName);
                 
                 btnParam.setAllCaps(false);
                 btnParam.setTextSize(13f);
@@ -509,7 +492,6 @@ public class EditeurNoeudDialog extends Dialog {
                 btn.setAllCaps(false);
                 btn.setTextColor(Palette.texteNormal);
                 btn.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
-
                 btn.setMinHeight(0);
                 btn.setMinimumHeight(0);
                 btn.setPadding(0, dp(context, 12), 0, dp(context, 12));
@@ -528,8 +510,6 @@ public class EditeurNoeudDialog extends Dialog {
                         int start = champSaisie.getSelectionStart();
                         int end = champSaisie.getSelectionEnd();
                         
-                        // TACHE 1 : REPARATION DU BOUTON DEL SUR CHAMP BOOLEEN
-                        // Si le champ n'est pas focusable (comme un champ booléen), selection vaut -1
                         if (start < 0 || end < 0) {
                             start = champSaisie.getText().length();
                             end = champSaisie.getText().length();
@@ -583,9 +563,10 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
-// bas 3
+// bas 4
 
-// haut 4
+
+// haut 5
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lpGauche = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.5f);
@@ -873,6 +854,16 @@ public class EditeurNoeudDialog extends Dialog {
             champSaisie.setInputType(InputType.TYPE_NULL);
             if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
             if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+            
+        } else if ("TYPE_BOOLEEN".equals(type)) {
+            champSaisie.setFocusable(false);
+            champSaisie.setFocusableInTouchMode(false);
+            champSaisie.setClickable(true);
+            champSaisie.setShowSoftInputOnFocus(false);
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.VISIBLE);
+            
         } else {
             champSaisie.setFocusable(true);
             champSaisie.setFocusableInTouchMode(true);
@@ -893,10 +884,16 @@ public class EditeurNoeudDialog extends Dialog {
         }
     }
 }
-// bas 4
+// bas 5
+
 
 
         
+
+
+        
+
+
 
         
 
