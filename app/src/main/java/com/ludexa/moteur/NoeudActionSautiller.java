@@ -76,7 +76,7 @@ public class NoeudActionSautiller extends NoeudBase {
     public ObjetBase getCibleObjet() { return cibleObj; }
     
     @Override
-    public boolean utiliseClavierTexte() { return false; }
+    public boolean utiliseClavierTexte() { return true; } // CORRECTION ICI : Autorise l'ouverture du clavier système
 
     @Override
     public String getTypeEditeurParametre(String nomParametre) { 
