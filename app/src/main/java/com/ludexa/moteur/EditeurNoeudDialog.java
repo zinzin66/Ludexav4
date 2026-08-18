@@ -1,4 +1,4 @@
-// haut 1
+// haut 1 18 aout
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -106,7 +106,6 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
-
 
 // haut 2
         champSaisie.setOnClickListener(v -> {
@@ -285,8 +284,6 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 2
-
-
 // haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -417,7 +414,6 @@ public class EditeurNoeudDialog extends Dialog {
         colonneDroite.addView(scrollCibles);
 // bas 3
 
-
 // haut 4
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
@@ -425,14 +421,12 @@ public class EditeurNoeudDialog extends Dialog {
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
             champSaisie.setText(valInit != null ? valInit : "");
-            champSaisie.setSelection(champSaisie.getText().length()); 
+            champSaisie.setSelection(champSaisie.getText().length()); // Repositionnement sécurité
 
             for (String paramName : params) {
                 Button btnParam = new Button(context);
                 btnParam.setText(Traducteur.get(paramName)); 
                 btnParam.setTag(paramName);
-                btnParam.setFocusable(false); // NE PAS VOLER LE FOCUS
-                btnParam.setFocusableInTouchMode(false);
                 
                 btnParam.setAllCaps(false);
                 btnParam.setTextSize(13f);
@@ -452,7 +446,7 @@ public class EditeurNoeudDialog extends Dialog {
                     champActif = paramName;
                     String val = noeud.getValeurParametre(champActif);
                     champSaisie.setText(val != null ? val : "");
-                    champSaisie.setSelection(champSaisie.getText().length()); 
+                    champSaisie.setSelection(champSaisie.getText().length()); // Place le curseur en fin de mot !
 
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
@@ -518,14 +512,13 @@ public class EditeurNoeudDialog extends Dialog {
                 if (touche.isEmpty()) {
                     btn.setVisibility(android.view.View.INVISIBLE);
                 } else {
-                    btn.setFocusable(false); // NE PAS VOLER LE FOCUS
-                    btn.setFocusableInTouchMode(false);
                     if (touche.equals("DEL")) btn.setBackground(fond(context, Color.parseColor("#5c2323"), Palette.bordure, 8));
 
                     btn.setOnClickListener(v -> {
                         int start = champSaisie.getSelectionStart();
                         int end = champSaisie.getSelectionEnd();
                         
+                        // Sécurité Android pour palier à la perte de curseur sur certains claviers virtuels
                         if (start < 0 || end < 0) {
                             start = champSaisie.getText().length();
                             end = champSaisie.getText().length();
@@ -534,17 +527,12 @@ public class EditeurNoeudDialog extends Dialog {
                         if (touche.equals("DEL")) {
                             if (start > 0 && start == end) {
                                 champSaisie.getText().delete(start - 1, start);
-                                champSaisie.setSelection(start - 1); // MAJ DU CURSEUR
                             } else if (start != end) {
-                                int min = Math.min(start, end);
-                                champSaisie.getText().delete(min, Math.max(start, end));
-                                champSaisie.setSelection(min); // MAJ DU CURSEUR
+                                champSaisie.getText().delete(Math.min(start, end), Math.max(start, end));
                             }
                         } else {
                             String insert = touche.equals("ESPACE") ? " " : touche;
-                            int min = Math.min(start, end);
-                            champSaisie.getText().replace(min, Math.max(start, end), insert, 0, insert.length());
-                            champSaisie.setSelection(min + insert.length()); // MAJ DU CURSEUR
+                            champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), insert, 0, insert.length());
                         }
                     });
                 }
@@ -559,8 +547,6 @@ public class EditeurNoeudDialog extends Dialog {
         Button btnVrai = new Button(context);
         btnVrai.setText("Vrai (true)");
         btnVrai.setAllCaps(false);
-        btnVrai.setFocusable(false); // NE PAS VOLER LE FOCUS
-        btnVrai.setFocusableInTouchMode(false);
         btnVrai.setBackground(fond(context, Color.parseColor("#4CAF50"), Palette.bordure, 10));
         btnVrai.setTextColor(Palette.texteNormal);
         btnVrai.setPadding(dp(context, 12), dp(context, 10), dp(context, 12), dp(context, 10));
@@ -575,8 +561,6 @@ public class EditeurNoeudDialog extends Dialog {
         Button btnFaux = new Button(context);
         btnFaux.setText("Faux (false)");
         btnFaux.setAllCaps(false);
-        btnFaux.setFocusable(false); // NE PAS VOLER LE FOCUS
-        btnFaux.setFocusableInTouchMode(false);
         btnFaux.setBackground(fond(context, Color.parseColor("#F44336"), Palette.bordure, 10));
         btnFaux.setTextColor(Palette.texteNormal);
         btnFaux.setPadding(dp(context, 12), dp(context, 10), dp(context, 12), dp(context, 10));
@@ -595,7 +579,6 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 4
-
 
 // haut 5
         LinearLayout colonneGauche = new LinearLayout(context);
@@ -624,8 +607,6 @@ public class EditeurNoeudDialog extends Dialog {
                 Button btnObj = new Button(context);
                 btnObj.setText(obj.nom);
                 btnObj.setAllCaps(false);
-                btnObj.setFocusable(false); // NE PAS VOLER LE FOCUS
-                btnObj.setFocusableInTouchMode(false);
                 btnObj.setTextSize(14f);
                 btnObj.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                 btnObj.setTextColor(Palette.texteNormal);
@@ -641,9 +622,7 @@ public class EditeurNoeudDialog extends Dialog {
                 btnObj.setOnClickListener(v -> {
                     int start = Math.max(champSaisie.getSelectionStart(), 0);
                     int end = Math.max(champSaisie.getSelectionEnd(), 0);
-                    int min = Math.min(start, end);
-                    champSaisie.getText().replace(min, Math.max(start, end), obj.nom, 0, obj.nom.length());
-                    champSaisie.setSelection(min + obj.nom.length()); // MAJ DU CURSEUR
+                    champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), obj.nom, 0, obj.nom.length());
                 });
                 listeGauche.addView(btnObj);
             }
@@ -667,9 +646,7 @@ public class EditeurNoeudDialog extends Dialog {
             String texteAInserer = v.getTag().toString();
             int start = Math.max(champSaisie.getSelectionStart(), 0);
             int end = Math.max(champSaisie.getSelectionEnd(), 0);
-            int min = Math.min(start, end);
-            champSaisie.getText().replace(min, Math.max(start, end), texteAInserer, 0, texteAInserer.length());
-            champSaisie.setSelection(min + texteAInserer.length()); // MAJ DU CURSEUR
+            champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), texteAInserer, 0, texteAInserer.length());
         };
 
         if (scene != null && scene.variablesLocales != null) {
@@ -677,8 +654,6 @@ public class EditeurNoeudDialog extends Dialog {
                 Button btnVar = new Button(context);
                 btnVar.setText(var.nom);
                 btnVar.setAllCaps(false);
-                btnVar.setFocusable(false); // NE PAS VOLER LE FOCUS
-                btnVar.setFocusableInTouchMode(false);
                 btnVar.setTextSize(14f);
                 btnVar.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                 btnVar.setTextColor(Palette.texteNormal);
@@ -725,8 +700,6 @@ public class EditeurNoeudDialog extends Dialog {
                 Button btnVarGlobale = new Button(context);
                 btnVarGlobale.setText(var.nom);
                 btnVarGlobale.setAllCaps(false);
-                btnVarGlobale.setFocusable(false); // NE PAS VOLER LE FOCUS
-                btnVarGlobale.setFocusableInTouchMode(false);
                 btnVarGlobale.setTextSize(14f);
                 btnVarGlobale.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                 btnVarGlobale.setTextColor(Palette.texteNormal);
@@ -924,11 +897,9 @@ public class EditeurNoeudDialog extends Dialog {
 
             if (!noeud.utiliseClavierTexte()) {
                 champSaisie.setShowSoftInputOnFocus(false);
-                // MODIFICATION ICI : Au lieu de TYPE_NULL qui détruit le curseur, on garde le format text avec focus
-                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+                champSaisie.setInputType(InputType.TYPE_NULL);
                 if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
                 if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-                champSaisie.requestFocus();
             } else {
                 champSaisie.setShowSoftInputOnFocus(true);
                 champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -943,13 +914,13 @@ public class EditeurNoeudDialog extends Dialog {
 
 
 
+        
 
 
 
         
 
 
-        
 
 
         
