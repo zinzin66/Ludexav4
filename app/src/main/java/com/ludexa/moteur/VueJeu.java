@@ -397,14 +397,15 @@ public class VueJeu extends View {
         return super.onGenericMotionEvent(event);
     }
 // bas 3
-
 // haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean touchJoystick = false;
         boolean touchAction = false;
-        GestionnaireControles.joyDirX = 0f;
-        GestionnaireControles.joyDirY = 0f;
+        
+        // On calcule une nouvelle intention. On ne l'applique qu'après.
+        float newJoyDirX = 0f;
+        float newJoyDirY = 0f;
         GestionnaireControles.isActionJustPressed = false;
 
         ObjetBase joystickObj = trouverObjetParType("joystick");
@@ -412,6 +413,12 @@ public class VueJeu extends View {
 
         if (GestionnaireControles.modeAventureActif) {
             for (int i = 0; i < event.getPointerCount(); i++) {
+                
+                // TACHE 2 : ON IGNORE LE DOIGT QUI EST EN TRAIN DE SE LEVER ! (Empêche le snapback)
+                if ((event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) && event.getActionIndex() == i) {
+                    continue; 
+                }
+
                 float ptrX = (event.getX(i) - decalageX) / echelle;
                 float ptrY = (event.getY(i) - decalageY) / echelle;
                 float ptrXMonde = ptrX + GestionnaireControles.cameraX;
@@ -440,17 +447,21 @@ public class VueJeu extends View {
                         float dy = checkY - joyCentreY;
                         float dist = (float) Math.hypot(dx, dy);
                         if (dist > 0) {
-                            GestionnaireControles.joyDirX = dx / Math.max(dist, rayon); 
-                            GestionnaireControles.joyDirY = dy / Math.max(dist, rayon);
+                            newJoyDirX = dx / Math.max(dist, rayon); 
+                            newJoyDirY = dy / Math.max(dist, rayon);
                             if (dist > rayon) {
-                                GestionnaireControles.joyDirX = dx / dist;
-                                GestionnaireControles.joyDirY = dy / dist;
+                                newJoyDirX = dx / dist;
+                                newJoyDirY = dy / dist;
                             }
                         }
                     }
                 }
             }
         }
+        
+        // Application propre (si on a levé le doigt, newJoy restera à 0)
+        GestionnaireControles.joyDirX = newJoyDirX;
+        GestionnaireControles.joyDirY = newJoyDirY;
         
         GestionnaireControles.isActionPressed = touchAction;
         if (GestionnaireControles.isActionJustPressed && this.moteur != null) {
@@ -536,7 +547,8 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-
+    
+ 
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
