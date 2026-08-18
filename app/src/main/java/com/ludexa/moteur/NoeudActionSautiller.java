@@ -30,8 +30,11 @@ public class NoeudActionSautiller extends NoeudBase {
                 } else {
                     cible.sautillementActif = true;
                     cible.sautillementIntensite = intensite;
-                    // Si infini est coché, on met une durée colossale
-                    cible.sautillementDureeMs = estInfini ? 999999999L : duree; 
+                    cible.sautillementDureeMs = duree; 
+                    
+                    // LA LIGNE MANQUANTE EST ICI :
+                    cible.sautillementInfiniMouvement = estInfini;
+                    
                     cible.tempsDebutSautillement = System.currentTimeMillis();
                 }
             } catch (Exception e) {}
