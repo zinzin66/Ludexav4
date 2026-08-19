@@ -451,8 +451,6 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 // bas 2
-
-
 // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -758,6 +756,7 @@ public class InspecteurProprietes extends LinearLayout {
         this.addView(scrollInspecteur);
 // bas 3
 
+
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
@@ -953,17 +952,171 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null && !miseAJourEnCours) { objetCourant.visible = isChecked; canvasEditeur.invalidate(); }
         });
 
+        // NOUVEAU COLOR PICKER 100% NATIF ANDROID
         View.OnClickListener selecteurCouleurListener = v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(Traducteur.get("insp_titre_select_couleur"));
-            String[] couleursNoms = {Traducteur.get("couleur_bleu_defaut"), Traducteur.get("couleur_rouge"), Traducteur.get("couleur_vert"), Traducteur.get("couleur_noir"), Traducteur.get("couleur_blanc"), Traducteur.get("couleur_jaune"), Traducteur.get("couleur_magenta"), Traducteur.get("couleur_cyan")};
-            int[] couleursValeurs = {Color.BLUE, Color.RED, Color.GREEN, Color.BLACK, Color.WHITE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
 
-            builder.setItems(couleursNoms, (dialog, which) -> {
-                objetCourant.couleur = couleursValeurs[which];
-                canvasEditeur.invalidate();
+            LinearLayout layoutMain = new LinearLayout(context);
+            layoutMain.setOrientation(LinearLayout.VERTICAL);
+            layoutMain.setPadding(dp(16), dp(16), dp(16), dp(16));
+
+            // --- 1. Ligne Supérieure : Aperçu Couleur et Champ Hexadécimal ---
+            LinearLayout layoutTop = new LinearLayout(context);
+            layoutTop.setOrientation(LinearLayout.HORIZONTAL);
+            layoutTop.setGravity(Gravity.CENTER_VERTICAL);
+
+            View previewColor = new View(context);
+            LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(44), dp(44));
+            previewParams.setMargins(0, 0, dp(12), 0);
+            previewColor.setLayoutParams(previewParams);
+            
+            final float[] currentHsv = new float[3];
+            Color.colorToHSV(objetCourant.couleur, currentHsv);
+            
+            android.graphics.drawable.GradientDrawable fondPreview = new android.graphics.drawable.GradientDrawable();
+            fondPreview.setColor(objetCourant.couleur);
+            fondPreview.setCornerRadius(dp(8));
+            fondPreview.setStroke(dp(1), Palette.bordure);
+            previewColor.setBackground(fondPreview);
+
+            EditText champHex = new EditText(context);
+            champHex.setSingleLine(true);
+            champHex.setText(String.format("#%06X", (0xFFFFFF & objetCourant.couleur)));
+            styliserChampFlexible(champHex);
+            champHex.setFilters(new android.text.InputFilter[] { new android.text.InputFilter.LengthFilter(7) });
+
+            layoutTop.addView(previewColor);
+            layoutTop.addView(champHex);
+            layoutMain.addView(layoutTop);
+
+            // Variable d'état pour empêcher les boucles infinies entre le texte et la zone tactile
+            final boolean[] isUpdating = {false};
+
+            // --- 2. Zone Arc-en-ciel (Spectre 2D) ---
+            View spectreView = new View(context) {
+                private android.graphics.Paint paintHue = new android.graphics.Paint();
+                private android.graphics.Paint paintVal = new android.graphics.Paint();
+                private android.graphics.Paint indicatorPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+
+                @Override
+                protected void onDraw(android.graphics.Canvas canvas) {
+                    // Dégradé horizontal pour la Teinte (Hue)
+                    int[] hueColors = {Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
+                    paintHue.setShader(new android.graphics.LinearGradient(0, 0, getWidth(), 0, hueColors, null, android.graphics.Shader.TileMode.CLAMP));
+                    canvas.drawRect(0, 0, getWidth(), getHeight(), paintHue);
+
+                    // Dégradé vertical pour la Luminosité (Value)
+                    paintVal.setShader(new android.graphics.LinearGradient(0, 0, 0, getHeight(), Color.TRANSPARENT, Color.BLACK, android.graphics.Shader.TileMode.CLAMP));
+                    canvas.drawRect(0, 0, getWidth(), getHeight(), paintVal);
+
+                    // Pointeur indicateur
+                    indicatorPaint.setColor(Color.WHITE);
+                    indicatorPaint.setStyle(android.graphics.Paint.Style.STROKE);
+                    indicatorPaint.setStrokeWidth(dp(2));
+                    
+                    float x = (currentHsv[0] / 360f) * getWidth();
+                    float y = (1f - currentHsv[2]) * getHeight();
+                    
+                    canvas.drawCircle(x, y, dp(10), indicatorPaint);
+                    indicatorPaint.setColor(Color.BLACK);
+                    canvas.drawCircle(x, y, dp(11), indicatorPaint);
+                }
+
+                @Override
+                public boolean onTouchEvent(android.view.MotionEvent event) {
+                    if (event.getAction() == android.view.MotionEvent.ACTION_DOWN || event.getAction() == android.view.MotionEvent.ACTION_MOVE) {
+                        float x = Math.max(0, Math.min(event.getX(), getWidth()));
+                        float y = Math.max(0, Math.min(event.getY(), getHeight()));
+                        
+                        currentHsv[0] = (x / getWidth()) * 360f;
+                        currentHsv[1] = 1f; // Saturation maximale sur le spectre
+                        currentHsv[2] = 1f - (y / getHeight());
+                        
+                        int newColor = Color.HSVToColor(currentHsv);
+                        
+                        isUpdating[0] = true;
+                        champHex.setText(String.format("#%06X", (0xFFFFFF & newColor)));
+                        isUpdating[0] = false;
+                        
+                        ((android.graphics.drawable.GradientDrawable)previewColor.getBackground()).setColor(newColor);
+                        invalidate();
+                        return true;
+                    }
+                    return super.onTouchEvent(event);
+                }
+            };
+            
+            // Hauteur suffisante pour être confortablement manipulée au doigt sur tablette
+            LinearLayout.LayoutParams spectreParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(160));
+            spectreParams.setMargins(0, dp(16), 0, dp(16));
+            spectreView.setLayoutParams(spectreParams);
+            layoutMain.addView(spectreView);
+
+            // Synchronisation : Hexadécimal -> Aperçu et Spectre
+            champHex.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override public void afterTextChanged(android.text.Editable s) {
+                    if (isUpdating[0]) return;
+                    try {
+                        String hexStr = s.toString();
+                        if (!hexStr.startsWith("#")) hexStr = "#" + hexStr;
+                        if (hexStr.length() == 7) {
+                            int parsedColor = Color.parseColor(hexStr);
+                            Color.colorToHSV(parsedColor, currentHsv);
+                            ((android.graphics.drawable.GradientDrawable)previewColor.getBackground()).setColor(parsedColor);
+                            spectreView.invalidate();
+                        }
+                    } catch (IllegalArgumentException ignored) {}
+                }
             });
+
+            // --- 3. Palette de couleurs rapides ---
+            HorizontalScrollView scrollPalette = new HorizontalScrollView(context);
+            scrollPalette.setHorizontalScrollBarEnabled(false);
+            LinearLayout layoutPalette = new LinearLayout(context);
+            layoutPalette.setOrientation(LinearLayout.HORIZONTAL);
+            
+            int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
+            for (int c : couleursRapides) {
+                View pastille = new View(context);
+                LinearLayout.LayoutParams pastilleParams = new LinearLayout.LayoutParams(dp(40), dp(40));
+                pastilleParams.setMargins(0, 0, dp(12), 0);
+                pastille.setLayoutParams(pastilleParams);
+                
+                android.graphics.drawable.GradientDrawable bgPastille = new android.graphics.drawable.GradientDrawable();
+                bgPastille.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                bgPastille.setColor(c);
+                bgPastille.setStroke(dp(1), Palette.bordure);
+                pastille.setBackground(bgPastille);
+                
+                pastille.setOnClickListener(vp -> {
+                    Color.colorToHSV(c, currentHsv);
+                    isUpdating[0] = true;
+                    champHex.setText(String.format("#%06X", (0xFFFFFF & c)));
+                    isUpdating[0] = false;
+                    ((android.graphics.drawable.GradientDrawable)previewColor.getBackground()).setColor(c);
+                    spectreView.invalidate();
+                });
+                layoutPalette.addView(pastille);
+            }
+            scrollPalette.addView(layoutPalette);
+            layoutMain.addView(scrollPalette);
+
+            builder.setView(layoutMain);
+            builder.setPositiveButton(Traducteur.get("bouton_valider"), (dialog, which) -> {
+                try {
+                    String finalHex = champHex.getText().toString();
+                    if (!finalHex.startsWith("#")) finalHex = "#" + finalHex;
+                    objetCourant.couleur = Color.parseColor(finalHex);
+                    canvasEditeur.invalidate();
+                } catch (Exception e) {
+                    // Conserver l'ancienne couleur si l'entrée est erronée
+                }
+            });
+            builder.setNegativeButton(Traducteur.get("bouton_annuler"), null);
             builder.show();
         };
 
@@ -976,7 +1129,6 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
-
 // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
@@ -1185,18 +1337,11 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-
-
-
-
-
-
-
     
 
-
-
         
+
+
 
 
         
