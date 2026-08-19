@@ -650,7 +650,6 @@ public class VueJeu extends View {
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets, camX, camY);
             
-            // NOUVEAU : Détection du mouvement pour le sautillement infini
             boolean estEnMouvement = (Math.abs(objet.x - objet.ancienneX) > 0.1f) || (Math.abs(objet.y - objet.ancienneY) > 0.1f);
             
             if (objet.sautillementActif) {
@@ -674,7 +673,6 @@ public class VueJeu extends View {
                 }
             }
             
-            // Mise à jour de la mémoire de position pour la frame suivante
             objet.ancienneX = objet.x;
             objet.ancienneY = objet.y;
             
@@ -869,11 +867,14 @@ public class VueJeu extends View {
             }
         }
 
+        // --- NOUVEAU : On exécute le noeud "À chaque image" juste avant les collisions ---
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
+            this.moteur.executerEvenement(NoeudEventChaqueImage.class); // <-- Ajout ici
             this.moteur.verifierCollisions(this, sceneActive.objets);
             this.moteur.verifierVariablesChangees(); 
         }
         if (this.moteurHud != null && sceneHudActive != null && sceneHudActive.objets != null) {
+            this.moteurHud.executerEvenement(NoeudEventChaqueImage.class); // <-- Ajout ici
             this.moteurHud.verifierCollisions(this, sceneHudActive.objets);
             this.moteurHud.verifierVariablesChangees(); 
         }
@@ -921,9 +922,3 @@ public class VueJeu extends View {
     }
 }
 // bas 5
-
-
-
-    
-
-

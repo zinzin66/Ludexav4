@@ -26,6 +26,7 @@ public class RegistreNoeuds {
         
         // ÉVÉNEMENTS
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_demarrage"), Traducteur.get("cat_evenements"), "NoeudEventStart"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_chaque_image"), Traducteur.get("cat_evenements"), "NoeudEventChaqueImage"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fin_de_clic"), Traducteur.get("cat_evenements"), "NoeudEventFinClic"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_clic_sur_objet"), Traducteur.get("cat_evenements"), "NoeudEventClicObjet"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_debut_de_glisser"), Traducteur.get("cat_evenements"), "NoeudEventDebutGlisser"));
@@ -45,11 +46,16 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_poursuivre_un_objet"), Traducteur.get("cat_mouvements_ia"), "NoeudActionPoursuivre"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fuir_un_objet"), Traducteur.get("cat_mouvements_ia"), "NoeudActionFuir"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_stopper_mouvements"), Traducteur.get("cat_mouvements_ia"), "NoeudActionStopperMouvements"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_arreter"), Traducteur.get("cat_mouvements_ia"), "NoeudActionArreter"));
 
         // LOGIQUE SPATIALE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_distance_entre_a_et_b"), Traducteur.get("cat_logique_spatiale"), "NoeudConditionDistance"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_orienter_vers"), Traducteur.get("cat_logique_spatiale"), "NoeudActionOrienterVers"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_proche"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetLePlusProche")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_hasard"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetHasard")); 
+// bas 1
 
+// haut 2
         // LOGIQUE & CONDITIONS
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition"), Traducteur.get("cat_logique_conditions"), "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_a_touche_zone_b"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiObjetToucheZone"));
@@ -60,8 +66,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_mouvement"), Traducteur.get("cat_logique_conditions"), "NoeudConditionMouvement"));
-// bas 1
-// haut 2
+
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_de_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionChangerScene"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_recharger_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionRechargerScene"));
@@ -80,7 +85,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_pousser_objet"), Traducteur.get("cat_apparence_objets"), "NoeudActionPousser"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_couleur"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierCouleur"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_visibilite"), Traducteur.get("cat_apparence_objets"), "NoeudActionVisibilite"));
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_deplacable"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierDeplacable"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_deplacable"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_verrouillage"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_zorder"), Traducteur.get("cat_apparence_objets"), "NoeudActionChangerZOrder"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_image"), Traducteur.get("cat_apparence_objets"), "NoeudActionChangerImage"));
@@ -94,12 +99,19 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_clignotement"), Traducteur.get("cat_apparence_objets"), "NoeudActionClignotement"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_surbrillance"), Traducteur.get("cat_apparence_objets"), "NoeudActionSurbrillance"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_sautiller"), Traducteur.get("cat_animations"), "NoeudActionSautiller"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_miroir"), Traducteur.get("cat_apparence_objets"), "NoeudActionMiroir")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_lier_objets"), Traducteur.get("cat_apparence_objets"), "NoeudActionLierObjets"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_opacite"), Traducteur.get("cat_apparence_objets"), "NoeudActionOpacite")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_mode_affichage"), Traducteur.get("cat_apparence_objets"), "NoeudActionModeAffichage")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_parallaxe"), Traducteur.get("cat_apparence_objets"), "NoeudActionParallaxe")); 
         
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionModifierTexte"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_ajouter_au_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionConcatenerTexte"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_afficher_dialogue"), Traducteur.get("cat_textes_dialogues"), "NoeudActionAfficherDialogue"));
+// bas 2
 
+// haut 3
         // VARIABLES & INVENTAIRE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_operation_mathematique"), Traducteur.get("cat_variables_inventaire"), "NoeudActionOperationMath"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_limiter_valeur"), Traducteur.get("cat_variables_inventaire"), "NoeudActionClampVariable"));
@@ -125,12 +137,17 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fondu_alpha"), Traducteur.get("cat_animations"), "NoeudActionFondu"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_glisser_vers"), Traducteur.get("cat_animations"), "NoeudActionGlisserVers"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_jouer_animation"), Traducteur.get("cat_animations"), "NoeudActionJouerAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_pause_anim"), Traducteur.get("cat_animations"), "NoeudActionPauseAnimation")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_reprendre_anim"), Traducteur.get("cat_animations"), "NoeudActionReprendreAnimation")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_vitesse_anim"), Traducteur.get("cat_animations"), "NoeudActionVitesseAnimation")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition_frame"), Traducteur.get("cat_animations"), "NoeudConditionFrameAnimation")); // AJOUT
         
         // PHYSIQUE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_activer_physique"), Traducteur.get("cat_physique"), "NoeudActionModifierPhysique"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appliquer_impulsion"), Traducteur.get("cat_physique"), "NoeudActionImpulsion"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_rebond"), Traducteur.get("cat_physique"), "NoeudActionChangerRebond"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_en_chute"), Traducteur.get("cat_physique"), "NoeudConditionEnMouvement"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_force_angle"), Traducteur.get("cat_physique"), "NoeudActionForceAngle"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
@@ -147,8 +164,4 @@ public class RegistreNoeuds {
         return map;
     }
 }
-// bas 2
-
-
-
-    
+// bas 3

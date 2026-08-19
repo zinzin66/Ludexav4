@@ -66,12 +66,33 @@ public class Traducteur {
         if (cle.equals("noeud_sautiller")) return "Sautillement";
         if (cle.equals("noeud_si_mouvement")) return "Si Objet en Mouvement";
         
+        if (cle.equals("noeud_chaque_image")) return "À chaque image";
+        if (cle.equals("noeud_arreter")) return "Arrêter l'objet";
+        if (cle.equals("noeud_miroir")) return "Effet Miroir / Inverser";
+        if (cle.equals("noeud_force_angle")) return "Ajouter force (par Angle)";
+        if (cle.equals("noeud_lier_objets")) return "Lier deux objets";
+        
+        if (cle.equals("noeud_opacite")) return "Modifier l'Opacité (Alpha)";
+        if (cle.equals("noeud_mode_affichage")) return "Mode de fusion (Effet)";
+        if (cle.equals("noeud_parallaxe")) return "Facteur de Parallaxe";
+
+        if (cle.equals("noeud_objet_proche")) return "Sélectionner objet le plus proche";
+        if (cle.equals("noeud_objet_hasard")) return "Choisir un objet au hasard";
+        if (cle.equals("cat_logique_spatiale")) return "Logique Spatiale";
+        
+        // --- NOUVEAUX NOEUDS ANIMATION ---
+        if (cle.equals("noeud_pause_anim")) return "Mettre en pause l'animation";
+        if (cle.equals("noeud_reprendre_anim")) return "Reprendre l'animation";
+        if (cle.equals("noeud_vitesse_anim")) return "Vitesse de l'animation";
+        if (cle.equals("noeud_condition_frame")) return "Si l'image actuelle est...";
+        
         if (cle.equals("port_entree")) return "Entrée";
         if (cle.equals("port_sortie")) return "Sortie";
         if (cle.equals("port_vrai")) return "Vrai";
         if (cle.equals("port_faux")) return "Faux";
         
         if (cle.equals("cat_animations")) return "Animations";
+        if (cle.equals("cat_physique")) return "Physique";
 
         return "[" + cle + "]";
     }
