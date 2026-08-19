@@ -66,8 +66,10 @@ public class Traducteur {
         if (cle.equals("noeud_sautiller")) return "Sautillement";
         if (cle.equals("noeud_si_mouvement")) return "Si Objet en Mouvement";
         
-        // NOUVEAU NOEUD :
+        // NOUVEAUX NOEUDS :
         if (cle.equals("noeud_chaque_image")) return "À chaque image";
+        if (cle.equals("noeud_arreter")) return "Arrêter l'objet";
+        if (cle.equals("noeud_miroir")) return "Effet Miroir / Inverser";
         
         if (cle.equals("port_entree")) return "Entrée";
         if (cle.equals("port_sortie")) return "Sortie";
