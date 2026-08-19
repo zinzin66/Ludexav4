@@ -11,7 +11,7 @@ public class NoeudEventCollisionTag extends NoeudBase {
     private transient boolean etaitEnCollision = false;
 
     public NoeudEventCollisionTag() {
-        super(genererId(), "Si objet touche Tag", "Logique & Conditions");
+        super(genererId(), "Si objet touche Tag", "Événements"); // CORRIGÉ ICI
         this.ajouterPort(new Port("Sortie", Port.TYPE_EXECUTION_SORTIE));
     }
 
