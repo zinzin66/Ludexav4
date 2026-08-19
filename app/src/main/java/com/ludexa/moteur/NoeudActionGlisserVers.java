@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionGlisserVers extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String cibleX = "0";
     private String cibleY = "0";
     private String duree = "1.0";
@@ -71,6 +71,8 @@ public class NoeudActionGlisserVers extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {

@@ -6,7 +6,7 @@ import java.util.List;
 public class NoeudEventSurvolObjet extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;[span_14](start_span)[span_14](end_span)
 
     public NoeudEventSurvolObjet() {
         super(genererId(), "Au Survol", "Événements");
@@ -29,6 +29,8 @@ public class NoeudEventSurvolObjet extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
@@ -60,5 +62,3 @@ public class NoeudEventSurvolObjet extends NoeudBase {
     public void setValeurParametre(String nom, String valeur) {}
 }
 // bas 1
-
-

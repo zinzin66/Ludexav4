@@ -19,13 +19,14 @@ public class NoeudActionFixerCamera extends NoeudBase {
 
     @Override
     public void executer() {
-        if (cible != null) {
-            GestionnaireControles.cameraCibleId = cible.id;
+        ObjetBase cibleObj = getCibleObjet();
+        if (cibleObj != null) {
+            GestionnaireControles.cameraCibleId = cibleObj.id;
             GestionnaireControles.cameraSuitAxeX = suivreX;
             GestionnaireControles.cameraSuitAxeY = suivreY;
             GestionnaireControles.parallaxeUniquementX = parallaxeXSeulement;
         } else {
-            GestionnaireControles.cameraCibleId = null; // Libère la caméra
+            GestionnaireControles.cameraCibleId = null; 
         }
         propagerExecution("Suivant");
     }
@@ -37,7 +38,10 @@ public class NoeudActionFixerCamera extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { this.cible = objet; }
 
     @Override
-    public ObjetBase getCibleObjet() { return this.cible; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.cible; 
+    }
 
     @Override
     public List<String> getNomsParametres() { 
