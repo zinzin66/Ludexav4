@@ -27,7 +27,6 @@ public abstract class NoeudBase {
     
     public boolean estReplie = false;
 
-    // --- NOUVEAU SYSTÈME DE PARAMÈTRES DYNAMIQUES ---
     public static class InfoParametre {
         public String nom;
         public String valeur;
@@ -51,8 +50,7 @@ public abstract class NoeudBase {
         this.portsEntree = new ArrayList<>();
         this.portsSortie = new ArrayList<>();
     }
-    
-    // --- MÉTHODE POUR LES NŒUDS ENFANTS ---
+
     protected void ajouterParametre(String nom, String valeurInitiale, String typeEditeur) {
         parametresDynamiques.put(nom, new InfoParametre(nom, valeurInitiale, typeEditeur));
     }
@@ -101,10 +99,8 @@ public abstract class NoeudBase {
 
     protected static String genererId() { return UUID.randomUUID().toString(); }
 
-    // --- LA SEULE MÉTHODE STRICTEMENT OBLIGATOIRE ---
     public abstract void executer();
 
-    // --- MÉTHODES DÉSORMAIS CONCRÈTES (FINI LE BOILERPLATE !) ---
     public List<String> getNomsParametres() {
         return new ArrayList<>(parametresDynamiques.keySet());
     }
@@ -129,7 +125,6 @@ public abstract class NoeudBase {
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
 
-    // --- VALEURS PAR DÉFAUT POUR LES CIBLES ---
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
     public ObjetBase getCibleObjet() { return null; }
