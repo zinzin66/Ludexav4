@@ -66,6 +66,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_mouvement"), Traducteur.get("cat_logique_conditions"), "NoeudConditionMouvement"));
+        REGISTRE.add(new InfoNoeud("Si objet touche Tag", Traducteur.get("cat_logique_conditions"), "NoeudEventCollisionTag"));
+        
 
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_de_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionChangerScene"));
