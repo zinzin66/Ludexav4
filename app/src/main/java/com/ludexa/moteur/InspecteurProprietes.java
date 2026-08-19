@@ -441,7 +441,7 @@ public class InspecteurProprietes extends LinearLayout {
                 .setTitle(Traducteur.get("insp_titre_select_parent"))
                 .setItems(noms.toArray(new String[0]), (dialog, which) -> {
                     String idChoisi = ids.get(which);
-                    if (ObjetBase.verifierBoucleParent(objetCourant.id, idChoisi, sceneActive.objets)) {
+                    if (!ObjetBase.verifierBoucleParent(objetCourant.id, idChoisi, sceneActive.objets)) {
                         objetCourant.parentId = idChoisi;
                         canvasEditeur.invalidate();
                         afficherObjet(objetCourant);
