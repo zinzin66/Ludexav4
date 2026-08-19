@@ -76,10 +76,15 @@ public class Traducteur {
         if (cle.equals("noeud_mode_affichage")) return "Mode de fusion (Effet)";
         if (cle.equals("noeud_parallaxe")) return "Facteur de Parallaxe";
 
-        // --- NOUVEAUX NOEUDS CIBLAGE ---
         if (cle.equals("noeud_objet_proche")) return "Sélectionner objet le plus proche";
         if (cle.equals("noeud_objet_hasard")) return "Choisir un objet au hasard";
         if (cle.equals("cat_logique_spatiale")) return "Logique Spatiale";
+        
+        // --- NOUVEAUX NOEUDS ANIMATION ---
+        if (cle.equals("noeud_pause_anim")) return "Mettre en pause l'animation";
+        if (cle.equals("noeud_reprendre_anim")) return "Reprendre l'animation";
+        if (cle.equals("noeud_vitesse_anim")) return "Vitesse de l'animation";
+        if (cle.equals("noeud_condition_frame")) return "Si l'image actuelle est...";
         
         if (cle.equals("port_entree")) return "Entrée";
         if (cle.equals("port_sortie")) return "Sortie";
