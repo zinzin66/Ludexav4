@@ -167,7 +167,6 @@ public class CanvasBlueprint extends View {
     }
 // bas 1
 
-
 // haut 2
     public void setBlueprint(Blueprint blueprint) {
         this.blueprintActuel = blueprint;
@@ -340,7 +339,6 @@ public class CanvasBlueprint extends View {
     }
 // bas 2
 
-
 // haut 3
     private Port trouverPortParNom(java.util.ArrayList<Port> ports, String nom) {
         for (Port p : ports) {
@@ -409,7 +407,8 @@ public class CanvasBlueprint extends View {
     private float getLargeurNoeud(NoeudBase noeud) {
         float max = 220f;
         
-        String texteTitre = noeud.nom + (noeud.estReplie ? " [...]" : "");
+        // TACHE 3 : TRADUCTION DE LA LARGEUR DYNAMIQUE
+        String texteTitre = Traducteur.get(noeud.nom) + (noeud.estReplie ? " [...]" : "");
         float wTitre = paintTexteTitre.measureText(texteTitre) + 40f;
         if (wTitre > max) max = wTitre;
         
@@ -417,10 +416,10 @@ public class CanvasBlueprint extends View {
         for (int i = 0; i < maxPorts; i++) {
             float rowWidth = 60f; 
             if (i < noeud.portsEntree.size()) {
-                rowWidth += paintTextePort.measureText(noeud.portsEntree.get(i).nom);
+                rowWidth += paintTextePort.measureText(Traducteur.get(noeud.portsEntree.get(i).nom));
             }
             if (i < noeud.portsSortie.size()) {
-                rowWidth += paintTextePort.measureText(noeud.portsSortie.get(i).nom);
+                rowWidth += paintTextePort.measureText(Traducteur.get(noeud.portsSortie.get(i).nom));
             }
             if (rowWidth > max) max = rowWidth;
         }
@@ -449,7 +448,7 @@ public class CanvasBlueprint extends View {
             for (String param : noeud.getNomsParametres()) {
                 String val = noeud.getValeurParametre(param);
                 if (val == null) val = "";
-                String ligne = param + " : " + val;
+                String ligne = Traducteur.get(param) + " : " + val;
                 float w = paintResume.measureText(ligne) + 30f;
                 if (w > max) max = w;
             }
@@ -486,7 +485,8 @@ public class CanvasBlueprint extends View {
         canvas.drawRect(x, y + 25, x + largeur, y + 45, paintTitreBG);
         paintTitreBG.setColor(Palette.enTeteDialogues); 
         
-        String texteTitre = noeud.nom + (noeud.estReplie ? " [...]" : "");
+        // TACHE 3 : TRADUCTION VISUELLE DU TITRE DU NOEUD
+        String texteTitre = Traducteur.get(noeud.nom) + (noeud.estReplie ? " [...]" : "");
         canvas.drawText(texteTitre, x + 15, y + 32, paintTexteTitre);
         
         float startY = y + 70;
@@ -495,7 +495,7 @@ public class CanvasBlueprint extends View {
             definirCouleurPort(p);
             float portY = startY + (i * 40);
             canvas.drawCircle(x, portY, 9, paintPort);
-            canvas.drawText(p.nom, x + 20, portY + 6, paintTextePort);
+            canvas.drawText(Traducteur.get(p.nom), x + 20, portY + 6, paintTextePort);
         }
         
         for (int i = 0; i < noeud.portsSortie.size(); i++) {
@@ -503,8 +503,8 @@ public class CanvasBlueprint extends View {
             definirCouleurPort(p);
             float portY = startY + (i * 40);
             canvas.drawCircle(x + largeur, portY, 9, paintPort);
-            float textWidth = paintTextePort.measureText(p.nom);
-            canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
+            float textWidth = paintTextePort.measureText(Traducteur.get(p.nom));
+            canvas.drawText(Traducteur.get(p.nom), x + largeur - 20 - textWidth, portY + 6, paintTextePort);
         }
         
         float currentY = y + 60 + (maxPorts * 40) + 15;
@@ -533,7 +533,7 @@ public class CanvasBlueprint extends View {
             for (String param : noeud.getNomsParametres()) {
                 String val = noeud.getValeurParametre(param);
                 if (val == null) val = "";
-                String ligne = param + " : " + val;
+                String ligne = Traducteur.get(param) + " : " + val;
                 canvas.drawText(ligne, x + 15, currentY, paintResume);
                 currentY += 28;
             }
@@ -556,7 +556,7 @@ public class CanvasBlueprint extends View {
     }
 // bas 3
 
-    // haut 4
+// haut 4
     private InfoPort trouverPortSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
         float margeY = 40f; 
@@ -821,6 +821,10 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
+
+
+
+    
 
 
     

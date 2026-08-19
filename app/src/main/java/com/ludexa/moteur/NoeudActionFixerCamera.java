@@ -61,5 +61,10 @@ public class NoeudActionFixerCamera extends NoeudBase {
 
     @Override
     public boolean utiliseClavierTexte() { return false; }
+
+    @Override
+    public String getTypeEditeurParametre(String nomParametre) {
+        return "TYPE_BOOLEEN";
+    }
 }
 // bas 1

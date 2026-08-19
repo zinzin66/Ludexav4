@@ -126,7 +126,10 @@ public class VueJeu extends View {
             }
         }
     }
+// bas 1
 
+
+// haut 2
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
@@ -196,9 +199,7 @@ public class VueJeu extends View {
         removeCallbacks(boucleDeRendu);
         GestionnaireAudio.arreterMusique();
     }
-// bas 1
 
-// haut 2
     private ObjetBase getObjetById(String id, List<ObjetBase> contexteObjets) {
         if (contexteObjets == null || id == null) return null;
         for (ObjetBase o : contexteObjets) {
@@ -215,7 +216,7 @@ public class VueJeu extends View {
         }
         return true;
     }
-    
+
     private ObjetBase trouverObjetParType(String type) {
         if (sceneHudActive != null && sceneHudActive.objets != null) {
             for (ObjetBase o : sceneHudActive.objets) {
@@ -229,7 +230,9 @@ public class VueJeu extends View {
         }
         return null;
     }
-    
+// bas 2
+
+// haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         float camX = isHud ? 0f : GestionnaireControles.cameraX;
@@ -307,10 +310,7 @@ public class VueJeu extends View {
         }
         return null;
     }
-// bas 2
 
-
-// haut 3
     private boolean verifierCollisionStatique(float testX, float testY, float largeur, float hauteur, float scaleX, float scaleY, ObjetBase objetCible, List<ObjetBase> objets) {
         if (objets == null) return false;
 
@@ -367,7 +367,9 @@ public class VueJeu extends View {
             objet.y += deltaY;
         }
     }
+// bas 3
 
+// haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
@@ -396,15 +398,14 @@ public class VueJeu extends View {
         }
         return super.onGenericMotionEvent(event);
     }
-// bas 3
 
-// haut 4
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean touchJoystick = false;
         boolean touchAction = false;
-        GestionnaireControles.joyDirX = 0f;
-        GestionnaireControles.joyDirY = 0f;
+        
+        float newJoyDirX = 0f;
+        float newJoyDirY = 0f;
         GestionnaireControles.isActionJustPressed = false;
 
         ObjetBase joystickObj = trouverObjetParType("joystick");
@@ -412,6 +413,11 @@ public class VueJeu extends View {
 
         if (GestionnaireControles.modeAventureActif) {
             for (int i = 0; i < event.getPointerCount(); i++) {
+                
+                if ((event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) && event.getActionIndex() == i) {
+                    continue; 
+                }
+
                 float ptrX = (event.getX(i) - decalageX) / echelle;
                 float ptrY = (event.getY(i) - decalageY) / echelle;
                 float ptrXMonde = ptrX + GestionnaireControles.cameraX;
@@ -440,17 +446,20 @@ public class VueJeu extends View {
                         float dy = checkY - joyCentreY;
                         float dist = (float) Math.hypot(dx, dy);
                         if (dist > 0) {
-                            GestionnaireControles.joyDirX = dx / Math.max(dist, rayon); 
-                            GestionnaireControles.joyDirY = dy / Math.max(dist, rayon);
+                            newJoyDirX = dx / Math.max(dist, rayon); 
+                            newJoyDirY = dy / Math.max(dist, rayon);
                             if (dist > rayon) {
-                                GestionnaireControles.joyDirX = dx / dist;
-                                GestionnaireControles.joyDirY = dy / dist;
+                                newJoyDirX = dx / dist;
+                                newJoyDirY = dy / dist;
                             }
                         }
                     }
                 }
             }
         }
+        
+        GestionnaireControles.joyDirX = newJoyDirX;
+        GestionnaireControles.joyDirY = newJoyDirY;
         
         GestionnaireControles.isActionPressed = touchAction;
         if (GestionnaireControles.isActionJustPressed && this.moteur != null) {
@@ -536,7 +545,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-
+    
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -640,6 +649,35 @@ public class VueJeu extends View {
             }
 
             Matrix absMatrix = getAbsoluteMatrix(objet, objets, camX, camY);
+            
+            // NOUVEAU : Détection du mouvement pour le sautillement infini
+            boolean estEnMouvement = (Math.abs(objet.x - objet.ancienneX) > 0.1f) || (Math.abs(objet.y - objet.ancienneY) > 0.1f);
+            
+            if (objet.sautillementActif) {
+                boolean doitSautiller = false;
+                
+                if (objet.sautillementInfiniMouvement) {
+                    doitSautiller = estEnMouvement;
+                } else {
+                    long now = System.currentTimeMillis();
+                    if (now - objet.tempsDebutSautillement < objet.sautillementDureeMs) {
+                        doitSautiller = true;
+                    } else {
+                        objet.sautillementActif = false;
+                    }
+                }
+                
+                if (doitSautiller) {
+                    float shakeX = (float) ((Math.random() - 0.5) * 2.0 * objet.sautillementIntensite);
+                    float shakeY = (float) ((Math.random() - 0.5) * 2.0 * objet.sautillementIntensite);
+                    absMatrix.postTranslate(shakeX, shakeY);
+                }
+            }
+            
+            // Mise à jour de la mémoire de position pour la frame suivante
+            objet.ancienneX = objet.x;
+            objet.ancienneY = objet.y;
+            
             canvas.save();
             canvas.concat(absMatrix);
 
@@ -761,10 +799,7 @@ public class VueJeu extends View {
             }
         }
     }
-// bas 5
 
-
-// haut 6
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -885,26 +920,10 @@ public class VueJeu extends View {
         if (sceneHudActive != null && sceneHudActive.objets != null) dessinerListeObjets(canvas, sceneHudActive.objets, false, 0f, 0f);
     }
 }
-// bas 6
-
-
-
-
-
+// bas 5
 
 
 
     
-
-
-    
-
-
-
-    
-
-
-    
-
 
 
