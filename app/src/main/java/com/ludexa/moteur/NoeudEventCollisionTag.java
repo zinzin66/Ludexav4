@@ -6,8 +6,6 @@ import java.util.List;
 
 public class NoeudEventCollisionTag extends NoeudBase {
     
-    private transient ObjetBase cible;
-    private String nomCibleObjet;
     private String tagCible = "";
     private transient boolean etaitEnCollision = false;
 
@@ -47,33 +45,6 @@ public class NoeudEventCollisionTag extends NoeudBase {
 
     @Override
     public boolean requiertCibleObjet() { return true; }
-
-    @Override
-    public void setCibleObjet(ObjetBase objet) {
-        this.cible = objet;
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
-    }
-
-    @Override
-    public ObjetBase getCibleObjet() {
-        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
-                    }
-                }
-            } catch (Exception e) {}
-        }
-        return this.cible;
-    }
 
     public boolean isEtaitEnCollision() { return etaitEnCollision; }
     public void setEtaitEnCollision(boolean etat) { this.etaitEnCollision = etat; }
