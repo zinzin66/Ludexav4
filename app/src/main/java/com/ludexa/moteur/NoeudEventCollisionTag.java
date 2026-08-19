@@ -6,6 +6,8 @@ import java.util.List;
 
 public class NoeudEventCollisionTag extends NoeudBase {
     
+    private transient ObjetBase cible;
+    private String nomCibleObjet;
     private String tagCible = "";
     private transient boolean etaitEnCollision = false;
 
@@ -45,6 +47,43 @@ public class NoeudEventCollisionTag extends NoeudBase {
 
     @Override
     public boolean requiertCibleObjet() { return true; }
+
+    @Override
+    public void setCibleObjet(ObjetBase objet) {
+        this.cible = objet;
+        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+    }
+
+    @Override
+    public ObjetBase getCibleObjet() {
+        if (nomCibleObjet != null && contexteApplication != null) {
+            try {
+                if (contexteApplication instanceof InterfaceEditeur) {
+                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+                        for (ObjetBase o : editeur.sceneActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                    }
+                    if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
+                        for (ObjetBase o : editeur.sceneHudActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                    }
+                } else {
+                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                    Scene sAct = (Scene) sceneField.get(contexteApplication);
+                    if (sAct != null && sAct.objets != null) {
+                        for (ObjetBase o : sAct.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                    }
+                    try {
+                        java.lang.reflect.Field sceneHudField = contexteApplication.getClass().getField("sceneHudActive");
+                        Scene sHud = (Scene) sceneHudField.get(contexteApplication);
+                        if (sHud != null && sHud.objets != null) {
+                            for (ObjetBase o : sHud.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                        }
+                    } catch (Exception e) {}
+                }
+            } catch (Exception e) {}
+        }
+        return this.cible;
+    }
 
     public boolean isEtaitEnCollision() { return etaitEnCollision; }
     public void setEtaitEnCollision(boolean etat) { this.etaitEnCollision = etat; }
