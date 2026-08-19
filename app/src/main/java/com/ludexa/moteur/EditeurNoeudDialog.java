@@ -116,6 +116,41 @@ public class EditeurNoeudDialog extends Dialog {
                 else if (context instanceof InterfaceEditeur) cheminProj = ((InterfaceEditeur) context).cheminProjet;
                         
                 switch (typeEditeur) {
+                    case "TYPE_CHOIX_TAG":
+                        List<String> tagsUniques = new ArrayList<>();
+                        if (scene != null && scene.objets != null) {
+                            for (ObjetBase o : scene.objets) {
+                                if (o.tag != null && !o.tag.trim().isEmpty() && !tagsUniques.contains(o.tag.trim())) {
+                                    tagsUniques.add(o.tag.trim());
+                                }
+                            }
+                        }
+                        tagsUniques.add("[ Saisir manuellement ]");
+                        
+                        android.app.AlertDialog.Builder builderTag = new android.app.AlertDialog.Builder(context);
+                        builderTag.setTitle("Choisir un Tag");
+                        String[] tagsArray = tagsUniques.toArray(new String[0]);
+                        builderTag.setItems(tagsArray, (dialog, which) -> {
+                            if (which == tagsUniques.size() - 1) {
+                                // Option Saisir manuellement
+                                final EditText input = new EditText(context);
+                                input.setText(champSaisie.getText().toString());
+                                new android.app.AlertDialog.Builder(context)
+                                    .setTitle("Saisir un Tag")
+                                    .setView(input)
+                                    .setPositiveButton("OK", (d, w) -> {
+                                        champSaisie.setText(input.getText().toString().trim());
+                                        champSaisie.setSelection(champSaisie.getText().length());
+                                    })
+                                    .setNegativeButton("Annuler", null)
+                                    .show();
+                            } else {
+                                champSaisie.setText(tagsArray[which]);
+                                champSaisie.setSelection(champSaisie.getText().length());
+                            }
+                        });
+                        builderTag.show();
+                        break;
                     case NoeudBase.TYPE_COULEUR:
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
                         builder.setTitle(Traducteur.get("noeud_choisir_couleur"));
@@ -284,6 +319,8 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 2
+        
+   
 // haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -465,7 +502,7 @@ public class EditeurNoeudDialog extends Dialog {
                     if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
                         NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
                         NoeudBase.TYPE_CHOIX_SON.equals(type) || NoeudBase.TYPE_CHOIX_FONCTION.equals(type) ||
-                        "CHOIX_ANIMATION".equals(type)) { 
+                        "CHOIX_ANIMATION".equals(type) || "TYPE_CHOIX_TAG".equals(type)) { 
                         champSaisie.performClick();
                     }
                 });
@@ -579,6 +616,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 4
+        
 
 // haut 5
         LinearLayout colonneGauche = new LinearLayout(context);
