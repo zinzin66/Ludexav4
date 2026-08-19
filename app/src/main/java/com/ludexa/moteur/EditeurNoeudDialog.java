@@ -107,6 +107,7 @@ public class EditeurNoeudDialog extends Dialog {
         });
 // bas 1
 
+
 // haut 2
         champSaisie.setOnClickListener(v -> {
             if (champActif != null) {
@@ -319,6 +320,7 @@ public class EditeurNoeudDialog extends Dialog {
         });
 // bas 2
 
+
 // haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -341,16 +343,30 @@ public class EditeurNoeudDialog extends Dialog {
         if (noeud.requiertCibleObjet()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_a"));
-            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
+            
+            // --- AJOUT MÉMOIRE CONTEXTUELLE : Affichage de la sélection ---
+            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
+            mettreAJourAfficheurCible(txtAfficheur, nomAfficheA);
+            
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
-                    String[] noms = new String[scene.objets.size()];
-                    for (int i = 0; i < scene.objets.size(); i++) noms[i] = scene.objets.get(i).nom;
+                    // --- AJOUT MÉMOIRE CONTEXTUELLE : Option dynamique en tête ---
+                    String[] noms = new String[scene.objets.size() + 1];
+                    noms[0] = "[ L'objet impliqué dans l'événement ]";
+                    for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
+                    
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_a"))
                         .setItems(noms, (d, which) -> {
-                            ObjetBase obj = scene.objets.get(which);
-                            noeud.setCibleObjet(obj);
-                            mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            if (which == 0) {
+                                noeud.nomCibleObjet = "__OBJET_IMPLIQUE__";
+                                noeud.setCibleObjet(null);
+                                mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
+                            } else {
+                                ObjetBase obj = scene.objets.get(which - 1); // Décalage de -1
+                                noeud.nomCibleObjet = obj.nom;
+                                noeud.setCibleObjet(obj);
+                                mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            }
                             mettreAJourResumeExpression(noeud, txtResumeExpression);
                         }).show();
                 }
@@ -361,16 +377,30 @@ public class EditeurNoeudDialog extends Dialog {
         if (noeud.requiertCibleObjetB()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_b"));
-            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
+            
+            // --- AJOUT MÉMOIRE CONTEXTUELLE : Affichage de la sélection B ---
+            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
+            mettreAJourAfficheurCible(txtAfficheur, nomAfficheB);
+            
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
-                    String[] noms = new String[scene.objets.size()];
-                    for (int i = 0; i < scene.objets.size(); i++) noms[i] = scene.objets.get(i).nom;
+                    // --- AJOUT MÉMOIRE CONTEXTUELLE : Option dynamique en tête B ---
+                    String[] noms = new String[scene.objets.size() + 1];
+                    noms[0] = "[ L'objet impliqué dans l'événement ]";
+                    for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
+                    
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_b"))
                         .setItems(noms, (d, which) -> {
-                            ObjetBase obj = scene.objets.get(which);
-                            noeud.setCibleObjetB(obj);
-                            mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            if (which == 0) {
+                                noeud.nomCibleObjetB = "__OBJET_IMPLIQUE__";
+                                noeud.setCibleObjetB(null);
+                                mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
+                            } else {
+                                ObjetBase obj = scene.objets.get(which - 1); // Décalage de -1
+                                noeud.nomCibleObjetB = obj.nom;
+                                noeud.setCibleObjetB(obj);
+                                mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            }
                             mettreAJourResumeExpression(noeud, txtResumeExpression);
                         }).show();
                 }
@@ -448,6 +478,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
 // bas 3
+
 
 // haut 4
         colonneDroite.addView(barreParams);
@@ -853,10 +884,11 @@ public class EditeurNoeudDialog extends Dialog {
                                    && noeud.getNomsParametres().contains("Valeur de comparaison");
         }
 
+        // --- AJOUT MÉMOIRE CONTEXTUELLE : Affichage formaté pour les résumés d'expression ---
         if (noeud instanceof NoeudEventCollisionAB || noeud instanceof NoeudConditionSiObjetToucheZone) {
             txtResume.setVisibility(View.VISIBLE);
-            String objNameA = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
-            String objNameB = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]";
+            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
+            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]");
             txtResume.setText(Traducteur.get("resume_interaction") + " : " + objNameA + " <-> " + objNameB);
         }
         else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
@@ -883,7 +915,7 @@ public class EditeurNoeudDialog extends Dialog {
             txtResume.setText(Traducteur.get("resume_action") + " : " + varName + " = " + sb.toString());
         } else if (noeud.requiertCibleObjet()) {
             txtResume.setVisibility(View.VISIBLE);
-            String objName = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
+            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
             StringBuilder sb = new StringBuilder();
             if (noeud.getNomsParametres() != null) {
                 for (String p : noeud.getNomsParametres()) {
@@ -946,19 +978,16 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 5
-                    
+                
 
+
+        
 
 
         
 
 
         
-
-
-
-        
-
 
 
     
