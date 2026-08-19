@@ -36,16 +36,32 @@ public class EcranDemarrage extends Activity {
     public static String langueCourante = "fr";
     private TextView libelleLangue;
 
+    // Projets Locaux
     private ListView listeProjets;
     private AdaptateurProjets adaptateurProjets;
     private final ArrayList<File> dossiersProjets = new ArrayList<>();
+    private final ArrayList<ItemProjet> itemsProjets = new ArrayList<>();
     private int positionSelectionnee = -1;
+
+    // Projets d'Exemples (Nouveau)
+    private ListView listeExemples;
+    private AdaptateurProjets adaptateurExemples;
+    private final ArrayList<ItemProjet> itemsExemples = new ArrayList<>();
 
     private LinearLayout barreActions;
     private TextView etiquetteSelection;
     
     private static final int REQUEST_CODE_EXPORT = 2001;
     private File projetAExporter = null;
+
+    // Structure pour unifier l'affichage des deux listes
+    private class ItemProjet {
+        String nom;
+        String sousTitre;
+        File dossier;
+        String nomZipExemple;
+        boolean estExemple;
+    }
 
     // ---------------------------------------------------------------- outils UI
 
@@ -134,12 +150,14 @@ public class EcranDemarrage extends Activity {
         setContentView(layoutPrincipal);
 
         chargerListeProjets();
+        chargerListeExemples();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         chargerListeProjets();
+        chargerListeExemples();
     }
 
     @Override
@@ -247,9 +265,8 @@ public class EcranDemarrage extends Activity {
     }
 // bas 1
 
-
 // haut 2
-    // ---------------------------------------------------------------- colonne droite
+    // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
 
     private View construireColonneDroite() {
         LinearLayout colonneDroite = new LinearLayout(this);
@@ -261,10 +278,34 @@ public class EcranDemarrage extends Activity {
         lp.setMargins(dp(10), 0, 0, 0);
         colonneDroite.setLayoutParams(lp);
 
-        colonneDroite.addView(construireBandeauOutils());
-        colonneDroite.addView(construireEnteteListe());
-        colonneDroite.addView(construireListe());
-        colonneDroite.addView(construireBarreActions());
+        // --- BLOC HAUT : MES PROJETS ---
+        LinearLayout blocHaut = new LinearLayout(this);
+        blocHaut.setOrientation(LinearLayout.VERTICAL);
+        blocHaut.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        blocHaut.addView(construireBandeauOutils());
+        blocHaut.addView(construireEnteteListe(Traducteur.get("demarrage_titre_projets")));
+        blocHaut.addView(construireListeProjets());
+        blocHaut.addView(construireBarreActions());
+
+        // --- SEPARATEUR HORIZONTAL ---
+        View separateurH = new View(this);
+        separateurH.setBackgroundColor(couleurBordure());
+        LinearLayout.LayoutParams lpH = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
+        lpH.setMargins(0, dp(6), 0, dp(6));
+        separateurH.setLayoutParams(lpH);
+
+        // --- BLOC BAS : PROJETS D'EXEMPLE ---
+        LinearLayout blocBas = new LinearLayout(this);
+        blocBas.setOrientation(LinearLayout.VERTICAL);
+        blocBas.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        blocBas.addView(construireEnteteListe("MODÈLES & EXEMPLES"));
+        blocBas.addView(construireListeExemples());
+
+        colonneDroite.addView(blocHaut);
+        colonneDroite.addView(separateurH);
+        colonneDroite.addView(blocBas);
 
         return colonneDroite;
     }
@@ -301,17 +342,17 @@ public class EcranDemarrage extends Activity {
         return bandeau;
     }
 
-    private View construireEnteteListe() {
+    private View construireEnteteListe(String titre) {
         TextView titreListe = new TextView(this);
-        titreListe.setText(Traducteur.get("demarrage_titre_projets"));
+        titreListe.setText(titre);
         titreListe.setTextSize(11f);
         titreListe.setLetterSpacing(0.18f);
-        titreListe.setPadding(dp(4), dp(14), 0, dp(6));
+        titreListe.setPadding(dp(4), dp(10), 0, dp(6));
         titreListe.setTextColor(couleurTexteSecondaire());
         return titreListe;
     }
 
-    private View construireListe() {
+    private View construireListeProjets() {
         FrameLayout conteneur = new FrameLayout(this);
         conteneur.setBackground(fond(couleurFondListe(), 8, couleurBordure(), 1));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -325,6 +366,25 @@ public class EcranDemarrage extends Activity {
         listeProjets.setClipToPadding(false);
         listeProjets.setSelector(new GradientDrawable());
         conteneur.addView(listeProjets, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+        return conteneur;
+    }
+
+    private View construireListeExemples() {
+        FrameLayout conteneur = new FrameLayout(this);
+        conteneur.setBackground(fond(couleurFondListe(), 8, couleurBordure(), 1));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        conteneur.setLayoutParams(lp);
+
+        listeExemples = new ListView(this);
+        listeExemples.setDivider(null);
+        listeExemples.setDividerHeight(0);
+        listeExemples.setPadding(dp(6), dp(6), dp(6), dp(6));
+        listeExemples.setClipToPadding(false);
+        listeExemples.setSelector(new GradientDrawable());
+        conteneur.addView(listeExemples, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
         return conteneur;
@@ -346,7 +406,7 @@ public class EcranDemarrage extends Activity {
     }
 
     private void majEtatActions() {
-        boolean actif = positionSelectionnee >= 0 && positionSelectionnee < dossiersProjets.size();
+        boolean actif = positionSelectionnee >= 0 && positionSelectionnee < itemsProjets.size();
         if (barreActions != null) {
             for (int i = 0; i < barreActions.getChildCount(); i++) {
                 View enfant = barreActions.getChildAt(i);
@@ -355,77 +415,132 @@ public class EcranDemarrage extends Activity {
             }
         }
         if (etiquetteSelection != null) {
-            int total = dossiersProjets.size();
+            int total = itemsProjets.size();
             etiquetteSelection.setText(actif
                     ? Traducteur.get("demarrage_un_projet_select") + total + Traducteur.get("demarrage_au_total")
                     : total + " " + Traducteur.get("demarrage_projets"));
         }
     }
 
-    // ---------------------------------------------------------------- adaptateur liste
+    // ---------------------------------------------------------------- adaptateur liste AVEC IMAGE
 
-    private class AdaptateurProjets extends ArrayAdapter<String> {
-        private final ArrayList<String> sousTitres;
-
-        AdaptateurProjets(ArrayList<String> noms, ArrayList<String> sousTitres) {
-            super(EcranDemarrage.this, 0, noms);
-            this.sousTitres = sousTitres;
+    private class AdaptateurProjets extends ArrayAdapter<ItemProjet> {
+        
+        AdaptateurProjets(ArrayList<ItemProjet> items) {
+            super(EcranDemarrage.this, 0, items);
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LinearLayout ligne;
+            ImageView vignette;
             TextView titre;
             TextView sousTitre;
 
             if (convertView == null) {
                 ligne = new LinearLayout(EcranDemarrage.this);
-                ligne.setOrientation(LinearLayout.VERTICAL);
-                ligne.setPadding(dp(12), dp(10), dp(12), dp(10));
+                ligne.setOrientation(LinearLayout.HORIZONTAL);
+                ligne.setGravity(Gravity.CENTER_VERTICAL);
+                ligne.setPadding(dp(8), dp(8), dp(8), dp(8));
+
+                // L'image de la vignette
+                vignette = new ImageView(EcranDemarrage.this);
+                vignette.setTag("vignette");
+                LinearLayout.LayoutParams lpImg = new LinearLayout.LayoutParams(dp(54), dp(54));
+                lpImg.setMargins(0, 0, dp(12), 0);
+                vignette.setLayoutParams(lpImg);
+                
+                // Fond de la vignette (arrondi et bordure)
+                GradientDrawable fondImg = new GradientDrawable();
+                fondImg.setCornerRadius(dp(6));
+                fondImg.setColor(Palette.fondPanneaux);
+                fondImg.setStroke(dp(1), Palette.bordure);
+                vignette.setBackground(fondImg);
+                vignette.setClipToOutline(true); // Coupe l'image pour respecter les bords arrondis
+                ligne.addView(vignette);
+
+                // Conteneur Texte
+                LinearLayout textLayout = new LinearLayout(EcranDemarrage.this);
+                textLayout.setOrientation(LinearLayout.VERTICAL);
 
                 titre = new TextView(EcranDemarrage.this);
                 titre.setTextSize(15f);
                 titre.setTag("titre");
-                ligne.addView(titre);
+                textLayout.addView(titre);
 
                 sousTitre = new TextView(EcranDemarrage.this);
                 sousTitre.setTextSize(11f);
                 sousTitre.setPadding(0, dp(2), 0, 0);
                 sousTitre.setTag("sousTitre");
-                ligne.addView(sousTitre);
+                textLayout.addView(sousTitre);
 
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ligne.addView(textLayout);
+
+                LinearLayout.LayoutParams lpLigne = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                lp.setMargins(0, 0, 0, dp(4));
-                ligne.setLayoutParams(lp);
+                lpLigne.setMargins(0, 0, 0, dp(4));
+                ligne.setLayoutParams(lpLigne);
             } else {
                 ligne = (LinearLayout) convertView;
+                vignette = (ImageView) ligne.findViewWithTag("vignette");
                 titre = (TextView) ligne.findViewWithTag("titre");
                 sousTitre = (TextView) ligne.findViewWithTag("sousTitre");
             }
 
-            boolean choisi = position == positionSelectionnee;
+            ItemProjet item = getItem(position);
+            boolean choisi = (!item.estExemple && position == positionSelectionnee);
+
             ligne.setBackground(choisi
                     ? fond(couleurSelection(), 6, Palette.bordure, 1)
                     : fond(Color.TRANSPARENT, 6, Color.TRANSPARENT, 0));
 
-            titre.setText(getItem(position));
+            titre.setText(item.nom);
             titre.setTextColor(choisi ? Palette.texteSelectionne : Palette.texteNormal);
-            sousTitre.setText(sousTitres.get(position));
+            sousTitre.setText(item.sousTitre);
             sousTitre.setTextColor(couleurTexteSecondaire());
+
+            // Chargement de l'image sécurisé
+            android.graphics.Bitmap bmp = null;
+            if (item.estExemple) {
+                String nomFichierSansExt = item.nomZipExemple.substring(0, item.nomZipExemple.lastIndexOf('.'));
+                try {
+                    InputStream is = getAssets().open("exemples/" + nomFichierSansExt + ".png");
+                    bmp = android.graphics.BitmapFactory.decodeStream(is);
+                    is.close();
+                } catch (Exception ignored) {}
+            } else {
+                File fVignette = new File(item.dossier, "vignette.png");
+                if (fVignette.exists()) {
+                    bmp = android.graphics.BitmapFactory.decodeFile(fVignette.getAbsolutePath());
+                }
+            }
+
+            // Application de l'image ou de l'icône par défaut
+            if (bmp != null) {
+                vignette.setImageBitmap(bmp);
+                vignette.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                vignette.setPadding(0,0,0,0);
+            } else {
+                vignette.setImageBitmap(null);
+                vignette.setImageResource(R.drawable.folder_open_24px);
+                vignette.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                vignette.setPadding(dp(12), dp(12), dp(12), dp(12));
+                Palette.appliquerCouleurIcone(vignette, Palette.iconeNormal);
+            }
 
             return ligne;
         }
     }
+// bas 2
 
-    // ---------------------------------------------------------------- données
+// haut 3
+    // ---------------------------------------------------------------- chargement des données
 
     private void chargerListeProjets() {
         if (listeProjets == null) return;
 
         File dossierRacine = new File(getFilesDir(), "projets");
-        ArrayList<String> noms = new ArrayList<>();
-        ArrayList<String> sousTitres = new ArrayList<>();
+        itemsProjets.clear();
         dossiersProjets.clear();
 
         if (dossierRacine.exists() && dossierRacine.isDirectory()) {
@@ -437,8 +552,13 @@ public class EcranDemarrage extends Activity {
                     if (!metaFile.exists()) continue;
                     try {
                         JSONObject metaJson = lireJson(metaFile);
-                        noms.add(metaJson.optString("nom", Traducteur.get("projet_sans_nom")));
-                        sousTitres.add(Traducteur.get("projet_modifie_le") + " " + metaJson.optString("dateModif", Traducteur.get("date_inconnue")));
+                        ItemProjet item = new ItemProjet();
+                        item.estExemple = false;
+                        item.dossier = sousDossier;
+                        item.nom = metaJson.optString("nom", Traducteur.get("projet_sans_nom"));
+                        item.sousTitre = Traducteur.get("projet_modifie_le") + " " + metaJson.optString("dateModif", Traducteur.get("date_inconnue"));
+                        
+                        itemsProjets.add(item);
                         dossiersProjets.add(sousDossier);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -447,11 +567,11 @@ public class EcranDemarrage extends Activity {
             }
         }
 
-        if (positionSelectionnee >= noms.size()) {
+        if (positionSelectionnee >= itemsProjets.size()) {
             positionSelectionnee = -1;
         }
 
-        adaptateurProjets = new AdaptateurProjets(noms, sousTitres);
+        adaptateurProjets = new AdaptateurProjets(itemsProjets);
         listeProjets.setAdapter(adaptateurProjets);
 
         listeProjets.setOnItemClickListener((parent, view, position, id) -> {
@@ -470,10 +590,48 @@ public class EcranDemarrage extends Activity {
 
         majEtatActions();
     }
-// bas 2
 
+    private void chargerListeExemples() {
+        if (listeExemples == null) return;
+        itemsExemples.clear();
 
-// haut 3
+        try {
+            String[] fichiersAssets = getAssets().list("exemples");
+            if (fichiersAssets != null) {
+                for (String fichier : fichiersAssets) {
+                    if (fichier.toLowerCase().endsWith(".zip")) {
+                        String nomSansExt = fichier.substring(0, fichier.lastIndexOf('.'));
+                        ItemProjet item = new ItemProjet();
+                        item.estExemple = true;
+                        item.nomZipExemple = fichier;
+                        // On formate le nom proprement (ex: escape_game -> Escape Game)
+                        item.nom = nomSansExt.replace("_", " ");
+                        if (item.nom.length() > 0) {
+                            item.nom = item.nom.substring(0, 1).toUpperCase() + item.nom.substring(1);
+                        }
+                        item.sousTitre = "Modèle prêt à l'emploi";
+                        itemsExemples.add(item);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        adaptateurExemples = new AdaptateurProjets(itemsExemples);
+        listeExemples.setAdapter(adaptateurExemples);
+
+        listeExemples.setOnItemClickListener((parent, view, position, id) -> {
+            ItemProjet item = itemsExemples.get(position);
+            new AlertDialog.Builder(this)
+                .setTitle("Ouvrir l'exemple")
+                .setMessage("Créer un nouveau projet à partir du modèle '" + item.nom + "' ?")
+                .setPositiveButton("Oui", (dialog, which) -> actionImporterExemple(item.nomZipExemple, item.nom))
+                .setNegativeButton("Annuler", null)
+                .show();
+        });
+    }
+
     private JSONObject lireJson(File fichier) throws Exception {
         StringBuilder sb = new StringBuilder();
         Scanner scanner = new Scanner(fichier);
@@ -531,7 +689,9 @@ public class EcranDemarrage extends Activity {
         }
         return false;
     }
+// bas 3
 
+// haut 4
     // ---------------------------------------------------------------- actions
 
     private void actionEditer() {
@@ -649,6 +809,65 @@ public class EcranDemarrage extends Activity {
                 .create();
         dialogue.show();
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
+    }
+
+    private void actionImporterExemple(String nomZip, String nomAffiche) {
+        try {
+            InputStream is = getAssets().open("exemples/" + nomZip);
+            String uuid = UUID.randomUUID().toString();
+            File cible = new File(new File(getFilesDir(), "projets"), uuid);
+            cible.mkdirs();
+            
+            java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(is);
+            java.util.zip.ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                File outFile = new File(cible, entry.getName());
+                if (entry.isDirectory()) {
+                    outFile.mkdirs();
+                } else {
+                    outFile.getParentFile().mkdirs();
+                    FileOutputStream fos = new FileOutputStream(outFile);
+                    byte[] buffer = new byte[8192];
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                    fos.close();
+                }
+                zis.closeEntry();
+            }
+            zis.close();
+            is.close();
+            
+            // Forcer la mise à jour du meta.json de l'exemple pour éviter les conflits de nom
+            File metaFile = new File(cible, "meta.json");
+            if (metaFile.exists()) {
+                JSONObject metaJson = lireJson(metaFile);
+                String nomUnique = nomAffiche + " (Copie)";
+                int index = 2;
+                while (nomDejaUtilise(nomUnique, null)) {
+                    nomUnique = nomAffiche + " (Copie " + index + ")";
+                    index++;
+                }
+                metaJson.put("nom", nomUnique);
+                metaJson.put("dateModif", dateMaintenant());
+                FileWriter fw = new FileWriter(metaFile);
+                fw.write(metaJson.toString(4));
+                fw.close();
+            }
+            
+            chargerListeProjets();
+            Toast.makeText(this, "Exemple importé avec succès !", Toast.LENGTH_SHORT).show();
+            
+            // Ouvrir l'éditeur directement avec l'exemple importé
+            Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+            intent.putExtra("cheminProjet", cible.getAbsolutePath());
+            startActivity(intent);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de l'import de l'exemple", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // ---------------------------------------------------------------- création projet
@@ -830,15 +1049,17 @@ public class EcranDemarrage extends Activity {
                 .show();
     }
 }
-// bas 3
-
-
-
-
+// bas 4
 
 
 
 
     
+
+
+
+
+    
+
 
 

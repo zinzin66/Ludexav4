@@ -73,7 +73,6 @@ public class CanvasEditeur extends View {
         invalidate();
     }
 
-    // NOUVEAU : Setter et Getter pour le mode Déplacement
     public void setModeDeplacementObjet(boolean mode) {
         this.isModeDeplacementObjet = mode;
         invalidate();
@@ -520,7 +519,6 @@ public class CanvasEditeur extends View {
         return null;
     }
 // bas 2
-
 // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
@@ -705,6 +703,51 @@ public class CanvasEditeur extends View {
             return true;
         }
     }
+
+    // NOUVELLE FONCTION POUR SAUVEGARDER LA VIGNETTE DU PROJET
+    public void sauvegarderVignette(String cheminVignette) {
+        try {
+            int w = getWidth();
+            int h = getHeight();
+            if (w <= 0 || h <= 0) return; // Sécurité si la vue n'est pas encore prête
+
+            android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas tempCanvas = new android.graphics.Canvas(bitmap);
+
+            // Masquer la sélection temporairement pour une capture d'écran propre
+            ObjetBase selectionMemoire = this.objetSelectionne;
+            this.objetSelectionne = null;
+            
+            // Dessiner l'état actuel sur le canvas temporaire
+            this.draw(tempCanvas);
+            
+            // Restaurer la sélection
+            this.objetSelectionne = selectionMemoire;
+
+            // Redimensionner (max 300px) pour éviter un fichier lourd
+            float maxSize = 300f;
+            float scale = Math.min(maxSize / w, maxSize / h);
+            int newW = Math.max(1, Math.round(w * scale));
+            int newH = Math.max(1, Math.round(h * scale));
+            
+            android.graphics.Bitmap vignette = android.graphics.Bitmap.createScaledBitmap(bitmap, newW, newH, true);
+
+            // Sauvegarder en PNG sur le disque
+            java.io.File file = new java.io.File(cheminVignette);
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
+            vignette.compress(android.graphics.Bitmap.CompressFormat.PNG, 90, fos);
+            fos.flush();
+            fos.close();
+
+            // Nettoyage de la mémoire (indispensable pour les Bitmaps sur Android)
+            bitmap.recycle();
+            vignette.recycle();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Le catch attrape tout silencieusement pour garantir que le moteur ne crashera pas
+        }
+    }
 }
 // bas 3
 
@@ -716,6 +759,8 @@ public class CanvasEditeur extends View {
 
 
 
+
     
+
 
 
