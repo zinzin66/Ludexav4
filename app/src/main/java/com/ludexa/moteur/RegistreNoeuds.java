@@ -98,7 +98,10 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_surbrillance"), Traducteur.get("cat_apparence_objets"), "NoeudActionSurbrillance"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_sautiller"), Traducteur.get("cat_animations"), "NoeudActionSautiller"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_miroir"), Traducteur.get("cat_apparence_objets"), "NoeudActionMiroir")); 
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_lier_objets"), Traducteur.get("cat_apparence_objets"), "NoeudActionLierObjets")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_lier_objets"), Traducteur.get("cat_apparence_objets"), "NoeudActionLierObjets"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_opacite"), Traducteur.get("cat_apparence_objets"), "NoeudActionOpacite")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_mode_affichage"), Traducteur.get("cat_apparence_objets"), "NoeudActionModeAffichage")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_parallaxe"), Traducteur.get("cat_apparence_objets"), "NoeudActionParallaxe")); // AJOUT
         
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionModifierTexte"));
@@ -138,7 +141,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appliquer_impulsion"), Traducteur.get("cat_physique"), "NoeudActionImpulsion"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_rebond"), Traducteur.get("cat_physique"), "NoeudActionChangerRebond"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_en_chute"), Traducteur.get("cat_physique"), "NoeudConditionEnMouvement"));
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_force_angle"), Traducteur.get("cat_physique"), "NoeudActionForceAngle")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_force_angle"), Traducteur.get("cat_physique"), "NoeudActionForceAngle"));
     }
 
     public static Map<String, List<InfoNoeud>> getNoeudsParCategorie() {
