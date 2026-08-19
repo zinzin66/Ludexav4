@@ -51,8 +51,8 @@ public class RegistreNoeuds {
         // LOGIQUE SPATIALE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_distance_entre_a_et_b"), Traducteur.get("cat_logique_spatiale"), "NoeudConditionDistance"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_orienter_vers"), Traducteur.get("cat_logique_spatiale"), "NoeudActionOrienterVers"));
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_proche"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetLePlusProche")); // AJOUT
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_hasard"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetHasard")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_proche"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetLePlusProche")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_hasard"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetHasard")); 
 // bas 1
 
 // haut 2
@@ -137,6 +137,10 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fondu_alpha"), Traducteur.get("cat_animations"), "NoeudActionFondu"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_glisser_vers"), Traducteur.get("cat_animations"), "NoeudActionGlisserVers"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_jouer_animation"), Traducteur.get("cat_animations"), "NoeudActionJouerAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_pause_anim"), Traducteur.get("cat_animations"), "NoeudActionPauseAnimation")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_reprendre_anim"), Traducteur.get("cat_animations"), "NoeudActionReprendreAnimation")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_vitesse_anim"), Traducteur.get("cat_animations"), "NoeudActionVitesseAnimation")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition_frame"), Traducteur.get("cat_animations"), "NoeudConditionFrameAnimation")); // AJOUT
         
         // PHYSIQUE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_activer_physique"), Traducteur.get("cat_physique"), "NoeudActionModifierPhysique"));
