@@ -66,12 +66,16 @@ public class Traducteur {
         if (cle.equals("noeud_sautiller")) return "Sautillement";
         if (cle.equals("noeud_si_mouvement")) return "Si Objet en Mouvement";
         
-        // --- NOUVEAUX NOEUDS DE LA SÉRIE ---
         if (cle.equals("noeud_chaque_image")) return "À chaque image";
         if (cle.equals("noeud_arreter")) return "Arrêter l'objet";
         if (cle.equals("noeud_miroir")) return "Effet Miroir / Inverser";
         if (cle.equals("noeud_force_angle")) return "Ajouter force (par Angle)";
         if (cle.equals("noeud_lier_objets")) return "Lier deux objets";
+        
+        // --- NOUVEAUX NOEUDS DE LA SÉRIE ---
+        if (cle.equals("noeud_opacite")) return "Modifier l'Opacité (Alpha)";
+        if (cle.equals("noeud_mode_affichage")) return "Mode de fusion (Effet)";
+        if (cle.equals("noeud_parallaxe")) return "Facteur de Parallaxe";
         
         if (cle.equals("port_entree")) return "Entrée";
         if (cle.equals("port_sortie")) return "Sortie";
