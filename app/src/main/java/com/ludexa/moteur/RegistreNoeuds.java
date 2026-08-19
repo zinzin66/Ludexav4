@@ -51,6 +51,8 @@ public class RegistreNoeuds {
         // LOGIQUE SPATIALE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_distance_entre_a_et_b"), Traducteur.get("cat_logique_spatiale"), "NoeudConditionDistance"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_orienter_vers"), Traducteur.get("cat_logique_spatiale"), "NoeudActionOrienterVers"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_proche"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetLePlusProche")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_hasard"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetHasard")); // AJOUT
 // bas 1
 
 // haut 2
@@ -99,9 +101,9 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_sautiller"), Traducteur.get("cat_animations"), "NoeudActionSautiller"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_miroir"), Traducteur.get("cat_apparence_objets"), "NoeudActionMiroir")); 
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_lier_objets"), Traducteur.get("cat_apparence_objets"), "NoeudActionLierObjets"));
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_opacite"), Traducteur.get("cat_apparence_objets"), "NoeudActionOpacite")); // AJOUT
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_mode_affichage"), Traducteur.get("cat_apparence_objets"), "NoeudActionModeAffichage")); // AJOUT
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_parallaxe"), Traducteur.get("cat_apparence_objets"), "NoeudActionParallaxe")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_opacite"), Traducteur.get("cat_apparence_objets"), "NoeudActionOpacite")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_mode_affichage"), Traducteur.get("cat_apparence_objets"), "NoeudActionModeAffichage")); 
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_parallaxe"), Traducteur.get("cat_apparence_objets"), "NoeudActionParallaxe")); 
         
         // TEXTES & DIALOGUES
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionModifierTexte"));
