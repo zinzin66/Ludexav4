@@ -2,8 +2,8 @@
 package com.ludexa.moteur;
 
 import android.content.Context;
-import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,8 +25,24 @@ public abstract class NoeudBase {
     public ArrayList<Port> portsEntree;
     public ArrayList<Port> portsSortie;
     
-    // NOUVEAU : État de repli visuel
     public boolean estReplie = false;
+
+    // --- NOUVEAU SYSTÈME DE PARAMÈTRES DYNAMIQUES ---
+    public static class InfoParametre {
+        public String nom;
+        public String valeur;
+        public String typeEditeur;
+        public List<String> optionsListe;
+
+        public InfoParametre(String nom, String valeur, String typeEditeur) {
+            this.nom = nom;
+            this.valeur = valeur;
+            this.typeEditeur = typeEditeur;
+            this.optionsListe = new ArrayList<>();
+        }
+    }
+
+    protected LinkedHashMap<String, InfoParametre> parametresDynamiques = new LinkedHashMap<>();
 
     public NoeudBase(String id, String nom, String categorie) {
         this.id = id;
@@ -34,6 +50,17 @@ public abstract class NoeudBase {
         this.categorie = categorie;
         this.portsEntree = new ArrayList<>();
         this.portsSortie = new ArrayList<>();
+    }
+    
+    // --- MÉTHODE POUR LES NŒUDS ENFANTS ---
+    protected void ajouterParametre(String nom, String valeurInitiale, String typeEditeur) {
+        parametresDynamiques.put(nom, new InfoParametre(nom, valeurInitiale, typeEditeur));
+    }
+
+    protected void ajouterParametreListe(String nom, String valeurInitiale, List<String> options) {
+        InfoParametre p = new InfoParametre(nom, valeurInitiale, TYPE_CHOIX_LISTE);
+        if (options != null) p.optionsListe.addAll(options);
+        parametresDynamiques.put(nom, p);
     }
 
     public void ajouterPort(Port port) {
@@ -74,14 +101,38 @@ public abstract class NoeudBase {
 
     protected static String genererId() { return UUID.randomUUID().toString(); }
 
+    // --- LA SEULE MÉTHODE STRICTEMENT OBLIGATOIRE ---
     public abstract void executer();
-    public abstract List<String> getNomsParametres();
-    public abstract String getValeurParametre(String nom);
-    public abstract void setValeurParametre(String nom, String valeur);
-    
-    public abstract boolean requiertCibleObjet();
-    public abstract void setCibleObjet(ObjetBase objet);
-    public abstract ObjetBase getCibleObjet();
+
+    // --- MÉTHODES DÉSORMAIS CONCRÈTES (FINI LE BOILERPLATE !) ---
+    public List<String> getNomsParametres() {
+        return new ArrayList<>(parametresDynamiques.keySet());
+    }
+
+    public String getValeurParametre(String nom) {
+        InfoParametre p = parametresDynamiques.get(nom);
+        return p != null ? p.valeur : "";
+    }
+
+    public void setValeurParametre(String nom, String valeur) {
+        InfoParametre p = parametresDynamiques.get(nom);
+        if (p != null) p.valeur = valeur;
+    }
+
+    public String getTypeEditeurParametre(String nomParametre) {
+        InfoParametre p = parametresDynamiques.get(nomParametre);
+        return p != null ? p.typeEditeur : TYPE_TEXTE_LIBRE;
+    }
+
+    public List<String> getOptionsChoixListe(String nomParametre) {
+        InfoParametre p = parametresDynamiques.get(nomParametre);
+        return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
+    }
+
+    // --- VALEURS PAR DÉFAUT POUR LES CIBLES ---
+    public boolean requiertCibleObjet() { return false; }
+    public void setCibleObjet(ObjetBase objet) {}
+    public ObjetBase getCibleObjet() { return null; }
     
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
@@ -96,8 +147,6 @@ public abstract class NoeudBase {
     public Scene getCibleScene() { return null; }
     
     public boolean utiliseClavierTexte() { return false; }
-    public String getTypeEditeurParametre(String nomParametre) { return TYPE_TEXTE_LIBRE; }
-    public List<String> getOptionsChoixListe(String nomParametre) { return new ArrayList<>(); }
     
     public boolean aDesParametresEditables() {
         return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleObjetB() || requiertCibleVariable() || requiertCibleScene();
