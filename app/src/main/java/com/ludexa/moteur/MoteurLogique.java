@@ -4,6 +4,10 @@ package com.ludexa.moteur;
 import java.util.List;
 
 public class MoteurLogique {
+    
+    // --- AJOUT MÉMOIRE CONTEXTUELLE : Stocke le clone exact impliqué ---
+    public static ObjetBase dernierObjetImplique = null;
+    
     private Blueprint blueprintActif;
 
     public MoteurLogique(Blueprint blueprint) {
@@ -83,11 +87,13 @@ public class MoteurLogique {
 
                 if (objA != null && cibleTag != null && !cibleTag.trim().isEmpty()) {
                     boolean enCollision = false;
+                    ObjetBase objetCloneTouche = null; // Mémoire locale pour stocker l'instance
                     
                     for (ObjetBase objB : objetsContexte) {
                         if (objA != objB && objB.tag != null && cibleTag.trim().equalsIgnoreCase(objB.tag.trim())) {
                             if (UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu)) {
                                 enCollision = true;
+                                objetCloneTouche = objB; // On a trouvé le clone exact !
                                 break; 
                             }
                         }
@@ -95,6 +101,9 @@ public class MoteurLogique {
 
                     if (enCollision && !noeudTag.isEtaitEnCollision()) {
                         noeudTag.setEtaitEnCollision(true);
+                        // --- AJOUT MÉMOIRE CONTEXTUELLE : On stocke l'objet avant d'exécuter l'action ---
+                        MoteurLogique.dernierObjetImplique = objetCloneTouche;
+                        
                         noeudTag.executer();
                     } else if (!enCollision && noeudTag.isEtaitEnCollision()) {
                         noeudTag.setEtaitEnCollision(false);
