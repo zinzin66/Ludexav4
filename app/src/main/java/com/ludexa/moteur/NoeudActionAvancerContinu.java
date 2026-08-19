@@ -6,7 +6,7 @@ import java.util.List;
 
 public class NoeudActionAvancerContinu extends NoeudBase {
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String vitesseStr = "5.0";
 
     public NoeudActionAvancerContinu() {
@@ -54,6 +54,8 @@ public class NoeudActionAvancerContinu extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");

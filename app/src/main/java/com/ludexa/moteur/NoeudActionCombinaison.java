@@ -8,8 +8,8 @@ public class NoeudActionCombinaison extends NoeudBase {
 
     private transient ObjetBase cibleA;
     private transient ObjetBase cibleB;
-    private String nomCibleObjet;
-    private String nomCibleObjetB;
+    // SUPPRIMÉ : private String nomCibleObjet;[span_8](start_span)[span_8](end_span)
+    // SUPPRIMÉ : private String nomCibleObjetB;[span_9](start_span)[span_9](end_span)
     
     private String nomObjetResultat = "";
 
@@ -94,6 +94,8 @@ public class NoeudActionCombinaison extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cibleA == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
@@ -119,6 +121,8 @@ public class NoeudActionCombinaison extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjetB() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) return MoteurLogique.dernierObjetImplique;
+
         if (cibleB == null && nomCibleObjetB != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");

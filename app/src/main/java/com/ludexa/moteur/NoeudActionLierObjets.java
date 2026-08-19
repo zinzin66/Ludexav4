@@ -13,11 +13,10 @@ public class NoeudActionLierObjets extends NoeudBase {
 
     @Override
     public void executer() {
-        ObjetBase enfant = getCibleObjet(); // L'objet à lier
-        ObjetBase parent = getCibleObjetB(); // L'objet de référence (le parent)
+        ObjetBase enfant = getCibleObjet(); 
+        ObjetBase parent = getCibleObjetB(); 
         
         if (enfant != null && parent != null) {
-            // On s'assure qu'un objet ne devient pas parent de lui-même
             if (!enfant.id.equals(parent.id)) {
                 enfant.parentId = parent.id;
             }
@@ -26,17 +25,23 @@ public class NoeudActionLierObjets extends NoeudBase {
     }
 
     @Override
-    public boolean requiertCibleObjet() { return true; } // Cible A = Enfant
+    public boolean requiertCibleObjet() { return true; } 
     @Override
     public void setCibleObjet(ObjetBase objet) { this.enfantObj = objet; }
     @Override
-    public ObjetBase getCibleObjet() { return this.enfantObj; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.enfantObj; 
+    }
     
     @Override
-    public boolean requiertCibleObjetB() { return true; } // Cible B = Parent
+    public boolean requiertCibleObjetB() { return true; } 
     @Override
     public void setCibleObjetB(ObjetBase objet) { this.parentObj = objet; }
     @Override
-    public ObjetBase getCibleObjetB() { return this.parentObj; }
+    public ObjetBase getCibleObjetB() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) return MoteurLogique.dernierObjetImplique;
+        return this.parentObj; 
+    }
 }
 // bas 1

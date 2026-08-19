@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -6,8 +7,8 @@ import java.util.List;
 public class NoeudActionVisibilite extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
-    private String valeurVisible = "true"; // Valeur par défaut
+    // SUPPRIMÉ : private String nomCibleObjet;
+    private String valeurVisible = "true"; 
 
     public NoeudActionVisibilite() {
         super(genererId(), "Modifier Visibilité", "Action");
@@ -55,6 +56,8 @@ public class NoeudActionVisibilite extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
@@ -74,3 +77,4 @@ public class NoeudActionVisibilite extends NoeudBase {
         return this.cible;
     }
 }
+// bas 1

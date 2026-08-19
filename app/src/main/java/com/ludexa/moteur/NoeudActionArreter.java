@@ -14,13 +14,12 @@ public class NoeudActionArreter extends NoeudBase {
     public void executer() {
         ObjetBase cible = getCibleObjet();
         if (cible != null) {
-            // Remise à zéro de tous les vecteurs de mouvement de Yop2D
             cible.vitesseAvanceContinue = 0f;
             cible.vitessePoursuite = 0f;
             cible.intentionDeplacementX = 0f;
             cible.intentionDeplacementY = 0f;
-            cible.vitesseY = 0f; // Stoppe la chute physique
-            cible.sautillementActif = false; // Stoppe l'animation de saut
+            cible.vitesseY = 0f; 
+            cible.sautillementActif = false; 
         }
         propagerExecution(Traducteur.get("port_sortie"));
     }
@@ -32,6 +31,9 @@ public class NoeudActionArreter extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { this.cibleObj = objet; }
     
     @Override
-    public ObjetBase getCibleObjet() { return this.cibleObj; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.cibleObj; 
+    }
 }
 // bas 1

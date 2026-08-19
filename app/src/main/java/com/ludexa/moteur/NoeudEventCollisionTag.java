@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudEventCollisionTag extends NoeudBase {
     
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String tagCible = "";
     private transient boolean etaitEnCollision = false;
 
@@ -56,6 +56,8 @@ public class NoeudEventCollisionTag extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
