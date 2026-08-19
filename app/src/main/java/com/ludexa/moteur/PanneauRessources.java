@@ -727,7 +727,9 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 5
-// haut 6 : SECTION ASSETS UI (Dossiers et Boutons)
+
+
+    // haut 6
     private boolean isRacineIndestructible(File dir) {
         if (dir == null) return false;
         String nom = dir.getName();
@@ -907,7 +909,13 @@ public class PanneauRessources extends LinearLayout {
             iconeDossier.setPadding(0, 0, dp(8), 0);
             
             TextView tv = new TextView(getContext());
-            tv.setText(dir.getName());
+            
+            // TACHE 3 : Traduction dynamique des dossiers
+            String cleDossier = "dossier_" + dir.getName().toLowerCase();
+            String nomAffiche = Traducteur.get(cleDossier);
+            if (nomAffiche.startsWith("[")) nomAffiche = dir.getName(); // Fallback si non trouvé
+            tv.setText(nomAffiche);
+            
             tv.setTextColor(dir.equals(currentFolderSelected) ? Palette.texteSelectionne : Palette.texteNormal);
             tv.setPadding(0, dp(6), 0, dp(6));
             tv.setTextSize(14f);
@@ -932,6 +940,7 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 6
+    
 
 // haut 7 : SECTION ASSETS LOGIQUE (Popups et import)
     private void rafraichirListeAssets() {

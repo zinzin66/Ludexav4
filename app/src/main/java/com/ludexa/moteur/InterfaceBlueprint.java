@@ -112,7 +112,6 @@ public class InterfaceBlueprint extends Activity {
         layoutPrincipal.setBackgroundColor(Palette.fondNormal);
         layoutPrincipal.setPadding(dp(8), dp(8), dp(8), dp(8));
 
-        // ---- Bandeau du haut ----
         LinearLayout bandeauHaut = new LinearLayout(this);
         bandeauHaut.setOrientation(LinearLayout.HORIZONTAL);
         bandeauHaut.setGravity(Gravity.CENTER_VERTICAL);
@@ -124,7 +123,9 @@ public class InterfaceBlueprint extends Activity {
         styliserBoutonBandeau(boutonRetour);
         boutonRetour.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonRetour);
+// bas 1
 
+// haut 2
         TextView titreBlueprint = new TextView(this);
         if (estModeFonction) {
             titreBlueprint.setText(Traducteur.get("titre_fonction") + nomFonctionActive);
@@ -161,10 +162,7 @@ public class InterfaceBlueprint extends Activity {
         bandeauHaut.addView(boutonCharger);
 
         bandeauHaut.addView(separateurVertical());
-// bas 1
 
-
-// haut 2
         ImageButton boutonZoomMoins = new ImageButton(this);
         boutonZoomMoins.setImageResource(R.drawable.zoom_out_24px);
         styliserBoutonBandeau(boutonZoomMoins);
@@ -238,7 +236,6 @@ public class InterfaceBlueprint extends Activity {
         boutonAide.setOnClickListener(v -> afficherFenetreAide());
         bandeauHaut.addView(boutonAide);
 
-        // ---- Zone Milieu ----
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
@@ -266,7 +263,8 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
-
+// bas 2
+// haut 3
     private void sauvegarderBlueprintLocal() {
         try {
             File file;
@@ -341,10 +339,7 @@ public class InterfaceBlueprint extends Activity {
             }
         }
     }
-// bas 2
 
-
-// haut 3
     private String formaterNoeud(NoeudBase noeud) {
         StringBuilder sb = new StringBuilder();
         sb.append("[").append(noeud.nom).append("]");
@@ -377,7 +372,8 @@ public class InterfaceBlueprint extends Activity {
         }
         return sb.toString();
     }
-
+// bas 3
+// haut 4
     private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
         if (noeudDepart == null || blueprintActif.liens == null) return;
         
@@ -394,7 +390,9 @@ public class InterfaceBlueprint extends Activity {
                     
                     res.append(prefixe).append(formaterNoeud(noeudSuivant)).append("\n");
                     
+                    // CORRECTION DU BUG : On parcourt désormais aussi le port "Sortie"
                     genererCheminLogique(noeudSuivant, "Suivant", indentation + "  ", res, noeudsVisites);
+                    genererCheminLogique(noeudSuivant, "Sortie", indentation + "  ", res, noeudsVisites);
                     genererCheminLogique(noeudSuivant, "Vrai", indentation + "  ", res, noeudsVisites);
                     genererCheminLogique(noeudSuivant, "Faux", indentation + "  ", res, noeudsVisites);
                 }
@@ -482,7 +480,9 @@ public class InterfaceBlueprint extends Activity {
         
         dialog.show();
     }
+// bas 4
 
+// haut 5
     private void afficherFenetreCode() {
         Dialog dialog = new Dialog(this);
         dialog.setTitle(Traducteur.get("titre_resume_blueprint"));
@@ -588,10 +588,22 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 3
+// bas 5
+
 
 
 
     
+
+
+
+
+    
+
+
+
+
+    
+
 
     

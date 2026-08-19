@@ -52,9 +52,9 @@ public class ObjetBase {
     public float intentionDeplacementX = 0f;
     public float intentionDeplacementY = 0f;
     
-    // --- NOUVEAUTÉ : GESTION DE MASSE ---
-    public String tag = ""; // Permet de regrouper les objets (ex: "Ennemi", "Projectile")
-    // ------------------------------------
+    public float facteurParallaxe = 1.0f;
+    
+    public String tag = ""; 
 
     public String type = "carre"; 
     public boolean afficherFondColore = true;
@@ -84,6 +84,16 @@ public class ObjetBase {
     public boolean boucleAnimation = false;
     public boolean animationEnCours = false;
 
+    public boolean sautillementActif = false;
+    public float sautillementIntensite = 0f;
+    public long sautillementDureeMs = 0;
+    public long tempsDebutSautillement = 0;
+    
+    // NOUVEAU : Variables pour traquer le mouvement
+    public boolean sautillementInfiniMouvement = false;
+    public transient float ancienneX = 0f;
+    public transient float ancienneY = 0f;
+
     public ObjetBase() {
         this.id = UUID.randomUUID().toString();
     }
@@ -95,6 +105,8 @@ public class ObjetBase {
         this.y = y;
         this.largeur = largeur;
         this.hauteur = hauteur;
+        this.ancienneX = x;
+        this.ancienneY = y;
     }
 
     public ObjetBase clonerProfond() {
@@ -136,8 +148,8 @@ public class ObjetBase {
         copie.intentionDeplacementX = this.intentionDeplacementX;
         copie.intentionDeplacementY = this.intentionDeplacementY;
         
-        copie.tag = this.tag; // Copie du Tag
-
+        copie.facteurParallaxe = this.facteurParallaxe;
+        copie.tag = this.tag; 
         copie.type = this.type;
         copie.afficherFondColore = this.afficherFondColore;
         copie.contenuTexte = this.contenuTexte;
@@ -154,6 +166,15 @@ public class ObjetBase {
         copie.vitesseY = this.vitesseY;
         copie.rebond = this.rebond;
         copie.graviteScale = this.graviteScale;
+        
+        copie.sautillementActif = this.sautillementActif;
+        copie.sautillementIntensite = this.sautillementIntensite;
+        copie.sautillementDureeMs = this.sautillementDureeMs;
+        copie.tempsDebutSautillement = this.tempsDebutSautillement;
+        
+        copie.sautillementInfiniMouvement = this.sautillementInfiniMouvement;
+        copie.ancienneX = this.x;
+        copie.ancienneY = this.y;
         
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
@@ -194,7 +215,3 @@ public class ObjetBase {
     }
 }
 // bas 1
-
-
-
-

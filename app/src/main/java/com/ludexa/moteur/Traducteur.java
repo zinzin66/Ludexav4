@@ -16,10 +16,6 @@ public class Traducteur {
     private static final Map<String, String> dictionnaire = new HashMap<>();
     private static String langueActuelle = "fr";
 
-    /**
-     * Initialise le dictionnaire en lisant le fichier JSON correspondant.
-     * À appeler au démarrage (ex: EcranDemarrage) ou lors d'un changement de langue.
-     */
     public static void initialiser(Context context, String langue) {
         langueActuelle = langue;
         dictionnaire.clear();
@@ -41,21 +37,42 @@ public class Traducteur {
                 String key = keys.next();
                 dictionnaire.put(key, jsonObject.getString(key));
             }
-            Log.d(TAG, "Dictionnaire " + langueActuelle + " chargé avec succès. (" + dictionnaire.size() + " entrées)");
+            Log.d(TAG, "Dictionnaire " + langueActuelle + " chargé.");
             
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors du chargement du fichier de langue : " + nomFichier, e);
+            Log.e(TAG, "Erreur fichier de langue : " + nomFichier, e);
         }
     }
 
-    /**
-     * Récupère la valeur traduite pour une clé donnée.
-     * Retourne la clé entre crochets si introuvable (ex: [menu_jouer]).
-     */
     public static String get(String cle) {
+        if (cle == null) return "";
         if (dictionnaire.containsKey(cle)) {
             return dictionnaire.get(cle);
         }
+        
+        // Securités (Fallbacks) au cas où le JSON n'est pas encore à jour
+        if (cle.equals("dossier_images")) return "Images";
+        if (cle.equals("dossier_sons")) return "Audio";
+        if (cle.equals("dossier_fonts")) return "Polices";
+        if (cle.equals("dossier_textes")) return "Textes";
+        
+        if (cle.equals("Suivre X")) return "Suivre l'axe X";
+        if (cle.equals("Suivre Y")) return "Suivre l'axe Y";
+        
+        if (cle.equals("Intensite")) return "Intensité";
+        if (cle.equals("Duree")) return "Durée (ms)";
+        if (cle.equals("Infini")) return "En Boucle / Infini";
+        
+        if (cle.equals("noeud_sautiller")) return "Sautillement";
+        if (cle.equals("noeud_si_mouvement")) return "Si Objet en Mouvement";
+        
+        if (cle.equals("port_entree")) return "Entrée";
+        if (cle.equals("port_sortie")) return "Sortie";
+        if (cle.equals("port_vrai")) return "Vrai";
+        if (cle.equals("port_faux")) return "Faux";
+        
+        if (cle.equals("cat_animations")) return "Animations";
+
         return "[" + cle + "]";
     }
 
