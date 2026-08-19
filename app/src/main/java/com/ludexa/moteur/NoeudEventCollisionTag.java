@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ public class NoeudEventCollisionTag extends NoeudBase {
     private transient boolean etaitEnCollision = false;
 
     public NoeudEventCollisionTag() {
-        super(genererId(), "Si objet touche Tag", "Événements"); // CORRIGÉ ICI
+        super(genererId(), "Si objet touche Tag", "Événements");
         this.ajouterPort(new Port("Sortie", Port.TYPE_EXECUTION_SORTIE));
     }
 
@@ -36,6 +37,12 @@ public class NoeudEventCollisionTag extends NoeudBase {
     @Override
     public void setValeurParametre(String nom, String valeur) {
         if ("Tag".equals(nom)) this.tagCible = valeur;
+    }
+
+    @Override
+    public String getTypeEditeurParametre(String nom) {
+        if ("Tag".equals(nom)) return "TYPE_CHOIX_TAG";
+        return super.getTypeEditeurParametre(nom);
     }
 
     @Override
@@ -72,3 +79,4 @@ public class NoeudEventCollisionTag extends NoeudBase {
     public void setEtaitEnCollision(boolean etat) { this.etaitEnCollision = etat; }
     public String getTagCible() { return tagCible; }
 }
+// bas 1
