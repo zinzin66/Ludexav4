@@ -75,7 +75,7 @@ public class MoteurLogique {
                     }
                 }
             } 
-            // NOUVEAU BLOC : GESTION DE LA COLLISION PAR TAG
+            // GESTION DE LA COLLISION PAR TAG
             else if (noeud instanceof NoeudEventCollisionTag) {
                 NoeudEventCollisionTag noeudTag = (NoeudEventCollisionTag) noeud;
                 ObjetBase objA = noeudTag.getCibleObjet();
@@ -84,12 +84,11 @@ public class MoteurLogique {
                 if (objA != null && cibleTag != null && !cibleTag.trim().isEmpty()) {
                     boolean enCollision = false;
                     
-                    // On balaye tous les objets pour voir s'il y a un contact avec le Tag
                     for (ObjetBase objB : objetsContexte) {
-                        if (objA != objB && cibleTag.equalsIgnoreCase(objB.tag)) {
+                        if (objA != objB && objB.tag != null && cibleTag.trim().equalsIgnoreCase(objB.tag.trim())) {
                             if (UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu)) {
                                 enCollision = true;
-                                break; // Dès qu'on touche un objet du bon tag, on s'arrête
+                                break; 
                             }
                         }
                     }
