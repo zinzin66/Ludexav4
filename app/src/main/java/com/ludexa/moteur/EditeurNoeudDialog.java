@@ -1,4 +1,4 @@
-// haut 1 18 aout
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -132,7 +132,6 @@ public class EditeurNoeudDialog extends Dialog {
                         String[] tagsArray = tagsUniques.toArray(new String[0]);
                         builderTag.setItems(tagsArray, (dialog, which) -> {
                             if (which == tagsUniques.size() - 1) {
-                                // Option Saisir manuellement
                                 final EditText input = new EditText(context);
                                 input.setText(champSaisie.getText().toString());
                                 new android.app.AlertDialog.Builder(context)
@@ -319,8 +318,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 2
-        
-   
+
 // haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -616,7 +614,6 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 4
-        
 
 // haut 5
         LinearLayout colonneGauche = new LinearLayout(context);
@@ -909,7 +906,7 @@ public class EditeurNoeudDialog extends Dialog {
         if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
             NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
             NoeudBase.TYPE_CHOIX_SON.equals(type) || NoeudBase.TYPE_CHOIX_FONCTION.equals(type) ||
-            "CHOIX_ANIMATION".equals(type)) { 
+            "CHOIX_ANIMATION".equals(type) || "TYPE_CHOIX_TAG".equals(type)) { 
             
             champSaisie.setFocusable(false);
             champSaisie.setFocusableInTouchMode(false);
@@ -949,7 +946,11 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 5
+                    
 
+
+
+        
 
 
         
@@ -958,10 +959,6 @@ public class EditeurNoeudDialog extends Dialog {
 
         
 
-
-
-
-        
 
 
     
