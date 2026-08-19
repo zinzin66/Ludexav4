@@ -26,6 +26,9 @@ public class RegistreNoeuds {
         
         // ÉVÉNEMENTS
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_demarrage"), Traducteur.get("cat_evenements"), "NoeudEventStart"));
+        // ---> AJOUT DU NOUVEAU NŒUD ICI <---
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_chaque_image"), Traducteur.get("cat_evenements"), "NoeudEventChaqueImage"));
+        
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fin_de_clic"), Traducteur.get("cat_evenements"), "NoeudEventFinClic"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_clic_sur_objet"), Traducteur.get("cat_evenements"), "NoeudEventClicObjet"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_debut_de_glisser"), Traducteur.get("cat_evenements"), "NoeudEventDebutGlisser"));
@@ -80,7 +83,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_pousser_objet"), Traducteur.get("cat_apparence_objets"), "NoeudActionPousser"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_couleur"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierCouleur"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_visibilite"), Traducteur.get("cat_apparence_objets"), "NoeudActionVisibilite"));
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_deplacable"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierDeplacable"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_deplacable"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_verrouillage"), Traducteur.get("cat_apparence_objets"), "NoeudActionModifierVerrouillage"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_zorder"), Traducteur.get("cat_apparence_objets"), "NoeudActionChangerZOrder"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_image"), Traducteur.get("cat_apparence_objets"), "NoeudActionChangerImage"));
@@ -148,7 +151,3 @@ public class RegistreNoeuds {
     }
 }
 // bas 2
-
-
-
-    
