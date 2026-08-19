@@ -15,26 +15,52 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
+    // Nouvelle fonction récursive pour détruire l'objet ET ses enfants
+    private void neutraliserEtRetirer(ObjetBase obj, Scene scene) {
+        if (obj == null || scene == null || scene.objets == null) return;
+        
+        // 1. Trouver et détruire tous les enfants d'abord
+        List<ObjetBase> aDetruire = new ArrayList<>();
+        for (ObjetBase o : scene.objets) {
+            if (obj.id.equals(o.parentId)) {
+                aDetruire.add(o);
+            }
+        }
+        for (ObjetBase enfant : aDetruire) {
+            neutraliserEtRetirer(enfant, scene);
+        }
+
+        // 2. Neutralisation totale pour tuer les collisions et interactions
+        obj.visible = false;
+        obj.estPhysique = false;
+        obj.estZoneDeClic = false;
+        obj.estRamassable = false;
+        obj.x = -99999;
+        obj.y = -99999;
+        
+        // 3. Retrait sécurisé de la mémoire
+        try {
+            scene.objets.remove(obj);
+        } catch (Exception e) {
+            // Ignoré silencieusement : même si la suppression échoue pendant 
+            // la boucle de rendu, l'objet est désactivé et inoffensif.
+        }
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
     public void executer() {
         ObjetBase cibleActuelle = getCibleObjet();
-        if (cibleActuelle != null && contexteApplication != null) {
-            try {
-                List<ObjetBase> listeObjets = null;
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
-                    if (s != null) listeObjets = s.objets;
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null) listeObjets = s.objets;
-                }
-                
-                if (listeObjets != null) {
-                    listeObjets.remove(cibleActuelle);
-                }
-            } catch (Exception e) {}
+        if (cibleActuelle != null && contexteApplication instanceof InterfaceEditeur) {
+            InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+            
+            // On vérifie si l'objet est dans la scène principale
+            if (editeur.sceneActive != null && editeur.sceneActive.objets != null && editeur.sceneActive.objets.contains(cibleActuelle)) {
+                neutraliserEtRetirer(cibleActuelle, editeur.sceneActive);
+            } 
+            // Ou s'il appartient au HUD
+            else if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null && editeur.sceneHudActive.objets.contains(cibleActuelle)) {
+                neutraliserEtRetirer(cibleActuelle, editeur.sceneHudActive);
+            }
         }
         propagerExecution("Suivant");
     }
@@ -59,21 +85,27 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
-        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
+        if (cible == null && nomCibleObjet != null && contexteApplication instanceof InterfaceEditeur) {
+            InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+            
+            // Recherche dans la scène active
+            if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+                for (ObjetBase o : editeur.sceneActive.objets) {
+                    if (nomCibleObjet.equals(o.nom)) {
+                        cible = o;
+                        return cible;
                     }
                 }
-            } catch (Exception e) {}
+            }
+            // Recherche dans la scène HUD
+            if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
+                for (ObjetBase o : editeur.sceneHudActive.objets) {
+                    if (nomCibleObjet.equals(o.nom)) {
+                        cible = o;
+                        return cible;
+                    }
+                }
+            }
         }
         return this.cible;
     }
