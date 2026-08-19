@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionDetruireObjet extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet; (On utilise maintenant celui hérité de NoeudBase pour éviter le conflit)
 
     public NoeudActionDetruireObjet() {
         super(genererId(), "Détruire Objet", "Apparence & Objets");
@@ -92,6 +92,11 @@ public class NoeudActionDetruireObjet extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        // --- AJOUT MÉMOIRE CONTEXTUELLE : Interception prioritaire ---
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
+            return MoteurLogique.dernierObjetImplique;
+        }
+
         if (nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
