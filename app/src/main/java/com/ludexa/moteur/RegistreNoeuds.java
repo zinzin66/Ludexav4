@@ -40,6 +40,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_quand_variable_change"), Traducteur.get("cat_evenements"), "NoeudEventVariableChange"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_evenement_local"), Traducteur.get("cat_evenements"), "NoeudEventPersonnalise"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_clic_action_aventure"), Traducteur.get("cat_evenements"), "NoeudEventBoutonAction"));
+        REGISTRE.add(new InfoNoeud("Si objet touche Tag", Traducteur.get("cat_evenements"), "NoeudEventCollisionTag"));
+        
 
         // MOUVEMENTS & IA
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_avancer_en_continu"), Traducteur.get("cat_mouvements_ia"), "NoeudActionAvancerContinu"));
@@ -66,7 +68,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_mouvement"), Traducteur.get("cat_logique_conditions"), "NoeudConditionMouvement"));
-        REGISTRE.add(new InfoNoeud("Si objet touche Tag", Traducteur.get("cat_logique_conditions"), "NoeudEventCollisionTag"));
+        
         
 
         // SCÈNE & HUD
