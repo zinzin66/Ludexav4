@@ -165,23 +165,57 @@ public class EcranDemarrage extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_EXPORT && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getData() != null && projetAExporter != null) {
-                try {
-                    OutputStream out = getContentResolver().openOutputStream(data.getData());
-                    ZipOutputStream zip = new ZipOutputStream(out);
-                    zipperRecursif(projetAExporter, "", zip);
-                    zip.close();
-                    if (out != null) out.close();
+                
+                AlertDialog dialogueProgression = new AlertDialog.Builder(this)
+                        .setTitle("Génération de l'APK")
+                        .setMessage("Initialisation...")
+                        .setCancelable(false)
+                        .show();
 
-                    new AlertDialog.Builder(this)
-                            .setTitle(Traducteur.get("export_termine"))
-                            .setMessage(Traducteur.get("archive_creee"))
-                            .setPositiveButton(Traducteur.get("bouton_ok"), null)
-                            .show();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(this, Traducteur.get("erreur_export"), Toast.LENGTH_SHORT).show();
-                }
-                projetAExporter = null; 
+                ExportateurAPK.exporterJeu(this, projetAExporter, new ExportateurAPK.InterfaceExport() {
+                    @Override
+                    public void surProgression(String message) {
+                        dialogueProgression.setMessage(message);
+                    }
+
+                    @Override
+                    public void surSucces(File apkFinal) {
+                        try {
+                            InputStream in = new FileInputStream(apkFinal);
+                            OutputStream out = getContentResolver().openOutputStream(data.getData());
+                            byte[] buffer = new byte[8192];
+                            int lus;
+                            while ((lus = in.read(buffer)) > 0) {
+                                out.write(buffer, 0, lus);
+                            }
+                            in.close();
+                            if (out != null) out.close();
+
+                            dialogueProgression.dismiss();
+                            projetAExporter = null;
+
+                            new AlertDialog.Builder(EcranDemarrage.this)
+                                    .setTitle(Traducteur.get("export_termine"))
+                                    .setMessage("Votre fichier APK est prêt à être installé et partagé !")
+                                    .setPositiveButton(Traducteur.get("bouton_ok"), null)
+                                    .show();
+
+                        } catch (Exception e) {
+                            surErreur("Erreur lors de la sauvegarde : " + e.getMessage());
+                        }
+                    }
+
+                    @Override
+                    public void surErreur(String erreur) {
+                        dialogueProgression.dismiss();
+                        projetAExporter = null;
+                        new AlertDialog.Builder(EcranDemarrage.this)
+                                .setTitle("Erreur d'exportation")
+                                .setMessage(erreur)
+                                .setPositiveButton(Traducteur.get("bouton_ok"), null)
+                                .show();
+                    }
+                });
             }
         }
     }
@@ -264,7 +298,6 @@ public class EcranDemarrage extends Activity {
         builder.show();
     }
 // bas 1
-
 // haut 2
     // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
 
@@ -690,7 +723,6 @@ public class EcranDemarrage extends Activity {
         return false;
     }
 // bas 3
-
 // haut 4
     // ---------------------------------------------------------------- actions
 
@@ -787,8 +819,8 @@ public class EcranDemarrage extends Activity {
         
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/zip");
-        intent.putExtra(Intent.EXTRA_TITLE, nom + ".zip");
+        intent.setType("application/vnd.android.package-archive");
+        intent.putExtra(Intent.EXTRA_TITLE, nom + ".apk");
         startActivityForResult(intent, REQUEST_CODE_EXPORT);
     }
 
@@ -1054,12 +1086,14 @@ public class EcranDemarrage extends Activity {
 
 
 
-    
-
-
 
 
     
+
+
+
+    
+
 
 
 
