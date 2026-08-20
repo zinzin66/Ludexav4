@@ -344,13 +344,11 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_a"));
             
-            // --- AJOUT MÉMOIRE CONTEXTUELLE : Affichage de la sélection ---
             String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheA);
             
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
-                    // --- AJOUT MÉMOIRE CONTEXTUELLE : Option dynamique en tête ---
                     String[] noms = new String[scene.objets.size() + 1];
                     noms[0] = "[ L'objet impliqué dans l'événement ]";
                     for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
@@ -358,13 +356,14 @@ public class EditeurNoeudDialog extends Dialog {
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_a"))
                         .setItems(noms, (d, which) -> {
                             if (which == 0) {
-                                noeud.nomCibleObjet = "__OBJET_IMPLIQUE__";
+                                // CORRECTION ICI : On met à null D'ABORD, puis on force le mot-clé !
                                 noeud.setCibleObjet(null);
+                                noeud.nomCibleObjet = "__OBJET_IMPLIQUE__";
                                 mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
                             } else {
-                                ObjetBase obj = scene.objets.get(which - 1); // Décalage de -1
-                                noeud.nomCibleObjet = obj.nom;
+                                ObjetBase obj = scene.objets.get(which - 1);
                                 noeud.setCibleObjet(obj);
+                                noeud.nomCibleObjet = obj.nom;
                                 mettreAJourAfficheurCible(txtAfficheur, obj.nom);
                             }
                             mettreAJourResumeExpression(noeud, txtResumeExpression);
@@ -378,13 +377,11 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_b"));
             
-            // --- AJOUT MÉMOIRE CONTEXTUELLE : Affichage de la sélection B ---
             String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheB);
             
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
-                    // --- AJOUT MÉMOIRE CONTEXTUELLE : Option dynamique en tête B ---
                     String[] noms = new String[scene.objets.size() + 1];
                     noms[0] = "[ L'objet impliqué dans l'événement ]";
                     for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
@@ -392,13 +389,14 @@ public class EditeurNoeudDialog extends Dialog {
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_b"))
                         .setItems(noms, (d, which) -> {
                             if (which == 0) {
-                                noeud.nomCibleObjetB = "__OBJET_IMPLIQUE__";
+                                // CORRECTION ICI AUSSI
                                 noeud.setCibleObjetB(null);
+                                noeud.nomCibleObjetB = "__OBJET_IMPLIQUE__";
                                 mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
                             } else {
-                                ObjetBase obj = scene.objets.get(which - 1); // Décalage de -1
-                                noeud.nomCibleObjetB = obj.nom;
+                                ObjetBase obj = scene.objets.get(which - 1);
                                 noeud.setCibleObjetB(obj);
+                                noeud.nomCibleObjetB = obj.nom;
                                 mettreAJourAfficheurCible(txtAfficheur, obj.nom);
                             }
                             mettreAJourResumeExpression(noeud, txtResumeExpression);
@@ -478,6 +476,8 @@ public class EditeurNoeudDialog extends Dialog {
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
 // bas 3
+        
+        
 
 
 // haut 4
@@ -694,6 +694,64 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
+        // --- NOUVEAU : SECTION TAGS ---
+        TextView titreTags = new TextView(context);
+        titreTags.setText("Tags (Insertion)");
+        titreTags.setTextColor(Palette.texteSelectionne);
+        titreTags.setTextSize(15f);
+        titreTags.setTypeface(null, android.graphics.Typeface.BOLD);
+        titreTags.setGravity(Gravity.CENTER);
+        titreTags.setBackground(fond(context, Palette.enTeteDialogues, Palette.bordure, 10));
+        titreTags.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
+        LinearLayout.LayoutParams lpTitreTags = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpTitreTags.setMargins(0, dp(context, 14), 0, 0);
+        titreTags.setLayoutParams(lpTitreTags);
+        listeGauche.addView(titreTags);
+
+        if (scene != null && scene.objets != null) {
+            List<String> tagsUniques = new ArrayList<>();
+            for (ObjetBase obj : scene.objets) {
+                if (obj.tag != null && !obj.tag.trim().isEmpty() && !tagsUniques.contains(obj.tag.trim())) {
+                    tagsUniques.add(obj.tag.trim());
+                }
+            }
+            
+            if (tagsUniques.isEmpty()) {
+                TextView txtAucun = new TextView(context);
+                txtAucun.setText("Aucun tag dans la scène");
+                txtAucun.setTextColor(Color.parseColor("#888888"));
+                txtAucun.setTextSize(13f);
+                txtAucun.setPadding(dp(context, 12), dp(context, 4), 0, 0);
+                listeGauche.addView(txtAucun);
+            } else {
+                for (String t : tagsUniques) {
+                    Button btnTag = new Button(context);
+                    btnTag.setText(t);
+                    btnTag.setAllCaps(false);
+                    btnTag.setTextSize(14f);
+                    btnTag.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                    btnTag.setTextColor(Color.parseColor("#FF9800")); // Couleur orange pour les tags
+                    btnTag.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
+                    btnTag.setMinHeight(0);
+                    btnTag.setMinimumHeight(0);
+                    btnTag.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
+                    LinearLayout.LayoutParams lpTag = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    lpTag.setMargins(0, dp(context, 4), 0, 0);
+                    btnTag.setLayoutParams(lpTag);
+
+                    btnTag.setOnClickListener(v -> {
+                        int start = Math.max(champSaisie.getSelectionStart(), 0);
+                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                        champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), t, 0, t.length());
+                    });
+                    listeGauche.addView(btnTag);
+                }
+            }
+        }
+
+        // --- SECTION VARIABLES LOCALES ---
         TextView titreVars = new TextView(context);
         titreVars.setText(Traducteur.get("noeud_vars_locales_insertion"));
         titreVars.setTextColor(Palette.texteSelectionne);
@@ -829,165 +887,4 @@ public class EditeurNoeudDialog extends Dialog {
         appliquerTypeEditeur(noeud, champActif, champSaisie, conteneurClavier, conteneurBooleen);
         mettreAJourResumeExpression(noeud, txtResumeExpression);
     }
-
-    private Button creerBoutonSelectionCible(Context context, String texte) {
-        Button btn = new Button(context);
-        btn.setText(texte);
-        btn.setAllCaps(false);
-        btn.setTextSize(14f);
-        btn.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
-        btn.setTextColor(Color.parseColor("#FFD700"));
-        btn.setMinHeight(0);
-        btn.setMinimumHeight(0);
-        btn.setPadding(dp(context, 14), dp(context, 9), dp(context, 14), dp(context, 9));
-        return btn;
-    }
-
-    private TextView creerTextViewAfficheurCible(Context context) {
-        TextView txt = new TextView(context);
-        txt.setPadding(dp(context, 8), dp(context, 4), dp(context, 16), dp(context, 4));
-        txt.setTextSize(15f);
-        return txt;
-    }
-
-    private void mettreAJourAfficheurCible(TextView txt, String valeur) {
-        if (valeur == null || valeur.trim().isEmpty()) {
-            txt.setText(Traducteur.get("valeur_aucune"));
-            txt.setTextColor(Color.parseColor("#888888"));
-            txt.setTypeface(null, android.graphics.Typeface.ITALIC);
-        } else {
-            txt.setText(valeur);
-            txt.setTextColor(Palette.texteSelectionne);
-            txt.setTypeface(null, android.graphics.Typeface.BOLD);
-        }
-    }
-
-    private void ajouterCoupleALaRangee(Context context, LinearLayout rangee, Button btn, TextView txt) {
-        LinearLayout couple = new LinearLayout(context);
-        couple.setOrientation(LinearLayout.HORIZONTAL);
-        couple.setGravity(Gravity.CENTER_VERTICAL);
-        couple.setBackground(fond(context, Palette.fondNormal, Palette.bordure, 10));
-        couple.setPadding(dp(context, 6), dp(context, 6), dp(context, 6), dp(context, 6));
-        LinearLayout.LayoutParams lpCouple = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lpCouple.setMargins(0, 0, dp(context, 8), 0);
-        couple.setLayoutParams(lpCouple);
-        couple.addView(btn);
-        couple.addView(txt);
-        rangee.addView(couple);
-    }
-
-    private void mettreAJourResumeExpression(NoeudBase noeud, TextView txtResume) {
-        boolean estComparaisonGenerique = false;
-        if (noeud.requiertCibleVariable() && noeud.getNomsParametres() != null) {
-            estComparaisonGenerique = noeud.getNomsParametres().contains("Opérateur")
-                                   && noeud.getNomsParametres().contains("Valeur de comparaison");
-        }
-
-        // --- AJOUT MÉMOIRE CONTEXTUELLE : Affichage formaté pour les résumés d'expression ---
-        if (noeud instanceof NoeudEventCollisionAB || noeud instanceof NoeudConditionSiObjetToucheZone) {
-            txtResume.setVisibility(View.VISIBLE);
-            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
-            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]");
-            txtResume.setText(Traducteur.get("resume_interaction") + " : " + objNameA + " <-> " + objNameB);
-        }
-        else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
-            txtResume.setVisibility(View.VISIBLE);
-            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
-            String op = noeud.getValeurParametre("Opérateur");
-            if (op == null || op.isEmpty()) op = "=";
-            String val = noeud.getValeurParametre("Valeur de comparaison");
-            if (val == null) val = "";
-            txtResume.setText(Traducteur.get("resume_expression") + " : " + varName + " " + op + " " + val);
-        } else if (noeud.requiertCibleVariable()) {
-            txtResume.setVisibility(View.VISIBLE);
-            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
-            StringBuilder sb = new StringBuilder();
-            if (noeud.getNomsParametres() != null) {
-                for (String p : noeud.getNomsParametres()) {
-                    String val = noeud.getValeurParametre(p);
-                    if (val != null && !val.isEmpty()) {
-                        if (sb.length() > 0) sb.append(" | ");
-                        sb.append(Traducteur.get(p)).append(": ").append(val);
-                    }
-                }
-            }
-            txtResume.setText(Traducteur.get("resume_action") + " : " + varName + " = " + sb.toString());
-        } else if (noeud.requiertCibleObjet()) {
-            txtResume.setVisibility(View.VISIBLE);
-            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
-            StringBuilder sb = new StringBuilder();
-            if (noeud.getNomsParametres() != null) {
-                for (String p : noeud.getNomsParametres()) {
-                    String val = noeud.getValeurParametre(p);
-                    if (val != null && !val.isEmpty()) {
-                        if (sb.length() > 0) sb.append(" | ");
-                        sb.append(Traducteur.get(p)).append(": ").append(val);
-                    }
-                }
-            }
-            txtResume.setText(Traducteur.get("resume_action_objet") + " : " + objName + (sb.length() == 0 ? "" : " -> " + sb.toString()));
-        } else {
-            txtResume.setVisibility(View.GONE);
-        }
-    }
-
-    private void appliquerTypeEditeur(NoeudBase noeud, String nomParam, EditText champSaisie, View conteneurClavier, View conteneurBooleen) {
-        String type = (nomParam != null) ? noeud.getTypeEditeurParametre(nomParam) : NoeudBase.TYPE_TEXTE_LIBRE;
-
-        if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
-            NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
-            NoeudBase.TYPE_CHOIX_SON.equals(type) || NoeudBase.TYPE_CHOIX_FONCTION.equals(type) ||
-            "CHOIX_ANIMATION".equals(type) || "TYPE_CHOIX_TAG".equals(type)) { 
-            
-            champSaisie.setFocusable(false);
-            champSaisie.setFocusableInTouchMode(false);
-            champSaisie.setClickable(true);
-            champSaisie.setShowSoftInputOnFocus(false);
-            champSaisie.setInputType(InputType.TYPE_NULL);
-            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
-            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-            
-        } else if ("TYPE_BOOLEEN".equals(type)) {
-            champSaisie.setFocusable(false);
-            champSaisie.setFocusableInTouchMode(false);
-            champSaisie.setClickable(true);
-            champSaisie.setShowSoftInputOnFocus(false);
-            champSaisie.setInputType(InputType.TYPE_NULL);
-            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
-            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.VISIBLE);
-            
-        } else {
-            champSaisie.setFocusable(true);
-            champSaisie.setFocusableInTouchMode(true);
-            champSaisie.setClickable(true);
-
-            if (!noeud.utiliseClavierTexte()) {
-                champSaisie.setShowSoftInputOnFocus(false);
-                champSaisie.setInputType(InputType.TYPE_NULL);
-                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
-                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-            } else {
-                champSaisie.setShowSoftInputOnFocus(true);
-                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
-                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-                champSaisie.requestFocus();
-            }
-        }
-    }
-}
 // bas 5
-                
-
-
-        
-
-
-        
-
-
-        
-
-
-    
