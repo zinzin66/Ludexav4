@@ -1010,4 +1010,28 @@ public class EditeurNoeudDialog extends Dialog {
             champSaisie.setFocusableInTouchMode(false);
             champSaisie.setClickable(true);
             champSaisie.setShowSoftInputOnFocus(false);
-            champSaisie.s
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.VISIBLE);
+            
+        } else {
+            champSaisie.setFocusable(true);
+            champSaisie.setFocusableInTouchMode(true);
+            champSaisie.setClickable(true);
+
+            if (!noeud.utiliseClavierTexte()) {
+                champSaisie.setShowSoftInputOnFocus(false);
+                champSaisie.setInputType(InputType.TYPE_NULL);
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
+                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+            } else {
+                champSaisie.setShowSoftInputOnFocus(true);
+                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
+                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+                champSaisie.requestFocus();
+            }
+        }
+    }
+}
+// bas 5
