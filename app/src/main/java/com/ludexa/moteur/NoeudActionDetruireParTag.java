@@ -48,8 +48,12 @@ public class NoeudActionDetruireParTag extends NoeudBase {
         if ("Tag à détruire".equals(nom)) tagCible = valeur;
     }
 
+    // CORRECTION ICI : On utilise notre menu déroulant spécial Tags !
     @Override
-    public String getTypeEditeurParametre(String nomParametre) { return TYPE_TEXTE_LIBRE; }
+    public String getTypeEditeurParametre(String nomParametre) { 
+        if ("Tag à détruire".equals(nomParametre)) return "TYPE_CHOIX_TAG";
+        return TYPE_TEXTE_LIBRE; 
+    }
 
     @Override
     public boolean requiertCibleObjet() { return false; }
@@ -60,8 +64,8 @@ public class NoeudActionDetruireParTag extends NoeudBase {
     @Override
     public ObjetBase getCibleObjet() { return null; }
     
+    // CORRECTION ICI : Faux pour empêcher le clavier de s'ouvrir et forcer le pop-up
     @Override
-    public boolean utiliseClavierTexte() { return true; }
+    public boolean utiliseClavierTexte() { return false; } 
 }
 // bas 1
-
