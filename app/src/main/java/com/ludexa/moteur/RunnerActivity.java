@@ -27,7 +27,7 @@ import java.util.zip.ZipInputStream;
 
 public class RunnerActivity extends Activity {
 
-    // NOUVEAU : La liste pour faire fonctionner les Noeuds Timer / Chrono
+    // La liste pour faire fonctionner les Noeuds Timer / Chrono
     public static final List<Handler> handlersActifs = new ArrayList<>();
 
     public List<Variable> variablesGlobales = new ArrayList<>();
@@ -36,7 +36,9 @@ public class RunnerActivity extends Activity {
     public Scene sceneHudActive = null;
 
     private VueJeu vueJeu;
-    private String cheminProjet;
+    
+    // CORRECTION ICI : On passe la variable en "public" pour que les noeuds y aient accès !
+    public String cheminProjet; 
 
     public VueJeu getVueJeu() {
         return this.vueJeu;
@@ -93,6 +95,7 @@ public class RunnerActivity extends Activity {
         handlersActifs.clear();
     }
 // bas 1
+    
 
 
 // haut 2
