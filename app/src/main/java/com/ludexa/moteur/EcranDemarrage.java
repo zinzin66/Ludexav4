@@ -136,6 +136,20 @@ public class EcranDemarrage extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // --- NOUVEAU : LE SYSTÈME D'AIGUILLAGE (ROUTING) ---
+        try {
+            InputStream is = getAssets().open("jeu_exporte.zip");
+            is.close();
+            // Si on arrive ici, c'est un jeu exporté ! On lance le jeu et on ferme l'éditeur.
+            Intent intent = new Intent(this, RunnerActivity.class);
+            startActivity(intent);
+            finish();
+            return; 
+        } catch (Exception e) {
+            // Le fichier n'existe pas, c'est le moteur Yop2D normal. On continue l'initialisation !
+        }
+        // ---------------------------------------------------
+
         NoeudBase.contexteApplication = this;
         Traducteur.initialiser(this, langueCourante); 
         RegistreNoeuds.initialiser(); 
@@ -322,7 +336,6 @@ public class EcranDemarrage extends Activity {
         builder.show();
     }
 // bas 1
-
 // haut 2
     // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
 
@@ -1124,7 +1137,7 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 4
-                                   
+                               
 
 
 
@@ -1132,6 +1145,9 @@ public class EcranDemarrage extends Activity {
 
 
 
+
     
+
+
 
 
