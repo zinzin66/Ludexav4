@@ -4,6 +4,7 @@ package com.ludexa.moteur;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,6 +26,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class RunnerActivity extends Activity {
+
+    // NOUVEAU : La liste pour faire fonctionner les Noeuds Timer / Chrono
+    public static final List<Handler> handlersActifs = new ArrayList<>();
 
     public List<Variable> variablesGlobales = new ArrayList<>();
     public List<Scene> listeScenes = new ArrayList<>();
@@ -78,7 +82,19 @@ public class RunnerActivity extends Activity {
             finish();
         }
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Nettoyage des Timers quand le joueur quitte le jeu
+        for (Handler handler : handlersActifs) {
+            handler.removeCallbacksAndMessages(null);
+        }
+        handlersActifs.clear();
+    }
 // bas 1
+
+
 // haut 2
     private void chargerDonneesJeu() {
         try {
@@ -166,6 +182,7 @@ public class RunnerActivity extends Activity {
     }
 // bas 2
 
+
 // haut 3
     private void cacherBarresSysteme() {
         View decorView = getWindow().getDecorView();
@@ -229,9 +246,5 @@ public class RunnerActivity extends Activity {
 
 
 
-
     
-
-
-
 
