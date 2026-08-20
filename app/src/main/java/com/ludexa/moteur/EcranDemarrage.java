@@ -51,7 +51,8 @@ public class EcranDemarrage extends Activity {
     private LinearLayout barreActions;
     private TextView etiquetteSelection;
     
-    private static final int REQUEST_CODE_EXPORT = 2001;
+    private static final int REQUEST_CODE_EXPORT_PROJET = 2001;
+    private static final int REQUEST_CODE_EXPORT_APK = 2002;
     private File projetAExporter = null;
 
     // Structure pour unifier l'affichage des deux listes
@@ -163,9 +164,32 @@ public class EcranDemarrage extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_EXPORT && resultCode == Activity.RESULT_OK) {
-            if (data != null && data.getData() != null && projetAExporter != null) {
-                
+        
+        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null && projetAExporter != null) {
+            
+            // CAS 1 : EXPORT DU PROJET BRUT (.ZIP)
+            if (requestCode == REQUEST_CODE_EXPORT_PROJET) {
+                try {
+                    OutputStream out = getContentResolver().openOutputStream(data.getData());
+                    ZipOutputStream zip = new ZipOutputStream(out);
+                    zipperRecursif(projetAExporter, "", zip);
+                    zip.close();
+                    if (out != null) out.close();
+
+                    new AlertDialog.Builder(this)
+                            .setTitle(Traducteur.get("export_termine"))
+                            .setMessage(Traducteur.get("archive_creee"))
+                            .setPositiveButton(Traducteur.get("bouton_ok"), null)
+                            .show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, Traducteur.get("erreur_export"), Toast.LENGTH_SHORT).show();
+                }
+                projetAExporter = null;
+            }
+            
+            // CAS 2 : BUILD DE L'APK FINAL (.APK)
+            else if (requestCode == REQUEST_CODE_EXPORT_APK) {
                 AlertDialog dialogueProgression = new AlertDialog.Builder(this)
                         .setTitle("Génération de l'APK")
                         .setMessage("Initialisation...")
@@ -298,6 +322,7 @@ public class EcranDemarrage extends Activity {
         builder.show();
     }
 // bas 1
+
 // haut 2
     // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
 
@@ -431,7 +456,8 @@ public class EcranDemarrage extends Activity {
         barreActions.addView(boutonAction(Traducteur.get("bouton_editer"), false, v -> actionEditer()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_renommer"), false, v -> actionRenommer()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_dupliquer"), false, v -> actionDupliquer()));
-        barreActions.addView(boutonAction(Traducteur.get("bouton_exporter"), false, v -> actionExporter()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_exporter"), false, v -> actionExporterProjet()));
+        barreActions.addView(boutonAction("Build APK", false, v -> actionExporterAPK()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_supprimer"), true, v -> actionSupprimer()));
 
         majEtatActions();
@@ -723,6 +749,7 @@ public class EcranDemarrage extends Activity {
         return false;
     }
 // bas 3
+
 // haut 4
     // ---------------------------------------------------------------- actions
 
@@ -809,19 +836,34 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    private void actionExporter() {
+    // Le bouton original pour exporter le projet brut (ZIP)
+    private void actionExporterProjet() {
         File source = dossierSelectionne();
         if (source == null) return;
         
         projetAExporter = source;
+        String nom = nomProjet(source).replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
+        
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/zip");
+        intent.putExtra(Intent.EXTRA_TITLE, nom + ".zip");
+        startActivityForResult(intent, REQUEST_CODE_EXPORT_PROJET);
+    }
 
+    // Le nouveau bouton pour exporter le jeu jouable (APK)
+    private void actionExporterAPK() {
+        File source = dossierSelectionne();
+        if (source == null) return;
+        
+        projetAExporter = source;
         String nom = nomProjet(source).replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
         
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/vnd.android.package-archive");
         intent.putExtra(Intent.EXTRA_TITLE, nom + ".apk");
-        startActivityForResult(intent, REQUEST_CODE_EXPORT);
+        startActivityForResult(intent, REQUEST_CODE_EXPORT_APK);
     }
 
     private void actionSupprimer() {
@@ -1082,9 +1124,7 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 4
-
-
-
+                                   
 
 
 
@@ -1093,7 +1133,5 @@ public class EcranDemarrage extends Activity {
 
 
     
-
-
 
 
