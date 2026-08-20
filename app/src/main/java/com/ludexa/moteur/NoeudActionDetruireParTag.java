@@ -11,7 +11,7 @@ public class NoeudActionDetruireParTag extends NoeudBase {
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
         
-        // CORRECTION : On utilise le système natif du moteur pour garantir la sauvegarde !
+        // CORRECTION : On utilise le paramètre dynamique pour garantir la sauvegarde !
         this.ajouterParametre("Tag à détruire", "Ennemi", "TYPE_CHOIX_TAG");
     }
 
@@ -37,6 +37,7 @@ public class NoeudActionDetruireParTag extends NoeudBase {
     @Override
     public void executer() {
         String tagCible = getValeurParametre("Tag à détruire");
+        
         if (contexteApplication != null && tagCible != null && !tagCible.isEmpty()) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
