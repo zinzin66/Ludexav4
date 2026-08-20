@@ -2,6 +2,7 @@
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class NoeudActionDetruireObjet extends NoeudBase {
@@ -12,6 +13,10 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         super(genererId(), "Détruire Objet", "Apparence & Objets");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
+        
+        // NOUVEAU : Une option paramétrable blindée que le moteur n'effacera jamais !
+        this.ajouterParametreListe("Cible à détruire", "Objet défini au-dessus", 
+            Arrays.asList("Objet défini au-dessus", "L'objet impliqué dans l'événement"));
     }
 
     private void neutraliserEtRetirer(ObjetBase obj) {
@@ -61,26 +66,31 @@ public class NoeudActionDetruireObjet extends NoeudBase {
             sceneParent.objets.remove(obj);
         } catch (Exception e) {}
     }
-// bas 1
 
-// haut 2
     @Override
     public void executer() {
-        ObjetBase cibleActuelle = getCibleObjet();
-        if (cibleActuelle != null) {
-            neutraliserEtRetirer(cibleActuelle);
+        String mode = getValeurParametre("Cible à détruire");
+        
+        if ("L'objet impliqué dans l'événement".equals(mode)) {
+            // On détruit directement le clone mémorisé
+            if (MoteurLogique.dernierObjetImplique != null) {
+                neutraliserEtRetirer(MoteurLogique.dernierObjetImplique);
+            }
+        } else {
+            // Fonctionnement classique si l'option est sur "Objet défini au-dessus"
+            ObjetBase cibleActuelle = getCibleObjet();
+            if (cibleActuelle != null) {
+                neutraliserEtRetirer(cibleActuelle);
+            }
         }
         propagerExecution("Suivant");
     }
 
     @Override
-    public List<String> getNomsParametres() { return new ArrayList<>(); }
-
-    @Override
-    public String getValeurParametre(String nom) { return ""; }
-
-    @Override
-    public void setValeurParametre(String nom, String valeur) { }
+    public List<String> getNomsParametres() { 
+        // Obligatoire pour afficher notre nouveau menu déroulant
+        return super.getNomsParametres(); 
+    }
 
     @Override
     public boolean requiertCibleObjet() { return true; }
@@ -88,43 +98,36 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
-        
-        // CORRECTION : Forçage explicite sur "super" pour éviter le conflit fantôme
         if (objet != null) {
-            super.nomCibleObjet = objet.nom;
-        } else if (!"__OBJET_IMPLIQUE__".equals(super.nomCibleObjet)) {
-            super.nomCibleObjet = null;
+            this.nomCibleObjet = objet.nom;
+        } else {
+            this.nomCibleObjet = null;
         }
     }
 
     @Override
     public ObjetBase getCibleObjet() {
-        // Lecture explicite sur "super"
-        if ("__OBJET_IMPLIQUE__".equals(super.nomCibleObjet)) {
-            return MoteurLogique.dernierObjetImplique;
-        }
-
-        if (super.nomCibleObjet != null && contexteApplication != null) {
+        if (this.nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
                     if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
+                        for (ObjetBase o : editeur.sceneActive.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                     }
                     if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneHudActive.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
+                        for (ObjetBase o : editeur.sceneHudActive.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                     }
                 } else {
                     java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
                     Scene sAct = (Scene) sceneField.get(contexteApplication);
                     if (sAct != null && sAct.objets != null) {
-                        for (ObjetBase o : sAct.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
+                        for (ObjetBase o : sAct.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                     }
                     try {
                         java.lang.reflect.Field sceneHudField = contexteApplication.getClass().getField("sceneHudActive");
                         Scene sHud = (Scene) sceneHudField.get(contexteApplication);
                         if (sHud != null && sHud.objets != null) {
-                            for (ObjetBase o : sHud.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
+                            for (ObjetBase o : sHud.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                         }
                     } catch (Exception e) {}
                 }
@@ -133,4 +136,4 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         return this.cible;
     }
 }
-// bas 2
+// bas 1
