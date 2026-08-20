@@ -28,6 +28,11 @@
             android:screenOrientation="landscape"
             android:exported="false" />
 
+        <activity
+            android:name=".RunnerActivity"
+            android:screenOrientation="landscape"
+            android:exported="true" />
+
     </application>
 
 </manifest>

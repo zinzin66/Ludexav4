@@ -8,7 +8,6 @@ public class NoeudActionFermerHUD extends NoeudBase {
 
     public NoeudActionFermerHUD() {
         super(genererId(), "Fermer HUD", "UI");
-        // Correction : Retrait du paramètre "this"
         this.ajouterPort(new Port("Entrée", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Sortie", Port.TYPE_EXECUTION_SORTIE));
     }
@@ -17,6 +16,9 @@ public class NoeudActionFermerHUD extends NoeudBase {
     public void executer() {
         if (contexteApplication instanceof InterfaceEditeur) {
             ((InterfaceEditeur) contexteApplication).fermerHUD();
+        } else if (contexteApplication instanceof RunnerActivity) {
+            // NOUVEAU : Le HUD se ferme aussi dans l'APK !
+            ((RunnerActivity) contexteApplication).fermerHUD();
         }
         propagerExecution("Sortie");
     }

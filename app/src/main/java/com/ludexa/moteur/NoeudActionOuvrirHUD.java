@@ -9,7 +9,6 @@ public class NoeudActionOuvrirHUD extends NoeudBase {
 
     public NoeudActionOuvrirHUD() {
         super(genererId(), "Ouvrir HUD", "UI");
-        // Correction : Retrait du paramètre "this"
         this.ajouterPort(new Port("Entrée", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Sortie", Port.TYPE_EXECUTION_SORTIE));
     }
@@ -18,6 +17,9 @@ public class NoeudActionOuvrirHUD extends NoeudBase {
     public void executer() {
         if (contexteApplication instanceof InterfaceEditeur) {
             ((InterfaceEditeur) contexteApplication).ouvrirHUD(sceneCible);
+        } else if (contexteApplication instanceof RunnerActivity) {
+            // NOUVEAU : Le HUD s'ouvre aussi dans le jeu exporté !
+            ((RunnerActivity) contexteApplication).ouvrirHUD(sceneCible);
         }
         propagerExecution("Sortie");
     }
