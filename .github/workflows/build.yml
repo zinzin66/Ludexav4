@@ -24,19 +24,25 @@ jobs:
         with:
           gradle-version: 8.7
 
-      - name: 1. Compiler la coquille vide (Runner)
+      - name: 1. Patch automatique de tous les Noeuds
+        run: find app/src/main/java/com/ludexa/moteur -name "Noeud*.java" -type f -exec sed -i 's/InterfaceEditeur/RunnerActivity/g' {} +
+
+      - name: 2. Compiler la coquille vide (Runner)
         run: gradle assembleRunnerDebug
 
-      - name: 2. Préparer le dossier assets de l'éditeur
+      - name: 3. Annuler le Patch (Nettoyage)
+        run: git reset --hard
+
+      - name: 4. Préparer le dossier assets
         run: mkdir -p app/src/main/assets
 
-      - name: 3. Injecter le Runner dans l'Éditeur
+      - name: 5. Injecter le Runner
         run: cp app/build/outputs/apk/runner/debug/app-runner-debug.apk app/src/main/assets/modele_runner.apk
 
-      - name: 4. Compiler l'Éditeur Yop2D
+      - name: 6. Compiler l'Éditeur Yop2D
         run: gradle assembleEditeurDebug
 
-      - name: Publier l'APK final (Yop2D + Runner inclus)
+      - name: Publier l'APK final
         uses: actions/upload-artifact@v4
         with:
           name: YOP2D-Editeur-apk
