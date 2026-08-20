@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudActionAfficherDialogue extends NoeudBase {
 
     private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet;
     private String cleMessageDialogue = "";
 
     public NoeudActionAfficherDialogue() {
@@ -22,10 +21,17 @@ public class NoeudActionAfficherDialogue extends NoeudBase {
         
         if (obj != null && contexteApplication != null) {
             String projPath = null;
-            try {
-                java.lang.reflect.Field field = contexteApplication.getClass().getField("cheminProjet");
-                projPath = (String) field.get(contexteApplication);
-            } catch(Exception e) {}
+            
+            // On récupère le chemin du projet proprement selon le mode
+            if (contexteApplication instanceof InterfaceEditeur) {
+                projPath = ((InterfaceEditeur) contexteApplication).cheminProjet;
+            } else if (contexteApplication instanceof RunnerActivity) {
+                try {
+                    java.lang.reflect.Field f = RunnerActivity.class.getDeclaredField("cheminProjet");
+                    f.setAccessible(true);
+                    projPath = (String) f.get(contexteApplication);
+                } catch (Exception e) {}
+            }
 
             String vraiMessage = cleMessageDialogue;
             
@@ -95,24 +101,21 @@ public class NoeudActionAfficherDialogue extends NoeudBase {
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
 
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
+            Scene active = null;
+            if (contexteApplication instanceof InterfaceEditeur) {
+                active = ((InterfaceEditeur) contexteApplication).sceneActive;
+            } else if (contexteApplication instanceof RunnerActivity) {
+                active = ((RunnerActivity) contexteApplication).sceneActive;
+            }
+            
+            if (active != null && active.objets != null) {
+                for (ObjetBase o : active.objets) {
+                    if (nomCibleObjet.equals(o.nom)) { 
+                        cible = o; 
+                        break; 
                     }
                 }
-            } catch (Exception e) {}
+            }
         }
         return cible;
     }
