@@ -89,43 +89,42 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
         
-        // CORRECTION : Protection vitale du mot-clé !
-        // Si l'éditeur tente de rafraîchir à null, on refuse d'effacer le mot-clé.
+        // CORRECTION : Forçage explicite sur "super" pour éviter le conflit fantôme
         if (objet != null) {
-            this.nomCibleObjet = objet.nom;
-        } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
-            this.nomCibleObjet = null;
+            super.nomCibleObjet = objet.nom;
+        } else if (!"__OBJET_IMPLIQUE__".equals(super.nomCibleObjet)) {
+            super.nomCibleObjet = null;
         }
     }
 
     @Override
     public ObjetBase getCibleObjet() {
-        // Interception prioritaire de la mémoire globale
-        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
+        // Lecture explicite sur "super"
+        if ("__OBJET_IMPLIQUE__".equals(super.nomCibleObjet)) {
             return MoteurLogique.dernierObjetImplique;
         }
 
-        if (nomCibleObjet != null && contexteApplication != null) {
+        if (super.nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
                     if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                        for (ObjetBase o : editeur.sceneActive.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
                     }
                     if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneHudActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                        for (ObjetBase o : editeur.sceneHudActive.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
                     }
                 } else {
                     java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
                     Scene sAct = (Scene) sceneField.get(contexteApplication);
                     if (sAct != null && sAct.objets != null) {
-                        for (ObjetBase o : sAct.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                        for (ObjetBase o : sAct.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
                     }
                     try {
                         java.lang.reflect.Field sceneHudField = contexteApplication.getClass().getField("sceneHudActive");
                         Scene sHud = (Scene) sceneHudField.get(contexteApplication);
                         if (sHud != null && sHud.objets != null) {
-                            for (ObjetBase o : sHud.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                            for (ObjetBase o : sHud.objets) if (super.nomCibleObjet.equals(o.nom)) return o;
                         }
                     } catch (Exception e) {}
                 }
@@ -135,4 +134,3 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     }
 }
 // bas 2
-
