@@ -3,7 +3,7 @@ package com.ludexa.moteur;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Iterator;
+import java.util.ArrayList;
 
 public class NoeudActionDetruireParTag extends NoeudBase {
     private String tagCible = "Ennemi";
@@ -14,6 +14,25 @@ public class NoeudActionDetruireParTag extends NoeudBase {
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
+    private void neutraliserEtRetirer(ObjetBase obj, Scene sceneParent) {
+        if (obj == null || sceneParent == null) return;
+        
+        List<ObjetBase> aDetruire = new ArrayList<>();
+        for (ObjetBase o : sceneParent.objets) {
+            if (obj.id.equals(o.parentId)) aDetruire.add(o);
+        }
+        for (ObjetBase enfant : aDetruire) {
+            neutraliserEtRetirer(enfant, sceneParent);
+        }
+
+        obj.visible = false;
+        obj.estPhysique = false;
+        obj.estZoneDeClic = false;
+        obj.estRamassable = false;
+        obj.x = -99999;
+        obj.y = -99999;
+    }
+
     @Override
     public void executer() {
         if (contexteApplication != null && tagCible != null && !tagCible.isEmpty()) {
@@ -21,12 +40,20 @@ public class NoeudActionDetruireParTag extends NoeudBase {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
                 Scene s = (Scene) sceneField.get(contexteApplication);
                 if (s != null && s.objets != null) {
-                    Iterator<ObjetBase> iterator = s.objets.iterator();
-                    while (iterator.hasNext()) {
-                        ObjetBase o = iterator.next();
-                        if (tagCible.equals(o.tag)) {
-                            iterator.remove();
+                    List<ObjetBase> objetsASupprimer = new ArrayList<>();
+                    
+                    for (ObjetBase o : s.objets) {
+                        // Tolérance sur les majuscules et les espaces
+                        if (o.tag != null && tagCible.trim().equalsIgnoreCase(o.tag.trim())) {
+                            objetsASupprimer.add(o);
                         }
+                    }
+                    
+                    for (ObjetBase o : objetsASupprimer) {
+                        neutraliserEtRetirer(o, s);
+                        try {
+                            s.objets.remove(o);
+                        } catch (Exception ex) {}
                     }
                 }
             } catch (Exception e) {}
@@ -48,7 +75,6 @@ public class NoeudActionDetruireParTag extends NoeudBase {
         if ("Tag à détruire".equals(nom)) tagCible = valeur;
     }
 
-    // CORRECTION ICI : On utilise notre menu déroulant spécial Tags !
     @Override
     public String getTypeEditeurParametre(String nomParametre) { 
         if ("Tag à détruire".equals(nomParametre)) return "TYPE_CHOIX_TAG";
@@ -64,7 +90,6 @@ public class NoeudActionDetruireParTag extends NoeudBase {
     @Override
     public ObjetBase getCibleObjet() { return null; }
     
-    // CORRECTION ICI : Faux pour empêcher le clavier de s'ouvrir et forcer le pop-up
     @Override
     public boolean utiliseClavierTexte() { return false; } 
 }
