@@ -7,10 +7,10 @@ import java.util.List;
 public class NoeudEventSortieZone extends NoeudBase {
 
     private transient ObjetBase cibleA;
-    private String nomCibleObjetA;
+    // SUPPRIMÉ ET RENOMMÉ : private String nomCibleObjetA; (Utilise désormais this.nomCibleObjet hérité de NoeudBase)
     
     private transient ObjetBase cibleB;
-    private String nomCibleObjetB;
+    // SUPPRIMÉ : private String nomCibleObjetB; (Utilise désormais this.nomCibleObjetB hérité de NoeudBase)
     
     private transient boolean etaitEnCollision = false;
 
@@ -42,23 +42,25 @@ public class NoeudEventSortieZone extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cibleA = objet;
-        this.nomCibleObjetA = (objet != null) ? objet.nom : null;
+        this.nomCibleObjet = (objet != null) ? objet.nom : null;
     }
     
     @Override
     public ObjetBase getCibleObjet() {
-        if (cibleA == null && nomCibleObjetA != null && contexteApplication != null) {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
+        if (cibleA == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
                     if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjetA)) cibleA = o;
+                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cibleA = o;
                     }
                 } else {
                     java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
                     Scene s = (Scene) sceneField.get(contexteApplication);
                     if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjetA)) cibleA = o;
+                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cibleA = o;
                     }
                 }
             } catch (Exception e) {}
@@ -77,6 +79,8 @@ public class NoeudEventSortieZone extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjetB() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) return MoteurLogique.dernierObjetImplique;
+
         if (cibleB == null && nomCibleObjetB != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {

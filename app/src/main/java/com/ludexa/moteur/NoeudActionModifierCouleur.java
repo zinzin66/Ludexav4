@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import android.graphics.Color;
@@ -7,8 +8,8 @@ import java.util.List;
 public class NoeudActionModifierCouleur extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
-    private String couleurChoisie = "Noir"; // Valeur par défaut
+    // SUPPRIMÉ : private String nomCibleObjet;
+    private String couleurChoisie = "Noir"; 
 
     public NoeudActionModifierCouleur() {
         super(genererId(), "Modifier Couleur", "Action");
@@ -39,7 +40,6 @@ public class NoeudActionModifierCouleur extends NoeudBase {
     @Override
     public boolean utiliseClavierTexte() { return false; } 
 
-    // NOUVEAU : On déclare le type spécifique pour le paramètre
     @Override
     public String getTypeEditeurParametre(String nom) {
         if ("Couleur".equals(nom)) {
@@ -68,8 +68,9 @@ public class NoeudActionModifierCouleur extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            // Reconnexion dynamique
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
@@ -88,3 +89,4 @@ public class NoeudActionModifierCouleur extends NoeudBase {
         return this.cible;
     }
 }
+// bas 1

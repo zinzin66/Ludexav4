@@ -18,7 +18,6 @@ public class NoeudActionOpacite extends NoeudBase {
         if (cible != null) {
             try {
                 float val = Float.parseFloat(getValeurParametre("Niveau (0.0 a 1.0)"));
-                // On s'assure que la valeur reste strictement comprise entre 0.0 (invisible) et 1.0 (opaque)
                 cible.alpha = Math.max(0f, Math.min(1f, val));
             } catch (Exception e) {}
         }
@@ -32,7 +31,9 @@ public class NoeudActionOpacite extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { this.cibleObj = objet; }
     
     @Override
-    public ObjetBase getCibleObjet() { return this.cibleObj; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.cibleObj; 
+    }
 }
 // bas 1
-

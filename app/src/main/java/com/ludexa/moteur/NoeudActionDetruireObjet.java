@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudActionDetruireObjet extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
 
     public NoeudActionDetruireObjet() {
         super(genererId(), "Détruire Objet", "Apparence & Objets");
@@ -15,22 +14,42 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
-    // Nouvelle fonction récursive pour détruire l'objet ET ses enfants
-    private void neutraliserEtRetirer(ObjetBase obj, Scene scene) {
-        if (obj == null || scene == null || scene.objets == null) return;
+    private void neutraliserEtRetirer(ObjetBase obj) {
+        if (obj == null || contexteApplication == null) return;
         
-        // 1. Trouver et détruire tous les enfants d'abord
-        List<ObjetBase> aDetruire = new ArrayList<>();
-        for (ObjetBase o : scene.objets) {
-            if (obj.id.equals(o.parentId)) {
-                aDetruire.add(o);
+        Scene sceneParent = null;
+        try {
+            if (contexteApplication instanceof InterfaceEditeur) {
+                InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                if (editeur.sceneActive != null && editeur.sceneActive.objets != null && editeur.sceneActive.objets.contains(obj)) {
+                    sceneParent = editeur.sceneActive;
+                } else if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null && editeur.sceneHudActive.objets.contains(obj)) {
+                    sceneParent = editeur.sceneHudActive;
+                }
+            } else {
+                java.lang.reflect.Field fieldAct = contexteApplication.getClass().getField("sceneActive");
+                Scene sAct = (Scene) fieldAct.get(contexteApplication);
+                if (sAct != null && sAct.objets != null && sAct.objets.contains(obj)) sceneParent = sAct;
+                else {
+                    try {
+                        java.lang.reflect.Field fieldHud = contexteApplication.getClass().getField("sceneHudActive");
+                        Scene sHud = (Scene) fieldHud.get(contexteApplication);
+                        if (sHud != null && sHud.objets != null && sHud.objets.contains(obj)) sceneParent = sHud;
+                    } catch (Exception e) {}
+                }
             }
+        } catch (Exception e) {}
+        
+        if (sceneParent == null) return;
+        
+        List<ObjetBase> aDetruire = new ArrayList<>();
+        for (ObjetBase o : sceneParent.objets) {
+            if (obj.id.equals(o.parentId)) aDetruire.add(o);
         }
         for (ObjetBase enfant : aDetruire) {
-            neutraliserEtRetirer(enfant, scene);
+            neutraliserEtRetirer(enfant);
         }
 
-        // 2. Neutralisation totale pour tuer les collisions et interactions
         obj.visible = false;
         obj.estPhysique = false;
         obj.estZoneDeClic = false;
@@ -38,76 +57,71 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         obj.x = -99999;
         obj.y = -99999;
         
-        // 3. Retrait sécurisé de la mémoire
         try {
-            scene.objets.remove(obj);
-        } catch (Exception e) {
-            // Ignoré silencieusement : même si la suppression échoue pendant 
-            // la boucle de rendu, l'objet est désactivé et inoffensif.
-        }
+            sceneParent.objets.remove(obj);
+        } catch (Exception e) {}
     }
+// bas 1
 
+// haut 2
     @Override
     public void executer() {
         ObjetBase cibleActuelle = getCibleObjet();
-        if (cibleActuelle != null && contexteApplication instanceof InterfaceEditeur) {
-            InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-            
-            // On vérifie si l'objet est dans la scène principale
-            if (editeur.sceneActive != null && editeur.sceneActive.objets != null && editeur.sceneActive.objets.contains(cibleActuelle)) {
-                neutraliserEtRetirer(cibleActuelle, editeur.sceneActive);
-            } 
-            // Ou s'il appartient au HUD
-            else if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null && editeur.sceneHudActive.objets.contains(cibleActuelle)) {
-                neutraliserEtRetirer(cibleActuelle, editeur.sceneHudActive);
-            }
+        if (cibleActuelle != null) {
+            neutraliserEtRetirer(cibleActuelle);
         }
         propagerExecution("Suivant");
     }
 
     @Override
-    public List<String> getNomsParametres() { return new ArrayList<>(); }
-
-    @Override
-    public String getValeurParametre(String nom) { return ""; }
-
-    @Override
-    public void setValeurParametre(String nom, String valeur) { }
-
-    @Override
     public boolean requiertCibleObjet() { return true; }
-    
+
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+        
+        // CORRECTION : On protège farouchement le mot-clé si l'éditeur rafraîchit à null
+        if (objet != null) {
+            this.nomCibleObjet = objet.nom;
+        } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
+            this.nomCibleObjet = null;
+        }
     }
-    
+
     @Override
     public ObjetBase getCibleObjet() {
-        if (cible == null && nomCibleObjet != null && contexteApplication instanceof InterfaceEditeur) {
-            InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-            
-            // Recherche dans la scène active
-            if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                for (ObjetBase o : editeur.sceneActive.objets) {
-                    if (nomCibleObjet.equals(o.nom)) {
-                        cible = o;
-                        return cible;
+        // Interception prioritaire : si le mot-clé est détecté, on pioche dans la mémoire globale
+        if ("__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
+            return MoteurLogique.dernierObjetImplique;
+        }
+
+        if (this.nomCibleObjet != null && contexteApplication != null) {
+            try {
+                if (contexteApplication instanceof InterfaceEditeur) {
+                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+                        for (ObjetBase o : editeur.sceneActive.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                     }
-                }
-            }
-            // Recherche dans la scène HUD
-            if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
-                for (ObjetBase o : editeur.sceneHudActive.objets) {
-                    if (nomCibleObjet.equals(o.nom)) {
-                        cible = o;
-                        return cible;
+                    if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
+                        for (ObjetBase o : editeur.sceneHudActive.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                     }
+                } else {
+                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                    Scene sAct = (Scene) sceneField.get(contexteApplication);
+                    if (sAct != null && sAct.objets != null) {
+                        for (ObjetBase o : sAct.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
+                    }
+                    try {
+                        java.lang.reflect.Field sceneHudField = contexteApplication.getClass().getField("sceneHudActive");
+                        Scene sHud = (Scene) sceneHudField.get(contexteApplication);
+                        if (sHud != null && sHud.objets != null) {
+                            for (ObjetBase o : sHud.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
+                        }
+                    } catch (Exception e) {}
                 }
-            }
+            } catch (Exception e) {}
         }
         return this.cible;
     }
 }
-// bas 1
+// bas 2

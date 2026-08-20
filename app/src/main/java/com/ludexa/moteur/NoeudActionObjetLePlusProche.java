@@ -2,15 +2,14 @@
 package com.ludexa.moteur;
 
 public class NoeudActionObjetLePlusProche extends NoeudBase {
-    private ObjetBase cibleObj; // L'objet qui sert de point de départ (ex: le Joueur)
-    private Variable variableSortie; // La variable où on va stocker le nom de la cible trouvée
+    private ObjetBase cibleObj; 
+    private Variable variableSortie; 
 
     public NoeudActionObjetLePlusProche() {
         super(genererId(), Traducteur.get("noeud_objet_proche"), Traducteur.get("cat_logique_spatiale"));
         ajouterPort(new Port(Traducteur.get("port_entree"), Port.TYPE_EXECUTION_ENTREE));
         ajouterPort(new Port(Traducteur.get("port_sortie"), Port.TYPE_EXECUTION_SORTIE));
 
-        // Permet de ne cibler que les objets ayant un tag précis (laisser vide pour tout cibler)
         ajouterParametre("Tag recherche (optionnel)", "", TYPE_TEXTE_LIBRE);
     }
 
@@ -22,7 +21,6 @@ public class NoeudActionObjetLePlusProche extends NoeudBase {
 
         if (refObj != null && varSortie != null && contexteApplication != null) {
             try {
-                // Récupération de la scène active pour scanner tous les objets
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
                 Scene scene = (Scene) sceneField.get(contexteApplication);
                 
@@ -31,16 +29,14 @@ public class NoeudActionObjetLePlusProche extends NoeudBase {
                     float distMin = Float.MAX_VALUE;
 
                     for (ObjetBase obj : scene.objets) {
-                        if (obj == refObj) continue; // On s'ignore soi-même
+                        if (obj == refObj) continue; 
                         
-                        // Si un tag est renseigné, on filtre
                         if (tagRecherche != null && !tagRecherche.trim().isEmpty()) {
                             if (obj.tag == null || !obj.tag.equals(tagRecherche.trim())) {
                                 continue;
                             }
                         }
 
-                        // Calcul de la distance géométrique
                         float dist = (float) Math.hypot(obj.x - refObj.x, obj.y - refObj.y);
                         if (dist < distMin) {
                             distMin = dist;
@@ -48,11 +44,10 @@ public class NoeudActionObjetLePlusProche extends NoeudBase {
                         }
                     }
 
-                    // Enregistrement du résultat
                     if (plusProche != null) {
                         varSortie.valeur = plusProche.nom;
                     } else {
-                        varSortie.valeur = ""; // Rien trouvé
+                        varSortie.valeur = ""; 
                     }
                 }
             } catch (Exception e) {}
@@ -67,7 +62,10 @@ public class NoeudActionObjetLePlusProche extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { this.cibleObj = objet; }
     
     @Override
-    public ObjetBase getCibleObjet() { return this.cibleObj; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.cibleObj; 
+    }
 
     @Override
     public boolean requiertCibleVariable() { return true; }

@@ -25,6 +25,10 @@ public abstract class NoeudBase {
     public ArrayList<Port> portsEntree;
     public ArrayList<Port> portsSortie;
     
+    // NOUVEAU : Variables pour l'éditeur
+    public String nomCibleObjet = null;
+    public String nomCibleObjetB = null;
+
     public boolean estReplie = false;
 
     public static class InfoParametre {
@@ -127,11 +131,25 @@ public abstract class NoeudBase {
 
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
-    public ObjetBase getCibleObjet() { return null; }
+    
+    // NOUVEAU : Interception Objet A
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
+            return MoteurLogique.dernierObjetImplique;
+        }
+        return null; 
+    }
     
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
-    public ObjetBase getCibleObjetB() { return null; }
+    
+    // NOUVEAU : Interception Objet B
+    public ObjetBase getCibleObjetB() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) {
+            return MoteurLogique.dernierObjetImplique;
+        }
+        return null; 
+    }
     
     public boolean requiertCibleVariable() { return false; }
     public void setCibleVariable(Variable v) {}

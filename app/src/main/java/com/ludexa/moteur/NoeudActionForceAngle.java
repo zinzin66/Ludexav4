@@ -21,10 +21,8 @@ public class NoeudActionForceAngle extends NoeudBase {
                 float angleDeg = Float.parseFloat(getValeurParametre("Angle"));
                 float force = Float.parseFloat(getValeurParametre("Force"));
                 
-                // Conversion de l'angle en radians pour les calculs mathématiques
                 double angleRad = Math.toRadians(angleDeg);
                 
-                // Ajout de la force sur les vecteurs d'intention de déplacement
                 cible.intentionDeplacementX += (float) (Math.cos(angleRad) * force);
                 cible.intentionDeplacementY += (float) (Math.sin(angleRad) * force);
             } catch (Exception e) {}
@@ -39,6 +37,9 @@ public class NoeudActionForceAngle extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { this.cibleObj = objet; }
     
     @Override
-    public ObjetBase getCibleObjet() { return this.cibleObj; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.cibleObj; 
+    }
 }
 // bas 1

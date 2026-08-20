@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionFiltre extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String typeFiltre = "Noir et Blanc";
 
     public NoeudActionFiltre() {
@@ -62,6 +62,8 @@ public class NoeudActionFiltre extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");

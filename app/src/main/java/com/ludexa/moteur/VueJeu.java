@@ -368,7 +368,6 @@ public class VueJeu extends View {
         }
     }
 // bas 3
-
 // haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -379,6 +378,9 @@ public class VueJeu extends View {
             
             if (objSurvole != dernierObjetSurvole) {
                 if (dernierObjetSurvole != null) {
+                    // --- AJOUT MÉMOIRE CONTEXTUELLE ---
+                    MoteurLogique.dernierObjetImplique = dernierObjetSurvole;
+                    
                     if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
                         this.moteurHud.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
                     } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(dernierObjetSurvole) && this.moteur != null) {
@@ -386,6 +388,9 @@ public class VueJeu extends View {
                     }
                 }
                 if (objSurvole != null) {
+                    // --- AJOUT MÉMOIRE CONTEXTUELLE ---
+                    MoteurLogique.dernierObjetImplique = objSurvole;
+                    
                     if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
                         this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
                     } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
@@ -482,6 +487,9 @@ public class VueJeu extends View {
             lastYJeu = yMonde;
             
             if (objetEnGlissement != null) {
+                // --- AJOUT MÉMOIRE CONTEXTUELLE ---
+                MoteurLogique.dernierObjetImplique = objetEnGlissement;
+                
                 if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement) && this.moteurHud != null) {
                     this.moteurHud.executerEvenementSurObjet(NoeudEventDebutGlisser.class, objetEnGlissement);
                     lastXJeu = xVue; lastYJeu = yVue; 
@@ -506,6 +514,9 @@ public class VueJeu extends View {
                 ObjetBase objSurvole = trouverObjetSousPoint(xVue, yVue, false);
                 if (objSurvole != dernierObjetSurvole) {
                     if (dernierObjetSurvole != null) {
+                        // --- AJOUT MÉMOIRE CONTEXTUELLE ---
+                        MoteurLogique.dernierObjetImplique = dernierObjetSurvole;
+                        
                         if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
                             this.moteurHud.executerEvenementSurObjet(NoeudEventFinSurvol.class, dernierObjetSurvole);
                         } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(dernierObjetSurvole) && this.moteur != null) {
@@ -513,6 +524,9 @@ public class VueJeu extends View {
                         }
                     }
                     if (objSurvole != null) {
+                        // --- AJOUT MÉMOIRE CONTEXTUELLE ---
+                        MoteurLogique.dernierObjetImplique = objSurvole;
+                        
                         if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
                             this.moteurHud.executerEvenementSurObjet(NoeudEventSurvolObjet.class, objSurvole);
                         } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objSurvole) && this.moteur != null) {
@@ -525,6 +539,9 @@ public class VueJeu extends View {
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             ObjetBase objClick = trouverObjetSousPoint(xVue, yVue, false);
             if (objClick != null && !objClick.estDesactive) {
+                // --- AJOUT MÉMOIRE CONTEXTUELLE ---
+                MoteurLogique.dernierObjetImplique = objClick;
+                
                 if (sceneHudActive != null && sceneHudActive.objets.contains(objClick) && this.moteurHud != null) {
                     this.moteurHud.executerEvenementSurObjet(NoeudEventClicObjet.class, objClick);
                 } else if (sceneActive != null && sceneActive.objets.contains(objClick) && this.moteur != null) {
@@ -534,6 +551,9 @@ public class VueJeu extends View {
             if (this.moteur != null) this.moteur.executerEvenement(NoeudEventFinClic.class);
 
             if (objetEnGlissement != null) {
+                // --- AJOUT MÉMOIRE CONTEXTUELLE ---
+                MoteurLogique.dernierObjetImplique = objetEnGlissement;
+                
                 if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement) && this.moteurHud != null) {
                     this.moteurHud.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
                 } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement) && this.moteur != null) {
@@ -545,7 +565,9 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-    
+                                
+
+
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {

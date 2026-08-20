@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionCreerObjet extends NoeudBase {
 
     private transient ObjetBase cibleTemplate;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;[span_6](start_span)[span_6](end_span)
     
     private String posX = "";
     private String posY = "";
@@ -86,6 +86,8 @@ public class NoeudActionCreerObjet extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cibleTemplate == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
@@ -106,4 +108,3 @@ public class NoeudActionCreerObjet extends NoeudBase {
     }
 }
 // bas 1
-
