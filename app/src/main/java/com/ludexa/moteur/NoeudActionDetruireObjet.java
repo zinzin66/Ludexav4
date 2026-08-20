@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudActionDetruireObjet extends NoeudBase {
 
     private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet; (Le conflit venait d'ici !)
 
     public NoeudActionDetruireObjet() {
         super(genererId(), "Détruire Objet", "Apparence & Objets");
@@ -87,13 +86,16 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
-        // On assigne correctement à la variable héritée du parent
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+        // CORRECTION DU BUG : On protège le mot-clé spécial lors d'une assignation nulle
+        if (objet != null) {
+            this.nomCibleObjet = objet.nom;
+        } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
+            this.nomCibleObjet = null;
+        }
     }
 
     @Override
     public ObjetBase getCibleObjet() {
-        // --- AJOUT MÉMOIRE CONTEXTUELLE : Interception prioritaire ---
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
             return MoteurLogique.dernierObjetImplique;
         }
