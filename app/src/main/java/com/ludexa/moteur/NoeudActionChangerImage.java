@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudActionChangerImage extends NoeudBase {
 
     private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet;
     private String cheminImage = "";
 
     public NoeudActionChangerImage() {
@@ -65,24 +64,21 @@ public class NoeudActionChangerImage extends NoeudBase {
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
 
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
+            Scene active = null;
+            if (contexteApplication instanceof InterfaceEditeur) {
+                active = ((InterfaceEditeur) contexteApplication).sceneActive;
+            } else if (contexteApplication instanceof RunnerActivity) {
+                active = ((RunnerActivity) contexteApplication).sceneActive;
+            }
+            
+            if (active != null && active.objets != null) {
+                for (ObjetBase o : active.objets) {
+                    if (nomCibleObjet.equals(o.nom)) { 
+                        cible = o; 
+                        break; 
                     }
                 }
-            } catch (Exception e) {}
+            }
         }
         return cible;
     }
