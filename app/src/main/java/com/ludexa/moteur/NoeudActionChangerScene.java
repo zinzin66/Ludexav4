@@ -11,18 +11,19 @@ public class NoeudActionChangerScene extends NoeudBase {
     public NoeudActionChangerScene() {
         super(genererId(), "Changer de Scène", "Actions");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
-        // Pas de port "Suivant" car changer de scène arrête l'exécution de la scène courante !
     }
 
     @Override
     public void executer() {
         Scene sceneCible = getCibleScene();
-        if (sceneCible != null && contexteApplication instanceof InterfaceEditeur) {
-            InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-            VueJeu vue = editeur.getVueJeu();
-            if (vue != null) {
-                // APPEL ACTIVÉ : On dit à la VueJeu de changer de décor !
-                vue.chargerNouvelleScene(sceneCible);
+        if (sceneCible != null) {
+            if (contexteApplication instanceof InterfaceEditeur) {
+                VueJeu vue = ((InterfaceEditeur) contexteApplication).getVueJeu();
+                if (vue != null) vue.chargerNouvelleScene(sceneCible);
+            } else if (contexteApplication instanceof RunnerActivity) {
+                // NOUVEAU : Changement de décor dans l'APK !
+                VueJeu vue = ((RunnerActivity) contexteApplication).getVueJeu();
+                if (vue != null) vue.chargerNouvelleScene(sceneCible);
             }
         }
     }
@@ -38,11 +39,17 @@ public class NoeudActionChangerScene extends NoeudBase {
 
     @Override
     public Scene getCibleScene() {
-        // Reconnexion dynamique de la scène
-        if (cible == null && nomCibleScene != null && contexteApplication instanceof InterfaceEditeur) {
-            InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-            if (editeur.listeScenes != null) {
-                for (Scene s : editeur.listeScenes) {
+        if (cible == null && nomCibleScene != null) {
+            List<Scene> scenesPossibles = null;
+            
+            if (contexteApplication instanceof InterfaceEditeur) {
+                scenesPossibles = ((InterfaceEditeur) contexteApplication).listeScenes;
+            } else if (contexteApplication instanceof RunnerActivity) {
+                scenesPossibles = ((RunnerActivity) contexteApplication).listeScenes;
+            }
+            
+            if (scenesPossibles != null) {
+                for (Scene s : scenesPossibles) {
                     if (nomCibleScene.equals(s.nom)) {
                         cible = s;
                         break;
@@ -53,7 +60,6 @@ public class NoeudActionChangerScene extends NoeudBase {
         return cible;
     }
 
-    // Paramètres vides car la cible est la Scène elle-même
     @Override
     public List<String> getNomsParametres() { return null; }
     @Override
