@@ -66,13 +66,22 @@ public class ExportateurAPK {
                 }
 
                 // ---------------------------------------------------------
-                // 2. CLONAGE DE L'APK ACTUEL (La Coquille Vide)
+                // 2. EXTRACTION DU RUNNER (La Coquille Vide GitHub)
                 // ---------------------------------------------------------
-                mainHandler.post(() -> callback.surProgression("Clonage du moteur Yop2D..."));
-                // contexte.getApplicationInfo().sourceDir pointe vers l'APK en cours d'exécution !
-                String cheminApkActuel = contexte.getApplicationInfo().sourceDir;
+                mainHandler.post(() -> callback.surProgression("Extraction du Runner Yop2D..."));
                 File apkTemporaire = new File(cacheDir, "apk_temporaire.apk");
-                copierFichier(new File(cheminApkActuel), apkTemporaire);
+                if (apkTemporaire.exists()) apkTemporaire.delete();
+
+                // On va chercher le Runner généré par GitHub dans les assets
+                InputStream isRunner = contexte.getAssets().open("modele_runner.apk");
+                OutputStream osRunner = new FileOutputStream(apkTemporaire);
+                byte[] buffer = new byte[8192];
+                int lu;
+                while ((lu = isRunner.read(buffer)) > 0) {
+                    osRunner.write(buffer, 0, lu);
+                }
+                isRunner.close();
+                osRunner.close();
 
                 // ---------------------------------------------------------
                 // 3. INJECTION (Étape 3 du plan)
@@ -138,18 +147,6 @@ public class ExportateurAPK {
                 mainHandler.post(() -> callback.surErreur("Erreur d'export : " + e.getMessage()));
             }
         }).start();
-    }
-
-    private static void copierFichier(File source, File destination) throws Exception {
-        InputStream in = new FileInputStream(source);
-        OutputStream out = new FileOutputStream(destination);
-        byte[] buffer = new byte[8192];
-        int length;
-        while ((length = in.read(buffer)) > 0) {
-            out.write(buffer, 0, length);
-        }
-        in.close();
-        out.close();
     }
 }
 // bas 1
