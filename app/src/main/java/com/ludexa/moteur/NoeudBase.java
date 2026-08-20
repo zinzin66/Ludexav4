@@ -25,10 +25,10 @@ public abstract class NoeudBase {
     public ArrayList<Port> portsEntree;
     public ArrayList<Port> portsSortie;
     
-    // --- AJOUT MÉMOIRE CONTEXTUELLE : Variables de sauvegarde des noms ---
+    // NOUVEAU : Variables pour l'éditeur
     public String nomCibleObjet = null;
     public String nomCibleObjetB = null;
-    
+
     public boolean estReplie = false;
 
     public static class InfoParametre {
@@ -129,18 +129,21 @@ public abstract class NoeudBase {
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
 
-    // --- AJOUT MÉMOIRE CONTEXTUELLE : Résolution automatique ---
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
+    
+    // NOUVEAU : Interception Objet A
     public ObjetBase getCibleObjet() { 
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
-            return MoteurLogique.dernierObjetImplique; // Sécurisé : renvoie null si l'objet n'existe plus ou si non défini
+            return MoteurLogique.dernierObjetImplique;
         }
         return null; 
     }
     
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
+    
+    // NOUVEAU : Interception Objet B
     public ObjetBase getCibleObjetB() { 
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) {
             return MoteurLogique.dernierObjetImplique;
