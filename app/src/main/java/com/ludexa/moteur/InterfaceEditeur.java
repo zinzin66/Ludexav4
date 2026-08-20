@@ -118,7 +118,7 @@ public class InterfaceEditeur extends Activity {
         if (vueJeu != null) {
             vueJeu.ouvrirHudDynamique(scene, blueprintHud);
         }
-        Toast.makeText(this, "HUD ouvert : " + (scene != null ? scene.nom : "null"), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, Traducteur.get("hud_ouvert") + (scene != null ? scene.nom : Traducteur.get("valeur_aucune")), Toast.LENGTH_SHORT).show();
     }
 
     public void fermerHUD() {
@@ -126,7 +126,7 @@ public class InterfaceEditeur extends Activity {
         if (vueJeu != null) {
             vueJeu.setSceneHud(null);
         }
-        Toast.makeText(this, "HUD fermé", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, Traducteur.get("hud_ferme"), Toast.LENGTH_SHORT).show();
     }
 
     public void ajouterCommande(Commande c) {
@@ -166,7 +166,7 @@ public class InterfaceEditeur extends Activity {
 
         TextView nomProjet = new TextView(this);
         
-        String texteNomProjet = "Projet sans nom";
+        String texteNomProjet = Traducteur.get("projet_sans_nom");
         if (cheminProjet != null) {
             try {
                 File metaFile = new File(cheminProjet, "meta.json");
@@ -236,8 +236,6 @@ public class InterfaceEditeur extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
-
-
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -363,6 +361,49 @@ public class InterfaceEditeur extends Activity {
                     nouveauMode ? Palette.iconeSurvol : Palette.iconeNormal);
         });
         bandeauHaut.addView(boutonDeplacerScene);
+        
+        bandeauHaut.addView(separateurVertical());
+        
+        ImageButton boutonDeplacerObjet = new ImageButton(this);
+        boutonDeplacerObjet.setImageResource(R.drawable.open_with_24px);
+        styliserBoutonBandeau(boutonDeplacerObjet);
+        boutonDeplacerObjet.setOnClickListener(v -> {
+            boolean nouveauMode = !canvasEditeur.isModeDeplacementObjet();
+            canvasEditeur.setModeDeplacementObjet(nouveauMode);
+            boutonDeplacerObjet.setBackground(fond(
+                    nouveauMode ? Palette.boutonSurvol : Palette.boutonNormal, 6, Palette.bordure, 1));
+            Palette.appliquerCouleurIcone(boutonDeplacerObjet,
+                    nouveauMode ? Palette.iconeSurvol : Palette.iconeNormal);
+        });
+        bandeauHaut.addView(boutonDeplacerObjet);
+        
+        ImageButton boutonCopierObjet = new ImageButton(this);
+        boutonCopierObjet.setImageResource(R.drawable.content_copy_24px);
+        styliserBoutonBandeau(boutonCopierObjet);
+        boutonCopierObjet.setOnClickListener(v -> {
+            ObjetBase objSel = canvasEditeur.getObjetSelectionne();
+            if (objSel != null) {
+                ObjetBase copie = objSel.clonerProfond();
+                copie.id = java.util.UUID.randomUUID().toString();
+                copie.nom = (copie.nom != null ? copie.nom : Traducteur.get("objet_nom_defaut")) + " " + Traducteur.get("projet_copie");
+                copie.x += 20;
+                copie.y += 20;
+                
+                copie.zOrder = sceneActive.prochainZOrder(); 
+                
+                sceneActive.objets.add(copie);
+                canvasEditeur.setObjetSelectionne(copie);
+                rafraichirArborescence(copie);
+                if (menuInspecteur != null) {
+                    menuInspecteur.afficherObjet(copie);
+                }
+                canvasEditeur.invalidate();
+                Toast.makeText(this, Traducteur.get("toast_objet_copie"), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, Traducteur.get("toast_select_objet_copie"), Toast.LENGTH_SHORT).show();
+            }
+        });
+        bandeauHaut.addView(boutonCopierObjet);
 
         bandeauHaut.addView(separateurVertical());
 
@@ -438,7 +479,6 @@ public class InterfaceEditeur extends Activity {
     }
 // bas 2
 
-
 // haut 3
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
@@ -482,10 +522,10 @@ public class InterfaceEditeur extends Activity {
                 blueprintActif = Blueprint.fromJson(json, sceneActive);
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Erreur lors de la lecture du Blueprint.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_lecture_blueprint"), Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "Aucun Blueprint sauvegardé. Cliquez sur Sauvegarde avant de faire Play.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, Traducteur.get("erreur_aucun_blueprint_sauvegarde"), Toast.LENGTH_LONG).show();
         }
 
         Blueprint blueprintHud = null;
@@ -629,20 +669,25 @@ public class InterfaceEditeur extends Activity {
                 e.printStackTrace();
             }
 
-            Toast.makeText(this, "Projet sauvegardé avec succès.", Toast.LENGTH_LONG).show();
+            // NOUVEAU : Sauvegarde de la vignette du projet de manière sécurisée
+            if (canvasEditeur != null) {
+                String cheminVignette = new File(cheminProjet, "vignette.png").getAbsolutePath();
+                canvasEditeur.sauvegarderVignette(cheminVignette);
+            }
+
+            Toast.makeText(this, Traducteur.get("toast_projet_sauvegarde"), Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_sauvegarde"), Toast.LENGTH_SHORT).show();
         }
     }
 }
 // bas 3
-
-
-
+            
 
 
     
+
 
 
 

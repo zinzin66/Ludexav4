@@ -1,0 +1,245 @@
+================================================
+  DOCUMENTATION OFFICIELLE YOP.2D - BLUEPRINT
+================================================
+
+--- ÉVÉNEMENTS ---
+[Au Démarrage]
+S'exécute automatiquement et une seule fois dès que la scène est chargée à l'écran.
+
+[Fin de Clic]
+Se déclenche lorsque le joueur relâche son doigt de l'écran, n'importe où.
+
+[Au Clic sur Objet]
+Se déclenche lorsque le doigt du joueur touche l'Objet ciblé.
+
+[Début de Glisser] / [Fin de Glisser]
+Se déclenchent au moment où le joueur commence à faire glisser un objet déplaçable, et au moment où il le lâche.
+
+[Collision A/B]
+Se déclenche au moment exact où l'Objet A entre en contact physique avec l'Objet B.
+
+[Entrée de zone] / [Sortie de zone]
+Idéal pour les déclencheurs invisibles. S'active quand un objet entre ou sort d'une zone définie.
+
+[Au Survol] / [Fin de Survol]
+Gère le passage du doigt ou d'un pointeur au-dessus d'un objet, sans avoir besoin de cliquer.
+
+[Au Choc (Physique)]
+Détecte quand l'objet rebondit ou percute un élément solide avec la gravité activée.
+
+[Quand Variable Change]
+Surveille en permanence une Variable. Dès que sa valeur est modifiée, ce nœud lance la suite logique.
+
+[Événement Local]
+Un événement personnalisé que tu peux déclencher à distance grâce au nœud "Appeler Événement Local".
+
+[Au Clic Action (Aventure)]
+Se déclenche spécifiquement lorsque le bouton virtuel "ACTION" de l'interface est pressé.
+
+
+--- MOUVEMENTS & IA ---
+[Avancer en continu]
+Applique une vélocité constante. L'objet avancera tout seul dans la direction de son Angle de Rotation.
+
+[Poursuivre un objet]
+Fait avancer automatiquement l'Objet A vers l'Objet B (comme un missile guidé ou un ennemi).
+
+[Fuir un objet]
+Le comportement inverse de la poursuite. L'Objet A s'éloigne de l'Objet B.
+
+[Stopper les mouvements]
+Annule instantanément toutes les commandes de poursuite, fuite ou avancée continue sur un objet.
+
+
+--- LOGIQUE SPATIALE ---
+[Distance entre A et B]
+Calcule l'écart en pixels entre l'Objet A et l'Objet B. Possède deux sorties (Vrai/Faux) selon que la distance respecte la condition.
+
+[Orienter vers (Look At)]
+Fait pivoter l'Objet A pour qu'il regarde l'Objet B. Le "Décalage d'angle" permet de compenser si l'image de ton objet n'a pas été dessinée orientée vers la droite.
+
+
+--- LOGIQUE & CONDITIONS ---
+[Condition]
+Compare la valeur d'une Variable avec un nombre ou un texte. Sortie Vrai ou Faux.
+
+[Si objet A touche zone B]
+Vérifie instantanément si deux objets se chevauchent au moment précis où le nœud est appelé.
+
+[Si Objet Visible]
+Vérifie si l'objet ciblé est actuellement affiché à l'écran.
+
+[Si Objet a le Tag]
+Vérifie si l'objet possède l'étiquette (Tag) demandée (ex: "Ennemi", "Clé").
+
+[Condition Double (ET/OU)]
+Permet de vérifier deux conditions en même temps.
+
+[Appeler Fonction]
+Exécute un Blueprint externe sauvegardé dans le dossier "fonctions". Idéal pour les mécaniques répétitives.
+
+[Appeler Événement Local]
+Déclenche à distance un bloc "Événement Local" situé ailleurs dans le Blueprint actuel.
+
+[Si Joystick Actif]
+Vérifie si le joueur est actuellement en train de manipuler le joystick virtuel.
+
+
+--- SCÈNE & HUD ---
+[Changer de Scène]
+Charge une nouvelle pièce/niveau. La scène actuelle est automatiquement sauvegardée.
+
+[Recharger Scène actuelle]
+Réinitialise le niveau en cours. Parfait si le joueur rate une énigme.
+
+[Ouvrir HUD] / [Fermer HUD]
+Affiche une Scène par-dessus le jeu sans le mettre en pause. Idéal pour un inventaire ou un menu de paramètres.
+
+[Toast]
+Affiche un petit message système éphémère au bas de l'écran.
+
+[Fixer Caméra]
+Accroche la caméra à l'Objet ciblé pour le suivre automatiquement dans ses déplacements.
+
+[Tremblement de Caméra]
+Secoue l'écran. Utile pour donner de l'impact à une explosion ou une porte lourde.
+
+[Élasticité Caméra]
+Modifie la vitesse (entre 0.01 et 1.0) à laquelle la caméra suit sa cible pour un effet plus fluide ou plus rigide.
+
+[Afficher/Masquer Joystick] / [Afficher/Masquer Action]
+Contrôle la visibilité des interfaces de déplacement à l'écran (utile lors d'une cinématique).
+
+[Vibration]
+Fait vibrer la tablette pendant la durée indiquée en millisecondes.
+
+
+--- APPARENCE & OBJETS ---
+[Déplacer Objet]
+Téléporte instantanément l'objet aux coordonnées X et Y indiquées.
+
+[Modifier Couleur]
+Change la teinte de base de l'objet (si ce n'est pas une image).
+
+[Visibilité]
+Affiche ou masque un objet de la scène.
+
+[Modifier Déplaçable]
+Autorise ou interdit au joueur de glisser cet objet avec son doigt.
+
+[Modifier Verrouillage]
+Bloque un objet dans l'éditeur pour éviter de le déplacer par erreur lors de la création du niveau.
+
+[Changer Z-Order]
+Modifie la profondeur de l'objet (passe au premier plan ou à l'arrière-plan).
+
+[Changer Image]
+Remplace le visuel (Sprite) de l'objet par un autre fichier.
+
+[Rotation]
+Définit instantanément l'angle (en degrés) de l'objet.
+
+[Définir la taille (Scale)]
+Modifie l'échelle (zoom) de l'objet en largeur (X) et hauteur (Y).
+
+[Détruire Objet]
+Supprime définitivement l'objet de la scène.
+
+[Générer un clone (Spawner)]
+Clone l'objet Modèle demandé et le fait apparaître au centre de l'Objet Cible (le point d'apparition).
+
+[Définir le Tag]
+Attribue une étiquette (ex: "Projectile") à l'objet ciblé.
+
+[Détruire par Tag]
+Supprime d'un seul coup tous les objets de la scène portant l'étiquette demandée.
+
+[Filtre Couleur]
+Applique un effet matriciel sur l'objet (Sépia, Noir & Blanc, Inversion).
+
+[Clignotement (Blink)]
+Fait apparaître/disparaître l'objet à une vitesse donnée (en ms).
+
+[Surbrillance (Glow)]
+Entoure l'objet d'un contour lumineux coloré.
+
+
+--- TEXTES & DIALOGUES ---
+[Modifier Texte]
+Remplace entièrement le contenu d'un objet Texte.
+
+[Ajouter au Texte]
+Ajoute des mots à la fin d'un objet Texte existant (concaténation).
+
+[Afficher Dialogue]
+Lit une phrase depuis le fichier des dialogues via sa Clé, et l'injecte dans un objet Texte.
+
+
+--- VARIABLES & INVENTAIRE ---
+[Opération Mathématique]
+Effectue un calcul (+, -, *, /) sur la Variable ciblée avec une valeur donnée.
+
+[Limiter Valeur (Clamp)]
+Empêche une Variable de descendre sous un Minimum ou de dépasser un Maximum.
+
+[Modifier Variable] / [Ajouter à Variable]
+Remplace ou additionne une valeur simple à une Variable.
+
+[Nombre Aléatoire]
+Génère un nombre au hasard entre un Minimum et un Maximum et le stocke dans la Variable cible.
+
+[Ajouter à l'inventaire] / [Retirer de l'inventaire]
+Gère la liste des objets possédés par le joueur.
+
+[Si dans l'inventaire]
+Vérifie si un objet spécifique est possédé par le joueur. (Sortie Vrai/Faux).
+
+[Combinaison d'Objets]
+Détruit l'Objet A et l'Objet B pour faire apparaître le "Modèle Résultat" (ex: Clé cassée + Scotch = Clé réparée).
+
+[Point de Sauvegarde]
+Force immédiatement l'enregistrement de l'état de la scène et de l'inventaire en base de données.
+
+
+--- TEMPS ---
+[Timer]
+Déclenche un compte à rebours autonome. N'est pas affecté par la suite du Blueprint.
+
+[Chrono]
+Lance un chronomètre global pour mesurer le temps passé dans un niveau.
+
+[Attendre (ms)]
+Fait une pause (Délai) avant de poursuivre l'exécution de la suite des nœuds.
+
+
+--- AUDIO ---
+[Jouer un Son]
+Joue un effet sonore court (bruitage). Peut se superposer à d'autres sons.
+
+[Gérer Musique]
+Lance une piste audio longue. Arrête automatiquement la musique précédente.
+
+
+--- ANIMATIONS ---
+[Fondu (Alpha)]
+Rend l'objet progressivement transparent ou opaque.
+
+[Glisser Vers]
+Déplace l'objet vers de nouvelles coordonnées de manière fluide, avec une durée définie.
+
+[Jouer Animation]
+Lance une séquence d'images prédéfinie (Sprite animation) sur l'objet.
+
+
+--- PHYSIQUE ---
+[Activer Physique (Chute)]
+Soumet l'objet à la gravité terrestre du moteur.
+
+[Appliquer Impulsion (Saut)]
+Donne une force vers le haut à un objet physique.
+
+[Changer Rebond]
+Modifie la restitution d'énergie de l'objet (0 = bloc de plomb, 1.0 = balle rebondissante).
+
+[Si Objet en Chute]
+Vérifie si un objet physique est en train de tomber ou s'il est posé sur un sol.

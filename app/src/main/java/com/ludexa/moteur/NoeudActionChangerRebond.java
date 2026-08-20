@@ -1,3 +1,4 @@
+
 // haut 1
 package com.ludexa.moteur;
 
@@ -7,7 +8,7 @@ import java.util.List;
 public class NoeudActionChangerRebond extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;[span_13](start_span)[span_13](end_span)
     private String valeurRebond = "0.5";
 
     public NoeudActionChangerRebond() {
@@ -50,6 +51,8 @@ public class NoeudActionChangerRebond extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {

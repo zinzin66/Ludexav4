@@ -7,8 +7,8 @@ import java.util.List;
 public class NoeudActionModifierVerrouillage extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
-    private String valeurVerrouillage = "true"; // true par défaut pour verrouiller
+    // SUPPRIMÉ : private String nomCibleObjet;
+    private String valeurVerrouillage = "true"; 
 
     public NoeudActionModifierVerrouillage() {
         super(genererId(), "Modifier Verrouillage", "Actions");
@@ -21,7 +21,6 @@ public class NoeudActionModifierVerrouillage extends NoeudBase {
         ObjetBase obj = getCibleObjet();
         if (obj != null) {
             String valLower = valeurVerrouillage.toLowerCase().trim();
-            // Accepte oui/vrai/true pour verrouiller, sinon déverrouille
             obj.estVerrouille = valLower.equals("oui") || valLower.equals("vrai") || valLower.equals("true");
         }
         propagerExecution("Suivant");
@@ -54,7 +53,8 @@ public class NoeudActionModifierVerrouillage extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
-        // Reconnexion dynamique après chargement de la sauvegarde
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
@@ -79,9 +79,6 @@ public class NoeudActionModifierVerrouillage extends NoeudBase {
     }
 
     @Override
-    public boolean utiliseClavierTexte() { 
-        // Active l'interface de saisie (avec les boutons Vrai/Faux de votre éditeur)
-        return true; 
-    }
+    public boolean utiliseClavierTexte() { return true; }
 }
 // bas 1

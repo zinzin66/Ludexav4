@@ -27,11 +27,35 @@ public class ObjetBase {
     public int couleur = Color.BLUE;
     public String cheminImage = null;
     
-    // NOUVEAU : Etats pour l'Objet Bouton
     public String cheminImagePresse = null;
     public String cheminImageDesactive = null;
     public boolean estDesactive = false;
     
+    public String cibleJoystickId = null;
+    
+    public String filtreCouleur = "Aucun";
+    
+    public boolean clignotementActif = false;
+    public long clignotementVitesseMs = 500;
+    public long clignotementDureeTotalMs = 0;
+    public long tempsDebutClignotement = 0;
+    public transient boolean etatVisibleClignotement = true; 
+    
+    public boolean surbrillanceActive = false;
+    public String couleurSurbrillance = "Jaune";
+    
+    public float vitesseAvanceContinue = 0f;
+    public String idCiblePoursuite = null;
+    public float vitessePoursuite = 0f;
+    public boolean fuiteActive = false;
+    
+    public float intentionDeplacementX = 0f;
+    public float intentionDeplacementY = 0f;
+    
+    public float facteurParallaxe = 1.0f;
+    
+    public String tag = ""; 
+
     public String type = "carre"; 
     public boolean afficherFondColore = true;
     
@@ -46,13 +70,12 @@ public class ObjetBase {
     public String parentId = null;
     public float alpha = 1.0f;
 
-    // NOUVEAU : PHYSIQUE ARCADE
     public boolean estPhysique = false;
     public boolean estStatique = true;
     public float vitesseY = 0f;
     public float rebond = 0.4f;
+    public float graviteScale = 1.0f;
 
-    // SYSTÈME D'ANIMATION MULTIPLE
     public HashMap<String, List<String>> animations = new HashMap<>();
     public String animationActive = null;
     public int frameCourante = 0;
@@ -60,6 +83,16 @@ public class ObjetBase {
     public int vitesseFps = 8;
     public boolean boucleAnimation = false;
     public boolean animationEnCours = false;
+
+    public boolean sautillementActif = false;
+    public float sautillementIntensite = 0f;
+    public long sautillementDureeMs = 0;
+    public long tempsDebutSautillement = 0;
+    
+    // NOUVEAU : Variables pour traquer le mouvement
+    public boolean sautillementInfiniMouvement = false;
+    public transient float ancienneX = 0f;
+    public transient float ancienneY = 0f;
 
     public ObjetBase() {
         this.id = UUID.randomUUID().toString();
@@ -72,6 +105,8 @@ public class ObjetBase {
         this.y = y;
         this.largeur = largeur;
         this.hauteur = hauteur;
+        this.ancienneX = x;
+        this.ancienneY = y;
     }
 
     public ObjetBase clonerProfond() {
@@ -91,11 +126,30 @@ public class ObjetBase {
         copie.couleur = this.couleur;
         copie.cheminImage = this.cheminImage;
         
-        // Clonage des états du bouton
         copie.cheminImagePresse = this.cheminImagePresse;
         copie.cheminImageDesactive = this.cheminImageDesactive;
         copie.estDesactive = this.estDesactive;
+        copie.cibleJoystickId = this.cibleJoystickId;
         
+        copie.filtreCouleur = this.filtreCouleur;
+        copie.clignotementActif = this.clignotementActif;
+        copie.clignotementVitesseMs = this.clignotementVitesseMs;
+        copie.clignotementDureeTotalMs = this.clignotementDureeTotalMs;
+        copie.tempsDebutClignotement = this.tempsDebutClignotement;
+        copie.etatVisibleClignotement = this.etatVisibleClignotement;
+        copie.surbrillanceActive = this.surbrillanceActive;
+        copie.couleurSurbrillance = this.couleurSurbrillance;
+        
+        copie.vitesseAvanceContinue = this.vitesseAvanceContinue;
+        copie.idCiblePoursuite = this.idCiblePoursuite;
+        copie.vitessePoursuite = this.vitessePoursuite;
+        copie.fuiteActive = this.fuiteActive;
+        
+        copie.intentionDeplacementX = this.intentionDeplacementX;
+        copie.intentionDeplacementY = this.intentionDeplacementY;
+        
+        copie.facteurParallaxe = this.facteurParallaxe;
+        copie.tag = this.tag; 
         copie.type = this.type;
         copie.afficherFondColore = this.afficherFondColore;
         copie.contenuTexte = this.contenuTexte;
@@ -107,13 +161,21 @@ public class ObjetBase {
         copie.parentId = this.parentId;
         copie.alpha = this.alpha;
         
-        // Clonage des propriétés physiques
         copie.estPhysique = this.estPhysique;
         copie.estStatique = this.estStatique;
         copie.vitesseY = this.vitesseY;
         copie.rebond = this.rebond;
+        copie.graviteScale = this.graviteScale;
         
-        // Clonage sécurisé du dictionnaire d'animations
+        copie.sautillementActif = this.sautillementActif;
+        copie.sautillementIntensite = this.sautillementIntensite;
+        copie.sautillementDureeMs = this.sautillementDureeMs;
+        copie.tempsDebutSautillement = this.tempsDebutSautillement;
+        
+        copie.sautillementInfiniMouvement = this.sautillementInfiniMouvement;
+        copie.ancienneX = this.x;
+        copie.ancienneY = this.y;
+        
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
         }

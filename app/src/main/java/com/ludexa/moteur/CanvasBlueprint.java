@@ -1,4 +1,4 @@
-// haut 1 11 aout
+// haut 1
 package com.ludexa.moteur;
 
 import android.content.ClipData;
@@ -149,7 +149,7 @@ public class CanvasBlueprint extends View {
                             Class<?> clazz = Class.forName("com.ludexa.moteur." + typeNoeud);
                             nouveauNoeud = (NoeudBase) clazz.newInstance();
                         } catch (Exception e) {
-                            Toast.makeText(getContext(), "Erreur création noeud : " + typeNoeud, Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), Traducteur.get("erreur_creation_noeud") + " : " + typeNoeud, Toast.LENGTH_LONG).show();
                         }
                         
                         if (nouveauNoeud != null) {
@@ -165,27 +165,18 @@ public class CanvasBlueprint extends View {
             }
         });
     }
+// bas 1
 
+// haut 2
     public void setBlueprint(Blueprint blueprint) {
         this.blueprintActuel = blueprint;
         noeudSelectionne = null;
         invalidate();
     }
 
-    public void zoomPlus() {
-        niveauZoom *= 1.25f;
-        invalidate();
-    }
-
-    public void zoomMoins() {
-        niveauZoom /= 1.25f;
-        invalidate();
-    }
-
-    public void zoomReset() {
-        niveauZoom = 1.0f;
-        invalidate();
-    }
+    public void zoomPlus() { niveauZoom *= 1.25f; invalidate(); }
+    public void zoomMoins() { niveauZoom /= 1.25f; invalidate(); }
+    public void zoomReset() { niveauZoom = 1.0f; invalidate(); }
     
     public void supprimerNoeudSelectionne() {
         if (noeudSelectionne != null && blueprintActuel != null) {
@@ -211,11 +202,94 @@ public class CanvasBlueprint extends View {
         }
     }
 
+    public void dupliquerNoeudSelectionne() {
+        if (noeudSelectionne != null && blueprintActuel != null) {
+            try {
+                Class<?> clazz = noeudSelectionne.getClass();
+                NoeudBase nouveauNoeud = (NoeudBase) clazz.newInstance();
+
+                nouveauNoeud.nom = noeudSelectionne.nom;
+
+                // CORRECTION : Protection lors de la duplication des nœuds
+                if (noeudSelectionne.requiertCibleObjet()) {
+                    if ("__OBJET_IMPLIQUE__".equals(noeudSelectionne.nomCibleObjet)) nouveauNoeud.nomCibleObjet = "__OBJET_IMPLIQUE__";
+                    else nouveauNoeud.setCibleObjet(noeudSelectionne.getCibleObjet());
+                }
+                if (noeudSelectionne.requiertCibleObjetB()) {
+                    if ("__OBJET_IMPLIQUE__".equals(noeudSelectionne.nomCibleObjetB)) nouveauNoeud.nomCibleObjetB = "__OBJET_IMPLIQUE__";
+                    else nouveauNoeud.setCibleObjetB(noeudSelectionne.getCibleObjetB());
+                }
+                if (noeudSelectionne.requiertCibleVariable()) nouveauNoeud.setCibleVariable(noeudSelectionne.getCibleVariable());
+                if (noeudSelectionne.requiertCibleScene()) nouveauNoeud.setCibleScene(noeudSelectionne.getCibleScene());
+
+                if (noeudSelectionne.getNomsParametres() != null) {
+                    for (String param : noeudSelectionne.getNomsParametres()) {
+                        nouveauNoeud.setValeurParametre(param, noeudSelectionne.getValeurParametre(param));
+                    }
+                }
+
+                Float xObj = blueprintActuel.noeudsX.get(noeudSelectionne.id);
+                Float yObj = blueprintActuel.noeudsY.get(noeudSelectionne.id);
+                float newX = (xObj != null ? xObj : 0) + 200f;
+                float newY = (yObj != null ? yObj : 0) + 200f;
+
+                blueprintActuel.ajouterNoeud(nouveauNoeud, newX, newY);
+                
+                noeudSelectionne = nouveauNoeud;
+                invalidate();
+                
+                Toast.makeText(getContext(), Traducteur.get("toast_noeud_copie"), Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(getContext(), Traducteur.get("erreur_duplication"), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    public void basculerRepliNoeudSelectionne() {
+        if (noeudSelectionne != null) {
+            noeudSelectionne.estReplie = !noeudSelectionne.estReplie;
+            invalidate();
+            Toast.makeText(getContext(), noeudSelectionne.estReplie ? Traducteur.get("toast_noeuds_masques") : Traducteur.get("toast_noeuds_affiches"), Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), Traducteur.get("toast_select_noeud"), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private java.util.Set<String> getNoeudsMasques() {
+        java.util.Set<String> masques = new java.util.HashSet<>();
+        if (blueprintActuel == null) return masques;
+
+        java.util.List<NoeudBase> aTraiter = new java.util.ArrayList<>();
+        for (NoeudBase n : blueprintActuel.noeuds) {
+            if (n.estReplie) {
+                for (Blueprint.Lien lien : blueprintActuel.liens) {
+                    if (lien.noeudDepart == n) {
+                        aTraiter.add(lien.noeudArrivee);
+                    }
+                }
+            }
+        }
+
+        int index = 0;
+        while (index < aTraiter.size()) {
+            NoeudBase courant = aTraiter.get(index);
+            if (!masques.contains(courant.id)) {
+                masques.add(courant.id);
+                for (Blueprint.Lien lien : blueprintActuel.liens) {
+                    if (lien.noeudDepart == courant) {
+                        aTraiter.add(lien.noeudArrivee);
+                    }
+                }
+            }
+            index++;
+        }
+        return masques;
+    }
+
     public NoeudBase getNoeudSelectionne() {
         return noeudSelectionne;
     }
-// bas 1
-// haut 2
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -236,9 +310,13 @@ public class CanvasBlueprint extends View {
         
         canvas.translate(cameraX, cameraY);
         
+        java.util.Set<String> noeudsMasques = getNoeudsMasques();
+
         if (blueprintActuel != null) {
             Path path = new Path();
             for (Blueprint.Lien lien : blueprintActuel.liens) {
+                if (noeudsMasques.contains(lien.noeudArrivee.id)) continue;
+
                 Port pSortie = trouverPortParNom(lien.noeudDepart.portsSortie, lien.portSortieNom);
                 Port pEntree = trouverPortParNom(lien.noeudArrivee.portsEntree, lien.portEntreeNom);
                 
@@ -259,13 +337,16 @@ public class CanvasBlueprint extends View {
             }
 
             for (NoeudBase noeud : blueprintActuel.noeuds) {
+                if (noeudsMasques.contains(noeud.id)) continue;
                 dessinerNoeud(canvas, noeud);
             }
         }
         
         canvas.restore();
     }
+// bas 2
 
+// haut 3
     private Port trouverPortParNom(java.util.ArrayList<Port> ports, String nom) {
         for (Port p : ports) {
             if (p.nom.equals(nom)) return p;
@@ -310,8 +391,7 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
-// bas 2
-// haut 3
+
     private float calculerHauteurResume(NoeudBase noeud) {
         int count = 0;
         if (noeud.requiertCibleObjet()) count++;
@@ -334,46 +414,48 @@ public class CanvasBlueprint extends View {
     private float getLargeurNoeud(NoeudBase noeud) {
         float max = 220f;
         
-        float wTitre = paintTexteTitre.measureText(noeud.nom) + 40f;
+        String texteTitre = Traducteur.get(noeud.nom) + (noeud.estReplie ? " [...]" : "");
+        float wTitre = paintTexteTitre.measureText(texteTitre) + 40f;
         if (wTitre > max) max = wTitre;
         
         int maxPorts = Math.max(noeud.portsEntree.size(), noeud.portsSortie.size());
         for (int i = 0; i < maxPorts; i++) {
             float rowWidth = 60f; 
             if (i < noeud.portsEntree.size()) {
-                rowWidth += paintTextePort.measureText(noeud.portsEntree.get(i).nom);
+                rowWidth += paintTextePort.measureText(Traducteur.get(noeud.portsEntree.get(i).nom));
             }
             if (i < noeud.portsSortie.size()) {
-                rowWidth += paintTextePort.measureText(noeud.portsSortie.get(i).nom);
+                rowWidth += paintTextePort.measureText(Traducteur.get(noeud.portsSortie.get(i).nom));
             }
             if (rowWidth > max) max = rowWidth;
         }
 
+        // CORRECTION : Forcer la reconnaissance du mot-clé pour éviter un calcul de largeur tronqué
         if (noeud.requiertCibleObjet()) {
-            String nom = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "Aucune";
-            float w = paintResume.measureText("Objet : " + nom) + 30f;
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : Traducteur.get("valeur_aucune"));
+            float w = paintResume.measureText(Traducteur.get("noeud_cible_objet") + " : " + nom) + 30f;
             if (w > max) max = w;
         }
         if (noeud.requiertCibleObjetB()) {
-            String nom = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "Aucune";
-            float w = paintResume.measureText("Objet B : " + nom) + 30f;
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : Traducteur.get("valeur_aucune"));
+            float w = paintResume.measureText(Traducteur.get("noeud_cible_objet_b") + " : " + nom) + 30f;
             if (w > max) max = w;
         }
         if (noeud.requiertCibleVariable()) {
-            String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "Aucune";
-            float w = paintResume.measureText("Variable : " + nom) + 30f;
+            String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : Traducteur.get("valeur_aucune");
+            float w = paintResume.measureText(Traducteur.get("noeud_cible_variable") + " : " + nom) + 30f;
             if (w > max) max = w;
         }
         if (noeud.requiertCibleScene()) {
-            String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : "Aucune";
-            float w = paintResume.measureText("Scène : " + nom) + 30f;
+            String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : Traducteur.get("valeur_aucune");
+            float w = paintResume.measureText(Traducteur.get("noeud_cible_scene") + " : " + nom) + 30f;
             if (w > max) max = w;
         }
         if (noeud.getNomsParametres() != null) {
             for (String param : noeud.getNomsParametres()) {
                 String val = noeud.getValeurParametre(param);
                 if (val == null) val = "";
-                String ligne = param + " : " + val;
+                String ligne = Traducteur.get(param) + " : " + val;
                 float w = paintResume.measureText(ligne) + 30f;
                 if (w > max) max = w;
             }
@@ -405,10 +487,13 @@ public class CanvasBlueprint extends View {
         canvas.drawRoundRect(rectFond, 20, 20, paintNoeudBG);
         
         RectF rectTitre = new RectF(x, y, x + largeur, y + 45);
+        paintTitreBG.setColor(noeud.estReplie ? Palette.fondListe : Palette.enTeteDialogues);
         canvas.drawRoundRect(rectTitre, 20, 20, paintTitreBG);
         canvas.drawRect(x, y + 25, x + largeur, y + 45, paintTitreBG);
+        paintTitreBG.setColor(Palette.enTeteDialogues); 
         
-        canvas.drawText(noeud.nom, x + 15, y + 32, paintTexteTitre);
+        String texteTitre = Traducteur.get(noeud.nom) + (noeud.estReplie ? " [...]" : "");
+        canvas.drawText(texteTitre, x + 15, y + 32, paintTexteTitre);
         
         float startY = y + 70;
         for (int i = 0; i < noeud.portsEntree.size(); i++) {
@@ -416,7 +501,7 @@ public class CanvasBlueprint extends View {
             definirCouleurPort(p);
             float portY = startY + (i * 40);
             canvas.drawCircle(x, portY, 9, paintPort);
-            canvas.drawText(p.nom, x + 20, portY + 6, paintTextePort);
+            canvas.drawText(Traducteur.get(p.nom), x + 20, portY + 6, paintTextePort);
         }
         
         for (int i = 0; i < noeud.portsSortie.size(); i++) {
@@ -424,38 +509,41 @@ public class CanvasBlueprint extends View {
             definirCouleurPort(p);
             float portY = startY + (i * 40);
             canvas.drawCircle(x + largeur, portY, 9, paintPort);
-            float textWidth = paintTextePort.measureText(p.nom);
-            canvas.drawText(p.nom, x + largeur - 20 - textWidth, portY + 6, paintTextePort);
+            float textWidth = paintTextePort.measureText(Traducteur.get(p.nom));
+            canvas.drawText(Traducteur.get(p.nom), x + largeur - 20 - textWidth, portY + 6, paintTextePort);
         }
         
-        // Résumé des paramètres
         float currentY = y + 60 + (maxPorts * 40) + 15;
-        
+// bas 3
+
+
+// haut 4
+        // CORRECTION VISUELLE : L'éditeur affichera désormais correctement le texte au lieu de "Aucune"
         if (noeud.requiertCibleObjet()) {
-            String nom = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "Aucune";
-            canvas.drawText("Objet : " + nom, x + 15, currentY, paintResume);
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : Traducteur.get("valeur_aucune"));
+            canvas.drawText(Traducteur.get("noeud_cible_objet") + " : " + nom, x + 15, currentY, paintResume);
             currentY += 28;
         }
         if (noeud.requiertCibleObjetB()) {
-            String nom = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "Aucune";
-            canvas.drawText("Objet B : " + nom, x + 15, currentY, paintResume);
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : Traducteur.get("valeur_aucune"));
+            canvas.drawText(Traducteur.get("noeud_cible_objet_b") + " : " + nom, x + 15, currentY, paintResume);
             currentY += 28;
         }
         if (noeud.requiertCibleVariable()) {
-            String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "Aucune";
-            canvas.drawText("Variable : " + nom, x + 15, currentY, paintResume);
+            String nom = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : Traducteur.get("valeur_aucune");
+            canvas.drawText(Traducteur.get("noeud_cible_variable") + " : " + nom, x + 15, currentY, paintResume);
             currentY += 28;
         }
         if (noeud.requiertCibleScene()) {
-            String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : "Aucune";
-            canvas.drawText("Scène : " + nom, x + 15, currentY, paintResume);
+            String nom = (noeud.getCibleScene() != null && noeud.getCibleScene().nom != null) ? noeud.getCibleScene().nom : Traducteur.get("valeur_aucune");
+            canvas.drawText(Traducteur.get("noeud_cible_scene") + " : " + nom, x + 15, currentY, paintResume);
             currentY += 28;
         }
         if (noeud.getNomsParametres() != null) {
             for (String param : noeud.getNomsParametres()) {
                 String val = noeud.getValeurParametre(param);
                 if (val == null) val = "";
-                String ligne = param + " : " + val;
+                String ligne = Traducteur.get(param) + " : " + val;
                 canvas.drawText(ligne, x + 15, currentY, paintResume);
                 currentY += 28;
             }
@@ -465,7 +553,7 @@ public class CanvasBlueprint extends View {
             float btnY = y + hauteurBase;
             RectF rectBouton = new RectF(x + 10, btnY, x + largeur - 10, btnY + 40);
             canvas.drawRoundRect(rectBouton, 12, 12, paintBoutonEdition);
-            canvas.drawText("📝 Configurer", x + largeur / 2f, btnY + 26, paintTexteBouton);
+            canvas.drawText("📝 " + Traducteur.get("bouton_configurer"), x + largeur / 2f, btnY + 26, paintTexteBouton);
         }
     }
     
@@ -480,9 +568,12 @@ public class CanvasBlueprint extends View {
     private InfoPort trouverPortSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
         float margeY = 40f; 
+        java.util.Set<String> masques = getNoeudsMasques();
 
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            if (masques.contains(noeud.id)) continue;
+            
             Float nx = blueprintActuel.noeudsX.get(noeud.id);
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             if (nx == null || ny == null) continue;
@@ -508,9 +599,10 @@ public class CanvasBlueprint extends View {
     
     private NoeudBase trouverZoneEditionSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
+        java.util.Set<String> masques = getNoeudsMasques();
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
-            if (!noeud.aDesParametresEditables()) continue;
+            if (masques.contains(noeud.id) || !noeud.aDesParametresEditables()) continue;
             
             Float nx = blueprintActuel.noeudsX.get(noeud.id);
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
@@ -530,8 +622,11 @@ public class CanvasBlueprint extends View {
 
     private NoeudBase trouverNoeudSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
+        java.util.Set<String> masques = getNoeudsMasques();
         for (int i = blueprintActuel.noeuds.size() - 1; i >= 0; i--) {
             NoeudBase noeud = blueprintActuel.noeuds.get(i);
+            if (masques.contains(noeud.id)) continue;
+            
             Float nx = blueprintActuel.noeudsX.get(noeud.id);
             Float ny = blueprintActuel.noeudsY.get(noeud.id);
             
@@ -550,8 +645,11 @@ public class CanvasBlueprint extends View {
     private Blueprint.Lien trouverLienSousToucher(float sceneX, float sceneY) {
         if (blueprintActuel == null) return null;
         float seuilDistance = 40f; 
+        java.util.Set<String> masques = getNoeudsMasques();
 
         for (Blueprint.Lien lien : blueprintActuel.liens) {
+            if (masques.contains(lien.noeudArrivee.id)) continue;
+            
             Port pSortie = trouverPortParNom(lien.noeudDepart.portsSortie, lien.portSortieNom);
             Port pEntree = trouverPortParNom(lien.noeudArrivee.portsEntree, lien.portEntreeNom);
             
@@ -593,8 +691,7 @@ public class CanvasBlueprint extends View {
         }
         return null;
     }
-// bas 3
- // haut 4
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
@@ -732,3 +829,15 @@ public class CanvasBlueprint extends View {
     }
 }
 // bas 4
+
+
+
+        
+
+
+
+
+    
+
+
+

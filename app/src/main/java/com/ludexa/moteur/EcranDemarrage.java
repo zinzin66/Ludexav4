@@ -1,4 +1,4 @@
-// haut 1 07
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Activity;
@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -30,32 +31,45 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Écran de démarrage YOP.2D — mise en page façon Godot :
- *  - colonne gauche : identité (logo, baseline, langue)
- *  - colonne droite : bandeau d'outils compact en haut, liste des projets au centre,
- *                     barre d'actions contextuelles en bas (Éditer / Renommer /
- *                     Dupliquer / Exporter / Supprimer).
- */
 public class EcranDemarrage extends Activity {
 
+    public static String langueCourante = "fr";
+    private TextView libelleLangue;
+
+    // Projets Locaux
     private ListView listeProjets;
     private AdaptateurProjets adaptateurProjets;
     private final ArrayList<File> dossiersProjets = new ArrayList<>();
+    private final ArrayList<ItemProjet> itemsProjets = new ArrayList<>();
     private int positionSelectionnee = -1;
+
+    // Projets d'Exemples (Nouveau)
+    private ListView listeExemples;
+    private AdaptateurProjets adaptateurExemples;
+    private final ArrayList<ItemProjet> itemsExemples = new ArrayList<>();
 
     private LinearLayout barreActions;
     private TextView etiquetteSelection;
+    
+    private static final int REQUEST_CODE_EXPORT = 2001;
+    private File projetAExporter = null;
+
+    // Structure pour unifier l'affichage des deux listes
+    private class ItemProjet {
+        String nom;
+        String sousTitre;
+        File dossier;
+        String nomZipExemple;
+        boolean estExemple;
+    }
 
     // ---------------------------------------------------------------- outils UI
 
-    /** Conversion dp -> pixels : indispensable pour rester net sur toutes les tablettes. */
     private int dp(float valeur) {
         return Math.round(TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, valeur, getResources().getDisplayMetrics()));
     }
 
-    /** Fond arrondi réutilisable (panneaux, boutons, champs). */
     private GradientDrawable fond(int couleur, int rayonDp, int couleurBordure, int epaisseurDp) {
         GradientDrawable g = new GradientDrawable();
         g.setColor(couleur);
@@ -66,28 +80,12 @@ public class EcranDemarrage extends Activity {
         return g;
     }
 
-    // --- Couleurs dérivées directement de Palette.java (aucune valeur en dur) ---
-    private int couleurSurface() {
-        return Palette.canvasFond;      // panneau de droite
-    }
+    private int couleurSurface() { return Palette.canvasFond; }
+    private int couleurFondListe() { return Palette.fondListe; }
+    private int couleurBordure() { return Palette.bordure; }
+    private int couleurSelection() { return Palette.boutonSurvol; }
+    private int couleurTexteSecondaire() { return Palette.texteSelectionne; }
 
-    private int couleurFondListe() {
-        return Palette.fondListe;       // zone de liste des projets
-    }
-
-    private int couleurBordure() {
-        return Palette.bordure;
-    }
-
-    private int couleurSelection() {
-        return Palette.boutonSurvol;    // ligne sélectionnée
-    }
-
-    private int couleurTexteSecondaire() {
-        return Palette.texteSelectionne;
-    }
-
-    /** Petit bouton icône du bandeau (style Godot : compact, carré, discret). */
     private ImageButton boutonBandeau(int idIcone, String description, View.OnClickListener action) {
         ImageButton b = new ImageButton(this);
         b.setImageResource(idIcone);
@@ -103,7 +101,6 @@ public class EcranDemarrage extends Activity {
         return b;
     }
 
-    /** Bouton texte compact de la barre d'actions du bas. */
     private TextView boutonAction(String libelle, boolean destructif, View.OnClickListener action) {
         TextView t = new TextView(this);
         t.setText(libelle);
@@ -139,6 +136,8 @@ public class EcranDemarrage extends Activity {
         super.onCreate(savedInstanceState);
 
         NoeudBase.contexteApplication = this;
+        Traducteur.initialiser(this, langueCourante); 
+        RegistreNoeuds.initialiser(); 
 
         LinearLayout layoutPrincipal = new LinearLayout(this);
         layoutPrincipal.setOrientation(LinearLayout.HORIZONTAL);
@@ -151,12 +150,40 @@ public class EcranDemarrage extends Activity {
         setContentView(layoutPrincipal);
 
         chargerListeProjets();
+        chargerListeExemples();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         chargerListeProjets();
+        chargerListeExemples();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_EXPORT && resultCode == Activity.RESULT_OK) {
+            if (data != null && data.getData() != null && projetAExporter != null) {
+                try {
+                    OutputStream out = getContentResolver().openOutputStream(data.getData());
+                    ZipOutputStream zip = new ZipOutputStream(out);
+                    zipperRecursif(projetAExporter, "", zip);
+                    zip.close();
+                    if (out != null) out.close();
+
+                    new AlertDialog.Builder(this)
+                            .setTitle(Traducteur.get("export_termine"))
+                            .setMessage(Traducteur.get("archive_creee"))
+                            .setPositiveButton(Traducteur.get("bouton_ok"), null)
+                            .show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, Traducteur.get("erreur_export"), Toast.LENGTH_SHORT).show();
+                }
+                projetAExporter = null; 
+            }
+        }
     }
 
     // ---------------------------------------------------------------- colonne gauche
@@ -177,7 +204,7 @@ public class EcranDemarrage extends Activity {
         colonneGauche.addView(logo, pLogo);
 
         TextView titre = new TextView(this);
-        titre.setText("YOP.2D");
+        titre.setText(Traducteur.get("app_nom"));
         titre.setTextSize(28f);
         titre.setGravity(Gravity.CENTER);
         titre.setLetterSpacing(0.12f);
@@ -186,7 +213,7 @@ public class EcranDemarrage extends Activity {
         colonneGauche.addView(titre);
 
         TextView baseline = new TextView(this);
-        baseline.setText("Moteur de jeu 2D — créez sans coder.");
+        baseline.setText(Traducteur.get("demarrage_baseline"));
         baseline.setTextSize(13f);
         baseline.setGravity(Gravity.CENTER);
         baseline.setPadding(0, dp(6), 0, dp(20));
@@ -196,11 +223,12 @@ public class EcranDemarrage extends Activity {
         LinearLayout rangeeLangue = new LinearLayout(this);
         rangeeLangue.setOrientation(LinearLayout.HORIZONTAL);
         rangeeLangue.setGravity(Gravity.CENTER);
-        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, "Langue : Français", v ->
-                Toast.makeText(this, "Langue : Français", Toast.LENGTH_SHORT).show()));
+        
+        rangeeLangue.addView(boutonBandeau(R.drawable.language_24px, Traducteur.get("demarrage_langue"), v -> afficherDialogueLangue()));
 
-        TextView libelleLangue = new TextView(this);
-        libelleLangue.setText("Français");
+        libelleLangue = new TextView(this);
+        String labelCourant = Traducteur.get("langue_" + langueCourante);
+        libelleLangue.setText(labelCourant);
         libelleLangue.setTextSize(13f);
         libelleLangue.setTextColor(couleurTexteSecondaire());
         libelleLangue.setGravity(Gravity.CENTER_VERTICAL);
@@ -211,7 +239,34 @@ public class EcranDemarrage extends Activity {
         return colonneGauche;
     }
 
-    // ---------------------------------------------------------------- colonne droite
+    private void afficherDialogueLangue() {
+        String[] langues = {
+            Traducteur.get("langue_fr"), 
+            Traducteur.get("langue_en"), 
+            Traducteur.get("langue_es"), 
+            Traducteur.get("langue_pt"), 
+            Traducteur.get("langue_ru")
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(Traducteur.get("demarrage_choisir_langue"));
+        builder.setItems(langues, (dialog, which) -> {
+            switch (which) {
+                case 0: langueCourante = "fr"; break;
+                case 1: langueCourante = "en"; break;
+                case 2: langueCourante = "es"; break;
+                case 3: langueCourante = "pt"; break;
+                case 4: langueCourante = "ru"; break;
+            }
+            Traducteur.initialiser(this, langueCourante);
+            RegistreNoeuds.initialiser(); 
+            recreate(); 
+        });
+        builder.show();
+    }
+// bas 1
+
+// haut 2
+    // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
 
     private View construireColonneDroite() {
         LinearLayout colonneDroite = new LinearLayout(this);
@@ -223,15 +278,38 @@ public class EcranDemarrage extends Activity {
         lp.setMargins(dp(10), 0, 0, 0);
         colonneDroite.setLayoutParams(lp);
 
-        colonneDroite.addView(construireBandeauOutils());
-        colonneDroite.addView(construireEnteteListe());
-        colonneDroite.addView(construireListe());
-        colonneDroite.addView(construireBarreActions());
+        // --- BLOC HAUT : MES PROJETS ---
+        LinearLayout blocHaut = new LinearLayout(this);
+        blocHaut.setOrientation(LinearLayout.VERTICAL);
+        blocHaut.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        blocHaut.addView(construireBandeauOutils());
+        blocHaut.addView(construireEnteteListe(Traducteur.get("demarrage_titre_projets")));
+        blocHaut.addView(construireListeProjets());
+        blocHaut.addView(construireBarreActions());
+
+        // --- SEPARATEUR HORIZONTAL ---
+        View separateurH = new View(this);
+        separateurH.setBackgroundColor(couleurBordure());
+        LinearLayout.LayoutParams lpH = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
+        lpH.setMargins(0, dp(6), 0, dp(6));
+        separateurH.setLayoutParams(lpH);
+
+        // --- BLOC BAS : PROJETS D'EXEMPLE ---
+        LinearLayout blocBas = new LinearLayout(this);
+        blocBas.setOrientation(LinearLayout.VERTICAL);
+        blocBas.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        blocBas.addView(construireEnteteListe("MODÈLES & EXEMPLES"));
+        blocBas.addView(construireListeExemples());
+
+        colonneDroite.addView(blocHaut);
+        colonneDroite.addView(separateurH);
+        colonneDroite.addView(blocBas);
 
         return colonneDroite;
     }
 
-    /** Bandeau supérieur type Godot : petits boutons icônes alignés à gauche. */
     private View construireBandeauOutils() {
         LinearLayout bandeau = new LinearLayout(this);
         bandeau.setOrientation(LinearLayout.HORIZONTAL);
@@ -239,19 +317,18 @@ public class EcranDemarrage extends Activity {
         bandeau.setPadding(dp(6), dp(6), dp(6), dp(6));
         bandeau.setBackground(fond(Palette.fondPanneaux, 8, couleurBordure(), 1));
 
-        bandeau.addView(boutonBandeau(R.drawable.add_24px, "Créer un projet",
+        bandeau.addView(boutonBandeau(R.drawable.add_24px, Traducteur.get("demarrage_creer_projet"),
                 v -> afficherDialogueCreationProjet()));
-        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, "Ouvrir un projet téléchargé",
-                v -> Toast.makeText(this, "Import de projet : à venir", Toast.LENGTH_SHORT).show()));
+        bandeau.addView(boutonBandeau(R.drawable.folder_open_24px, Traducteur.get("demarrage_ouvrir_projet"),
+                v -> Toast.makeText(this, Traducteur.get("toast_import_a_venir"), Toast.LENGTH_SHORT).show()));
 
         bandeau.addView(separateurVertical());
 
-        bandeau.addView(boutonBandeau(R.drawable.bug_report_24px, "Diagnostic du dossier projets",
+        bandeau.addView(boutonBandeau(R.drawable.bug_report_24px, Traducteur.get("demarrage_diagnostic"),
                 v -> afficherDiagnosticDossier()));
-        bandeau.addView(boutonBandeau(R.drawable.build_24px, "Test mkdirs",
+        bandeau.addView(boutonBandeau(R.drawable.build_24px, Traducteur.get("demarrage_test_mkdirs"),
                 v -> afficherTestMkdirs()));
 
-        // Espace élastique puis compteur de projets, aligné à droite.
         View espace = new View(this);
         espace.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeau.addView(espace);
@@ -265,17 +342,17 @@ public class EcranDemarrage extends Activity {
         return bandeau;
     }
 
-    private View construireEnteteListe() {
+    private View construireEnteteListe(String titre) {
         TextView titreListe = new TextView(this);
-        titreListe.setText("PROJETS");
+        titreListe.setText(titre);
         titreListe.setTextSize(11f);
         titreListe.setLetterSpacing(0.18f);
-        titreListe.setPadding(dp(4), dp(14), 0, dp(6));
+        titreListe.setPadding(dp(4), dp(10), 0, dp(6));
         titreListe.setTextColor(couleurTexteSecondaire());
         return titreListe;
     }
 
-    private View construireListe() {
+    private View construireListeProjets() {
         FrameLayout conteneur = new FrameLayout(this);
         conteneur.setBackground(fond(couleurFondListe(), 8, couleurBordure(), 1));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -294,24 +371,42 @@ public class EcranDemarrage extends Activity {
         return conteneur;
     }
 
-    /** Barre d'actions contextuelles, en bas de la colonne des projets. */
+    private View construireListeExemples() {
+        FrameLayout conteneur = new FrameLayout(this);
+        conteneur.setBackground(fond(couleurFondListe(), 8, couleurBordure(), 1));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        conteneur.setLayoutParams(lp);
+
+        listeExemples = new ListView(this);
+        listeExemples.setDivider(null);
+        listeExemples.setDividerHeight(0);
+        listeExemples.setPadding(dp(6), dp(6), dp(6), dp(6));
+        listeExemples.setClipToPadding(false);
+        listeExemples.setSelector(new GradientDrawable());
+        conteneur.addView(listeExemples, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+        return conteneur;
+    }
+
     private View construireBarreActions() {
         barreActions = new LinearLayout(this);
         barreActions.setOrientation(LinearLayout.HORIZONTAL);
         barreActions.setPadding(dp(6), dp(8), dp(0), dp(2));
 
-        barreActions.addView(boutonAction("Éditer", false, v -> actionEditer()));
-        barreActions.addView(boutonAction("Renommer", false, v -> actionRenommer()));
-        barreActions.addView(boutonAction("Dupliquer", false, v -> actionDupliquer()));
-        barreActions.addView(boutonAction("Exporter", false, v -> actionExporter()));
-        barreActions.addView(boutonAction("Supprimer", true, v -> actionSupprimer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_editer"), false, v -> actionEditer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_renommer"), false, v -> actionRenommer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_dupliquer"), false, v -> actionDupliquer()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_exporter"), false, v -> actionExporter()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_supprimer"), true, v -> actionSupprimer()));
 
         majEtatActions();
         return barreActions;
     }
 
     private void majEtatActions() {
-        boolean actif = positionSelectionnee >= 0 && positionSelectionnee < dossiersProjets.size();
+        boolean actif = positionSelectionnee >= 0 && positionSelectionnee < itemsProjets.size();
         if (barreActions != null) {
             for (int i = 0; i < barreActions.getChildCount(); i++) {
                 View enfant = barreActions.getChildAt(i);
@@ -320,80 +415,132 @@ public class EcranDemarrage extends Activity {
             }
         }
         if (etiquetteSelection != null) {
-            int total = dossiersProjets.size();
+            int total = itemsProjets.size();
             etiquetteSelection.setText(actif
-                    ? "1 projet sélectionné · " + total + " au total"
-                    : total + " projet(s)");
+                    ? Traducteur.get("demarrage_un_projet_select") + total + Traducteur.get("demarrage_au_total")
+                    : total + " " + Traducteur.get("demarrage_projets"));
         }
     }
-// bas 1
-            
-// haut 2
 
-    // ---------------------------------------------------------------- adaptateur liste
+    // ---------------------------------------------------------------- adaptateur liste AVEC IMAGE
 
-    private class AdaptateurProjets extends ArrayAdapter<String> {
-        private final ArrayList<String> sousTitres;
-
-        AdaptateurProjets(ArrayList<String> noms, ArrayList<String> sousTitres) {
-            super(EcranDemarrage.this, 0, noms);
-            this.sousTitres = sousTitres;
+    private class AdaptateurProjets extends ArrayAdapter<ItemProjet> {
+        
+        AdaptateurProjets(ArrayList<ItemProjet> items) {
+            super(EcranDemarrage.this, 0, items);
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LinearLayout ligne;
+            ImageView vignette;
             TextView titre;
             TextView sousTitre;
 
             if (convertView == null) {
                 ligne = new LinearLayout(EcranDemarrage.this);
-                ligne.setOrientation(LinearLayout.VERTICAL);
-                ligne.setPadding(dp(12), dp(10), dp(12), dp(10));
+                ligne.setOrientation(LinearLayout.HORIZONTAL);
+                ligne.setGravity(Gravity.CENTER_VERTICAL);
+                ligne.setPadding(dp(8), dp(8), dp(8), dp(8));
+
+                // L'image de la vignette
+                vignette = new ImageView(EcranDemarrage.this);
+                vignette.setTag("vignette");
+                LinearLayout.LayoutParams lpImg = new LinearLayout.LayoutParams(dp(54), dp(54));
+                lpImg.setMargins(0, 0, dp(12), 0);
+                vignette.setLayoutParams(lpImg);
+                
+                // Fond de la vignette (arrondi et bordure)
+                GradientDrawable fondImg = new GradientDrawable();
+                fondImg.setCornerRadius(dp(6));
+                fondImg.setColor(Palette.fondPanneaux);
+                fondImg.setStroke(dp(1), Palette.bordure);
+                vignette.setBackground(fondImg);
+                vignette.setClipToOutline(true); // Coupe l'image pour respecter les bords arrondis
+                ligne.addView(vignette);
+
+                // Conteneur Texte
+                LinearLayout textLayout = new LinearLayout(EcranDemarrage.this);
+                textLayout.setOrientation(LinearLayout.VERTICAL);
 
                 titre = new TextView(EcranDemarrage.this);
                 titre.setTextSize(15f);
                 titre.setTag("titre");
-                ligne.addView(titre);
+                textLayout.addView(titre);
 
                 sousTitre = new TextView(EcranDemarrage.this);
                 sousTitre.setTextSize(11f);
                 sousTitre.setPadding(0, dp(2), 0, 0);
                 sousTitre.setTag("sousTitre");
-                ligne.addView(sousTitre);
+                textLayout.addView(sousTitre);
 
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ligne.addView(textLayout);
+
+                LinearLayout.LayoutParams lpLigne = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                lp.setMargins(0, 0, 0, dp(4));
-                ligne.setLayoutParams(lp);
+                lpLigne.setMargins(0, 0, 0, dp(4));
+                ligne.setLayoutParams(lpLigne);
             } else {
                 ligne = (LinearLayout) convertView;
+                vignette = (ImageView) ligne.findViewWithTag("vignette");
                 titre = (TextView) ligne.findViewWithTag("titre");
                 sousTitre = (TextView) ligne.findViewWithTag("sousTitre");
             }
 
-            boolean choisi = position == positionSelectionnee;
+            ItemProjet item = getItem(position);
+            boolean choisi = (!item.estExemple && position == positionSelectionnee);
+
             ligne.setBackground(choisi
                     ? fond(couleurSelection(), 6, Palette.bordure, 1)
                     : fond(Color.TRANSPARENT, 6, Color.TRANSPARENT, 0));
 
-            titre.setText(getItem(position));
+            titre.setText(item.nom);
             titre.setTextColor(choisi ? Palette.texteSelectionne : Palette.texteNormal);
-            sousTitre.setText(sousTitres.get(position));
+            sousTitre.setText(item.sousTitre);
             sousTitre.setTextColor(couleurTexteSecondaire());
+
+            // Chargement de l'image sécurisé
+            android.graphics.Bitmap bmp = null;
+            if (item.estExemple) {
+                String nomFichierSansExt = item.nomZipExemple.substring(0, item.nomZipExemple.lastIndexOf('.'));
+                try {
+                    InputStream is = getAssets().open("exemples/" + nomFichierSansExt + ".png");
+                    bmp = android.graphics.BitmapFactory.decodeStream(is);
+                    is.close();
+                } catch (Exception ignored) {}
+            } else {
+                File fVignette = new File(item.dossier, "vignette.png");
+                if (fVignette.exists()) {
+                    bmp = android.graphics.BitmapFactory.decodeFile(fVignette.getAbsolutePath());
+                }
+            }
+
+            // Application de l'image ou de l'icône par défaut
+            if (bmp != null) {
+                vignette.setImageBitmap(bmp);
+                vignette.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                vignette.setPadding(0,0,0,0);
+            } else {
+                vignette.setImageBitmap(null);
+                vignette.setImageResource(R.drawable.folder_open_24px);
+                vignette.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                vignette.setPadding(dp(12), dp(12), dp(12), dp(12));
+                Palette.appliquerCouleurIcone(vignette, Palette.iconeNormal);
+            }
 
             return ligne;
         }
     }
+// bas 2
 
-    // ---------------------------------------------------------------- données
+// haut 3
+    // ---------------------------------------------------------------- chargement des données
 
     private void chargerListeProjets() {
         if (listeProjets == null) return;
 
         File dossierRacine = new File(getFilesDir(), "projets");
-        ArrayList<String> noms = new ArrayList<>();
-        ArrayList<String> sousTitres = new ArrayList<>();
+        itemsProjets.clear();
         dossiersProjets.clear();
 
         if (dossierRacine.exists() && dossierRacine.isDirectory()) {
@@ -405,8 +552,13 @@ public class EcranDemarrage extends Activity {
                     if (!metaFile.exists()) continue;
                     try {
                         JSONObject metaJson = lireJson(metaFile);
-                        noms.add(metaJson.optString("nom", "Projet Sans Nom"));
-                        sousTitres.add("Modifié le " + metaJson.optString("dateModif", "date inconnue"));
+                        ItemProjet item = new ItemProjet();
+                        item.estExemple = false;
+                        item.dossier = sousDossier;
+                        item.nom = metaJson.optString("nom", Traducteur.get("projet_sans_nom"));
+                        item.sousTitre = Traducteur.get("projet_modifie_le") + " " + metaJson.optString("dateModif", Traducteur.get("date_inconnue"));
+                        
+                        itemsProjets.add(item);
                         dossiersProjets.add(sousDossier);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -415,11 +567,11 @@ public class EcranDemarrage extends Activity {
             }
         }
 
-        if (positionSelectionnee >= noms.size()) {
+        if (positionSelectionnee >= itemsProjets.size()) {
             positionSelectionnee = -1;
         }
 
-        adaptateurProjets = new AdaptateurProjets(noms, sousTitres);
+        adaptateurProjets = new AdaptateurProjets(itemsProjets);
         listeProjets.setAdapter(adaptateurProjets);
 
         listeProjets.setOnItemClickListener((parent, view, position, id) -> {
@@ -439,6 +591,47 @@ public class EcranDemarrage extends Activity {
         majEtatActions();
     }
 
+    private void chargerListeExemples() {
+        if (listeExemples == null) return;
+        itemsExemples.clear();
+
+        try {
+            String[] fichiersAssets = getAssets().list("exemples");
+            if (fichiersAssets != null) {
+                for (String fichier : fichiersAssets) {
+                    if (fichier.toLowerCase().endsWith(".zip")) {
+                        String nomSansExt = fichier.substring(0, fichier.lastIndexOf('.'));
+                        ItemProjet item = new ItemProjet();
+                        item.estExemple = true;
+                        item.nomZipExemple = fichier;
+                        // On formate le nom proprement (ex: escape_game -> Escape Game)
+                        item.nom = nomSansExt.replace("_", " ");
+                        if (item.nom.length() > 0) {
+                            item.nom = item.nom.substring(0, 1).toUpperCase() + item.nom.substring(1);
+                        }
+                        item.sousTitre = "Modèle prêt à l'emploi";
+                        itemsExemples.add(item);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        adaptateurExemples = new AdaptateurProjets(itemsExemples);
+        listeExemples.setAdapter(adaptateurExemples);
+
+        listeExemples.setOnItemClickListener((parent, view, position, id) -> {
+            ItemProjet item = itemsExemples.get(position);
+            new AlertDialog.Builder(this)
+                .setTitle("Ouvrir l'exemple")
+                .setMessage("Créer un nouveau projet à partir du modèle '" + item.nom + "' ?")
+                .setPositiveButton("Oui", (dialog, which) -> actionImporterExemple(item.nomZipExemple, item.nom))
+                .setNegativeButton("Annuler", null)
+                .show();
+        });
+    }
+
     private JSONObject lireJson(File fichier) throws Exception {
         StringBuilder sb = new StringBuilder();
         Scanner scanner = new Scanner(fichier);
@@ -451,7 +644,7 @@ public class EcranDemarrage extends Activity {
 
     private File dossierSelectionne() {
         if (positionSelectionnee < 0 || positionSelectionnee >= dossiersProjets.size()) {
-            Toast.makeText(this, "Sélectionnez d'abord un projet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_select_projet"), Toast.LENGTH_SHORT).show();
             return null;
         }
         return dossiersProjets.get(positionSelectionnee);
@@ -459,9 +652,9 @@ public class EcranDemarrage extends Activity {
 
     private String nomProjet(File dossier) {
         try {
-            return lireJson(new File(dossier, "meta.json")).optString("nom", "Projet Sans Nom");
+            return lireJson(new File(dossier, "meta.json")).optString("nom", Traducteur.get("projet_sans_nom"));
         } catch (Exception e) {
-            return "Projet Sans Nom";
+            return Traducteur.get("projet_sans_nom");
         }
     }
 
@@ -478,7 +671,7 @@ public class EcranDemarrage extends Activity {
                 File metaFile = new File(sousDossier, "meta.json");
                 if (sousDossier.isDirectory() && metaFile.exists()) {
                     try {
-                        noms.add(lireJson(metaFile).optString("nom", "Projet Sans Nom"));
+                        noms.add(lireJson(metaFile).optString("nom", Traducteur.get("projet_sans_nom")));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -496,7 +689,9 @@ public class EcranDemarrage extends Activity {
         }
         return false;
     }
+// bas 3
 
+// haut 4
     // ---------------------------------------------------------------- actions
 
     private void actionEditer() {
@@ -518,21 +713,21 @@ public class EcranDemarrage extends Activity {
         champ.setSelectAllOnFocus(true);
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
-                .setTitle("Renommer le projet")
+                .setTitle(Traducteur.get("dialogue_renommer_titre"))
                 .setView(champ)
-                .setPositiveButton("Valider", null)
-                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .setPositiveButton(Traducteur.get("bouton_valider"), null)
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
                 .create();
         dialogue.show();
 
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nouveauNom = champ.getText().toString().trim();
             if (nouveauNom.isEmpty()) {
-                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_vide"), Toast.LENGTH_SHORT).show();
                 return;
             }
             if (nomDejaUtilise(nouveauNom, nomActuel)) {
-                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_utilise"), Toast.LENGTH_SHORT).show();
                 return;
             }
             try {
@@ -546,7 +741,7 @@ public class EcranDemarrage extends Activity {
                 dialogue.dismiss();
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Erreur lors du renommage", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_renommage"), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -555,7 +750,7 @@ public class EcranDemarrage extends Activity {
         File source = dossierSelectionne();
         if (source == null) return;
 
-        String base = nomProjet(source) + " (copie)";
+        String base = nomProjet(source) + " " + Traducteur.get("projet_copie");
         String nomFinal = base;
         int index = 2;
         while (nomDejaUtilise(nomFinal, null)) {
@@ -574,81 +769,129 @@ public class EcranDemarrage extends Activity {
             fw.write(metaJson.toString(4));
             fw.close();
             chargerListeProjets();
-            Toast.makeText(this, "Projet dupliqué : " + nomFinal, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_projet_duplique") + " " + nomFinal, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
             supprimerDossierRecursif(cible);
-            Toast.makeText(this, "Erreur lors de la duplication", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_duplication"), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void actionExporter() {
         File source = dossierSelectionne();
         if (source == null) return;
+        
+        projetAExporter = source;
 
         String nom = nomProjet(source).replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
-        File dossierExports = new File(getExternalFilesDir(null), "exports");
-        dossierExports.mkdirs();
-        File archive = new File(dossierExports, nom + ".zip");
-
-        try {
-            ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(archive));
-            zipperRecursif(source, "", zip);
-            zip.close();
-
-            new AlertDialog.Builder(this)
-                    .setTitle("Export terminé")
-                    .setMessage("Archive créée :\n" + archive.getAbsolutePath())
-                    .setPositiveButton("OK", null)
-                    .show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de l'export", Toast.LENGTH_SHORT).show();
-        }
+        
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/zip");
+        intent.putExtra(Intent.EXTRA_TITLE, nom + ".zip");
+        startActivityForResult(intent, REQUEST_CODE_EXPORT);
     }
 
-        private void actionSupprimer() {
+    private void actionSupprimer() {
         File dossier = dossierSelectionne();
         if (dossier == null) return;
         String nom = nomProjet(dossier);
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
-                .setTitle("Supprimer le projet")
-                .setMessage("Voulez-vous vraiment supprimer le projet " + nom + " ?")
-                .setPositiveButton("Supprimer", (d, w) -> {
+                .setTitle(Traducteur.get("dialogue_supprimer_titre"))
+                .setMessage(Traducteur.get("dialogue_supprimer_msg1") + nom + Traducteur.get("dialogue_supprimer_msg2"))
+                .setPositiveButton(Traducteur.get("bouton_supprimer"), (d, w) -> {
                     supprimerDossierRecursif(dossier);
                     positionSelectionnee = -1;
                     chargerListeProjets();
                 })
-                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
                 .create();
         dialogue.show();
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
     }
 
+    private void actionImporterExemple(String nomZip, String nomAffiche) {
+        try {
+            InputStream is = getAssets().open("exemples/" + nomZip);
+            String uuid = UUID.randomUUID().toString();
+            File cible = new File(new File(getFilesDir(), "projets"), uuid);
+            cible.mkdirs();
+            
+            java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(is);
+            java.util.zip.ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                File outFile = new File(cible, entry.getName());
+                if (entry.isDirectory()) {
+                    outFile.mkdirs();
+                } else {
+                    outFile.getParentFile().mkdirs();
+                    FileOutputStream fos = new FileOutputStream(outFile);
+                    byte[] buffer = new byte[8192];
+                    int len;
+                    while ((len = zis.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                    fos.close();
+                }
+                zis.closeEntry();
+            }
+            zis.close();
+            is.close();
+            
+            // Forcer la mise à jour du meta.json de l'exemple pour éviter les conflits de nom
+            File metaFile = new File(cible, "meta.json");
+            if (metaFile.exists()) {
+                JSONObject metaJson = lireJson(metaFile);
+                String nomUnique = nomAffiche + " (Copie)";
+                int index = 2;
+                while (nomDejaUtilise(nomUnique, null)) {
+                    nomUnique = nomAffiche + " (Copie " + index + ")";
+                    index++;
+                }
+                metaJson.put("nom", nomUnique);
+                metaJson.put("dateModif", dateMaintenant());
+                FileWriter fw = new FileWriter(metaFile);
+                fw.write(metaJson.toString(4));
+                fw.close();
+            }
+            
+            chargerListeProjets();
+            Toast.makeText(this, "Exemple importé avec succès !", Toast.LENGTH_SHORT).show();
+            
+            // Ouvrir l'éditeur directement avec l'exemple importé
+            Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
+            intent.putExtra("cheminProjet", cible.getAbsolutePath());
+            startActivity(intent);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erreur lors de l'import de l'exemple", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     // ---------------------------------------------------------------- création projet
 
     private void afficherDialogueCreationProjet() {
         final EditText champ = new EditText(this);
-        champ.setHint("Nom du projet");
+        champ.setHint(Traducteur.get("hint_nom_projet"));
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
-                .setTitle("Nouveau projet")
+                .setTitle(Traducteur.get("dialogue_nouveau_titre"))
                 .setView(champ)
-                .setPositiveButton("Créer", null)
-                .setNegativeButton("Annuler", (d, w) -> d.cancel())
+                .setPositiveButton(Traducteur.get("bouton_creer"), null)
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
                 .create();
         dialogue.show();
 
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nomProjet = champ.getText().toString().trim();
             if (nomProjet.isEmpty()) {
-                Toast.makeText(this, "Le nom du projet ne peut pas être vide", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_vide"), Toast.LENGTH_SHORT).show();
                 return;
             }
             if (nomDejaUtilise(nomProjet, null)) {
-                Toast.makeText(this, "Ce nom de projet est déjà utilisé.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_utilise"), Toast.LENGTH_SHORT).show();
                 return;
             }
             creerNouveauProjet(nomProjet);
@@ -686,7 +929,7 @@ public class EcranDemarrage extends Activity {
             fwBlueprint.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de la création des fichiers", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_creation_fichiers"), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -806,6 +1049,17 @@ public class EcranDemarrage extends Activity {
                 .show();
     }
 }
-// bas 2
+// bas 4
+
+
+
+
+    
+
+
+
+
+    
+
 
 

@@ -33,7 +33,6 @@ public class PanneauNoeuds extends ScrollView {
         LinearLayout layoutPrincipal = new LinearLayout(context);
         layoutPrincipal.setOrientation(LinearLayout.VERTICAL);
 
-        // ---- En-tête avec bouton de masquage ----
         LinearLayout enTete = new LinearLayout(context);
         enTete.setOrientation(LinearLayout.HORIZONTAL);
         enTete.setGravity(Gravity.CENTER_VERTICAL);
@@ -41,7 +40,7 @@ public class PanneauNoeuds extends ScrollView {
         enTete.setPadding(10, 10, 10, 10);
 
         titrePanneau = new TextView(context);
-        titrePanneau.setText("NŒUDS");
+        titrePanneau.setText(Traducteur.get("panneau_noeuds_titre"));
         titrePanneau.setTextColor(Palette.texteSelectionne);
         titrePanneau.setTextSize(14);
         LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
@@ -60,11 +59,9 @@ public class PanneauNoeuds extends ScrollView {
         enTete.addView(boutonMasquer);
         layoutPrincipal.addView(enTete);
 
-        // ---- Conteneur des sections (masquable) ----
         conteneurSections = new LinearLayout(context);
         conteneurSections.setOrientation(LinearLayout.VERTICAL);
 
-        // Récupération dynamique depuis le RegistreNoeuds
         Map<String, List<RegistreNoeuds.InfoNoeud>> categories = RegistreNoeuds.getNoeudsParCategorie();
         
         for (Map.Entry<String, List<RegistreNoeuds.InfoNoeud>> entry : categories.entrySet()) {
@@ -79,7 +76,6 @@ public class PanneauNoeuds extends ScrollView {
             conteneurCat.setPadding(20, 10, 10, 20);
             
             for (RegistreNoeuds.InfoNoeud info : noeuds) {
-                // info.classeType est transmis au Drag & Drop pour CanvasBlueprint
                 TextView item = creerItemNoeud(context, info.libelle, info.classeType);
                 conteneurCat.addView(item);
             }
@@ -100,7 +96,6 @@ public class PanneauNoeuds extends ScrollView {
 
         layoutPrincipal.addView(conteneurSections);
 
-        // ---- Logique de masquage ----
         boutonMasquer.setOnClickListener(v -> {
             estOuvert = !estOuvert;
             if (estOuvert) {
@@ -143,7 +138,7 @@ public class PanneauNoeuds extends ScrollView {
         });
 
         item.setOnClickListener(v -> {
-            Toast.makeText(context, "Maintenez appuyé pour glisser ce nœud", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, Traducteur.get("toast_glisser_noeud"), Toast.LENGTH_SHORT).show();
         });
 
         return item;

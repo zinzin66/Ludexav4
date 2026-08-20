@@ -4,6 +4,10 @@ package com.ludexa.moteur;
 import java.util.List;
 
 public class MoteurLogique {
+    
+    // NOUVEAU : Mémoire contextuelle
+    public static ObjetBase dernierObjetImplique = null;
+    
     private Blueprint blueprintActif;
 
     public MoteurLogique(Blueprint blueprint) {
@@ -72,6 +76,38 @@ public class MoteurLogique {
                     } else if (!enCollision && noeudSortie.isEtaitEnCollision()) {
                         noeudSortie.setEtaitEnCollision(false);
                         noeudSortie.executer();
+                    }
+                }
+            } 
+            // GESTION DE LA COLLISION PAR TAG
+            else if (noeud instanceof NoeudEventCollisionTag) {
+                NoeudEventCollisionTag noeudTag = (NoeudEventCollisionTag) noeud;
+                ObjetBase objA = noeudTag.getCibleObjet();
+                String cibleTag = noeudTag.getTagCible();
+
+                if (objA != null && cibleTag != null && !cibleTag.trim().isEmpty()) {
+                    boolean enCollision = false;
+                    ObjetBase objetCloneTouche = null; 
+                    
+                    for (ObjetBase objB : objetsContexte) {
+                        if (objA != objB && objB.tag != null && cibleTag.trim().equalsIgnoreCase(objB.tag.trim())) {
+                            if (UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu)) {
+                                enCollision = true;
+                                objetCloneTouche = objB; 
+                                break; 
+                            }
+                        }
+                    }
+
+                    if (enCollision && !noeudTag.isEtaitEnCollision()) {
+                        noeudTag.setEtaitEnCollision(true);
+                        
+                        // NOUVEAU : Sauvegarde de l'objet touché avant exécution
+                        MoteurLogique.dernierObjetImplique = objetCloneTouche;
+                        
+                        noeudTag.executer();
+                    } else if (!enCollision && noeudTag.isEtaitEnCollision()) {
+                        noeudTag.setEtaitEnCollision(false);
                     }
                 }
             }
