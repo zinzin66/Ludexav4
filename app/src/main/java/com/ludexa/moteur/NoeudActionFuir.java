@@ -7,8 +7,8 @@ import java.util.List;
 public class NoeudActionFuir extends NoeudBase {
     private transient ObjetBase cibleA;
     private transient ObjetBase cibleB;
-    private String nomCibleObjet;
-    private String nomCibleObjetB;
+    // SUPPRIMÉ : private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjetB;
     private String vitesseStr = "5.0";
 
     public NoeudActionFuir() {
@@ -60,6 +60,8 @@ public class NoeudActionFuir extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cibleA == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
@@ -85,6 +87,8 @@ public class NoeudActionFuir extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjetB() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) return MoteurLogique.dernierObjetImplique;
+
         if (cibleB == null && nomCibleObjetB != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");

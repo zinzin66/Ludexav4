@@ -345,12 +345,24 @@ public class InterfaceBlueprint extends Activity {
         sb.append("[").append(noeud.nom).append("]");
         
         List<String> details = new ArrayList<>();
-        if (noeud.requiertCibleObjet() && noeud.getCibleObjet() != null) {
-            details.add(Traducteur.get("noeud_format_cible") + noeud.getCibleObjet().nom);
+        
+        // CORRECTION : L'éditeur affiche maintenant explicitement "[Objet Impliqué]" au lieu d'ignorer la cible
+        if (noeud.requiertCibleObjet()) {
+            if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
+                details.add(Traducteur.get("noeud_format_cible") + "[Objet Impliqué]");
+            } else if (noeud.getCibleObjet() != null) {
+                details.add(Traducteur.get("noeud_format_cible") + noeud.getCibleObjet().nom);
+            }
         }
-        if (noeud.requiertCibleObjetB() && noeud.getCibleObjetB() != null) {
-            details.add(Traducteur.get("noeud_format_objet_b") + noeud.getCibleObjetB().nom);
+        
+        if (noeud.requiertCibleObjetB()) {
+            if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
+                details.add(Traducteur.get("noeud_format_objet_b") + "[Objet Impliqué]");
+            } else if (noeud.getCibleObjetB() != null) {
+                details.add(Traducteur.get("noeud_format_objet_b") + noeud.getCibleObjetB().nom);
+            }
         }
+        
         if (noeud.requiertCibleVariable() && noeud.getCibleVariable() != null) {
             details.add(Traducteur.get("noeud_format_var") + noeud.getCibleVariable().nom);
         }
@@ -373,6 +385,8 @@ public class InterfaceBlueprint extends Activity {
         return sb.toString();
     }
 // bas 3
+                        
+    
 // haut 4
     private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
         if (noeudDepart == null || blueprintActif.liens == null) return;

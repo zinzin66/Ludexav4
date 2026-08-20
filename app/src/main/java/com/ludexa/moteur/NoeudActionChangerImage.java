@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionChangerImage extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String cheminImage = "";
 
     public NoeudActionChangerImage() {
@@ -45,7 +45,6 @@ public class NoeudActionChangerImage extends NoeudBase {
         if ("Image".equals(nom)) cheminImage = valeur;
     }
     
-    // NOUVEAU : Déclenche l'ouverture de la popup personnalisée
     @Override
     public String getTypeEditeurParametre(String nomParametre) {
         if ("Image".equals(nomParametre)) return TYPE_CHOIX_IMAGE;
@@ -63,6 +62,8 @@ public class NoeudActionChangerImage extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {

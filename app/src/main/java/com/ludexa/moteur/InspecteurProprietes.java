@@ -26,6 +26,11 @@ public class InspecteurProprietes extends LinearLayout {
     private LinearLayout blocProprietes;
     private EditText champNom;
     private Button btnValiderNom;
+    
+    // NOUVEAUX ELEMENTS POUR LE TAG
+    private EditText champTag;
+    private Button btnTagsExistants;
+
     private EditText champX;
     private EditText champY;
     private Button boutonSupprimer;
@@ -165,6 +170,7 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
+
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -251,6 +257,32 @@ public class InspecteurProprietes extends LinearLayout {
         layoutNom.addView(btnValiderNom);
 
         blocProprietes.addView(layoutNom);
+
+        // NOUVEAU : INTERFACE POUR LE TAG
+        TextView labelTag = new TextView(context);
+        labelTag.setText("Tag (Étiquette)"); 
+        styliserLabel(labelTag);
+        blocProprietes.addView(labelTag);
+
+        LinearLayout layoutTag = new LinearLayout(context);
+        layoutTag.setOrientation(LinearLayout.HORIZONTAL);
+        layoutTag.setGravity(Gravity.CENTER_VERTICAL);
+
+        champTag = new EditText(context);
+        champTag.setSingleLine(true);
+        champTag.setHint("ex: ennemi, piece...");
+        champTag.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        styliserChampFlexible(champTag);
+        layoutTag.addView(champTag);
+
+        btnTagsExistants = new Button(context);
+        btnTagsExistants.setText("Liste");
+        styliserBouton(btnTagsExistants);
+        btnTagsExistants.setLayoutParams(new LinearLayout.LayoutParams(dp(70), LinearLayout.LayoutParams.WRAP_CONTENT));
+        layoutTag.addView(btnTagsExistants);
+
+        blocProprietes.addView(layoutTag);
+        // FIN NOUVEAU INTERFACE TAG
 
         TextView labelPos = new TextView(context);
         labelPos.setText(Traducteur.get("insp_label_pos"));
@@ -441,7 +473,7 @@ public class InspecteurProprietes extends LinearLayout {
                 .setTitle(Traducteur.get("insp_titre_select_parent"))
                 .setItems(noms.toArray(new String[0]), (dialog, which) -> {
                     String idChoisi = ids.get(which);
-                    if (ObjetBase.verifierBoucleParent(objetCourant.id, idChoisi, sceneActive.objets)) {
+                    if (!ObjetBase.verifierBoucleParent(objetCourant.id, idChoisi, sceneActive.objets)) {
                         objetCourant.parentId = idChoisi;
                         canvasEditeur.invalidate();
                         afficherObjet(objetCourant);
@@ -451,6 +483,10 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 // bas 2
+        
+
+
+    
 // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -783,6 +819,46 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnValiderNom.setOnClickListener(v -> { verifierEtConfirmerRenommage(context); cacherClavier(context, champNom); });
 
+        // NOUVEAUX LISTENERS POUR LE TAG
+        champTag.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                cacherClavier(context, v);
+                return true;
+            }
+            return false;
+        });
+
+        champTag.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                objetCourant.tag = texte.trim();
+            }
+        }));
+
+        btnTagsExistants.setOnClickListener(v -> {
+            if (sceneActive == null || sceneActive.objets == null) return;
+            List<String> tagsUniques = new ArrayList<>();
+            for (ObjetBase o : sceneActive.objets) {
+                if (o.tag != null && !o.tag.trim().isEmpty() && !tagsUniques.contains(o.tag.trim())) {
+                    tagsUniques.add(o.tag.trim());
+                }
+            }
+            if (tagsUniques.isEmpty()) {
+                Toast.makeText(context, "Aucun tag utilisé dans cette scène", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            new AlertDialog.Builder(context)
+                .setTitle("Choisir un Tag")
+                .setItems(tagsUniques.toArray(new String[0]), (dialog, which) -> {
+                    if (objetCourant != null) {
+                        miseAJourEnCours = true;
+                        champTag.setText(tagsUniques.get(which));
+                        objetCourant.tag = tagsUniques.get(which);
+                        miseAJourEnCours = false;
+                    }
+                }).show();
+        });
+        // FIN LISTENERS TAG
+
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
             if (cheminProjet == null) { Toast.makeText(context, Traducteur.get("erreur_chemin_projet"), Toast.LENGTH_SHORT).show(); return; }
@@ -1073,7 +1149,8 @@ public class InspecteurProprietes extends LinearLayout {
                 }
             });
 
-            // --- 3. Palette de couleurs rapides ---
+            
+                 // --- 3. Palette de couleurs rapides ---
             HorizontalScrollView scrollPalette = new HorizontalScrollView(context);
             scrollPalette.setHorizontalScrollBarEnabled(false);
             LinearLayout layoutPalette = new LinearLayout(context);
@@ -1129,7 +1206,10 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
-// haut 5
+
+
+
+    // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
         String nouveauNom = champNom.getText().toString().trim();
@@ -1170,6 +1250,10 @@ public class InspecteurProprietes extends LinearLayout {
             boutonSupprimer.setVisibility(View.VISIBLE);
 
             champNom.setText(objet.nom);
+            
+            // NOUVEAU: CHARGEMENT DU TAG
+            champTag.setText(objet.tag != null ? objet.tag : "");
+
             champX.setText(String.valueOf((int) objet.x));
             champY.setText(String.valueOf((int) objet.y));
 

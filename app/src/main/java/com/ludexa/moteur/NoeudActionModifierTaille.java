@@ -6,7 +6,7 @@ import java.util.List;
 
 public class NoeudActionModifierTaille extends NoeudBase {
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String scaleXStr = "1.0";
     private String scaleYStr = "1.0";
 
@@ -58,6 +58,8 @@ public class NoeudActionModifierTaille extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");

@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudConditionEnMouvement extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;[span_15](start_span)[span_15](end_span)
 
     public NoeudConditionEnMouvement() {
         super(genererId(), "Si Objet en Chute", "Physique");
@@ -22,7 +22,6 @@ public class NoeudConditionEnMouvement extends NoeudBase {
         boolean estEnMouvement = false;
         
         if (cibleActuelle != null) {
-            // On considère qu'il chute ou rebondit si sa vitesse n'est pas quasi nulle
             estEnMouvement = (Math.abs(cibleActuelle.vitesseY) > 0.1f);
         }
 
@@ -53,6 +52,8 @@ public class NoeudConditionEnMouvement extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
@@ -73,4 +74,3 @@ public class NoeudConditionEnMouvement extends NoeudBase {
     }
 }
 // bas 1
-

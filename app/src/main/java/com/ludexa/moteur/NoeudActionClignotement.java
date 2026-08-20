@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionClignotement extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;[span_10](start_span)[span_10](end_span)
     private String etat = "Activer";
     private String vitesseMs = "500";
     private String dureeMs = "0";
@@ -86,6 +86,8 @@ public class NoeudActionClignotement extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");

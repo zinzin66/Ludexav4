@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionModifierTexte extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String texteSaisi = "";
 
     public NoeudActionModifierTexte() {
@@ -128,6 +128,8 @@ public class NoeudActionModifierTexte extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {

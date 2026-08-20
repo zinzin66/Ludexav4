@@ -11,7 +11,6 @@ public class NoeudActionModeAffichage extends NoeudBase {
         ajouterPort(new Port(Traducteur.get("port_entree"), Port.TYPE_EXECUTION_ENTREE));
         ajouterPort(new Port(Traducteur.get("port_sortie"), Port.TYPE_EXECUTION_SORTIE));
 
-        // Options standards pour des effets 2D
         ajouterParametreListe("Filtre", "Aucun", Arrays.asList("Aucun", "Additif", "Multiplicatif", "Ecran", "Inversion"));
     }
 
@@ -31,6 +30,9 @@ public class NoeudActionModeAffichage extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { this.cibleObj = objet; }
     
     @Override
-    public ObjetBase getCibleObjet() { return this.cibleObj; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.cibleObj; 
+    }
 }
 // bas 1

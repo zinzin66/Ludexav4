@@ -236,7 +236,6 @@ public class InterfaceEditeur extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
-
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -670,6 +669,12 @@ public class InterfaceEditeur extends Activity {
                 e.printStackTrace();
             }
 
+            // NOUVEAU : Sauvegarde de la vignette du projet de manière sécurisée
+            if (canvasEditeur != null) {
+                String cheminVignette = new File(cheminProjet, "vignette.png").getAbsolutePath();
+                canvasEditeur.sauvegarderVignette(cheminVignette);
+            }
+
             Toast.makeText(this, Traducteur.get("toast_projet_sauvegarde"), Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -678,9 +683,12 @@ public class InterfaceEditeur extends Activity {
     }
 }
 // bas 3
-
+            
 
 
     
+
+
+
 
     

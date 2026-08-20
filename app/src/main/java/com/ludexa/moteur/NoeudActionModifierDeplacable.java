@@ -7,8 +7,8 @@ import java.util.List;
 public class NoeudActionModifierDeplacable extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
-    private String valeurDeplacable = "true"; // Valeur par défaut
+    // SUPPRIMÉ : private String nomCibleObjet;
+    private String valeurDeplacable = "true"; 
 
     public NoeudActionModifierDeplacable() {
         super(genererId(), "Modifier Déplaçable", "Action");
@@ -56,6 +56,8 @@ public class NoeudActionModifierDeplacable extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {

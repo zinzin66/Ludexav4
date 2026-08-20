@@ -6,7 +6,7 @@ import java.util.List;
 
 public class NoeudConditionTag extends NoeudBase {
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;
     private String tagAttendu = "Ennemi";
 
     public NoeudConditionTag() {
@@ -60,6 +60,8 @@ public class NoeudConditionTag extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         if (cible == null && nomCibleObjet != null && contexteApplication != null) {
             try {
                 java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
