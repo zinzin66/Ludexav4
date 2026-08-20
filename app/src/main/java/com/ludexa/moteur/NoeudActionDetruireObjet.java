@@ -2,7 +2,6 @@
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class NoeudActionDetruireObjet extends NoeudBase {
@@ -13,10 +12,6 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         super(genererId(), "Détruire Objet", "Apparence & Objets");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
-        
-        // NOUVEAU : Une option paramétrable blindée que le moteur n'effacera jamais !
-        this.ajouterParametreListe("Cible à détruire", "Objet défini au-dessus", 
-            Arrays.asList("Objet défini au-dessus", "L'objet impliqué dans l'événement"));
     }
 
     private void neutraliserEtRetirer(ObjetBase obj) {
@@ -66,30 +61,16 @@ public class NoeudActionDetruireObjet extends NoeudBase {
             sceneParent.objets.remove(obj);
         } catch (Exception e) {}
     }
+// bas 1
 
+// haut 2
     @Override
     public void executer() {
-        String mode = getValeurParametre("Cible à détruire");
-        
-        if ("L'objet impliqué dans l'événement".equals(mode)) {
-            // On détruit directement le clone mémorisé
-            if (MoteurLogique.dernierObjetImplique != null) {
-                neutraliserEtRetirer(MoteurLogique.dernierObjetImplique);
-            }
-        } else {
-            // Fonctionnement classique si l'option est sur "Objet défini au-dessus"
-            ObjetBase cibleActuelle = getCibleObjet();
-            if (cibleActuelle != null) {
-                neutraliserEtRetirer(cibleActuelle);
-            }
+        ObjetBase cibleActuelle = getCibleObjet();
+        if (cibleActuelle != null) {
+            neutraliserEtRetirer(cibleActuelle);
         }
         propagerExecution("Suivant");
-    }
-
-    @Override
-    public List<String> getNomsParametres() { 
-        // Obligatoire pour afficher notre nouveau menu déroulant
-        return super.getNomsParametres(); 
     }
 
     @Override
@@ -98,15 +79,22 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
+        
+        // CORRECTION : On protège farouchement le mot-clé si l'éditeur rafraîchit à null
         if (objet != null) {
             this.nomCibleObjet = objet.nom;
-        } else {
+        } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
             this.nomCibleObjet = null;
         }
     }
 
     @Override
     public ObjetBase getCibleObjet() {
+        // Interception prioritaire : si le mot-clé est détecté, on pioche dans la mémoire globale
+        if ("__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
+            return MoteurLogique.dernierObjetImplique;
+        }
+
         if (this.nomCibleObjet != null && contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
@@ -136,4 +124,4 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         return this.cible;
     }
 }
-// bas 1
+// bas 2
