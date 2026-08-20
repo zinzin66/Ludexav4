@@ -67,8 +67,23 @@ public class Blueprint {
                 }
             }
             
-            if (n.requiertCibleObjet() && n.getCibleObjet() != null) ndto.cibleNom = n.getCibleObjet().nom;
-            if (n.requiertCibleObjetB() && n.getCibleObjetB() != null) ndto.cibleNomB = n.getCibleObjetB().nom;
+            // CORRECTION BUG MEMOIRE CONTEXTUELLE :
+            // On sérialise le mot-clé __OBJET_IMPLIQUE__ en priorité, AVANT de dépendre
+            // de getCibleObjet() qui retourne MoteurLogique.dernierObjetImplique (null en édition).
+            if (n.requiertCibleObjet()) {
+                if ("__OBJET_IMPLIQUE__".equals(n.nomCibleObjet)) {
+                    ndto.cibleNom = "__OBJET_IMPLIQUE__";
+                } else if (n.getCibleObjet() != null) {
+                    ndto.cibleNom = n.getCibleObjet().nom;
+                }
+            }
+            if (n.requiertCibleObjetB()) {
+                if ("__OBJET_IMPLIQUE__".equals(n.nomCibleObjetB)) {
+                    ndto.cibleNomB = "__OBJET_IMPLIQUE__";
+                } else if (n.getCibleObjetB() != null) {
+                    ndto.cibleNomB = n.getCibleObjetB().nom;
+                }
+            }
             if (n.requiertCibleVariable() && n.getCibleVariable() != null) ndto.cibleVariableNom = n.getCibleVariable().nom;
             if (n.requiertCibleScene() && n.getCibleScene() != null) ndto.cibleSceneNom = n.getCibleScene().nom;
 
@@ -95,7 +110,8 @@ public class Blueprint {
         return gson.toJson(dto);
     }
 // bas 1
-    // haut 2
+
+ // haut 2
     public static Blueprint fromJson(String json, Scene scene) {
         Gson gson = new Gson();
         BlueprintDTO dto = gson.fromJson(json, BlueprintDTO.class);
@@ -118,13 +134,22 @@ public class Blueprint {
                     for (Map.Entry<String, String> entry : ndto.parametres.entrySet()) n.setValeurParametre(entry.getKey(), entry.getValue());
                 }
                 
-                if (ndto.cibleNom != null && scene != null && scene.objets != null) {
+                // CORRECTION BUG MEMOIRE CONTEXTUELLE :
+                // Si le JSON contient le mot-clé, on le restaure directement sur nomCibleObjet
+                // au lieu de chercher un objet physique du même nom dans la scène (qui n'existe pas).
+                if ("__OBJET_IMPLIQUE__".equals(ndto.cibleNom)) {
+                    n.setCibleObjet(null);
+                    n.nomCibleObjet = "__OBJET_IMPLIQUE__";
+                } else if (ndto.cibleNom != null && scene != null && scene.objets != null) {
                     for (ObjetBase obj : scene.objets) {
                         if (ndto.cibleNom.equals(obj.nom)) { n.setCibleObjet(obj); break; }
                     }
                 }
                 
-                if (ndto.cibleNomB != null && scene != null && scene.objets != null) {
+                if ("__OBJET_IMPLIQUE__".equals(ndto.cibleNomB)) {
+                    n.setCibleObjetB(null);
+                    n.nomCibleObjetB = "__OBJET_IMPLIQUE__";
+                } else if (ndto.cibleNomB != null && scene != null && scene.objets != null) {
                     for (ObjetBase obj : scene.objets) {
                         if (ndto.cibleNomB.equals(obj.nom)) { n.setCibleObjetB(obj); break; }
                     }
@@ -215,4 +240,5 @@ public class Blueprint {
     }
 }
 // bas 2
+
 
