@@ -61,7 +61,9 @@ public class NoeudActionDetruireObjet extends NoeudBase {
             sceneParent.objets.remove(obj);
         } catch (Exception e) {}
     }
+// bas 1
 
+// haut 2
     @Override
     public void executer() {
         ObjetBase cibleActuelle = getCibleObjet();
@@ -86,7 +88,9 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
-        // CORRECTION DU BUG : On protège le mot-clé spécial lors d'une assignation nulle
+        
+        // CORRECTION : Protection vitale du mot-clé !
+        // Si l'éditeur tente de rafraîchir à null, on refuse d'effacer le mot-clé.
         if (objet != null) {
             this.nomCibleObjet = objet.nom;
         } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
@@ -96,6 +100,7 @@ public class NoeudActionDetruireObjet extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
+        // Interception prioritaire de la mémoire globale
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
             return MoteurLogique.dernierObjetImplique;
         }
@@ -129,4 +134,5 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         return this.cible;
     }
 }
-// bas 1
+// bas 2
+
