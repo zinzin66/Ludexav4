@@ -40,8 +40,12 @@ public class NoeudActionAjouterInventaire extends NoeudBase {
     public boolean requiertCibleObjet() { return true; }
     @Override
     public void setCibleObjet(ObjetBase objet) { this.objetCible = objet; }
+    
     @Override
-    public ObjetBase getCibleObjet() { return this.objetCible; }
+    public ObjetBase getCibleObjet() { 
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+        return this.objetCible; 
+    }
 
     @Override
     public boolean requiertCibleVariable() { return true; }

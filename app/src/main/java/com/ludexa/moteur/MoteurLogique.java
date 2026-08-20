@@ -4,6 +4,10 @@ package com.ludexa.moteur;
 import java.util.List;
 
 public class MoteurLogique {
+    
+    // NOUVEAU : Mémoire contextuelle
+    public static ObjetBase dernierObjetImplique = null;
+    
     private Blueprint blueprintActif;
 
     public MoteurLogique(Blueprint blueprint) {
@@ -40,7 +44,6 @@ public class MoteurLogique {
         }
     }
 
-    // Méthode dédiée à la vérification des événements de collision
     public void verifierCollisions(VueJeu vueJeu, List<ObjetBase> objetsContexte) {
         if (blueprintActif == null || blueprintActif.noeuds == null || objetsContexte == null) return;
         
@@ -57,14 +60,60 @@ public class MoteurLogique {
                         noeudCol.setEtaitEnCollision(true);
                         noeudCol.executer();
                     } else if (!enCollision && noeudCol.isEtaitEnCollision()) {
-                        noeudCol.setEtaitEnCollision(false); // Reset pour le prochain déclenchement
+                        noeudCol.setEtaitEnCollision(false);
+                    }
+                }
+            } else if (noeud instanceof NoeudEventSortieZone) {
+                NoeudEventSortieZone noeudSortie = (NoeudEventSortieZone) noeud;
+                ObjetBase objA = noeudSortie.getCibleObjet();
+                ObjetBase objB = noeudSortie.getCibleObjetB();
+                
+                if (objA != null && objB != null) {
+                    boolean enCollision = UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu);
+                    
+                    if (enCollision && !noeudSortie.isEtaitEnCollision()) {
+                        noeudSortie.setEtaitEnCollision(true);
+                    } else if (!enCollision && noeudSortie.isEtaitEnCollision()) {
+                        noeudSortie.setEtaitEnCollision(false);
+                        noeudSortie.executer();
+                    }
+                }
+            } 
+            // GESTION DE LA COLLISION PAR TAG
+            else if (noeud instanceof NoeudEventCollisionTag) {
+                NoeudEventCollisionTag noeudTag = (NoeudEventCollisionTag) noeud;
+                ObjetBase objA = noeudTag.getCibleObjet();
+                String cibleTag = noeudTag.getTagCible();
+
+                if (objA != null && cibleTag != null && !cibleTag.trim().isEmpty()) {
+                    boolean enCollision = false;
+                    ObjetBase objetCloneTouche = null; 
+                    
+                    for (ObjetBase objB : objetsContexte) {
+                        if (objA != objB && objB.tag != null && cibleTag.trim().equalsIgnoreCase(objB.tag.trim())) {
+                            if (UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu)) {
+                                enCollision = true;
+                                objetCloneTouche = objB; 
+                                break; 
+                            }
+                        }
+                    }
+
+                    if (enCollision && !noeudTag.isEtaitEnCollision()) {
+                        noeudTag.setEtaitEnCollision(true);
+                        
+                        // NOUVEAU : Sauvegarde de l'objet touché avant exécution
+                        MoteurLogique.dernierObjetImplique = objetCloneTouche;
+                        
+                        noeudTag.executer();
+                    } else if (!enCollision && noeudTag.isEtaitEnCollision()) {
+                        noeudTag.setEtaitEnCollision(false);
                     }
                 }
             }
         }
     }
 
-    // NOUVEAU : Méthode dédiée à la vérification des variables (pour le digicode)
     public void verifierVariablesChangees() {
         if (blueprintActif == null || blueprintActif.noeuds == null) return;
         
@@ -76,7 +125,3 @@ public class MoteurLogique {
     }
 }
 // bas 1
-
-
-
-

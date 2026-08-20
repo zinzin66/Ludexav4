@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -18,11 +19,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
-import java.util.List; 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class InterfaceBlueprint extends Activity {
 
-    public String cheminProjet; // NOUVEAU : Stockage du chemin
+    public String cheminProjet; 
 
     public static Scene sceneACharger; 
     public static List<Variable> variablesGlobalesACharger; 
@@ -33,6 +37,9 @@ public class InterfaceBlueprint extends Activity {
 
     private Blueprint blueprintActif;
     private CanvasBlueprint canvasBlueprint;
+    
+    private boolean estModeFonction = false;
+    private String nomFonctionActive = null;
 
     private int dp(float valeur) {
         return Math.round(TypedValue.applyDimension(
@@ -93,8 +100,9 @@ public class InterfaceBlueprint extends Activity {
         super.onCreate(savedInstanceState);
         NoeudBase.contexteApplication = this;
 
-        // NOUVEAU : Récupération du chemin du projet
         cheminProjet = getIntent().getStringExtra("cheminProjet");
+        estModeFonction = getIntent().getBooleanExtra("modeFonction", false);
+        nomFonctionActive = getIntent().getStringExtra("nomFonction");
         
         this.variablesGlobales = variablesGlobalesACharger; 
         this.listeScenes = listeScenesACharger; 
@@ -104,7 +112,6 @@ public class InterfaceBlueprint extends Activity {
         layoutPrincipal.setBackgroundColor(Palette.fondNormal);
         layoutPrincipal.setPadding(dp(8), dp(8), dp(8), dp(8));
 
-        // ---- Bandeau du haut ----
         LinearLayout bandeauHaut = new LinearLayout(this);
         bandeauHaut.setOrientation(LinearLayout.HORIZONTAL);
         bandeauHaut.setGravity(Gravity.CENTER_VERTICAL);
@@ -116,9 +123,15 @@ public class InterfaceBlueprint extends Activity {
         styliserBoutonBandeau(boutonRetour);
         boutonRetour.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonRetour);
+// bas 1
 
+// haut 2
         TextView titreBlueprint = new TextView(this);
-        titreBlueprint.setText("Blueprint");
+        if (estModeFonction) {
+            titreBlueprint.setText(Traducteur.get("titre_fonction") + nomFonctionActive);
+        } else {
+            titreBlueprint.setText(Traducteur.get("titre_blueprint"));
+        }
         titreBlueprint.setTextSize(15f);
         titreBlueprint.setTextColor(Palette.texteSelectionne);
         LinearLayout.LayoutParams paramsTitre = new LinearLayout.LayoutParams(
@@ -186,6 +199,18 @@ public class InterfaceBlueprint extends Activity {
         boutonSupprimerNode.setOnClickListener(v -> canvasBlueprint.supprimerNoeudSelectionne());
         bandeauHaut.addView(boutonSupprimerNode);
 
+        ImageButton boutonCopierNode = new ImageButton(this);
+        boutonCopierNode.setImageResource(R.drawable.add_24px);
+        styliserBoutonBandeau(boutonCopierNode);
+        boutonCopierNode.setOnClickListener(v -> canvasBlueprint.dupliquerNoeudSelectionne());
+        bandeauHaut.addView(boutonCopierNode);
+
+        ImageButton boutonReplierNode = new ImageButton(this);
+        boutonReplierNode.setImageResource(R.drawable.hide_image_24px);
+        styliserBoutonBandeau(boutonReplierNode);
+        boutonReplierNode.setOnClickListener(v -> canvasBlueprint.basculerRepliNoeudSelectionne());
+        bandeauHaut.addView(boutonReplierNode);
+
         View espaceBandeau = new View(this);
         espaceBandeau.setLayoutParams(new LinearLayout.LayoutParams(0, dp(1), 1f));
         bandeauHaut.addView(espaceBandeau);
@@ -197,7 +222,20 @@ public class InterfaceBlueprint extends Activity {
         boutonCode.setOnClickListener(v -> afficherFenetreCode());
         bandeauHaut.addView(boutonCode);
 
-        // ---- Zone Milieu ----
+        Button boutonAide = new Button(this);
+        boutonAide.setText("?");
+        boutonAide.setTextSize(18f);
+        boutonAide.setTextColor(Palette.texteNormal);
+        boutonAide.setTypeface(null, android.graphics.Typeface.BOLD);
+        boutonAide.setBackground(fond(Palette.boutonNormal, 6, Palette.bordure, 1));
+        boutonAide.setPadding(0, 0, 0, 0); 
+        LinearLayout.LayoutParams lpAide = new LinearLayout.LayoutParams(dp(38), dp(38));
+        lpAide.setMargins(0, 0, dp(6), 0);
+        lpAide.gravity = Gravity.CENTER_VERTICAL;
+        boutonAide.setLayoutParams(lpAide);
+        boutonAide.setOnClickListener(v -> afficherFenetreAide());
+        bandeauHaut.addView(boutonAide);
+
         LinearLayout zoneMilieu = new LinearLayout(this);
         zoneMilieu.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams paramsMilieu = new LinearLayout.LayoutParams(
@@ -207,14 +245,14 @@ public class InterfaceBlueprint extends Activity {
 
         PanneauNoeuds panneauNoeuds = new PanneauNoeuds(this);
 
-        // --- AJOUT DE LA SCENE AU CANVAS ---
-        if (sceneACharger != null) {
+        if (estModeFonction) {
+            canvasBlueprint.sceneActive = new Scene(nomFonctionActive);
+        } else if (sceneACharger != null) {
             canvasBlueprint.sceneActive = sceneACharger;
         } else {
-            canvasBlueprint.sceneActive = new Scene("Scène Vide (Fallback)");
+            canvasBlueprint.sceneActive = new Scene(Traducteur.get("scene_vide_fallback"));
         }
 
-        // --- CHARGEMENT AUTOMATIQUE SILENCIEUX ---
         chargerBlueprintLocal(true);
 
         zoneMilieu.addView(panneauNoeuds);
@@ -225,36 +263,47 @@ public class InterfaceBlueprint extends Activity {
 
         setContentView(layoutPrincipal);
     }
-
+// bas 2
+// haut 3
     private void sauvegarderBlueprintLocal() {
         try {
-            // NOUVEAU : Utilisation du chemin du projet
-            File dir = new File(cheminProjet, "logique");
-            if (!dir.exists()) dir.mkdirs();
-            File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            File file;
+            if (estModeFonction && nomFonctionActive != null) {
+                File dir = new File(cheminProjet, "fonctions");
+                if (!dir.exists()) dir.mkdirs();
+                file = new File(dir, nomFonctionActive + ".json");
+            } else {
+                File dir = new File(cheminProjet, "logique");
+                if (!dir.exists()) dir.mkdirs();
+                file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            }
             
             String json = blueprintActif.toJson();
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(json.getBytes());
             fos.close();
-            Toast.makeText(this, "Blueprint sauvegardé", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_blueprint_sauvegarde"), Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur de sauvegarde", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_sauvegarde"), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void chargerBlueprintLocal(boolean estChargementAuto) {
         try {
-            // NOUVEAU : Utilisation du chemin du projet
-            File dir = new File(cheminProjet, "logique");
-            File file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            File file;
+            if (estModeFonction && nomFonctionActive != null) {
+                File dir = new File(cheminProjet, "fonctions");
+                file = new File(dir, nomFonctionActive + ".json");
+            } else {
+                File dir = new File(cheminProjet, "logique");
+                file = new File(dir, canvasBlueprint.sceneActive.id + ".json");
+            }
             
             if (!file.exists()) {
                 if (!estChargementAuto) {
-                    Toast.makeText(this, "Aucune sauvegarde trouvée", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, Traducteur.get("toast_aucune_sauvegarde"), Toast.LENGTH_SHORT).show();
                 }
-                // Initialisation d'un blueprint VRAIMENT VIDE
                 if (blueprintActif == null) {
                     blueprintActif = new Blueprint();
                     canvasBlueprint.setBlueprint(blueprintActif);
@@ -277,12 +326,12 @@ public class InterfaceBlueprint extends Activity {
             canvasBlueprint.invalidate();
             
             if (!estChargementAuto) {
-                Toast.makeText(this, "Blueprint chargé avec succès !", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("toast_blueprint_charge"), Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             e.printStackTrace();
             if (!estChargementAuto) {
-                Toast.makeText(this, "Erreur lors du chargement", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_chargement"), Toast.LENGTH_SHORT).show();
             }
             if (blueprintActif == null) {
                 blueprintActif = new Blueprint();
@@ -291,9 +340,83 @@ public class InterfaceBlueprint extends Activity {
         }
     }
 
-    private void afficherFenetreCode() {
+    private String formaterNoeud(NoeudBase noeud) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[").append(noeud.nom).append("]");
+        
+        List<String> details = new ArrayList<>();
+        
+        // CORRECTION : L'éditeur affiche maintenant explicitement "[Objet Impliqué]" au lieu d'ignorer la cible
+        if (noeud.requiertCibleObjet()) {
+            if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
+                details.add(Traducteur.get("noeud_format_cible") + "[Objet Impliqué]");
+            } else if (noeud.getCibleObjet() != null) {
+                details.add(Traducteur.get("noeud_format_cible") + noeud.getCibleObjet().nom);
+            }
+        }
+        
+        if (noeud.requiertCibleObjetB()) {
+            if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
+                details.add(Traducteur.get("noeud_format_objet_b") + "[Objet Impliqué]");
+            } else if (noeud.getCibleObjetB() != null) {
+                details.add(Traducteur.get("noeud_format_objet_b") + noeud.getCibleObjetB().nom);
+            }
+        }
+        
+        if (noeud.requiertCibleVariable() && noeud.getCibleVariable() != null) {
+            details.add(Traducteur.get("noeud_format_var") + noeud.getCibleVariable().nom);
+        }
+        if (noeud.requiertCibleScene() && noeud.getCibleScene() != null) {
+            details.add(Traducteur.get("noeud_format_scene") + noeud.getCibleScene().nom);
+        }
+        
+        if (noeud.getNomsParametres() != null) {
+            for (String param : noeud.getNomsParametres()) {
+                String val = noeud.getValeurParametre(param);
+                if (val != null && !val.isEmpty()) {
+                    details.add(param + " : " + val);
+                }
+            }
+        }
+        
+        if (!details.isEmpty()) {
+            sb.append(" | ").append(String.join(" | ", details));
+        }
+        return sb.toString();
+    }
+// bas 3
+                        
+    
+// haut 4
+    private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
+        if (noeudDepart == null || blueprintActif.liens == null) return;
+        
+        for (Blueprint.Lien lien : blueprintActif.liens) {
+            if (lien.noeudDepart == noeudDepart && lien.portSortieNom.equals(portDeclencheur)) {
+                NoeudBase noeudSuivant = lien.noeudArrivee;
+                if (noeudSuivant != null) {
+                    noeudsVisites.add(noeudSuivant.id);
+                    
+                    String prefixe = indentation + "-> ";
+                    if (!portDeclencheur.equals("Suivant") && !portDeclencheur.equals("Sortie")) {
+                        prefixe = indentation + "(Si " + portDeclencheur + ") -> ";
+                    }
+                    
+                    res.append(prefixe).append(formaterNoeud(noeudSuivant)).append("\n");
+                    
+                    // CORRECTION DU BUG : On parcourt désormais aussi le port "Sortie"
+                    genererCheminLogique(noeudSuivant, "Suivant", indentation + "  ", res, noeudsVisites);
+                    genererCheminLogique(noeudSuivant, "Sortie", indentation + "  ", res, noeudsVisites);
+                    genererCheminLogique(noeudSuivant, "Vrai", indentation + "  ", res, noeudsVisites);
+                    genererCheminLogique(noeudSuivant, "Faux", indentation + "  ", res, noeudsVisites);
+                }
+            }
+        }
+    }
+
+    private void afficherFenetreAide() {
         Dialog dialog = new Dialog(this);
-        dialog.setTitle("Résumé du Blueprint");
+        dialog.setTitle(Traducteur.get("titre_aide_blueprint"));
 
         LinearLayout layoutDialog = new LinearLayout(this);
         layoutDialog.setOrientation(LinearLayout.VERTICAL);
@@ -301,7 +424,7 @@ public class InterfaceBlueprint extends Activity {
         layoutDialog.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
 
         TextView enTeteDialog = new TextView(this);
-        enTeteDialog.setText("RÉSUMÉ DU BLUEPRINT");
+        enTeteDialog.setText(Traducteur.get("doc_noeuds_titre_1") + EcranDemarrage.langueCourante.toUpperCase() + Traducteur.get("doc_noeuds_titre_2"));
         enTeteDialog.setTextSize(14f);
         enTeteDialog.setTextColor(Palette.texteSelectionne);
         enTeteDialog.setBackground(fond(Palette.enTeteDialogues, 6, Palette.bordure, 1));
@@ -312,45 +435,127 @@ public class InterfaceBlueprint extends Activity {
         enTeteDialog.setLayoutParams(paramsEnTete);
         layoutDialog.addView(enTeteDialog);
 
-        // --- Génération dynamique du texte du Blueprint ---
         StringBuilder res = new StringBuilder();
-        res.append("=== RESUME DU BLUEPRINT ===\n\n");
+        try {
+            String nomFichier = "doc_noeuds_" + EcranDemarrage.langueCourante + ".txt";
+            java.io.InputStream is = getAssets().open(nomFichier);
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String line;
+            while ((line = br.readLine()) != null) {
+                res.append(line).append("\n");
+            }
+            br.close();
+        } catch (Exception e) {
+            res.append(Traducteur.get("erreur_doc_1"))
+               .append(EcranDemarrage.langueCourante)
+               .append(Traducteur.get("erreur_doc_2"))
+               .append(Traducteur.get("erreur_doc_3"))
+               .append(EcranDemarrage.langueCourante)
+               .append(Traducteur.get("erreur_doc_4"));
+        }
+
+        TextView textViewAide = new TextView(this);
+        textViewAide.setText(res.toString());
+        textViewAide.setTextSize(14f); 
+        textViewAide.setTextColor(Palette.texteNormal);
+        textViewAide.setPadding(dp(10), dp(10), dp(10), dp(10));
+
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setBackground(fond(Palette.fondListe, 6, Palette.bordure, 1));
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scrollParams.setMargins(0, 0, 0, dp(12));
+        scrollView.setLayoutParams(scrollParams);
+        scrollView.addView(textViewAide);
+
+        layoutDialog.addView(scrollView);
+
+        LinearLayout boutonsDialog = new LinearLayout(this);
+        boutonsDialog.setOrientation(LinearLayout.HORIZONTAL);
+        boutonsDialog.setGravity(Gravity.END);
+
+        Button btnQuitter = new Button(this);
+        btnQuitter.setText(Traducteur.get("bouton_fermer"));
+        styliserBoutonDialog(btnQuitter);
+        btnQuitter.setOnClickListener(v -> dialog.dismiss());
+        boutonsDialog.addView(btnQuitter);
+
+        layoutDialog.addView(boutonsDialog);
+        
+        dialog.setContentView(layoutDialog);
+        
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+            int width = (int) (metrics.widthPixels * 0.85);
+            int height = (int) (metrics.heightPixels * 0.85);
+            window.setLayout(width, height);
+        }
+        
+        dialog.show();
+    }
+// bas 4
+
+// haut 5
+    private void afficherFenetreCode() {
+        Dialog dialog = new Dialog(this);
+        dialog.setTitle(Traducteur.get("titre_resume_blueprint"));
+
+        LinearLayout layoutDialog = new LinearLayout(this);
+        layoutDialog.setOrientation(LinearLayout.VERTICAL);
+        layoutDialog.setPadding(dp(16), dp(16), dp(16), dp(16));
+        layoutDialog.setBackground(fond(Palette.fondPanneaux, 8, Palette.bordure, 1));
+
+        TextView enTeteDialog = new TextView(this);
+        enTeteDialog.setText(Traducteur.get("titre_script_blueprint"));
+        enTeteDialog.setTextSize(14f);
+        enTeteDialog.setTextColor(Palette.texteSelectionne);
+        enTeteDialog.setBackground(fond(Palette.enTeteDialogues, 6, Palette.bordure, 1));
+        enTeteDialog.setPadding(dp(10), dp(8), dp(10), dp(8));
+        LinearLayout.LayoutParams paramsEnTete = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        paramsEnTete.setMargins(0, 0, 0, dp(10));
+        enTeteDialog.setLayoutParams(paramsEnTete);
+        layoutDialog.addView(enTeteDialog);
+
+        StringBuilder res = new StringBuilder();
+        res.append(Traducteur.get("en_tete_script"));
         
         if (blueprintActif == null || blueprintActif.noeuds.isEmpty()) {
-            res.append("Le Blueprint est vide.\n");
+            res.append(Traducteur.get("msg_blueprint_vide"));
         } else {
-            res.append("--- NOEUDS ---\n");
+            Set<String> noeudsVisites = new HashSet<>();
+            List<NoeudBase> evenements = new ArrayList<>();
+            
             for (NoeudBase noeud : blueprintActif.noeuds) {
-                String shortId = (noeud.id != null && noeud.id.length() >= 8) ? noeud.id.substring(0, 8) : noeud.id;
-                res.append("- [").append(noeud.nom).append("] (ID: ").append(shortId).append(")\n");
-                
-                if (noeud.requiertCibleObjet()) {
-                    String cible = (noeud.getCibleObjet() != null) ? noeud.getCibleObjet().nom : "Aucune";
-                    res.append("  Cible Objet : ").append(cible).append("\n");
-                }
-                
-                if (noeud.requiertCibleVariable()) {
-                    String cible = (noeud.getCibleVariable() != null) ? noeud.getCibleVariable().nom : "Aucune";
-                    res.append("  Cible Variable : ").append(cible).append("\n");
-                }
-                
-                if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
-                    for (String param : noeud.getNomsParametres()) {
-                        res.append("  Paramètre [").append(param).append("] : ").append(noeud.getValeurParametre(param)).append("\n");
-                    }
+                if (noeud.getClass().getSimpleName().startsWith("NoeudEvent") || noeud.nom.equals("Début")) {
+                    evenements.add(noeud);
                 }
             }
             
-            res.append("\n--- CONNEXIONS ---\n");
-            if (blueprintActif.liens != null && !blueprintActif.liens.isEmpty()) {
-                for (Blueprint.Lien lien : blueprintActif.liens) {
-                    String nomDep = (lien.noeudDepart != null) ? lien.noeudDepart.nom : "Inconnu";
-                    String nomArr = (lien.noeudArrivee != null) ? lien.noeudArrivee.nom : "Inconnu";
-                    res.append(nomDep).append(" [").append(lien.portSortieNom).append("] -> ")
-                       .append(nomArr).append(" [").append(lien.portEntreeNom).append("]\n");
-                }
+            if (evenements.isEmpty()) {
+                res.append(Traducteur.get("msg_aucun_evenement"));
             } else {
-                res.append("Aucune connexion.\n");
+                for (NoeudBase evt : evenements) {
+                    noeudsVisites.add(evt.id);
+                    res.append(Traducteur.get("msg_evenement")).append(formaterNoeud(evt)).append("\n");
+                    genererCheminLogique(evt, "Sortie", "  ", res, noeudsVisites);
+                    genererCheminLogique(evt, "Suivant", "  ", res, noeudsVisites);
+                    res.append("\n");
+                }
+            }
+            
+            boolean aOrphelins = false;
+            StringBuilder orphelinsRes = new StringBuilder();
+            orphelinsRes.append(Traducteur.get("msg_noeuds_orphelins"));
+            for (NoeudBase noeud : blueprintActif.noeuds) {
+                if (!noeudsVisites.contains(noeud.id)) {
+                    aOrphelins = true;
+                    orphelinsRes.append("- ").append(formaterNoeud(noeud)).append("\n");
+                }
+            }
+            if (aOrphelins) {
+                res.append(orphelinsRes);
             }
         }
 
@@ -375,18 +580,18 @@ public class InterfaceBlueprint extends Activity {
         boutonsDialog.setGravity(Gravity.END);
 
         Button btnCopier = new Button(this);
-        btnCopier.setText("Copier");
+        btnCopier.setText(Traducteur.get("bouton_copier"));
         styliserBoutonDialog(btnCopier);
         btnCopier.setOnClickListener(v -> {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("Code LUDEXA", textViewCode.getText());
+            ClipData clip = ClipData.newPlainText(Traducteur.get("code_presse_papier"), textViewCode.getText());
             clipboard.setPrimaryClip(clip);
-            Toast.makeText(this, "Résumé copié dans le presse-papier !", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_script_copie"), Toast.LENGTH_SHORT).show();
         });
         boutonsDialog.addView(btnCopier);
 
         Button btnQuitter = new Button(this);
-        btnQuitter.setText("Quitter");
+        btnQuitter.setText(Traducteur.get("bouton_quitter"));
         styliserBoutonDialog(btnQuitter);
         btnQuitter.setOnClickListener(v -> dialog.dismiss());
         boutonsDialog.addView(btnQuitter);
@@ -397,5 +602,22 @@ public class InterfaceBlueprint extends Activity {
         dialog.show();
     }
 }
-// bas 1
-                               
+// bas 5
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+
+    
+
+
+    

@@ -1,4 +1,4 @@
-// haut 1 12 08 flash
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.Dialog;
@@ -40,7 +40,7 @@ public class EditeurNoeudDialog extends Dialog {
 
     public EditeurNoeudDialog(Context context, NoeudBase noeud, Scene scene, Runnable onValidate) {
         super(context);
-        setTitle("Edit Value - " + noeud.nom);
+        setTitle(Traducteur.get("noeud_edit_valeur") + " - " + Traducteur.get(noeud.nom));
 
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.HORIZONTAL);
@@ -105,32 +105,70 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         });
+// bas 1
 
+
+// haut 2
         champSaisie.setOnClickListener(v -> {
             if (champActif != null) {
                 String typeEditeur = noeud.getTypeEditeurParametre(champActif);
-                
                 String cheminProj = null;
                 if (context instanceof InterfaceBlueprint) cheminProj = ((InterfaceBlueprint) context).cheminProjet;
                 else if (context instanceof InterfaceEditeur) cheminProj = ((InterfaceEditeur) context).cheminProjet;
                         
                 switch (typeEditeur) {
+                    case "TYPE_CHOIX_TAG":
+                        List<String> tagsUniques = new ArrayList<>();
+                        if (scene != null && scene.objets != null) {
+                            for (ObjetBase o : scene.objets) {
+                                if (o.tag != null && !o.tag.trim().isEmpty() && !tagsUniques.contains(o.tag.trim())) {
+                                    tagsUniques.add(o.tag.trim());
+                                }
+                            }
+                        }
+                        tagsUniques.add("[ Saisir manuellement ]");
+                        
+                        android.app.AlertDialog.Builder builderTag = new android.app.AlertDialog.Builder(context);
+                        builderTag.setTitle("Choisir un Tag");
+                        String[] tagsArray = tagsUniques.toArray(new String[0]);
+                        builderTag.setItems(tagsArray, (dialog, which) -> {
+                            if (which == tagsUniques.size() - 1) {
+                                final EditText input = new EditText(context);
+                                input.setText(champSaisie.getText().toString());
+                                new android.app.AlertDialog.Builder(context)
+                                    .setTitle("Saisir un Tag")
+                                    .setView(input)
+                                    .setPositiveButton("OK", (d, w) -> {
+                                        champSaisie.setText(input.getText().toString().trim());
+                                        champSaisie.setSelection(champSaisie.getText().length());
+                                    })
+                                    .setNegativeButton("Annuler", null)
+                                    .show();
+                            } else {
+                                champSaisie.setText(tagsArray[which]);
+                                champSaisie.setSelection(champSaisie.getText().length());
+                            }
+                        });
+                        builderTag.show();
+                        break;
                     case NoeudBase.TYPE_COULEUR:
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
-                        builder.setTitle("Choisir une couleur");
+                        builder.setTitle(Traducteur.get("noeud_choisir_couleur"));
                         String[] couleurs = {"Bleu", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
                         builder.setItems(couleurs, (dialog, which) -> {
                             champSaisie.setText(couleurs[which]);
+                            champSaisie.setSelection(champSaisie.getText().length());
                         });
                         builder.show();
                         break;
                     case NoeudBase.TYPE_CHOIX_LISTE:
                         android.app.AlertDialog.Builder builderListe = new android.app.AlertDialog.Builder(context);
-                        builderListe.setTitle("Choisir une option");
+                        builderListe.setTitle(Traducteur.get("noeud_choisir_option"));
                         List<String> optionsListe = noeud.getOptionsChoixListe(champActif);
                         String[] optionsArray = optionsListe.toArray(new String[0]);
                         builderListe.setItems(optionsArray, (dialog, which) -> {
                             champSaisie.setText(optionsArray[which]);
+                            champSaisie.setSelection(champSaisie.getText().length());
                         });
                         builderListe.show();
                         break;
@@ -138,8 +176,7 @@ public class EditeurNoeudDialog extends Dialog {
                         if (cheminProj != null) {
                             java.io.File dossierImages = new java.io.File(cheminProj, "assets_ludexa/Images");
                             List<String> images = new ArrayList<>();
-                            images.add("Aucune (Effacer l'image)"); 
-                            
+                            images.add(Traducteur.get("noeud_aucune_image")); 
                             if (dossierImages.exists() && dossierImages.isDirectory()) {
                                 java.io.File[] fichiers = dossierImages.listFiles();
                                 if (fichiers != null) {
@@ -151,16 +188,16 @@ public class EditeurNoeudDialog extends Dialog {
                                 }
                             }
                             android.app.AlertDialog.Builder builderImage = new android.app.AlertDialog.Builder(context);
-                            builderImage.setTitle("Choisir une image");
+                            builderImage.setTitle(Traducteur.get("noeud_choisir_image"));
                             String[] imagesArray = images.toArray(new String[0]);
                             builderImage.setItems(imagesArray, (dialog, which) -> {
                                 if (which == 0) champSaisie.setText("");
                                 else champSaisie.setText(imagesArray[which]);
+                                champSaisie.setSelection(champSaisie.getText().length());
                             });
                             builderImage.show();
                         }
                         break;
-                        
                     case NoeudBase.TYPE_CHOIX_DIALOGUE:
                         if (cheminProj != null) {
                             java.io.File fichierDialogues = new java.io.File(cheminProj, "assets_ludexa/Textes/dialogues.txt");
@@ -181,26 +218,24 @@ public class EditeurNoeudDialog extends Dialog {
                                     br.close();
                                 } catch (Exception e) {}
                             }
-                            if (clesDialogue.isEmpty()) clesDialogue.add("Aucune clé trouvée");
-                            
+                            if (clesDialogue.isEmpty()) clesDialogue.add(Traducteur.get("noeud_aucune_cle_dialogue"));
                             android.app.AlertDialog.Builder builderDial = new android.app.AlertDialog.Builder(context);
-                            builderDial.setTitle("Choisir un dialogue");
+                            builderDial.setTitle(Traducteur.get("noeud_choisir_dialogue"));
                             String[] arrayDial = clesDialogue.toArray(new String[0]);
                             builderDial.setItems(arrayDial, (dialog, which) -> {
-                                if (!arrayDial[which].equals("Aucune clé trouvée")) {
+                                if (!arrayDial[which].equals(Traducteur.get("noeud_aucune_cle_dialogue"))) {
                                     champSaisie.setText(arrayDial[which]);
+                                    champSaisie.setSelection(champSaisie.getText().length());
                                 }
                             });
                             builderDial.show();
                         }
                         break;
-                        
                     case NoeudBase.TYPE_CHOIX_SON:
                         if (cheminProj != null) {
                             java.io.File dossierSons = new java.io.File(cheminProj, "assets_ludexa/Sons");
                             List<String> sons = new ArrayList<>();
-                            sons.add("Aucun fichier"); 
-                            
+                            sons.add(Traducteur.get("noeud_aucun_fichier_audio")); 
                             if (dossierSons.exists() && dossierSons.isDirectory()) {
                                 java.io.File[] fichiers = dossierSons.listFiles();
                                 if (fichiers != null) {
@@ -212,16 +247,41 @@ public class EditeurNoeudDialog extends Dialog {
                                 }
                             }
                             android.app.AlertDialog.Builder builderSon = new android.app.AlertDialog.Builder(context);
-                            builderSon.setTitle("Choisir un fichier audio");
+                            builderSon.setTitle(Traducteur.get("noeud_choisir_audio"));
                             String[] sonsArray = sons.toArray(new String[0]);
                             builderSon.setItems(sonsArray, (dialog, which) -> {
                                 if (which == 0) champSaisie.setText("");
                                 else champSaisie.setText(sonsArray[which]);
+                                champSaisie.setSelection(champSaisie.getText().length());
                             });
                             builderSon.show();
                         }
                         break;
-
+                    case NoeudBase.TYPE_CHOIX_FONCTION: 
+                        if (cheminProj != null) {
+                            java.io.File dossierFonctions = new java.io.File(cheminProj, "fonctions");
+                            List<String> fonctions = new ArrayList<>();
+                            if (dossierFonctions.exists() && dossierFonctions.isDirectory()) {
+                                java.io.File[] fichiers = dossierFonctions.listFiles((dir, name) -> name.endsWith(".json"));
+                                if (fichiers != null) {
+                                    for (java.io.File f : fichiers) {
+                                        fonctions.add(f.getName().replace(".json", ""));
+                                    }
+                                }
+                            }
+                            if (fonctions.isEmpty()) fonctions.add(Traducteur.get("noeud_aucune_fonction"));
+                            android.app.AlertDialog.Builder builderFonc = new android.app.AlertDialog.Builder(context);
+                            builderFonc.setTitle(Traducteur.get("noeud_choisir_fonction"));
+                            String[] arrayFonc = fonctions.toArray(new String[0]);
+                            builderFonc.setItems(arrayFonc, (dialog, which) -> {
+                                if (!arrayFonc[which].equals(Traducteur.get("noeud_aucune_fonction"))) {
+                                    champSaisie.setText(arrayFonc[which]);
+                                    champSaisie.setSelection(champSaisie.getText().length());
+                                }
+                            });
+                            builderFonc.show();
+                        }
+                        break;
                     case "CHOIX_ANIMATION":
                         if (cheminProj != null) {
                             java.io.File fichierAnimations = new java.io.File(cheminProj, "assets_ludexa/Textes/animations.txt");
@@ -242,14 +302,14 @@ public class EditeurNoeudDialog extends Dialog {
                                     br.close();
                                 } catch (Exception e) {}
                             }
-                            if (clesAnimation.isEmpty()) clesAnimation.add("Aucune animation trouvée");
-                            
+                            if (clesAnimation.isEmpty()) clesAnimation.add(Traducteur.get("noeud_aucune_animation"));
                             android.app.AlertDialog.Builder builderAnim = new android.app.AlertDialog.Builder(context);
-                            builderAnim.setTitle("Choisir une animation");
+                            builderAnim.setTitle(Traducteur.get("noeud_choisir_animation"));
                             String[] arrayAnim = clesAnimation.toArray(new String[0]);
                             builderAnim.setItems(arrayAnim, (dialog, which) -> {
-                                if (!arrayAnim[which].equals("Aucune animation trouvée")) {
+                                if (!arrayAnim[which].equals(Traducteur.get("noeud_aucune_animation"))) {
                                     champSaisie.setText(arrayAnim[which]);
+                                    champSaisie.setSelection(champSaisie.getText().length());
                                 }
                             });
                             builderAnim.show();
@@ -258,9 +318,10 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         });
-// bas 1
+// bas 2
 
-// haut 2
+
+// haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
         wrapperDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f));
@@ -281,18 +342,30 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud.requiertCibleObjet()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
-            Button btnCible = creerBoutonSelectionCible(context, "Objet A");
-            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
-
+            Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_a"));
+            
+            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
+            mettreAJourAfficheurCible(txtAfficheur, nomAfficheA);
+            
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
-                    String[] noms = new String[scene.objets.size()];
-                    for (int i = 0; i < scene.objets.size(); i++) noms[i] = scene.objets.get(i).nom;
-                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Objet A")
+                    String[] noms = new String[scene.objets.size() + 1];
+                    noms[0] = "[ L'objet impliqué dans l'événement ]";
+                    for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
+                    
+                    new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_a"))
                         .setItems(noms, (d, which) -> {
-                            ObjetBase obj = scene.objets.get(which);
-                            noeud.setCibleObjet(obj);
-                            mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            if (which == 0) {
+                                // CORRECTION ICI : On met à null D'ABORD, puis on force le mot-clé !
+                                noeud.setCibleObjet(null);
+                                noeud.nomCibleObjet = "__OBJET_IMPLIQUE__";
+                                mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
+                            } else {
+                                ObjetBase obj = scene.objets.get(which - 1);
+                                noeud.setCibleObjet(obj);
+                                noeud.nomCibleObjet = obj.nom;
+                                mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            }
                             mettreAJourResumeExpression(noeud, txtResumeExpression);
                         }).show();
                 }
@@ -302,18 +375,30 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud.requiertCibleObjetB()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
-            Button btnCible = creerBoutonSelectionCible(context, "Objet B");
-            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
-
+            Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_b"));
+            
+            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
+            mettreAJourAfficheurCible(txtAfficheur, nomAfficheB);
+            
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
-                    String[] noms = new String[scene.objets.size()];
-                    for (int i = 0; i < scene.objets.size(); i++) noms[i] = scene.objets.get(i).nom;
-                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Objet B")
+                    String[] noms = new String[scene.objets.size() + 1];
+                    noms[0] = "[ L'objet impliqué dans l'événement ]";
+                    for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
+                    
+                    new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_b"))
                         .setItems(noms, (d, which) -> {
-                            ObjetBase obj = scene.objets.get(which);
-                            noeud.setCibleObjetB(obj);
-                            mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            if (which == 0) {
+                                // CORRECTION ICI AUSSI
+                                noeud.setCibleObjetB(null);
+                                noeud.nomCibleObjetB = "__OBJET_IMPLIQUE__";
+                                mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
+                            } else {
+                                ObjetBase obj = scene.objets.get(which - 1);
+                                noeud.setCibleObjetB(obj);
+                                noeud.nomCibleObjetB = obj.nom;
+                                mettreAJourAfficheurCible(txtAfficheur, obj.nom);
+                            }
                             mettreAJourResumeExpression(noeud, txtResumeExpression);
                         }).show();
                 }
@@ -323,16 +408,14 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud.requiertCibleVariable()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
-            Button btnCible = creerBoutonSelectionCible(context, "Variable");
+            Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_variable"));
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : null);
-
             btnCible.setOnClickListener(v -> {
                 List<String> nomsVars = new ArrayList<>();
                 List<Variable> refsVars = new ArrayList<>();
-
                 if (scene != null && scene.variablesLocales != null) {
                     for (Variable var : scene.variablesLocales) {
-                        nomsVars.add(var.nom + " (Locale)");
+                        nomsVars.add(var.nom + " (" + Traducteur.get("variable_locale") + ")");
                         refsVars.add(var);
                     }
                 }
@@ -345,12 +428,12 @@ public class EditeurNoeudDialog extends Dialog {
                 }
                 if (globales != null) {
                     for (Variable var : globales) {
-                        nomsVars.add(var.nom + " (Globale)");
+                        nomsVars.add(var.nom + " (" + Traducteur.get("variable_globale") + ")");
                         refsVars.add(var);
                     }
                 }
                 if (!nomsVars.isEmpty()) {
-                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Variable")
+                    new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_variable"))
                         .setItems(nomsVars.toArray(new String[0]), (d, which) -> {
                             Variable var = refsVars.get(which);
                             noeud.setCibleVariable(var);
@@ -364,9 +447,8 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud.requiertCibleScene()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
-            Button btnCible = creerBoutonSelectionCible(context, "Scène");
+            Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_scene"));
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleScene() != null ? noeud.getCibleScene().nom : null);
-
             btnCible.setOnClickListener(v -> {
                 List<Scene> tempScenes = null;
                 if (NoeudBase.contexteApplication != null) {
@@ -376,11 +458,10 @@ public class EditeurNoeudDialog extends Dialog {
                     } catch (Exception e) {}
                 }
                 final List<Scene> scenesRecuperees = tempScenes;
-
                 if (scenesRecuperees != null && !scenesRecuperees.isEmpty()) {
                     String[] noms = new String[scenesRecuperees.size()];
                     for (int i = 0; i < scenesRecuperees.size(); i++) noms[i] = scenesRecuperees.get(i).nom;
-                    new android.app.AlertDialog.Builder(context).setTitle("Choisir Cible Scène")
+                    new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_scene"))
                         .setItems(noms, (d, which) -> {
                             Scene s = scenesRecuperees.get(which);
                             noeud.setCibleScene(s);
@@ -394,19 +475,25 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
-// bas 2
+// bas 3
+        
+        
 
-// haut 3
+
+// haut 4
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
 
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
             champSaisie.setText(valInit != null ? valInit : "");
+            champSaisie.setSelection(champSaisie.getText().length()); // Repositionnement sécurité
 
             for (String paramName : params) {
                 Button btnParam = new Button(context);
-                btnParam.setText(paramName);
+                btnParam.setText(Traducteur.get(paramName)); 
+                btnParam.setTag(paramName);
+                
                 btnParam.setAllCaps(false);
                 btnParam.setTextSize(13f);
                 btnParam.setTextColor(Palette.texteNormal);
@@ -425,11 +512,12 @@ public class EditeurNoeudDialog extends Dialog {
                     champActif = paramName;
                     String val = noeud.getValeurParametre(champActif);
                     champSaisie.setText(val != null ? val : "");
+                    champSaisie.setSelection(champSaisie.getText().length()); // Place le curseur en fin de mot !
 
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
-                        if (child instanceof Button && params.contains(((Button)child).getText().toString())) {
-                            if (((Button)child).getText().toString().equals(champActif)) {
+                        if (child instanceof Button && child.getTag() != null) {
+                            if (child.getTag().toString().equals(champActif)) {
                                 child.setBackground(fond(context, Color.parseColor("#4CAF50"), Palette.bordure, 8));
                             } else {
                                 child.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
@@ -442,7 +530,8 @@ public class EditeurNoeudDialog extends Dialog {
                     
                     if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
                         NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
-                        NoeudBase.TYPE_CHOIX_SON.equals(type) || "CHOIX_ANIMATION".equals(type)) {
+                        NoeudBase.TYPE_CHOIX_SON.equals(type) || NoeudBase.TYPE_CHOIX_FONCTION.equals(type) ||
+                        "CHOIX_ANIMATION".equals(type) || "TYPE_CHOIX_TAG".equals(type)) { 
                         champSaisie.performClick();
                     }
                 });
@@ -477,7 +566,6 @@ public class EditeurNoeudDialog extends Dialog {
                 btn.setAllCaps(false);
                 btn.setTextColor(Palette.texteNormal);
                 btn.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
-
                 btn.setMinHeight(0);
                 btn.setMinimumHeight(0);
                 btn.setPadding(0, dp(context, 12), 0, dp(context, 12));
@@ -493,8 +581,14 @@ public class EditeurNoeudDialog extends Dialog {
                     if (touche.equals("DEL")) btn.setBackground(fond(context, Color.parseColor("#5c2323"), Palette.bordure, 8));
 
                     btn.setOnClickListener(v -> {
-                        int start = Math.max(champSaisie.getSelectionStart(), 0);
-                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                        int start = champSaisie.getSelectionStart();
+                        int end = champSaisie.getSelectionEnd();
+                        
+                        // Sécurité Android pour palier à la perte de curseur sur certains claviers virtuels
+                        if (start < 0 || end < 0) {
+                            start = champSaisie.getText().length();
+                            end = champSaisie.getText().length();
+                        }
 
                         if (touche.equals("DEL")) {
                             if (start > 0 && start == end) {
@@ -525,7 +619,10 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout.LayoutParams paramVrai = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramVrai.setMargins(margeBooleenDp, margeBooleenDp, margeBooleenDp, margeBooleenDp);
         btnVrai.setLayoutParams(paramVrai);
-        btnVrai.setOnClickListener(v -> champSaisie.setText("true"));
+        btnVrai.setOnClickListener(v -> {
+            champSaisie.setText("true");
+            champSaisie.setSelection(champSaisie.getText().length());
+        });
 
         Button btnFaux = new Button(context);
         btnFaux.setText("Faux (false)");
@@ -536,7 +633,10 @@ public class EditeurNoeudDialog extends Dialog {
         LinearLayout.LayoutParams paramFaux = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         paramFaux.setMargins(margeBooleenDp, margeBooleenDp, margeBooleenDp, margeBooleenDp);
         btnFaux.setLayoutParams(paramFaux);
-        btnFaux.setOnClickListener(v -> champSaisie.setText("false"));
+        btnFaux.setOnClickListener(v -> {
+            champSaisie.setText("false");
+            champSaisie.setSelection(champSaisie.getText().length());
+        });
 
         conteneurBooleen.addView(btnVrai);
         conteneurBooleen.addView(btnFaux);
@@ -544,9 +644,9 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
-// bas 3
+// bas 4
 
-// haut 4
+// haut 5
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lpGauche = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.5f);
@@ -559,7 +659,7 @@ public class EditeurNoeudDialog extends Dialog {
         scrollGauche.setFillViewport(true);
 
         TextView titreItems = new TextView(context);
-        titreItems.setText("Objets (Insertion)");
+        titreItems.setText(Traducteur.get("noeud_objets_insertion"));
         titreItems.setTextColor(Palette.texteSelectionne);
         titreItems.setTextSize(15f);
         titreItems.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -594,8 +694,66 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
+        // --- NOUVEAU : SECTION TAGS ---
+        TextView titreTags = new TextView(context);
+        titreTags.setText("Tags (Insertion)");
+        titreTags.setTextColor(Palette.texteSelectionne);
+        titreTags.setTextSize(15f);
+        titreTags.setTypeface(null, android.graphics.Typeface.BOLD);
+        titreTags.setGravity(Gravity.CENTER);
+        titreTags.setBackground(fond(context, Palette.enTeteDialogues, Palette.bordure, 10));
+        titreTags.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
+        LinearLayout.LayoutParams lpTitreTags = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpTitreTags.setMargins(0, dp(context, 14), 0, 0);
+        titreTags.setLayoutParams(lpTitreTags);
+        listeGauche.addView(titreTags);
+
+        if (scene != null && scene.objets != null) {
+            List<String> tagsUniques = new ArrayList<>();
+            for (ObjetBase obj : scene.objets) {
+                if (obj.tag != null && !obj.tag.trim().isEmpty() && !tagsUniques.contains(obj.tag.trim())) {
+                    tagsUniques.add(obj.tag.trim());
+                }
+            }
+            
+            if (tagsUniques.isEmpty()) {
+                TextView txtAucun = new TextView(context);
+                txtAucun.setText("Aucun tag dans la scène");
+                txtAucun.setTextColor(Color.parseColor("#888888"));
+                txtAucun.setTextSize(13f);
+                txtAucun.setPadding(dp(context, 12), dp(context, 4), 0, 0);
+                listeGauche.addView(txtAucun);
+            } else {
+                for (String t : tagsUniques) {
+                    Button btnTag = new Button(context);
+                    btnTag.setText(t);
+                    btnTag.setAllCaps(false);
+                    btnTag.setTextSize(14f);
+                    btnTag.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                    btnTag.setTextColor(Color.parseColor("#FF9800")); // Couleur orange
+                    btnTag.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
+                    btnTag.setMinHeight(0);
+                    btnTag.setMinimumHeight(0);
+                    btnTag.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
+                    LinearLayout.LayoutParams lpTag = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    lpTag.setMargins(0, dp(context, 4), 0, 0);
+                    btnTag.setLayoutParams(lpTag);
+
+                    btnTag.setOnClickListener(v -> {
+                        int start = Math.max(champSaisie.getSelectionStart(), 0);
+                        int end = Math.max(champSaisie.getSelectionEnd(), 0);
+                        champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), t, 0, t.length());
+                    });
+                    listeGauche.addView(btnTag);
+                }
+            }
+        }
+
+        // --- SECTION VARIABLES LOCALES ---
         TextView titreVars = new TextView(context);
-        titreVars.setText("Variables Locales (Insertion)");
+        titreVars.setText(Traducteur.get("noeud_vars_locales_insertion"));
         titreVars.setTextColor(Palette.texteSelectionne);
         titreVars.setTextSize(15f);
         titreVars.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -638,7 +796,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
 
         TextView titreVarsGlobales = new TextView(context);
-        titreVarsGlobales.setText("Variables Globales (Insertion)");
+        titreVarsGlobales.setText(Traducteur.get("noeud_vars_globales_insertion"));
         titreVarsGlobales.setTextColor(Palette.texteSelectionne);
         titreVarsGlobales.setTextSize(15f);
         titreVarsGlobales.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -696,7 +854,7 @@ public class EditeurNoeudDialog extends Dialog {
         bottomBar.setPadding(dp(context, 12), dp(context, 10), dp(context, 12), dp(context, 12));
 
         Button btnCancel = new Button(context);
-        btnCancel.setText("Fermer");
+        btnCancel.setText(Traducteur.get("bouton_fermer"));
         btnCancel.setAllCaps(false);
         btnCancel.setTextSize(15f);
         btnCancel.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 10));
@@ -752,7 +910,7 @@ public class EditeurNoeudDialog extends Dialog {
 
     private void mettreAJourAfficheurCible(TextView txt, String valeur) {
         if (valeur == null || valeur.trim().isEmpty()) {
-            txt.setText("Aucune");
+            txt.setText(Traducteur.get("valeur_aucune"));
             txt.setTextColor(Color.parseColor("#888888"));
             txt.setTypeface(null, android.graphics.Typeface.ITALIC);
         } else {
@@ -786,9 +944,9 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud instanceof NoeudEventCollisionAB || noeud instanceof NoeudConditionSiObjetToucheZone) {
             txtResume.setVisibility(View.VISIBLE);
-            String objNameA = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
-            String objNameB = (noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]";
-            txtResume.setText("Interaction : " + objNameA + " <-> " + objNameB);
+            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
+            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]");
+            txtResume.setText(Traducteur.get("resume_interaction") + " : " + objNameA + " <-> " + objNameB);
         }
         else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
             txtResume.setVisibility(View.VISIBLE);
@@ -797,23 +955,35 @@ public class EditeurNoeudDialog extends Dialog {
             if (op == null || op.isEmpty()) op = "=";
             String val = noeud.getValeurParametre("Valeur de comparaison");
             if (val == null) val = "";
-            txtResume.setText("Expression : " + varName + " " + op + " " + val);
+            txtResume.setText(Traducteur.get("resume_expression") + " : " + varName + " " + op + " " + val);
         } else if (noeud.requiertCibleVariable()) {
             txtResume.setVisibility(View.VISIBLE);
             String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
-            String val = "";
-            if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
-                val = noeud.getValeurParametre(noeud.getNomsParametres().get(0));
+            StringBuilder sb = new StringBuilder();
+            if (noeud.getNomsParametres() != null) {
+                for (String p : noeud.getNomsParametres()) {
+                    String val = noeud.getValeurParametre(p);
+                    if (val != null && !val.isEmpty()) {
+                        if (sb.length() > 0) sb.append(" | ");
+                        sb.append(Traducteur.get(p)).append(": ").append(val);
+                    }
+                }
             }
-            txtResume.setText("Action : " + varName + " = " + (val != null ? val : ""));
+            txtResume.setText(Traducteur.get("resume_action") + " : " + varName + " = " + sb.toString());
         } else if (noeud.requiertCibleObjet()) {
             txtResume.setVisibility(View.VISIBLE);
-            String objName = (noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]";
-            String val = "";
-            if (noeud.getNomsParametres() != null && !noeud.getNomsParametres().isEmpty()) {
-                val = noeud.getValeurParametre(noeud.getNomsParametres().get(0));
+            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
+            StringBuilder sb = new StringBuilder();
+            if (noeud.getNomsParametres() != null) {
+                for (String p : noeud.getNomsParametres()) {
+                    String val = noeud.getValeurParametre(p);
+                    if (val != null && !val.isEmpty()) {
+                        if (sb.length() > 0) sb.append(" | ");
+                        sb.append(Traducteur.get(p)).append(": ").append(val);
+                    }
+                }
             }
-            txtResume.setText("Action Objet : " + objName + (val.isEmpty() ? "" : " -> " + val));
+            txtResume.setText(Traducteur.get("resume_action_objet") + " : " + objName + (sb.length() == 0 ? "" : " -> " + sb.toString()));
         } else {
             txtResume.setVisibility(View.GONE);
         }
@@ -824,7 +994,8 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (NoeudBase.TYPE_COULEUR.equals(type) || NoeudBase.TYPE_CHOIX_LISTE.equals(type) || 
             NoeudBase.TYPE_CHOIX_IMAGE.equals(type) || NoeudBase.TYPE_CHOIX_DIALOGUE.equals(type) ||
-            NoeudBase.TYPE_CHOIX_SON.equals(type) || "CHOIX_ANIMATION".equals(type)) {
+            NoeudBase.TYPE_CHOIX_SON.equals(type) || NoeudBase.TYPE_CHOIX_FONCTION.equals(type) ||
+            "CHOIX_ANIMATION".equals(type) || "TYPE_CHOIX_TAG".equals(type)) { 
             
             champSaisie.setFocusable(false);
             champSaisie.setFocusableInTouchMode(false);
@@ -833,6 +1004,16 @@ public class EditeurNoeudDialog extends Dialog {
             champSaisie.setInputType(InputType.TYPE_NULL);
             if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
             if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+            
+        } else if ("TYPE_BOOLEEN".equals(type)) {
+            champSaisie.setFocusable(false);
+            champSaisie.setFocusableInTouchMode(false);
+            champSaisie.setClickable(true);
+            champSaisie.setShowSoftInputOnFocus(false);
+            champSaisie.setInputType(InputType.TYPE_NULL);
+            if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+            if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.VISIBLE);
+            
         } else {
             champSaisie.setFocusable(true);
             champSaisie.setFocusableInTouchMode(true);
@@ -853,4 +1034,4 @@ public class EditeurNoeudDialog extends Dialog {
         }
     }
 }
-// bas 4
+// bas 5

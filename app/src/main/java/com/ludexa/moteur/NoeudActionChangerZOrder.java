@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -6,7 +7,7 @@ import java.util.List;
 public class NoeudActionChangerZOrder extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
+    // SUPPRIMÉ : private String nomCibleObjet;[span_12](start_span)[span_12](end_span)
     private String nouvelleValeurZ = "1";
 
     public NoeudActionChangerZOrder() {
@@ -56,6 +57,8 @@ public class NoeudActionChangerZOrder extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
         // Reconnexion dynamique après chargement de la sauvegarde
         if (cible == null && nomCibleObjet != null && contexteApplication instanceof InterfaceEditeur) {
             InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
@@ -74,3 +77,4 @@ public class NoeudActionChangerZOrder extends NoeudBase {
     @Override
     public boolean utiliseClavierTexte() { return true; }
 }
+// bas 1
