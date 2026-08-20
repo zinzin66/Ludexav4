@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Yop2D
 
 on:
   push:
@@ -24,11 +24,21 @@ jobs:
         with:
           gradle-version: 8.7
 
-      - name: Compiler l'APK (debug)
-        run: gradle assembleDebug
+      - name: 1. Compiler la coquille vide (Runner)
+        run: gradle assembleRunnerDebug
 
-      - name: Publier l'APK comme artefact téléchargeable
+      - name: 2. Préparer le dossier assets de l'éditeur
+        run: mkdir -p app/src/main/assets
+
+      - name: 3. Injecter le Runner dans l'Éditeur
+        run: cp app/build/outputs/apk/runner/debug/app-runner-debug.apk app/src/main/assets/modele_runner.apk
+
+      - name: 4. Compiler l'Éditeur Yop2D
+        run: gradle assembleEditeurDebug
+
+      - name: Publier l'APK final (Yop2D + Runner inclus)
         uses: actions/upload-artifact@v4
         with:
-          name: ludexa-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: YOP2D-Editeur-apk
+          path: app/build/outputs/apk/editeur/debug/app-editeur-debug.apk
+          
