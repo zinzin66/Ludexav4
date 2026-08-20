@@ -26,48 +26,44 @@ import java.util.zip.ZipInputStream;
 
 public class RunnerActivity extends Activity {
 
-    // On prépare les variables globales pour respecter l'architecture de ton éditeur
     public List<Variable> variablesGlobales = new ArrayList<>();
     public List<Scene> listeScenes = new ArrayList<>();
     public Scene sceneActive;
+    public Scene sceneHudActive = null;
 
     private VueJeu vueJeu;
     private String cheminProjet;
+
+    public VueJeu getVueJeu() {
+        return this.vueJeu;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 1. Mode plein écran immersif pour le joueur final
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         cacherBarresSysteme();
 
-        // 2. Initialisation des fondations (identique à EcranDemarrage)
         NoeudBase.contexteApplication = this;
         Traducteur.initialiser(this, "fr");
         RegistreNoeuds.initialiser();
 
-        // Le dossier où le jeu sera extrait sur le téléphone du joueur
         File dossierJeu = new File(getFilesDir(), "donnees_jeu_exporte");
         cheminProjet = dossierJeu.getAbsolutePath();
 
-        // 3. Extraction (Se produit uniquement au tout premier lancement du jeu)
         if (!new File(dossierJeu, "projet_sauvegarde.json").exists()) {
             if (!extraireAssetsZIP(dossierJeu)) {
-                Toast.makeText(this, "Erreur critique : Fichiers du jeu introuvables.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Erreur : Fichiers du jeu introuvables.", Toast.LENGTH_LONG).show();
                 return;
             }
         }
 
-        // 4. Chargement des données (Calqué sur ta méthode basculerVersJeu)
         chargerDonneesJeu();
 
-        // 5. Lancement de la VueJeu
         if (sceneActive != null) {
             Blueprint blueprintActif = chargerBlueprint(sceneActive.id);
-            
-            // Instanciation stricte sans HUD par défaut pour la coquille vide
             this.vueJeu = new VueJeu(this, sceneActive, blueprintActif, cheminProjet, null, null);
             
             FrameLayout conteneurJeu = new FrameLayout(this);
@@ -83,11 +79,9 @@ public class RunnerActivity extends Activity {
         }
     }
 // bas 1
-
 // haut 2
     private void chargerDonneesJeu() {
         try {
-            // Lecture des scènes avec Gson
             File fileProjet = new File(cheminProjet, "projet_sauvegarde.json");
             if (fileProjet.exists()) {
                 BufferedReader br = new BufferedReader(new FileReader(fileProjet));
@@ -105,7 +99,6 @@ public class RunnerActivity extends Activity {
                 }
             }
 
-            // Lecture des variables globales
             File fileVar = new File(cheminProjet, "variables_globales.json");
             if (fileVar.exists()) {
                 BufferedReader brVar = new BufferedReader(new FileReader(fileVar));
@@ -143,7 +136,6 @@ public class RunnerActivity extends Activity {
     private boolean extraireAssetsZIP(File dossierCible) {
         try {
             dossierCible.mkdirs();
-            // Ce fichier sera injecté dans l'APK par l'Exportateur à l'Étape 3
             InputStream is = getAssets().open("jeu_exporte.zip");
             ZipInputStream zis = new ZipInputStream(is);
             ZipEntry entry;
@@ -169,10 +161,12 @@ public class RunnerActivity extends Activity {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            return false; // Échoue silencieusement si lancé depuis l'éditeur (car le fichier n'y est pas)
+            return false;
         }
     }
+// bas 2
 
+// haut 3
     private void cacherBarresSysteme() {
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
@@ -186,7 +180,58 @@ public class RunnerActivity extends Activity {
     
     @Override
     public void onBackPressed() {
-        // Désactive le bouton retour pour éviter de quitter le jeu par erreur en pleine partie
+        // Désactive le bouton retour pour éviter de quitter le jeu par erreur
+    }
+
+    // --- METHODES ESSENTIELLES POUR LES NOEUDS (HUD & SCENES) ---
+
+    public void ouvrirHUD(Scene scene) {
+        this.sceneHudActive = scene;
+        Blueprint blueprintHud = null;
+        if (scene != null && cheminProjet != null) {
+            try {
+                File dossierLogique = new File(cheminProjet, "logique");
+                File fileBlueprintHud = new File(dossierLogique, scene.id + ".json");
+                if (fileBlueprintHud.exists()) {
+                    BufferedReader brHud = new BufferedReader(new FileReader(fileBlueprintHud));
+                    StringBuilder sbHud = new StringBuilder();
+                    String ligneHud;
+                    while ((ligneHud = brHud.readLine()) != null) {
+                        sbHud.append(ligneHud);
+                    }
+                    brHud.close();
+                    blueprintHud = Blueprint.fromJson(sbHud.toString(), scene);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (vueJeu != null) {
+            vueJeu.ouvrirHudDynamique(scene, blueprintHud);
+        }
+    }
+
+    public void fermerHUD() {
+        this.sceneHudActive = null;
+        if (vueJeu != null) {
+            vueJeu.setSceneHud(null);
+        }
+    }
+
+    public void changerScene(Scene scene) {
+        this.sceneActive = scene;
+        if (vueJeu != null) {
+            vueJeu.chargerNouvelleScene(scene);
+        }
     }
 }
-// bas 2
+// bas 3
+
+
+
+
+    
+
+
+
+
