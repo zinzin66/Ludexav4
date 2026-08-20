@@ -7,7 +7,7 @@ import java.util.List;
 public class NoeudActionDetruireObjet extends NoeudBase {
 
     private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet; (On utilise maintenant celui hérité de NoeudBase pour éviter le conflit)
+    // SUPPRIMÉ : private String nomCibleObjet; (Le conflit venait d'ici !)
 
     public NoeudActionDetruireObjet() {
         super(genererId(), "Détruire Objet", "Apparence & Objets");
@@ -87,6 +87,7 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
+        // On assigne correctement à la variable héritée du parent
         this.nomCibleObjet = (objet != null) ? objet.nom : null;
     }
 
