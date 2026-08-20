@@ -5,7 +5,7 @@ import java.util.List;
 
 public class MoteurLogique {
     
-    // --- AJOUT MÉMOIRE CONTEXTUELLE : Stocke le clone exact impliqué ---
+    // NOUVEAU : Mémoire contextuelle
     public static ObjetBase dernierObjetImplique = null;
     
     private Blueprint blueprintActif;
@@ -87,13 +87,13 @@ public class MoteurLogique {
 
                 if (objA != null && cibleTag != null && !cibleTag.trim().isEmpty()) {
                     boolean enCollision = false;
-                    ObjetBase objetCloneTouche = null; // Mémoire locale pour stocker l'instance
+                    ObjetBase objetCloneTouche = null; 
                     
                     for (ObjetBase objB : objetsContexte) {
                         if (objA != objB && objB.tag != null && cibleTag.trim().equalsIgnoreCase(objB.tag.trim())) {
                             if (UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu)) {
                                 enCollision = true;
-                                objetCloneTouche = objB; // On a trouvé le clone exact !
+                                objetCloneTouche = objB; 
                                 break; 
                             }
                         }
@@ -101,7 +101,8 @@ public class MoteurLogique {
 
                     if (enCollision && !noeudTag.isEtaitEnCollision()) {
                         noeudTag.setEtaitEnCollision(true);
-                        // --- AJOUT MÉMOIRE CONTEXTUELLE : On stocke l'objet avant d'exécuter l'action ---
+                        
+                        // NOUVEAU : Sauvegarde de l'objet touché avant exécution
                         MoteurLogique.dernierObjetImplique = objetCloneTouche;
                         
                         noeudTag.executer();
