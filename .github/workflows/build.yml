@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Yop2D
 
 on:
   push:
@@ -24,11 +24,27 @@ jobs:
         with:
           gradle-version: 8.7
 
-      - name: Compiler l'APK (debug)
-        run: gradle assembleDebug
+      - name: 1. Patch automatique de tous les Noeuds
+        run: find app/src/main/java/com/ludexa/moteur -name "Noeud*.java" -type f -exec sed -i 's/InterfaceEditeur/RunnerActivity/g' {} +
 
-      - name: Publier l'APK comme artefact téléchargeable
+      - name: 2. Compiler la coquille vide (Runner)
+        run: gradle assembleRunnerDebug
+
+      - name: 3. Annuler le Patch (Nettoyage)
+        run: git reset --hard
+
+      - name: 4. Préparer le dossier assets
+        run: mkdir -p app/src/main/assets
+
+      - name: 5. Injecter le Runner
+        run: cp app/build/outputs/apk/runner/debug/app-runner-debug.apk app/src/main/assets/modele_runner.apk
+
+      - name: 6. Compiler l'Éditeur Yop2D
+        run: gradle assembleEditeurDebug
+
+      - name: Publier l'APK final
         uses: actions/upload-artifact@v4
         with:
-          name: YOP2D-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: YOP2D-Editeur-apk
+          path: app/build/outputs/apk/editeur/debug/app-editeur-debug.apk
+          

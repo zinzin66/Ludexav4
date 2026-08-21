@@ -13,6 +13,22 @@ android {
         targetSdk 34
         versionCode 1
         versionName "0.1"
+        // AJOUT DE SÉCURITÉ : Valeur par défaut pour calmer le compilateur
+        manifestPlaceholders = [ nomApp: "Yop2D" ] 
+    }
+
+    flavorDimensions "appType"
+    productFlavors {
+        editeur {
+            dimension "appType"
+            applicationId "com.ludexa.moteur"
+            manifestPlaceholders = [ nomApp: "Yop2D" ]
+        }
+        runner {
+            dimension "appType"
+            applicationId "com.yop2d.export.placeholder.xxxxxxxxxxxxxxxxxxxxx"
+            manifestPlaceholders = [ nomApp: "YOP2D_GAME_NAME_PLACEHOLDER_X_X_X_X_X_X_X_X_X_X_X_" ]
+        }
     }
 
     compileOptions {

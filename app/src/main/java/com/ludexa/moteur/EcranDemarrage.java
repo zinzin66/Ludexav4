@@ -43,7 +43,7 @@ public class EcranDemarrage extends Activity {
     private final ArrayList<ItemProjet> itemsProjets = new ArrayList<>();
     private int positionSelectionnee = -1;
 
-    // Projets d'Exemples (Nouveau)
+    // Projets d'Exemples
     private ListView listeExemples;
     private AdaptateurProjets adaptateurExemples;
     private final ArrayList<ItemProjet> itemsExemples = new ArrayList<>();
@@ -51,8 +51,12 @@ public class EcranDemarrage extends Activity {
     private LinearLayout barreActions;
     private TextView etiquetteSelection;
     
-    private static final int REQUEST_CODE_EXPORT = 2001;
+    private static final int REQUEST_CODE_EXPORT_PROJET = 2001;
+    private static final int REQUEST_CODE_EXPORT_APK = 2002;
     private File projetAExporter = null;
+    
+    // NOUVEAU : On garde en mémoire le nom final choisi par l'utilisateur
+    public static String nomJeuAExporter = ""; 
 
     // Structure pour unifier l'affichage des deux listes
     private class ItemProjet {
@@ -135,6 +139,20 @@ public class EcranDemarrage extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // --- NOUVEAU : LE SYSTÈME D'AIGUILLAGE (ROUTING) ---
+        try {
+            InputStream is = getAssets().open("jeu_exporte.zip");
+            is.close();
+            // Si on arrive ici, c'est un jeu exporté ! On lance le jeu et on ferme l'éditeur.
+            Intent intent = new Intent(this, RunnerActivity.class);
+            startActivity(intent);
+            finish();
+            return; 
+        } catch (Exception e) {
+            // Le fichier n'existe pas, c'est le moteur Yop2D normal. On continue l'initialisation !
+        }
+        // ---------------------------------------------------
+
         NoeudBase.contexteApplication = this;
         Traducteur.initialiser(this, langueCourante); 
         RegistreNoeuds.initialiser(); 
@@ -163,8 +181,11 @@ public class EcranDemarrage extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_EXPORT && resultCode == Activity.RESULT_OK) {
-            if (data != null && data.getData() != null && projetAExporter != null) {
+        
+        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null && projetAExporter != null) {
+            
+            // CAS 1 : EXPORT DU PROJET BRUT (.ZIP)
+            if (requestCode == REQUEST_CODE_EXPORT_PROJET) {
                 try {
                     OutputStream out = getContentResolver().openOutputStream(data.getData());
                     ZipOutputStream zip = new ZipOutputStream(out);
@@ -181,7 +202,61 @@ public class EcranDemarrage extends Activity {
                     e.printStackTrace();
                     Toast.makeText(this, Traducteur.get("erreur_export"), Toast.LENGTH_SHORT).show();
                 }
-                projetAExporter = null; 
+                projetAExporter = null;
+            }
+            
+            // CAS 2 : BUILD DE L'APK FINAL (.APK)
+            else if (requestCode == REQUEST_CODE_EXPORT_APK) {
+                AlertDialog dialogueProgression = new AlertDialog.Builder(this)
+                        .setTitle("Génération de l'APK")
+                        .setMessage("Initialisation...")
+                        .setCancelable(false)
+                        .show();
+
+                ExportateurAPK.exporterJeu(this, projetAExporter, new ExportateurAPK.InterfaceExport() {
+                    @Override
+                    public void surProgression(String message) {
+                        dialogueProgression.setMessage(message);
+                    }
+
+                    @Override
+                    public void surSucces(File apkFinal) {
+                        try {
+                            InputStream in = new FileInputStream(apkFinal);
+                            OutputStream out = getContentResolver().openOutputStream(data.getData());
+                            byte[] buffer = new byte[8192];
+                            int lus;
+                            while ((lus = in.read(buffer)) > 0) {
+                                out.write(buffer, 0, lus);
+                            }
+                            in.close();
+                            if (out != null) out.close();
+
+                            dialogueProgression.dismiss();
+                            projetAExporter = null;
+
+                            new AlertDialog.Builder(EcranDemarrage.this)
+                                    .setTitle(Traducteur.get("export_termine"))
+                                    .setMessage("Votre fichier APK est prêt à être installé et partagé !")
+                                    .setPositiveButton(Traducteur.get("bouton_ok"), null)
+                                    .show();
+
+                        } catch (Exception e) {
+                            surErreur("Erreur lors de la sauvegarde : " + e.getMessage());
+                        }
+                    }
+
+                    @Override
+                    public void surErreur(String erreur) {
+                        dialogueProgression.dismiss();
+                        projetAExporter = null;
+                        new AlertDialog.Builder(EcranDemarrage.this)
+                                .setTitle("Erreur d'exportation")
+                                .setMessage(erreur)
+                                .setPositiveButton(Traducteur.get("bouton_ok"), null)
+                                .show();
+                    }
+                });
             }
         }
     }
@@ -398,7 +473,8 @@ public class EcranDemarrage extends Activity {
         barreActions.addView(boutonAction(Traducteur.get("bouton_editer"), false, v -> actionEditer()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_renommer"), false, v -> actionRenommer()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_dupliquer"), false, v -> actionDupliquer()));
-        barreActions.addView(boutonAction(Traducteur.get("bouton_exporter"), false, v -> actionExporter()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_exporter"), false, v -> actionExporterProjet()));
+        barreActions.addView(boutonAction("Build APK", false, v -> actionExporterAPK()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_supprimer"), true, v -> actionSupprimer()));
 
         majEtatActions();
@@ -777,19 +853,81 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    private void actionExporter() {
+    // Le bouton original pour exporter le projet brut (ZIP)
+    private void actionExporterProjet() {
         File source = dossierSelectionne();
         if (source == null) return;
         
         projetAExporter = source;
-
         String nom = nomProjet(source).replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
         
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/zip");
         intent.putExtra(Intent.EXTRA_TITLE, nom + ".zip");
-        startActivityForResult(intent, REQUEST_CODE_EXPORT);
+        startActivityForResult(intent, REQUEST_CODE_EXPORT_PROJET);
+    }
+
+    // NOUVEAU : Le bouton pour exporter le jeu jouable (APK) avec fenêtre de dialogue
+    private void actionExporterAPK() {
+        File source = dossierSelectionne();
+        if (source == null) return;
+        
+        String nomActuel = nomProjet(source);
+
+        // Création de l'interface de la boîte de dialogue
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(20), dp(20), dp(20), dp(20));
+
+        TextView labelNom = new TextView(this);
+        labelNom.setText("Nom de l'application finale (affiché sur l'écran d'accueil) :");
+        labelNom.setTextColor(Palette.texteNormal);
+        labelNom.setTextSize(14f);
+        labelNom.setPadding(0, 0, 0, dp(10));
+        layout.addView(labelNom);
+
+        final EditText champNom = new EditText(this);
+        champNom.setText(nomActuel);
+        champNom.setSingleLine(true);
+        layout.addView(champNom);
+
+        TextView labelLogo = new TextView(this);
+        labelLogo.setText("\nAstuce : L'icône de votre jeu sera automatiquement générée à partir de l'image 'vignette.png' de votre projet.");
+        labelLogo.setTextColor(Palette.texteSelectionne);
+        labelLogo.setTextSize(12f);
+        labelLogo.setPadding(0, dp(10), 0, 0);
+        layout.addView(labelLogo);
+
+        AlertDialog dialogue = new AlertDialog.Builder(this)
+                .setTitle("Paramètres de compilation")
+                .setView(layout)
+                .setPositiveButton("Continuer", null)
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
+                .create();
+        
+        dialogue.show();
+
+        dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String nomJeu = champNom.getText().toString().trim();
+            if (nomJeu.isEmpty()) {
+                Toast.makeText(this, "Le nom ne peut pas être vide.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            projetAExporter = source;
+            nomJeuAExporter = nomJeu; // Sauvegarde du nom pour notre script
+            
+            String nomFichier = nomJeu.replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
+            
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("application/vnd.android.package-archive");
+            intent.putExtra(Intent.EXTRA_TITLE, nomFichier + ".apk");
+            startActivityForResult(intent, REQUEST_CODE_EXPORT_APK);
+            
+            dialogue.dismiss();
+        });
     }
 
     private void actionSupprimer() {
@@ -1057,9 +1195,6 @@ public class EcranDemarrage extends Activity {
     
 
 
-
-
     
-
 
 
