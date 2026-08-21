@@ -1,3 +1,5 @@
+// build.gradle (Fichier à la racine du dépôt)
 plugins {
-    id 'com.android.application' version '8.5.0' apply false
+    id 'com.android.application' version '8.1.0' apply false
+    id 'com.android.library' version '8.1.0' apply false
 }

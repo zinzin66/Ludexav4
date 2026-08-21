@@ -43,7 +43,7 @@ public class EcranDemarrage extends Activity {
     private final ArrayList<ItemProjet> itemsProjets = new ArrayList<>();
     private int positionSelectionnee = -1;
 
-    // Projets d'Exemples (Nouveau)
+    // Projets d'Exemples
     private ListView listeExemples;
     private AdaptateurProjets adaptateurExemples;
     private final ArrayList<ItemProjet> itemsExemples = new ArrayList<>();
@@ -54,6 +54,9 @@ public class EcranDemarrage extends Activity {
     private static final int REQUEST_CODE_EXPORT_PROJET = 2001;
     private static final int REQUEST_CODE_EXPORT_APK = 2002;
     private File projetAExporter = null;
+    
+    // NOUVEAU : On garde en mémoire le nom final choisi par l'utilisateur
+    public static String nomJeuAExporter = ""; 
 
     // Structure pour unifier l'affichage des deux listes
     private class ItemProjet {
@@ -336,6 +339,7 @@ public class EcranDemarrage extends Activity {
         builder.show();
     }
 // bas 1
+
 // haut 2
     // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
 
@@ -864,19 +868,66 @@ public class EcranDemarrage extends Activity {
         startActivityForResult(intent, REQUEST_CODE_EXPORT_PROJET);
     }
 
-    // Le nouveau bouton pour exporter le jeu jouable (APK)
+    // NOUVEAU : Le bouton pour exporter le jeu jouable (APK) avec fenêtre de dialogue
     private void actionExporterAPK() {
         File source = dossierSelectionne();
         if (source == null) return;
         
-        projetAExporter = source;
-        String nom = nomProjet(source).replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
+        String nomActuel = nomProjet(source);
+
+        // Création de l'interface de la boîte de dialogue
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(20), dp(20), dp(20), dp(20));
+
+        TextView labelNom = new TextView(this);
+        labelNom.setText("Nom de l'application finale (affiché sur l'écran d'accueil) :");
+        labelNom.setTextColor(Palette.texteNormal);
+        labelNom.setTextSize(14f);
+        labelNom.setPadding(0, 0, 0, dp(10));
+        layout.addView(labelNom);
+
+        final EditText champNom = new EditText(this);
+        champNom.setText(nomActuel);
+        champNom.setSingleLine(true);
+        layout.addView(champNom);
+
+        TextView labelLogo = new TextView(this);
+        labelLogo.setText("\nAstuce : L'icône de votre jeu sera automatiquement générée à partir de l'image 'vignette.png' de votre projet.");
+        labelLogo.setTextColor(Palette.texteSelectionne);
+        labelLogo.setTextSize(12f);
+        labelLogo.setPadding(0, dp(10), 0, 0);
+        layout.addView(labelLogo);
+
+        AlertDialog dialogue = new AlertDialog.Builder(this)
+                .setTitle("Paramètres de compilation")
+                .setView(layout)
+                .setPositiveButton("Continuer", null)
+                .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
+                .create();
         
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/vnd.android.package-archive");
-        intent.putExtra(Intent.EXTRA_TITLE, nom + ".apk");
-        startActivityForResult(intent, REQUEST_CODE_EXPORT_APK);
+        dialogue.show();
+
+        dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String nomJeu = champNom.getText().toString().trim();
+            if (nomJeu.isEmpty()) {
+                Toast.makeText(this, "Le nom ne peut pas être vide.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            projetAExporter = source;
+            nomJeuAExporter = nomJeu; // Sauvegarde du nom pour notre script
+            
+            String nomFichier = nomJeu.replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
+            
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("application/vnd.android.package-archive");
+            intent.putExtra(Intent.EXTRA_TITLE, nomFichier + ".apk");
+            startActivityForResult(intent, REQUEST_CODE_EXPORT_APK);
+            
+            dialogue.dismiss();
+        });
     }
 
     private void actionSupprimer() {
@@ -1137,11 +1188,6 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 4
-                               
-
-
-
-    
 
 
 
@@ -1149,5 +1195,6 @@ public class EcranDemarrage extends Activity {
     
 
 
+    
 
 

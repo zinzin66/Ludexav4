@@ -28,7 +28,6 @@ import javax.security.auth.x500.X500Principal;
 
 public class ExportateurAPK {
 
-    // Interface pour communiquer avec l'écran (barre de progression, succès, etc.)
     public interface InterfaceExport {
         void surProgression(String message);
         void surSucces(File apkFinal);
@@ -36,14 +35,11 @@ public class ExportateurAPK {
     }
 
     public static void exporterJeu(Context contexte, File dossierProjet, InterfaceExport callback) {
-        // Handler pour s'assurer que les messages s'affichent bien sur le fil principal (UI)
         Handler mainHandler = new Handler(Looper.getMainLooper());
 
         new Thread(() -> {
             try {
                 mainHandler.post(() -> callback.surProgression("Préparation des fichiers..."));
-
-                // On travaille dans le dossier cache pour ne pas polluer la tablette
                 File cacheDir = contexte.getCacheDir();
 
                 // ---------------------------------------------------------
@@ -66,13 +62,12 @@ public class ExportateurAPK {
                 }
 
                 // ---------------------------------------------------------
-                // 2. EXTRACTION DU RUNNER (La Coquille Vide GitHub)
+                // 2. EXTRACTION DU RUNNER
                 // ---------------------------------------------------------
                 mainHandler.post(() -> callback.surProgression("Extraction du Runner Yop2D..."));
                 File apkTemporaire = new File(cacheDir, "apk_temporaire.apk");
                 if (apkTemporaire.exists()) apkTemporaire.delete();
 
-                // On va chercher le Runner généré par GitHub dans les assets
                 InputStream isRunner = contexte.getAssets().open("modele_runner.apk");
                 OutputStream osRunner = new FileOutputStream(apkTemporaire);
                 byte[] buffer = new byte[8192];
@@ -84,24 +79,44 @@ public class ExportateurAPK {
                 osRunner.close();
 
                 // ---------------------------------------------------------
-                // 3. INJECTION (Étape 3 du plan)
+                // 3. INJECTION (DONNÉES + ICÔNE)
                 // ---------------------------------------------------------
-                mainHandler.post(() -> callback.surProgression("Injection des données dans l'APK..."));
+                mainHandler.post(() -> callback.surProgression("Injection des données et de l'icône..."));
                 ZipFile zipApk = new ZipFile(apkTemporaire);
                 ZipParameters paramsInjection = new ZipParameters();
-                // C'est ici que l'on place le jeu exactement où RunnerActivity l'attend
+                
+                // A. Injection des données du jeu
                 paramsInjection.setFileNameInZip("assets/jeu_exporte.zip");
                 zipApk.addFile(fichierZipProjet, paramsInjection);
 
+                // B. Injection de la vignette comme Icône de l'application
+                File vignette = new File(dossierProjet, "vignette.png");
+                if (vignette.exists()) {
+                    try { zipApk.removeFile("res/mipmap-anydpi-v26/ic_launcher.xml"); } catch (Exception e){}
+                    try { zipApk.removeFile("res/mipmap-anydpi-v26/ic_launcher_round.xml"); } catch (Exception e){}
+
+                    String[] densites = {"mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"};
+                    for (String d : densites) {
+                        paramsInjection.setFileNameInZip("res/mipmap-" + d + "-v4/ic_launcher.png");
+                        zipApk.addFile(vignette, paramsInjection);
+                        paramsInjection.setFileNameInZip("res/mipmap-" + d + "-v4/ic_launcher_round.png");
+                        zipApk.addFile(vignette, paramsInjection);
+                    }
+                }
+
+                // C. LA CHIRURGIE DU NOM ET DU PACKAGE
+                mainHandler.post(() -> callback.surProgression("Personnalisation de l'APK..."));
+                String nomChoisi = EcranDemarrage.nomJeuAExporter;
+                ChirurgienAXML.opererAPK(apkTemporaire, nomChoisi, cacheDir);
+
                 // ---------------------------------------------------------
-                // 4. SÉCURITÉ ET SIGNATURE (Étape 4 du plan)
+                // 4. SÉCURITÉ ET SIGNATURE
                 // ---------------------------------------------------------
                 mainHandler.post(() -> callback.surProgression("Création du certificat de sécurité..."));
                 String aliasCle = "Yop2DExportKey";
                 KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
                 keyStore.load(null);
 
-                // Si c'est le tout premier export, on génère une clé interne de signature (valable 30 ans)
                 if (!keyStore.containsAlias(aliasCle)) {
                     KeyPairGenerator kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
                     kpg.initialize(new KeyGenParameterSpec.Builder(
@@ -124,7 +139,6 @@ public class ExportateurAPK {
                 File apkFinal = new File(cacheDir, "jeu_final_signe.apk");
                 if (apkFinal.exists()) apkFinal.delete();
 
-                // L'outil officiel de Google signe le nouvel APK pour qu'Android accepte l'installation
                 ApkSigner.SignerConfig configSignature = new ApkSigner.SignerConfig.Builder(
                         aliasCle, clePrivee, Collections.singletonList(certificat)).build();
 
