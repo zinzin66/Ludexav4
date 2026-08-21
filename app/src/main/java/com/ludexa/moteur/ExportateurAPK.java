@@ -105,8 +105,10 @@ public class ExportateurAPK {
                         zipApk.addFile(vignette, paramsInjection);
                     }
                 }
+               // C. LA CHIRURGIE DU NOM ET DU PACKAGE
+               String nomChoisi = EcranDemarrage.nomJeuAExporter;
+               ChirurgienAXML.opererAPK(apkTemporaire, nomChoisi, cacheDir);
 
-                // C. EMPLACEMENT POUR LA MODIFICATION DU NOM BIENTÔT
                 String nomChoisi = EcranDemarrage.nomJeuAExporter;
                 // ChirurgienAXML.modifierNom(apkTemporaire, nomChoisi);
 
