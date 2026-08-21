@@ -92,11 +92,9 @@ public class ExportateurAPK {
                 // B. Injection de la vignette comme Icône de l'application
                 File vignette = new File(dossierProjet, "vignette.png");
                 if (vignette.exists()) {
-                    // Suppression des icônes système par défaut pour forcer la nôtre
                     try { zipApk.removeFile("res/mipmap-anydpi-v26/ic_launcher.xml"); } catch (Exception e){}
                     try { zipApk.removeFile("res/mipmap-anydpi-v26/ic_launcher_round.xml"); } catch (Exception e){}
 
-                    // Écrasement des PNG dans toutes les résolutions d'écran d'Android
                     String[] densites = {"mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"};
                     for (String d : densites) {
                         paramsInjection.setFileNameInZip("res/mipmap-" + d + "-v4/ic_launcher.png");
@@ -105,12 +103,11 @@ public class ExportateurAPK {
                         zipApk.addFile(vignette, paramsInjection);
                     }
                 }
-               // C. LA CHIRURGIE DU NOM ET DU PACKAGE
-               String nomChoisi = EcranDemarrage.nomJeuAExporter;
-               ChirurgienAXML.opererAPK(apkTemporaire, nomChoisi, cacheDir);
 
+                // C. LA CHIRURGIE DU NOM ET DU PACKAGE
+                mainHandler.post(() -> callback.surProgression("Personnalisation de l'APK..."));
                 String nomChoisi = EcranDemarrage.nomJeuAExporter;
-                // ChirurgienAXML.modifierNom(apkTemporaire, nomChoisi);
+                ChirurgienAXML.opererAPK(apkTemporaire, nomChoisi, cacheDir);
 
                 // ---------------------------------------------------------
                 // 4. SÉCURITÉ ET SIGNATURE
