@@ -1,3 +1,4 @@
+// haut 1
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -5,7 +6,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="Yop2d"
+        android:label="${nomApp}"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
@@ -36,3 +37,4 @@
     </application>
 
 </manifest>
+// bas 1
