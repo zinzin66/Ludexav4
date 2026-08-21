@@ -20,10 +20,12 @@ android {
         editeur {
             dimension "appType"
             applicationId "com.ludexa.moteur"
+            manifestPlaceholders = [ nomApp: "Yop2D" ]
         }
         runner {
             dimension "appType"
-            applicationId "com.yop2d.export"
+            applicationId "com.yop2d.export.placeholder.xxxxxxxxxxxxxxxxxxxxx"
+            manifestPlaceholders = [ nomApp: "YOP2D_GAME_NAME_PLACEHOLDER_X_X_X_X_X_X_X_X_X_X_X_" ]
         }
     }
 
