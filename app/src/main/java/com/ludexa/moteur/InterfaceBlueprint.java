@@ -191,7 +191,7 @@ public class InterfaceBlueprint extends Activity {
         ImageButton boutonRedo = new ImageButton(this);
         boutonRedo.setImageResource(R.drawable.redo_24px);
         styliserBoutonBandeau(boutonRedo);
-< truncated line 194 >
+        bandeauHaut.addView(boutonRedo);
 
         ImageButton boutonSupprimerNode = new ImageButton(this);
         boutonSupprimerNode.setImageResource(R.drawable.delete_24px);
@@ -264,7 +264,6 @@ public class InterfaceBlueprint extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 2
-
 
 // haut 3
     private void sauvegarderBlueprintLocal() {
@@ -387,6 +386,7 @@ public class InterfaceBlueprint extends Activity {
         return sb.toString();
     }
 // bas 3
+        
 
 // haut 4
     private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
