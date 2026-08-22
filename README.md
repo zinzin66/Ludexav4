@@ -9,6 +9,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)]()
 [![Language](https://img.shields.io/badge/Built_with-Native_Java-orange.svg)]()
 [![License](https://img.shields.io/badge/License-Free-brightgreen.svg)]()
+[![Downloads](https://img.shields.io/github/downloads/zinzin66/Ludexav4/total.svg?color=blueviolet)](https://github.com/zinzin66/Ludexav4/releases)
 
 Yop2D (formerly Ludexa) is a standalone, purely native Android game engine designed from the ground up for mobile devices. It allows creators to build complete, performant 2D games directly on their tablets—without writing a single line of code, and without ever needing a PC.
 
