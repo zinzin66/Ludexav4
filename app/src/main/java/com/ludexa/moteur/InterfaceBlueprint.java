@@ -191,7 +191,7 @@ public class InterfaceBlueprint extends Activity {
         ImageButton boutonRedo = new ImageButton(this);
         boutonRedo.setImageResource(R.drawable.redo_24px);
         styliserBoutonBandeau(boutonRedo);
-        bandeauHaut.addView(boutonRedo);
+< truncated line 194 >
 
         ImageButton boutonSupprimerNode = new ImageButton(this);
         boutonSupprimerNode.setImageResource(R.drawable.delete_24px);
@@ -264,6 +264,8 @@ public class InterfaceBlueprint extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 2
+
+
 // haut 3
     private void sauvegarderBlueprintLocal() {
         try {
@@ -385,8 +387,7 @@ public class InterfaceBlueprint extends Activity {
         return sb.toString();
     }
 // bas 3
-                        
-    
+
 // haut 4
     private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
         if (noeudDepart == null || blueprintActif.liens == null) return;
@@ -404,11 +405,14 @@ public class InterfaceBlueprint extends Activity {
                     
                     res.append(prefixe).append(formaterNoeud(noeudSuivant)).append("\n");
                     
-                    // CORRECTION DU BUG : On parcourt désormais aussi le port "Sortie"
-                    genererCheminLogique(noeudSuivant, "Suivant", indentation + "  ", res, noeudsVisites);
-                    genererCheminLogique(noeudSuivant, "Sortie", indentation + "  ", res, noeudsVisites);
-                    genererCheminLogique(noeudSuivant, "Vrai", indentation + "  ", res, noeudsVisites);
-                    genererCheminLogique(noeudSuivant, "Faux", indentation + "  ", res, noeudsVisites);
+                    // CORRECTION BUG ORPHELINS : on parcourt TOUS les ports de sortie
+                    // d'exécution du nœud suivant, quel que soit leur nom (plus robuste
+                    // qu'une liste figée "Suivant"/"Sortie"/"Vrai"/"Faux").
+                    for (Port pSortieSuivant : noeudSuivant.portsSortie) {
+                        if (Port.TYPE_EXECUTION_SORTIE.equals(pSortieSuivant.type)) {
+                            genererCheminLogique(noeudSuivant, pSortieSuivant.nom, indentation + "  ", res, noeudsVisites);
+                        }
+                    }
                 }
             }
         }
@@ -539,8 +543,14 @@ public class InterfaceBlueprint extends Activity {
                 for (NoeudBase evt : evenements) {
                     noeudsVisites.add(evt.id);
                     res.append(Traducteur.get("msg_evenement")).append(formaterNoeud(evt)).append("\n");
-                    genererCheminLogique(evt, "Sortie", "  ", res, noeudsVisites);
-                    genererCheminLogique(evt, "Suivant", "  ", res, noeudsVisites);
+                    // CORRECTION BUG ORPHELINS : on parcourt TOUS les ports de sortie
+                    // d'exécution du nœud (ex: "Collision", "Sortie", "Suivant", "Vrai", "Faux"...)
+                    // au lieu d'une liste figée qui ignorait les ports personnalisés.
+                    for (Port pSortie : evt.portsSortie) {
+                        if (Port.TYPE_EXECUTION_SORTIE.equals(pSortie.type)) {
+                            genererCheminLogique(evt, pSortie.nom, "  ", res, noeudsVisites);
+                        }
+                    }
                     res.append("\n");
                 }
             }
@@ -607,15 +617,10 @@ public class InterfaceBlueprint extends Activity {
 
 
 
-    
-
-
-
 
     
 
-
-
+    
 
     
 
