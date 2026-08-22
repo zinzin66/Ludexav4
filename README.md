@@ -1,4 +1,8 @@
-# Yop2D 🚀
+<p align="center">
+  <img src="logo_yop2d.png" alt="Logo Yop2D" width="150">
+</p>
+
+# Yop2D
 **The 100% No-Code 2D Game Engine for Android Tablets**
 
 [![Website](https://img.shields.io/badge/Website-Visit_Yop2D-blue.svg)](https://zinzin66.github.io/Yop2d/)
