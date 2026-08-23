@@ -320,7 +320,6 @@ public class EditeurNoeudDialog extends Dialog {
         });
 // bas 2
 
-
 // haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -344,7 +343,10 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_a"));
             
-            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
+            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
+            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud (réflexion
+            // sceneActive). C'était la cause de "Objet A" vide à l'ouverture du dialogue.
+            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null));
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheA);
             
             btnCible.setOnClickListener(v -> {
@@ -377,7 +379,8 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_b"));
             
-            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
+            // CORRECTION BUG CIBLE PERDUE : même correction pour l'objet B
+            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null));
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheB);
             
             btnCible.setOnClickListener(v -> {
@@ -476,8 +479,6 @@ public class EditeurNoeudDialog extends Dialog {
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
 // bas 3
-        
-        
 
 
 // haut 4
