@@ -354,9 +354,14 @@ public class InterfaceBlueprint extends Activity {
         List<String> details = new ArrayList<>();
         
         // CORRECTION : L'éditeur affiche maintenant explicitement "[Objet Impliqué]" au lieu d'ignorer la cible
+        // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que de
+        // dépendre de getCibleObjet(), qui peut échouer selon le nœud (réflexion sceneActive).
+        // C'était le dernier endroit oublié lors de la correction précédente.
         if (noeud.requiertCibleObjet()) {
             if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
                 details.add(Traducteur.get("noeud_format_cible") + "[Objet Impliqué]");
+            } else if (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty()) {
+                details.add(Traducteur.get("noeud_format_cible") + noeud.nomCibleObjet);
             } else if (noeud.getCibleObjet() != null) {
                 details.add(Traducteur.get("noeud_format_cible") + noeud.getCibleObjet().nom);
             }
@@ -365,6 +370,8 @@ public class InterfaceBlueprint extends Activity {
         if (noeud.requiertCibleObjetB()) {
             if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
                 details.add(Traducteur.get("noeud_format_objet_b") + "[Objet Impliqué]");
+            } else if (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty()) {
+                details.add(Traducteur.get("noeud_format_objet_b") + noeud.nomCibleObjetB);
             } else if (noeud.getCibleObjetB() != null) {
                 details.add(Traducteur.get("noeud_format_objet_b") + noeud.getCibleObjetB().nom);
             }
@@ -392,7 +399,7 @@ public class InterfaceBlueprint extends Activity {
         return sb.toString();
     }
 // bas 3
-
+    
 // haut 4
     private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
         if (noeudDepart == null || blueprintActif.liens == null) return;
