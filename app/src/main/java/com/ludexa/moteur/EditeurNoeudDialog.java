@@ -320,7 +320,6 @@ public class EditeurNoeudDialog extends Dialog {
         });
 // bas 2
 
-
 // haut 3
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -344,7 +343,10 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_a"));
             
-            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null);
+            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
+            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud (réflexion
+            // sceneActive). C'était la cause de "Objet A" vide à l'ouverture du dialogue.
+            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null));
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheA);
             
             btnCible.setOnClickListener(v -> {
@@ -377,7 +379,8 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_b"));
             
-            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null);
+            // CORRECTION BUG CIBLE PERDUE : même correction pour l'objet B
+            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null));
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheB);
             
             btnCible.setOnClickListener(v -> {
@@ -476,8 +479,6 @@ public class EditeurNoeudDialog extends Dialog {
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
 // bas 3
-        
-        
 
 
 // haut 4
@@ -645,7 +646,6 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 4
-
 // haut 5
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -944,8 +944,10 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud instanceof NoeudEventCollisionAB || noeud instanceof NoeudConditionSiObjetToucheZone) {
             txtResume.setVisibility(View.VISIBLE);
-            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
-            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]");
+            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
+            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud.
+            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
+            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]"));
             txtResume.setText(Traducteur.get("resume_interaction") + " : " + objNameA + " <-> " + objNameB);
         }
         else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
@@ -972,7 +974,9 @@ public class EditeurNoeudDialog extends Dialog {
             txtResume.setText(Traducteur.get("resume_action") + " : " + varName + " = " + sb.toString());
         } else if (noeud.requiertCibleObjet()) {
             txtResume.setVisibility(View.VISIBLE);
-            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
+            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
+            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud.
+            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
             StringBuilder sb = new StringBuilder();
             if (noeud.getNomsParametres() != null) {
                 for (String p : noeud.getNomsParametres()) {
