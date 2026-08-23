@@ -645,7 +645,6 @@ public class EditeurNoeudDialog extends Dialog {
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 // bas 4
-
 // haut 5
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
@@ -944,8 +943,10 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud instanceof NoeudEventCollisionAB || noeud instanceof NoeudConditionSiObjetToucheZone) {
             txtResume.setVisibility(View.VISIBLE);
-            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
-            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]");
+            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
+            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud.
+            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
+            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]"));
             txtResume.setText(Traducteur.get("resume_interaction") + " : " + objNameA + " <-> " + objNameB);
         }
         else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
@@ -972,7 +973,9 @@ public class EditeurNoeudDialog extends Dialog {
             txtResume.setText(Traducteur.get("resume_action") + " : " + varName + " = " + sb.toString());
         } else if (noeud.requiertCibleObjet()) {
             txtResume.setVisibility(View.VISIBLE);
-            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]");
+            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
+            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud.
+            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
             StringBuilder sb = new StringBuilder();
             if (noeud.getNomsParametres() != null) {
                 for (String p : noeud.getNomsParametres()) {
