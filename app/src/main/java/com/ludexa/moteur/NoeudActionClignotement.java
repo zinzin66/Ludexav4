@@ -6,8 +6,6 @@ import java.util.List;
 
 public class NoeudActionClignotement extends NoeudBase {
 
-    private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet;[span_10](start_span)[span_10](end_span)
     private String etat = "Activer";
     private String vitesseMs = "500";
     private String dureeMs = "0";
@@ -20,11 +18,11 @@ public class NoeudActionClignotement extends NoeudBase {
 
     @Override
     public void executer() {
-        ObjetBase obj = getCibleObjet();
+        ObjetBase obj = getCibleObjet(); // Géré nativement et proprement par NoeudBase !
         if (obj != null) {
             if ("Désactiver".equals(etat)) {
                 obj.clignotementActif = false;
-                obj.etatVisibleClignotement = true; // Force la réapparition
+                obj.etatVisibleClignotement = true; 
             } else {
                 obj.clignotementActif = true;
                 obj.tempsDebutClignotement = System.currentTimeMillis();
@@ -77,29 +75,5 @@ public class NoeudActionClignotement extends NoeudBase {
 
     @Override
     public boolean requiertCibleObjet() { return true; }
-
-    @Override
-    public void setCibleObjet(ObjetBase objet) {
-        this.cible = objet;
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
-    }
-
-    @Override
-    public ObjetBase getCibleObjet() {
-        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
-
-        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                Scene s = (Scene) sceneField.get(contexteApplication);
-                if (s != null && s.objets != null) {
-                    for (ObjetBase o : s.objets) {
-                        if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                    }
-                }
-            } catch (Exception e) {}
-        }
-        return cible;
-    }
 }
 // bas 1
