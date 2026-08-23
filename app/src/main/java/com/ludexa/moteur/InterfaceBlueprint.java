@@ -28,6 +28,12 @@ public class InterfaceBlueprint extends Activity {
 
     public String cheminProjet; 
 
+    // AJOUT : champ public requis par les nœuds qui résolvent leur cible objet via
+    // réflexion (contexteApplication.getClass().getField("sceneActive")). Sans ce champ
+    // direct sur InterfaceBlueprint, cette réflexion échouait silencieusement et
+    // getCibleObjet() retournait toujours null dans l'éditeur (carte "Objet : Aucune").
+    public Scene sceneActive;
+
     public static Scene sceneACharger; 
     public static List<Variable> variablesGlobalesACharger; 
     public static List<Scene> listeScenesACharger;
@@ -124,7 +130,6 @@ public class InterfaceBlueprint extends Activity {
         boutonRetour.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonRetour);
 // bas 1
-
 // haut 2
         TextView titreBlueprint = new TextView(this);
         if (estModeFonction) {
@@ -252,6 +257,8 @@ public class InterfaceBlueprint extends Activity {
         } else {
             canvasBlueprint.sceneActive = new Scene(Traducteur.get("scene_vide_fallback"));
         }
+        // AJOUT : on garde ce champ synchronisé pour que la réflexion des nœuds fonctionne
+        this.sceneActive = canvasBlueprint.sceneActive;
 
         chargerBlueprintLocal(true);
 
@@ -264,7 +271,6 @@ public class InterfaceBlueprint extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 2
-
 // haut 3
     private void sauvegarderBlueprintLocal() {
         try {
@@ -386,7 +392,6 @@ public class InterfaceBlueprint extends Activity {
         return sb.toString();
     }
 // bas 3
-        
 
 // haut 4
     private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
