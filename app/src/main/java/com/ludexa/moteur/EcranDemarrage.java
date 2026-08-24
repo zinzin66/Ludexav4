@@ -818,7 +818,7 @@ public class EcranDemarrage extends Activity {
     }
 // bas 3
 
-// haut 4
+     // haut 4
     // ---------------------------------------------------------------- actions
 
     private void actionEditer() {
@@ -1244,13 +1244,85 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    private void verifierMiseAJour() {
-        Toast.makeText(this, "Vérification en cours...", Toast.LENGTH_SHORT).show();
-        // TODO : La logique réseau pour télécharger le nouvel APK viendra ici
+ private void verifierMiseAJour() {
+        Toast.makeText(this, "Recherche de mise à jour...", Toast.LENGTH_SHORT).show();
+
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL("https://api.github.com/repos/zinzin66/Ludexav4/releases/latest");
+                java.net.HttpURLConnection connexion = (java.net.HttpURLConnection) url.openConnection();
+                connexion.setRequestMethod("GET");
+                connexion.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+                if (connexion.getResponseCode() == 200) {
+                    InputStream is = connexion.getInputStream();
+                    Scanner scanner = new Scanner(is).useDelimiter("\\A");
+                    String reponse = scanner.hasNext() ? scanner.next() : "";
+                    is.close();
+
+                    JSONObject json = new JSONObject(reponse);
+                    String nomVersion = json.getString("tag_name");
+                    String notes = json.optString("body", "Une nouvelle version de Yop2D est disponible !");
+                    
+                    org.json.JSONArray assets = json.getJSONArray("assets");
+                    String urlTelechargement = null;
+                    for (int i = 0; i < assets.length(); i++) {
+                        JSONObject asset = assets.getJSONObject(i);
+                        if (asset.getString("name").endsWith(".apk")) {
+                            urlTelechargement = asset.getString("browser_download_url");
+                            break;
+                        }
+                    }
+
+                    if (urlTelechargement != null) {
+                        final String finalUrl = urlTelechargement;
+                        runOnUiThread(() -> afficherAlerteMiseAJour(nomVersion, notes, finalUrl));
+                    } else {
+                        runOnUiThread(() -> Toast.makeText(EcranDemarrage.this, "Aucun fichier APK trouvé dans la dernière release.", Toast.LENGTH_LONG).show());
+                    }
+                } else {
+                    runOnUiThread(() -> Toast.makeText(EcranDemarrage.this, "Version actuelle à jour ou introuvable.", Toast.LENGTH_SHORT).show());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(EcranDemarrage.this, "Erreur réseau : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    private void afficherAlerteMiseAJour(String version, String notes, String url) {
+        new AlertDialog.Builder(this)
+            .setTitle("Mise à jour : " + version)
+            .setMessage(notes)
+            .setPositiveButton("Télécharger", (dialog, which) -> telechargerMiseAJour(url))
+            .setNegativeButton("Plus tard", null)
+            .show();
+    }
+
+    private void telechargerMiseAJour(String url) {
+        try {
+            android.app.DownloadManager.Request requete = new android.app.DownloadManager.Request(Uri.parse(url));
+            requete.setTitle("Mise à jour Yop2D");
+            requete.setDescription("Téléchargement de la nouvelle version...");
+            requete.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            requete.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "Yop2D_update.apk");
+
+            android.app.DownloadManager gestionnaire = (android.app.DownloadManager) getSystemService(android.content.Context.DOWNLOAD_SERVICE);
+            gestionnaire.enqueue(requete);
+            
+            Toast.makeText(this, "Le téléchargement a démarré. Vérifiez vos notifications !", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Échec du téléchargement natif, ouverture du navigateur...", Toast.LENGTH_SHORT).show();
+            ouvrirLien(url);
+        }
     }
 }
 // bas 4
 
+
+
+
+    
 
 
 
