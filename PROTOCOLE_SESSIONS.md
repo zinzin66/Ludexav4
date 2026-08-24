@@ -1,5 +1,5 @@
 # LUDEXA — État du projet et méthode de travail
-(à coller intégralement en début de toute nouvelle session, Claude ou Gemini)
+
 
 ## Le projet
 LUDEXA est un moteur de jeu 2D no-code en Java pour Android, avec système de
