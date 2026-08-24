@@ -1,7 +1,6 @@
 # LUDEXA — Référence technique complète
 Dernière mise à jour : 21/07/2026
 
-
 ---
 
 ## 1. Le projet, en une phrase
@@ -430,4 +429,3 @@ Ne pas commencer avant que tout le reste soit stable — pas de fichiers
 à préparer pour l'instant
 
 ---
-
