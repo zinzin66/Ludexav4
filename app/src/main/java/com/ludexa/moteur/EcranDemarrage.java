@@ -311,6 +311,56 @@ public class EcranDemarrage extends Activity {
 
         colonneGauche.addView(rangeeLangue);
 
+        // --- NOUVEAUX BOUTONS (Mise à jour et Réseaux) ---
+        
+        // 1. Bouton de mise à jour
+        TextView btnMaj = new TextView(this);
+        btnMaj.setText("Vérifier les mises à jour");
+        btnMaj.setTextSize(13f);
+        btnMaj.setGravity(Gravity.CENTER);
+        btnMaj.setPadding(dp(12), dp(9), dp(12), dp(9));
+        btnMaj.setTextColor(Palette.texteNormal);
+        btnMaj.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        btnMaj.setClickable(true);
+        btnMaj.setOnClickListener(v -> verifierMiseAJour());
+        
+        LinearLayout.LayoutParams lpMaj = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpMaj.setMargins(0, dp(30), 0, dp(10));
+        colonneGauche.addView(btnMaj, lpMaj);
+
+        // 2. Ligne pour Discord et Telegram
+        LinearLayout rangeeReseaux = new LinearLayout(this);
+        rangeeReseaux.setOrientation(LinearLayout.HORIZONTAL);
+        
+        TextView btnDiscord = new TextView(this);
+        btnDiscord.setText("Discord");
+        btnDiscord.setTextSize(13f);
+        btnDiscord.setGravity(Gravity.CENTER);
+        btnDiscord.setPadding(dp(12), dp(9), dp(12), dp(9));
+        btnDiscord.setTextColor(Palette.texteNormal);
+        btnDiscord.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        btnDiscord.setClickable(true);
+        btnDiscord.setOnClickListener(v -> ouvrirLien("https://discord.gg/nHqCcqHZNQ"));
+        
+        LinearLayout.LayoutParams lpDiscord = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lpDiscord.setMargins(0, 0, dp(6), 0);
+        rangeeReseaux.addView(btnDiscord, lpDiscord);
+
+        TextView btnTelegram = new TextView(this);
+        btnTelegram.setText("Telegram");
+        btnTelegram.setTextSize(13f);
+        btnTelegram.setGravity(Gravity.CENTER);
+        btnTelegram.setPadding(dp(12), dp(9), dp(12), dp(9));
+        btnTelegram.setTextColor(Palette.texteNormal);
+        btnTelegram.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        btnTelegram.setClickable(true);
+        btnTelegram.setOnClickListener(v -> ouvrirLien("https://t.me/+7PQ9WKw7n645Y2Zk"));
+        
+        LinearLayout.LayoutParams lpTelegram = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        rangeeReseaux.addView(btnTelegram, lpTelegram);
+
+        colonneGauche.addView(rangeeReseaux, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         return colonneGauche;
     }
 
@@ -609,6 +659,7 @@ public class EcranDemarrage extends Activity {
     }
 // bas 2
 
+
 // haut 3
     // ---------------------------------------------------------------- chargement des données
 
@@ -853,7 +904,6 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    // Le bouton original pour exporter le projet brut (ZIP)
     private void actionExporterProjet() {
         File source = dossierSelectionne();
         if (source == null) return;
@@ -868,14 +918,12 @@ public class EcranDemarrage extends Activity {
         startActivityForResult(intent, REQUEST_CODE_EXPORT_PROJET);
     }
 
-    // NOUVEAU : Le bouton pour exporter le jeu jouable (APK) avec fenêtre de dialogue
     private void actionExporterAPK() {
         File source = dossierSelectionne();
         if (source == null) return;
         
         String nomActuel = nomProjet(source);
 
-        // Création de l'interface de la boîte de dialogue
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(dp(20), dp(20), dp(20), dp(20));
@@ -916,7 +964,7 @@ public class EcranDemarrage extends Activity {
             }
             
             projetAExporter = source;
-            nomJeuAExporter = nomJeu; // Sauvegarde du nom pour notre script
+            nomJeuAExporter = nomJeu;
             
             String nomFichier = nomJeu.replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
             
@@ -977,7 +1025,6 @@ public class EcranDemarrage extends Activity {
             zis.close();
             is.close();
             
-            // Forcer la mise à jour du meta.json de l'exemple pour éviter les conflits de nom
             File metaFile = new File(cible, "meta.json");
             if (metaFile.exists()) {
                 JSONObject metaJson = lireJson(metaFile);
@@ -997,7 +1044,6 @@ public class EcranDemarrage extends Activity {
             chargerListeProjets();
             Toast.makeText(this, "Exemple importé avec succès !", Toast.LENGTH_SHORT).show();
             
-            // Ouvrir l'éditeur directement avec l'exemple importé
             Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
             intent.putExtra("cheminProjet", cible.getAbsolutePath());
             startActivity(intent);
@@ -1186,15 +1232,34 @@ public class EcranDemarrage extends Activity {
                 .setPositiveButton("OK", null)
                 .show();
     }
+
+    // ---------------------------------------------------------------- utilitaires web & maj
+
+    private void ouvrirLien(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Impossible d'ouvrir le lien", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void verifierMiseAJour() {
+        Toast.makeText(this, "Vérification en cours...", Toast.LENGTH_SHORT).show();
+        // TODO : La logique réseau pour télécharger le nouvel APK viendra ici
+    }
 }
 // bas 4
 
 
 
 
+
     
 
 
+
     
+
 
 
