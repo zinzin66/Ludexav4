@@ -2,6 +2,7 @@
 package com.ludexa.moteur;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class NoeudActionClignotement extends NoeudBase {
 
@@ -10,8 +11,6 @@ public class NoeudActionClignotement extends NoeudBase {
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
         
-        // MIGRATION : Utilisation de la nouvelle architecture pour garantir 
-        // la sérialisation Gson (DTO) et l'intégration de l'UI de l'éditeur.
         this.ajouterParametreListe("État", "Activer", Arrays.asList("Activer", "Désactiver"));
         this.ajouterParametre("Vitesse (ms)", "500", TYPE_NOMBRE);
         this.ajouterParametre("Durée (ms, 0=infini)", "0", TYPE_NOMBRE);
@@ -19,12 +18,9 @@ public class NoeudActionClignotement extends NoeudBase {
 
     @Override
     public void executer() {
-        // Le ciblage contextuel est géré nativement par NoeudBase 
-        // via MoteurLogique.dernierObjetImplique
         ObjetBase obj = getCibleObjet(); 
         
         if (obj != null) {
-            // Récupération dynamique via la structure standardisée
             String etat = getValeurParametre("État");
             String vitesseMs = getValeurParametre("Vitesse (ms)");
             String dureeMs = getValeurParametre("Durée (ms, 0=infini)");
