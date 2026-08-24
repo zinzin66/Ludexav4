@@ -432,19 +432,3 @@ Ne pas commencer avant que tout le reste soit stable — pas de fichiers
 
 ---
 
-## 7. Comment travailler avec Gemini, concrètement
-
-1. Créer une nouvelle branche depuis `main` à jour (sélecteur de branche
-   sur GitHub → taper un nom → "Create branch")
-2. Ouvrir une conversation Gemini, coller CE DOCUMENT en entier
-3. Joindre en pièce jointe réelle les fichiers `.java` que Gemini va lire
-   ou modifier (minimum : les fichiers concernés par la tâche du jour)
-4. Donner UNE SEULE tâche précise, tirée de la liste de la section 6
-5. Une fois le code reçu, le coller sur GitHub sur la branche de travail
-6. Vérifier le build (onglet Actions)
-7. Vérifier le diff (comparer la branche à main) — s'assurer qu'aucun
-   fichier de la section 4 (système figé) n'apparaît dans les changements
-8. Tester l'APK sur la tablette selon le test précis demandé à Gemini
-9. Si tout est bon → Pull Request → Merge dans main → supprimer la branche
-10. Mettre à jour ce document (section 5 et 6) avant la prochaine session
-
