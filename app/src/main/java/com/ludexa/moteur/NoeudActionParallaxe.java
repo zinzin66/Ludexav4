@@ -2,7 +2,6 @@
 package com.ludexa.moteur;
 
 public class NoeudActionParallaxe extends NoeudBase {
-    private ObjetBase cibleObj;
 
     public NoeudActionParallaxe() {
         super(genererId(), Traducteur.get("noeud_parallaxe"), Traducteur.get("cat_apparence_objets"));
@@ -27,12 +26,6 @@ public class NoeudActionParallaxe extends NoeudBase {
     public boolean requiertCibleObjet() { return true; }
     
     @Override
-    public void setCibleObjet(ObjetBase objet) { this.cibleObj = objet; }
-    
-    @Override
-    public ObjetBase getCibleObjet() { 
-        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
-        return this.cibleObj; 
-    }
+    public boolean utiliseClavierTexte() { return true; }
 }
 // bas 1
