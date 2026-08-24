@@ -1,24 +1,26 @@
 // haut 1
 package com.ludexa.moteur;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class NoeudActionModifierVariable extends NoeudBase {
 
     private transient Variable cible;
-    private String nomCibleVariable;
-    private String valeurSaisie = "";
+    public String nomCibleVariable;
 
     public NoeudActionModifierVariable() {
         super(genererId(), "Modifier Variable", "Action");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
+        
+        this.ajouterParametre("Valeur", "", TYPE_TEXTE_LIBRE);
     }
 
     @Override
     public void executer() {
         Variable cibleActuelle = getCibleVariable();
+        String valeurSaisie = getValeurParametre("Valeur");
+        
         if (cibleActuelle != null) {
             if ("CHIFFRE".equals(cibleActuelle.type)) {
                 if (valeurSaisie != null) {
@@ -30,17 +32,13 @@ public class NoeudActionModifierVariable extends NoeudBase {
                         if (token.isEmpty()) continue;
                         
                         try {
-                            // Tente de parser en tant que nombre littéral
                             somme += Float.parseFloat(token);
                         } catch (NumberFormatException e) {
-                            // Si ce n'est pas un nombre, on cherche une variable
                             Variable v = trouverVariable(token);
                             if (v != null && v.valeur != null) {
                                 try {
                                     somme += Float.parseFloat(v.valeur.toString());
-                                } catch (NumberFormatException ex) {
-                                    // Impossible à parser (ni nombre ni variable valide), traité comme 0
-                                }
+                                } catch (NumberFormatException ex) {}
                             }
                         }
                     }
@@ -94,29 +92,6 @@ public class NoeudActionModifierVariable extends NoeudBase {
     }
 
     @Override
-    public List<String> getNomsParametres() { return Arrays.asList("Valeur"); }
-
-    @Override
-    public String getValeurParametre(String nom) {
-        if ("Valeur".equals(nom)) return valeurSaisie;
-        return "";
-    }
-
-    @Override
-    public void setValeurParametre(String nom, String valeur) {
-        if ("Valeur".equals(nom)) valeurSaisie = valeur;
-    }
-
-    @Override
-    public boolean requiertCibleObjet() { return false; }
-    
-    @Override
-    public void setCibleObjet(ObjetBase objet) { }
-    
-    @Override
-    public ObjetBase getCibleObjet() { return null; }
-
-    @Override
     public boolean requiertCibleVariable() { return true; }
     
     @Override
@@ -129,7 +104,6 @@ public class NoeudActionModifierVariable extends NoeudBase {
     @Override
     public Variable getCibleVariable() { 
         if (cible == null && nomCibleVariable != null && contexteApplication != null) {
-            // Reconnexion dynamique
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
@@ -158,11 +132,7 @@ public class NoeudActionModifierVariable extends NoeudBase {
         return this.cible; 
     }
 
-    // --- CORRECTION : Autorise l'ouverture du clavier pour ce noeud ---
     @Override
-    public boolean utiliseClavierTexte() {
-        return true;
-    }
+    public boolean utiliseClavierTexte() { return true; }
 }
 // bas 1
-

@@ -1,20 +1,17 @@
 // haut 1
 package com.ludexa.moteur;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class NoeudActionFondu extends NoeudBase {
-
-    private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet;
-    private String cibleAlpha = "0.0";
-    private String duree = "1.0";
 
     public NoeudActionFondu() {
         super(genererId(), "Fondu (Alpha)", "Animations");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
+        
+        this.ajouterParametre("Cible Alpha (0 à 1)", "0.0", TYPE_NOMBRE);
+        this.ajouterParametre("Durée (secondes)", "1.0", TYPE_NOMBRE);
     }
 
     @Override
@@ -22,8 +19,8 @@ public class NoeudActionFondu extends NoeudBase {
         ObjetBase obj = getCibleObjet();
         if (obj != null && contexteApplication != null) {
             try {
-                String strAlpha = cibleAlpha.replace(",", ".").trim();
-                String strDuree = duree.replace(",", ".").trim();
+                String strAlpha = getValeurParametre("Cible Alpha (0 à 1)").replace(",", ".").trim();
+                String strDuree = getValeurParametre("Durée (secondes)").replace(",", ".").trim();
 
                 Variable varAlpha = trouverVariable(strAlpha);
                 if (varAlpha != null && varAlpha.valeur != null) {
@@ -83,58 +80,9 @@ public class NoeudActionFondu extends NoeudBase {
         }
         return null;
     }
-
-    @Override
-    public List<String> getNomsParametres() { return Arrays.asList("Cible Alpha (0 à 1)", "Durée (secondes)"); }
-    
-    @Override
-    public String getValeurParametre(String nom) {
-        if ("Cible Alpha (0 à 1)".equals(nom)) return cibleAlpha;
-        if ("Durée (secondes)".equals(nom)) return duree;
-        return "";
-    }
-    
-    @Override
-    public void setValeurParametre(String nom, String valeur) {
-        if ("Cible Alpha (0 à 1)".equals(nom)) cibleAlpha = valeur;
-        if ("Durée (secondes)".equals(nom)) duree = valeur;
-    }
     
     @Override
     public boolean requiertCibleObjet() { return true; }
-    
-    @Override
-    public void setCibleObjet(ObjetBase objet) {
-        this.cible = objet;
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
-    }
-    
-    @Override
-    public ObjetBase getCibleObjet() {
-        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
-
-        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
-                    }
-                }
-            } catch (Exception e) {}
-        }
-        return cible;
-    }
     
     @Override
     public boolean utiliseClavierTexte() { return true; }

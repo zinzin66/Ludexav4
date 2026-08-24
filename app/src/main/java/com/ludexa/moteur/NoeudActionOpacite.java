@@ -1,8 +1,7 @@
-// haut 1
+// haut 3
 package com.ludexa.moteur;
 
 public class NoeudActionOpacite extends NoeudBase {
-    private ObjetBase cibleObj;
 
     public NoeudActionOpacite() {
         super(genererId(), Traducteur.get("noeud_opacite"), Traducteur.get("cat_apparence_objets"));
@@ -28,12 +27,6 @@ public class NoeudActionOpacite extends NoeudBase {
     public boolean requiertCibleObjet() { return true; }
     
     @Override
-    public void setCibleObjet(ObjetBase objet) { this.cibleObj = objet; }
-    
-    @Override
-    public ObjetBase getCibleObjet() { 
-        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
-        return this.cibleObj; 
-    }
+    public boolean utiliseClavierTexte() { return true; }
 }
-// bas 1
+// bas 3
