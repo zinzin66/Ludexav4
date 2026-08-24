@@ -1,25 +1,26 @@
-// début 1 11 08
-
+// haut 1
 package com.ludexa.moteur;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class NoeudActionAjouterVariable extends NoeudBase {
 
     private transient Variable cible;
-    private String nomCibleVariable;
-    private String valeurSaisie = "";
+    public String nomCibleVariable;
 
     public NoeudActionAjouterVariable() {
         super(genererId(), "Ajouter à Variable", "Action");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
+        
+        this.ajouterParametre("Valeur à ajouter", "", TYPE_NOMBRE);
     }
 
     @Override
     public void executer() {
         Variable cibleActuelle = getCibleVariable();
+        String valeurSaisie = getValeurParametre("Valeur à ajouter");
+        
         if (cibleActuelle != null && "CHIFFRE".equals(cibleActuelle.type)) {
             float valeurCourante = 0f;
             if (cibleActuelle.valeur instanceof Float) {
@@ -41,7 +42,6 @@ public class NoeudActionAjouterVariable extends NoeudBase {
             
             cibleActuelle.valeur = valeurCourante + valeurAJoindre;
         } else if (cibleActuelle != null && "ENTIER".equals(cibleActuelle.type)) {
-            // CORRECTION : le type ENTIER n'était pas géré (seul CHIFFRE l'était), le nœud ne faisait rien silencieusement
             int valeurCourante = 0;
             if (cibleActuelle.valeur instanceof Integer) {
                 valeurCourante = (Integer) cibleActuelle.valeur;
@@ -62,33 +62,9 @@ public class NoeudActionAjouterVariable extends NoeudBase {
 
             cibleActuelle.valeur = valeurCourante + valeurAJoindre;
         }
-        // Si le type n'est ni CHIFFRE ni ENTIER, on ne fait rien (pas de crash).
         
         propagerExecution("Suivant");
     }
-
-    @Override
-    public List<String> getNomsParametres() { return Arrays.asList("Valeur à ajouter"); }
-
-    @Override
-    public String getValeurParametre(String nom) {
-        if ("Valeur à ajouter".equals(nom)) return valeurSaisie;
-        return "";
-    }
-
-    @Override
-    public void setValeurParametre(String nom, String valeur) {
-        if ("Valeur à ajouter".equals(nom)) valeurSaisie = valeur;
-    }
-
-    @Override
-    public boolean requiertCibleObjet() { return false; }
-    
-    @Override
-    public void setCibleObjet(ObjetBase objet) { }
-    
-    @Override
-    public ObjetBase getCibleObjet() { return null; }
 
     @Override
     public boolean requiertCibleVariable() { return true; }
@@ -103,7 +79,6 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     @Override
     public Variable getCibleVariable() { 
         if (cible == null && nomCibleVariable != null && contexteApplication != null) {
-            // Reconnexion dynamique
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
@@ -133,7 +108,6 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     }
 
     @Override
-    public boolean utiliseClavierTexte() {
-        return true;
-    }
-} 
+    public boolean utiliseClavierTexte() { return true; }
+}
+// bas 1

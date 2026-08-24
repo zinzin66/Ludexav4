@@ -9,6 +9,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)]()
 [![Language](https://img.shields.io/badge/Built_with-Native_Java-orange.svg)]()
 [![License](https://img.shields.io/badge/License-Free-brightgreen.svg)]()
+[![Downloads](https://img.shields.io/github/downloads/zinzin66/Ludexav4/total.svg?color=blueviolet)](https://github.com/zinzin66/Ludexav4/releases)
 
 Yop2D (formerly Ludexa) is a standalone, purely native Android game engine designed from the ground up for mobile devices. It allows creators to build complete, performant 2D games directly on their tablets—without writing a single line of code, and without ever needing a PC.
 
@@ -16,7 +17,7 @@ Yop2D (formerly Ludexa) is a standalone, purely native Android game engine desig
 
 * **100% Native Android Java:** Built directly on Android's native framework for maximum performance, completely bypassing the limitations of web-based or Lua prototypes.
 * **Touch-First Blueprint System:** A comprehensive visual node editor designed for touchscreens. Replaces traditional coding with a horizontal target layout and clear UI logic instead of hidden modal states.
-* **Automated CI/CD Pipeline:** Fully integrated with GitHub Actions. Push your project, and the cloud automatically compiles a production-ready, standalone `.apk` file.
+* **Direct On-Device APK Export:** Compile and generate your production-ready, standalone `.apk` file directly from the app. Everything is processed locally on your tablet—no external servers, no cloud CI/CD, and no PC required.
 * **Advanced Rendering Optimizations:** Includes custom font caching and a dynamic word-wrap rendering system to ensure text objects remain crisp and distortion-free across different screen resolutions.
 * **Integrated Physics & Logic:** Built-in support for impulses, complex collisions, AI pathing (chase/flee), and robust inventory/variable management.
 

@@ -25,7 +25,6 @@ public abstract class NoeudBase {
     public ArrayList<Port> portsEntree;
     public ArrayList<Port> portsSortie;
     
-    // NOUVEAU : Variables pour l'éditeur
     public String nomCibleObjet = null;
     public String nomCibleObjetB = null;
 
@@ -132,10 +131,25 @@ public abstract class NoeudBase {
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
     
-    // NOUVEAU : Interception Objet A
+    // NOUVEAU : Interception Objet A + Restauration recherche par nom
     public ObjetBase getCibleObjet() { 
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
             return MoteurLogique.dernierObjetImplique;
+        }
+        
+        if (nomCibleObjet != null && contexteApplication != null) {
+            try {
+                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                Scene scene = (Scene) sceneField.get(contexteApplication);
+                
+                if (scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (nomCibleObjet.equals(obj.nom)) {
+                            return obj;
+                        }
+                    }
+                }
+            } catch (Exception e) {}
         }
         return null; 
     }
@@ -143,10 +157,25 @@ public abstract class NoeudBase {
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
     
-    // NOUVEAU : Interception Objet B
+    // NOUVEAU : Interception Objet B + Restauration recherche par nom
     public ObjetBase getCibleObjetB() { 
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) {
             return MoteurLogique.dernierObjetImplique;
+        }
+        
+        if (nomCibleObjetB != null && contexteApplication != null) {
+            try {
+                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                Scene scene = (Scene) sceneField.get(contexteApplication);
+                
+                if (scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (nomCibleObjetB.equals(obj.nom)) {
+                            return obj;
+                        }
+                    }
+                }
+            } catch (Exception e) {}
         }
         return null; 
     }
