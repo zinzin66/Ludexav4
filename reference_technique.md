@@ -1,7 +1,6 @@
 # LUDEXA — Référence technique complète
 Dernière mise à jour : 21/07/2026
-À coller intégralement en tout début de toute session Gemini, avec les
-fichiers .java concernés joints en pièce jointe réelle.
+
 
 ---
 
