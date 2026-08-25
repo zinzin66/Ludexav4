@@ -365,30 +365,48 @@ public class EcranDemarrage extends Activity {
     }
 
     private void afficherDialogueLangue() {
-        String[] langues = {
-            Traducteur.get("langue_fr"), 
-            Traducteur.get("langue_en"), 
-            Traducteur.get("langue_es"), 
-            Traducteur.get("langue_pt"), 
-            Traducteur.get("langue_ru")
-        };
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(Traducteur.get("demarrage_choisir_langue"));
-        builder.setItems(langues, (dialog, which) -> {
-            switch (which) {
-                case 0: langueCourante = "fr"; break;
-                case 1: langueCourante = "en"; break;
-                case 2: langueCourante = "es"; break;
-                case 3: langueCourante = "pt"; break;
-                case 4: langueCourante = "ru"; break;
+        try {
+            String[] fichiersAssets = getAssets().list("");
+            java.util.ArrayList<String> codesLangues = new java.util.ArrayList<>();
+            java.util.ArrayList<String> nomsLangues = new java.util.ArrayList<>();
+
+            if (fichiersAssets != null) {
+                for (String fichier : fichiersAssets) {
+                    // On cherche les fichiers comme "lang_fr.json"
+                    if (fichier.startsWith("lang_") && fichier.endsWith(".json")) {
+                        String code = fichier.substring(5, fichier.lastIndexOf('.'));
+                        codesLangues.add(code);
+                        
+                        // On récupère le nom traduit pour l'affichage (ex: "Français" pour la clé "langue_fr")
+                        String nomAffiche = Traducteur.get("langue_" + code);
+                        // Sécurité : si la clé n'existe pas encore dans le dictionnaire actuel, on affiche le code en majuscule
+                        if (nomAffiche.startsWith("[")) nomAffiche = code.toUpperCase();
+                        
+                        nomsLangues.add(nomAffiche);
+                    }
+                }
             }
-            Traducteur.initialiser(this, langueCourante);
-            RegistreNoeuds.initialiser(); 
-            recreate(); 
-        });
-        builder.show();
+
+            if (!codesLangues.isEmpty()) {
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+                builder.setTitle(Traducteur.get("demarrage_choisir_langue"));
+                builder.setItems(nomsLangues.toArray(new String[0]), (dialog, which) -> {
+                    langueCourante = codesLangues.get(which);
+                    Traducteur.initialiser(this, langueCourante);
+                    RegistreNoeuds.initialiser(); 
+                    recreate(); 
+                });
+                builder.show();
+            } else {
+                Toast.makeText(this, "Aucun fichier de langue trouvé", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 // bas 1
+                        
 
 // haut 2
     // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
