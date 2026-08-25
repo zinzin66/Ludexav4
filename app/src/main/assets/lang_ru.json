@@ -449,7 +449,25 @@
     "port_entree": "Вход",
   "port_sortie": "Выход",
   "port_vrai": "Истина",
-  "port_faux": "Ложь"
+  "port_faux": "Ложь",
+    "noeud_chaque_image": "Каждый кадр",
+  "noeud_arreter": "Остановить объект",
+  "noeud_objet_proche": "Выбрать ближайший объект",
+  "noeud_objet_hasard": "Выбрать случайный объект",
+  "noeud_si_mouvement": "Если объект в движении",
+  "noeud_pousser_objet": "Толкнуть объект",
+  "noeud_sautiller": "Подпрыгивание",
+  "noeud_miroir": "Эффект зеркала / Отразить",
+  "noeud_lier_objets": "Связать два объекта",
+  "noeud_opacite": "Изменить непрозрачность (Альфа)",
+  "noeud_mode_affichage": "Режим наложения (Эффект)",
+  "noeud_parallaxe": "Коэффициент параллакса",
+  "noeud_pause_anim": "Приостановить анимацию",
+  "noeud_reprendre_anim": "Возобновить анимацию",
+  "noeud_vitesse_anim": "Скорость анимации",
+  "noeud_condition_frame": "Если текущий кадр...",
+  "noeud_force_angle": "Добавить силу (по углу)"
+  
 
 
   
