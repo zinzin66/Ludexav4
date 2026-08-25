@@ -449,7 +449,25 @@
   "port_entree": "Input",
   "port_sortie": "Output",
   "port_vrai": "True",
-  "port_faux": "False"
+  "port_faux": "False",
+    "noeud_chaque_image": "Every frame",
+  "noeud_arreter": "Stop the object",
+  "noeud_objet_proche": "Select nearest object",
+  "noeud_objet_hasard": "Choose a random object",
+  "noeud_si_mouvement": "If Object is Moving",
+  "noeud_pousser_objet": "Push object",
+  "noeud_sautiller": "Bounce/Hop",
+  "noeud_miroir": "Mirror Effect / Invert",
+  "noeud_lier_objets": "Link two objects",
+  "noeud_opacite": "Modify Opacity (Alpha)",
+  "noeud_mode_affichage": "Blend mode (Effect)",
+  "noeud_parallaxe": "Parallax Factor",
+  "noeud_pause_anim": "Pause animation",
+  "noeud_reprendre_anim": "Resume animation",
+  "noeud_vitesse_anim": "Animation speed",
+  "noeud_condition_frame": "If current frame is...",
+  "noeud_force_angle": "Add force (by Angle)"
+  
 
 
 
