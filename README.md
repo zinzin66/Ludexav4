@@ -5,11 +5,11 @@
 # Yop2D
 **The 100% No-Code 2D Game Engine for Android Tablets**
 
-[![Website](https://img.shields.io/badge/Website-Visit_Yop2D-blue.svg)](https://zinzin66.github.io/Yop2d/)
+[![Website](https://img.shields.io/badge/Website-Visit_Yop2D-blue.svg)](https://zinzin66.github.io/Yop2d-web/)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)]()
 [![Language](https://img.shields.io/badge/Built_with-Native_Java-orange.svg)]()
 [![License](https://img.shields.io/badge/License-Free-brightgreen.svg)]()
-[![Downloads](https://img.shields.io/github/downloads/zinzin66/Ludexav4/total.svg?color=blueviolet)](https://github.com/zinzin66/Ludexav4/releases)
+[![Downloads](https://img.shields.io/github/downloads/zinzin66/yop2d/total.svg?color=blueviolet)](https://github.com/zinzin66/yop2d/releases)
 
 Yop2D (formerly Ludexa) is a standalone, purely native Android game engine designed from the ground up for mobile devices. It allows creators to build complete, performant 2D games directly on their tablets—without writing a single line of code, and without ever needing a PC.
 
@@ -25,11 +25,11 @@ Yop2D (formerly Ludexa) is a standalone, purely native Android game engine desig
 
 You don't need a GitHub account to download and use Yop2D.
 
-1. Go to the [Official Yop2D Website](https://zinzin66.github.io/Yop2d/).
+1. Go to the [Official Yop2D Website](https://zinzin66.github.io/Yop2d-web/).
 2. Click the **Download Latest APK** button.
 3. Open the downloaded file on your Android tablet and follow the installation instructions. *(Note: You may need to allow installation from unknown sources).*
 
-Alternatively, you can download the latest stable release directly from the [Releases page](https://github.com/zinzin66/Ludexav4/releases).
+Alternatively, you can download the latest stable release directly from the [Releases page](https://github.com/zinzin66/yop2d/releases).
 
 ## 🛠 Why Yop2D?
 
@@ -37,7 +37,7 @@ Most mobile game engines are just companions to desktop software. Yop2D breaks t
 
 ## 🌐 Community & Documentation
 
-* **Website:** [zinzin66.github.io/Yop2d](https://zinzin66.github.io/Yop2d/)
+* **Website:** [zinzin66.github.io/Yop2d-web/](https://zinzin66.github.io/Yop2d-web/)
 * **Languages Supported:** English, French, Spanish, Portuguese, and Russian.
 
 ---
