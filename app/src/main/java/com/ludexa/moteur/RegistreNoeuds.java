@@ -40,7 +40,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_quand_variable_change"), Traducteur.get("cat_evenements"), "NoeudEventVariableChange"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_evenement_local"), Traducteur.get("cat_evenements"), "NoeudEventPersonnalise"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_clic_action_aventure"), Traducteur.get("cat_evenements"), "NoeudEventBoutonAction"));
-        REGISTRE.add(new InfoNoeud("Si objet touche Tag", Traducteur.get("cat_evenements"), "NoeudEventCollisionTag"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_touche_tag"), Traducteur.get("cat_evenements"), "NoeudEventCollisionTag"));
         
 
         // MOUVEMENTS & IA
@@ -55,9 +55,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_orienter_vers"), Traducteur.get("cat_logique_spatiale"), "NoeudActionOrienterVers"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_proche"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetLePlusProche")); 
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_objet_hasard"), Traducteur.get("cat_logique_spatiale"), "NoeudActionObjetHasard")); 
-// bas 1
 
-// haut 2
         // LOGIQUE & CONDITIONS
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition"), Traducteur.get("cat_logique_conditions"), "NoeudConditionComparaison"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_a_touche_zone_b"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiObjetToucheZone"));
@@ -68,8 +66,6 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_mouvement"), Traducteur.get("cat_logique_conditions"), "NoeudConditionMouvement"));
-        
-        
 
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_de_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionChangerScene"));
@@ -113,9 +109,7 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_modifier_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionModifierTexte"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_ajouter_au_texte"), Traducteur.get("cat_textes_dialogues"), "NoeudActionConcatenerTexte"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_afficher_dialogue"), Traducteur.get("cat_textes_dialogues"), "NoeudActionAfficherDialogue"));
-// bas 2
 
-// haut 3
         // VARIABLES & INVENTAIRE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_operation_mathematique"), Traducteur.get("cat_variables_inventaire"), "NoeudActionOperationMath"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_limiter_valeur"), Traducteur.get("cat_variables_inventaire"), "NoeudActionClampVariable"));
@@ -141,10 +135,10 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fondu_alpha"), Traducteur.get("cat_animations"), "NoeudActionFondu"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_glisser_vers"), Traducteur.get("cat_animations"), "NoeudActionGlisserVers"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_jouer_animation"), Traducteur.get("cat_animations"), "NoeudActionJouerAnimation"));
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_pause_anim"), Traducteur.get("cat_animations"), "NoeudActionPauseAnimation")); // AJOUT
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_reprendre_anim"), Traducteur.get("cat_animations"), "NoeudActionReprendreAnimation")); // AJOUT
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_vitesse_anim"), Traducteur.get("cat_animations"), "NoeudActionVitesseAnimation")); // AJOUT
-        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition_frame"), Traducteur.get("cat_animations"), "NoeudConditionFrameAnimation")); // AJOUT
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_pause_anim"), Traducteur.get("cat_animations"), "NoeudActionPauseAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_reprendre_anim"), Traducteur.get("cat_animations"), "NoeudActionReprendreAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_vitesse_anim"), Traducteur.get("cat_animations"), "NoeudActionVitesseAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition_frame"), Traducteur.get("cat_animations"), "NoeudConditionFrameAnimation"));
         
         // PHYSIQUE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_activer_physique"), Traducteur.get("cat_physique"), "NoeudActionModifierPhysique"));
@@ -168,4 +162,4 @@ public class RegistreNoeuds {
         return map;
     }
 }
-// bas 3
+// bas 1
