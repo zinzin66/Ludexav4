@@ -449,7 +449,25 @@
   "port_entree": "Entrée",
   "port_sortie": "Sortie",
   "port_vrai": "Vrai",
-  "port_faux": "Faux"
+  "port_faux": "Faux",
+    "noeud_chaque_image": "À chaque image",
+  "noeud_arreter": "Arrêter l'objet",
+  "noeud_objet_proche": "Sélectionner objet le plus proche",
+  "noeud_objet_hasard": "Choisir un objet au hasard",
+  "noeud_si_mouvement": "Si Objet en Mouvement",
+  "noeud_pousser_objet": "Pousser objet",
+  "noeud_sautiller": "Sautillement",
+  "noeud_miroir": "Effet Miroir / Inverser",
+  "noeud_lier_objets": "Lier deux objets",
+  "noeud_opacite": "Modifier l'Opacité (Alpha)",
+  "noeud_mode_affichage": "Mode de fusion (Effet)",
+  "noeud_parallaxe": "Facteur de Parallaxe",
+  "noeud_pause_anim": "Mettre en pause l'animation",
+  "noeud_reprendre_anim": "Reprendre l'animation",
+  "noeud_vitesse_anim": "Vitesse de l'animation",
+  "noeud_condition_frame": "Si l'image actuelle est...",
+  "noeud_force_angle": "Ajouter force (par Angle)"
+  
 
 
 
