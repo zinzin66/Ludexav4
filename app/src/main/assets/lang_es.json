@@ -449,7 +449,25 @@
     "port_entree": "Entrada",
   "port_sortie": "Salida",
   "port_vrai": "Verdadero",
-  "port_faux": "Falso"
+  "port_faux": "Falso",
+    "noeud_chaque_image": "Cada fotograma",
+  "noeud_arreter": "Detener el objeto",
+  "noeud_objet_proche": "Seleccionar objeto más cercano",
+  "noeud_objet_hasard": "Elegir un objeto al azar",
+  "noeud_si_mouvement": "Si el Objeto está en Movimiento",
+  "noeud_pousser_objet": "Empujar objeto",
+  "noeud_sautiller": "Saltitos",
+  "noeud_miroir": "Efecto Espejo / Invertir",
+  "noeud_lier_objets": "Vincular dos objetos",
+  "noeud_opacite": "Modificar la Opacidad (Alpha)",
+  "noeud_mode_affichage": "Modo de fusión (Efecto)",
+  "noeud_parallaxe": "Factor de Paralaje",
+  "noeud_pause_anim": "Pausar la animación",
+  "noeud_reprendre_anim": "Reanudar la animación",
+  "noeud_vitesse_anim": "Velocidad de la animación",
+  "noeud_condition_frame": "Si el fotograma actual es...",
+  "noeud_force_angle": "Añadir fuerza (por Ángulo)"
+  
 
 
 
