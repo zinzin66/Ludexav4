@@ -1,4 +1,4 @@
-// haut 1
+    // haut 1
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -258,9 +258,9 @@ public class InspecteurProprietes extends LinearLayout {
 
         blocProprietes.addView(layoutNom);
 
-        // NOUVEAU : INTERFACE POUR LE TAG
+        // INTERFACE POUR LE TAG
         TextView labelTag = new TextView(context);
-        labelTag.setText("Tag (Étiquette)"); 
+        labelTag.setText(Traducteur.get("insp_label_tag")); 
         styliserLabel(labelTag);
         blocProprietes.addView(labelTag);
 
@@ -270,19 +270,18 @@ public class InspecteurProprietes extends LinearLayout {
 
         champTag = new EditText(context);
         champTag.setSingleLine(true);
-        champTag.setHint("ex: ennemi, piece...");
+        champTag.setHint(Traducteur.get("insp_hint_tag"));
         champTag.setImeOptions(EditorInfo.IME_ACTION_DONE);
         styliserChampFlexible(champTag);
         layoutTag.addView(champTag);
 
         btnTagsExistants = new Button(context);
-        btnTagsExistants.setText("Liste");
+        btnTagsExistants.setText(Traducteur.get("insp_btn_tags_liste"));
         styliserBouton(btnTagsExistants);
         btnTagsExistants.setLayoutParams(new LinearLayout.LayoutParams(dp(70), LinearLayout.LayoutParams.WRAP_CONTENT));
         layoutTag.addView(btnTagsExistants);
 
         blocProprietes.addView(layoutTag);
-        // FIN NOUVEAU INTERFACE TAG
 
         TextView labelPos = new TextView(context);
         labelPos.setText(Traducteur.get("insp_label_pos"));
@@ -483,10 +482,7 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 // bas 2
-        
 
-
-    
 // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -792,7 +788,6 @@ public class InspecteurProprietes extends LinearLayout {
         this.addView(scrollInspecteur);
 // bas 3
 
-
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
@@ -819,7 +814,7 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnValiderNom.setOnClickListener(v -> { verifierEtConfirmerRenommage(context); cacherClavier(context, champNom); });
 
-        // NOUVEAUX LISTENERS POUR LE TAG
+        // LISTENERS POUR LE TAG
         champTag.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 cacherClavier(context, v);
@@ -843,11 +838,11 @@ public class InspecteurProprietes extends LinearLayout {
                 }
             }
             if (tagsUniques.isEmpty()) {
-                Toast.makeText(context, "Aucun tag utilisé dans cette scène", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, Traducteur.get("insp_toast_aucun_tag"), Toast.LENGTH_SHORT).show();
                 return;
             }
             new AlertDialog.Builder(context)
-                .setTitle("Choisir un Tag")
+                .setTitle(Traducteur.get("insp_titre_choisir_tag"))
                 .setItems(tagsUniques.toArray(new String[0]), (dialog, which) -> {
                     if (objetCourant != null) {
                         miseAJourEnCours = true;
@@ -1028,7 +1023,6 @@ public class InspecteurProprietes extends LinearLayout {
             if (objetCourant != null && !miseAJourEnCours) { objetCourant.visible = isChecked; canvasEditeur.invalidate(); }
         });
 
-        // NOUVEAU COLOR PICKER 100% NATIF ANDROID
         View.OnClickListener selecteurCouleurListener = v -> {
             if (objetCourant == null) return;
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -1038,7 +1032,6 @@ public class InspecteurProprietes extends LinearLayout {
             layoutMain.setOrientation(LinearLayout.VERTICAL);
             layoutMain.setPadding(dp(16), dp(16), dp(16), dp(16));
 
-            // --- 1. Ligne Supérieure : Aperçu Couleur et Champ Hexadécimal ---
             LinearLayout layoutTop = new LinearLayout(context);
             layoutTop.setOrientation(LinearLayout.HORIZONTAL);
             layoutTop.setGravity(Gravity.CENTER_VERTICAL);
@@ -1067,10 +1060,8 @@ public class InspecteurProprietes extends LinearLayout {
             layoutTop.addView(champHex);
             layoutMain.addView(layoutTop);
 
-            // Variable d'état pour empêcher les boucles infinies entre le texte et la zone tactile
             final boolean[] isUpdating = {false};
 
-            // --- 2. Zone Arc-en-ciel (Spectre 2D) ---
             View spectreView = new View(context) {
                 private android.graphics.Paint paintHue = new android.graphics.Paint();
                 private android.graphics.Paint paintVal = new android.graphics.Paint();
@@ -1078,16 +1069,13 @@ public class InspecteurProprietes extends LinearLayout {
 
                 @Override
                 protected void onDraw(android.graphics.Canvas canvas) {
-                    // Dégradé horizontal pour la Teinte (Hue)
                     int[] hueColors = {Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
                     paintHue.setShader(new android.graphics.LinearGradient(0, 0, getWidth(), 0, hueColors, null, android.graphics.Shader.TileMode.CLAMP));
                     canvas.drawRect(0, 0, getWidth(), getHeight(), paintHue);
 
-                    // Dégradé vertical pour la Luminosité (Value)
                     paintVal.setShader(new android.graphics.LinearGradient(0, 0, 0, getHeight(), Color.TRANSPARENT, Color.BLACK, android.graphics.Shader.TileMode.CLAMP));
                     canvas.drawRect(0, 0, getWidth(), getHeight(), paintVal);
 
-                    // Pointeur indicateur
                     indicatorPaint.setColor(Color.WHITE);
                     indicatorPaint.setStyle(android.graphics.Paint.Style.STROKE);
                     indicatorPaint.setStrokeWidth(dp(2));
@@ -1107,7 +1095,7 @@ public class InspecteurProprietes extends LinearLayout {
                         float y = Math.max(0, Math.min(event.getY(), getHeight()));
                         
                         currentHsv[0] = (x / getWidth()) * 360f;
-                        currentHsv[1] = 1f; // Saturation maximale sur le spectre
+                        currentHsv[1] = 1f; 
                         currentHsv[2] = 1f - (y / getHeight());
                         
                         int newColor = Color.HSVToColor(currentHsv);
@@ -1124,13 +1112,11 @@ public class InspecteurProprietes extends LinearLayout {
                 }
             };
             
-            // Hauteur suffisante pour être confortablement manipulée au doigt sur tablette
             LinearLayout.LayoutParams spectreParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(160));
             spectreParams.setMargins(0, dp(16), 0, dp(16));
             spectreView.setLayoutParams(spectreParams);
             layoutMain.addView(spectreView);
 
-            // Synchronisation : Hexadécimal -> Aperçu et Spectre
             champHex.addTextChangedListener(new android.text.TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
                 @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
@@ -1149,14 +1135,12 @@ public class InspecteurProprietes extends LinearLayout {
                 }
             });
 
-            
-                 // --- 3. Palette de couleurs rapides ---
             HorizontalScrollView scrollPalette = new HorizontalScrollView(context);
             scrollPalette.setHorizontalScrollBarEnabled(false);
             LinearLayout layoutPalette = new LinearLayout(context);
             layoutPalette.setOrientation(LinearLayout.HORIZONTAL);
             
-            int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
+           int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
             for (int c : couleursRapides) {
                 View pastille = new View(context);
                 LinearLayout.LayoutParams pastilleParams = new LinearLayout.LayoutParams(dp(40), dp(40));
@@ -1189,9 +1173,7 @@ public class InspecteurProprietes extends LinearLayout {
                     if (!finalHex.startsWith("#")) finalHex = "#" + finalHex;
                     objetCourant.couleur = Color.parseColor(finalHex);
                     canvasEditeur.invalidate();
-                } catch (Exception e) {
-                    // Conserver l'ancienne couleur si l'entrée est erronée
-                }
+                } catch (Exception e) {}
             });
             builder.setNegativeButton(Traducteur.get("bouton_annuler"), null);
             builder.show();
@@ -1206,9 +1188,6 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
-
-
-
     // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
@@ -1251,7 +1230,7 @@ public class InspecteurProprietes extends LinearLayout {
 
             champNom.setText(objet.nom);
             
-            // NOUVEAU: CHARGEMENT DU TAG
+            // CHARGEMENT DU TAG
             champTag.setText(objet.tag != null ? objet.tag : "");
 
             champX.setText(String.valueOf((int) objet.x));
@@ -1418,18 +1397,6 @@ public class InspecteurProprietes extends LinearLayout {
 }
 // bas 5
 
-
-
-
+            
+            
     
-
-        
-
-
-
-
-        
-
-
-
-
