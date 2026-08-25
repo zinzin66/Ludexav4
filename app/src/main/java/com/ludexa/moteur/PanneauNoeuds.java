@@ -69,7 +69,7 @@ public class PanneauNoeuds extends ScrollView {
             List<RegistreNoeuds.InfoNoeud> noeuds = entry.getValue();
             
             Button btnCat = new Button(context);
-            btnCat.setText(nomCat + " ▼");
+            btnCat.setText(Traducteur.get(nomCat) + " ▼");
             
             LinearLayout conteneurCat = new LinearLayout(context);
             conteneurCat.setOrientation(LinearLayout.VERTICAL);
@@ -83,10 +83,10 @@ public class PanneauNoeuds extends ScrollView {
             btnCat.setOnClickListener(v -> {
                 if (conteneurCat.getVisibility() == View.VISIBLE) {
                     conteneurCat.setVisibility(View.GONE);
-                    btnCat.setText(nomCat + " ▶");
+                    btnCat.setText(Traducteur.get(nomCat) + " ▶");
                 } else {
                     conteneurCat.setVisibility(View.VISIBLE);
-                    btnCat.setText(nomCat + " ▼");
+                    btnCat.setText(Traducteur.get(nomCat) + " ▼");
                 }
             });
             
@@ -118,7 +118,7 @@ public class PanneauNoeuds extends ScrollView {
 
     private TextView creerItemNoeud(Context context, String libelle, String typeClasse) {
         TextView item = new TextView(context);
-        item.setText(libelle);
+        item.setText(Traducteur.get(libelle));
         item.setTextColor(Palette.texteNormal);
         item.setPadding(20, 20, 20, 20);
         item.setBackgroundColor(Color.TRANSPARENT);
