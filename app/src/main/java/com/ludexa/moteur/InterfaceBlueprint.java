@@ -28,10 +28,6 @@ public class InterfaceBlueprint extends Activity {
 
     public String cheminProjet; 
 
-    // AJOUT : champ public requis par les nœuds qui résolvent leur cible objet via
-    // réflexion (contexteApplication.getClass().getField("sceneActive")). Sans ce champ
-    // direct sur InterfaceBlueprint, cette réflexion échouait silencieusement et
-    // getCibleObjet() retournait toujours null dans l'éditeur (carte "Objet : Aucune").
     public Scene sceneActive;
 
     public static Scene sceneACharger; 
@@ -130,6 +126,7 @@ public class InterfaceBlueprint extends Activity {
         boutonRetour.setOnClickListener(v -> finish());
         bandeauHaut.addView(boutonRetour);
 // bas 1
+
 // haut 2
         TextView titreBlueprint = new TextView(this);
         if (estModeFonction) {
@@ -257,7 +254,6 @@ public class InterfaceBlueprint extends Activity {
         } else {
             canvasBlueprint.sceneActive = new Scene(Traducteur.get("scene_vide_fallback"));
         }
-        // AJOUT : on garde ce champ synchronisé pour que la réflexion des nœuds fonctionne
         this.sceneActive = canvasBlueprint.sceneActive;
 
         chargerBlueprintLocal(true);
@@ -271,6 +267,7 @@ public class InterfaceBlueprint extends Activity {
         setContentView(layoutPrincipal);
     }
 // bas 2
+
 // haut 3
     private void sauvegarderBlueprintLocal() {
         try {
@@ -353,13 +350,9 @@ public class InterfaceBlueprint extends Activity {
         
         List<String> details = new ArrayList<>();
         
-        // CORRECTION : L'éditeur affiche maintenant explicitement "[Objet Impliqué]" au lieu d'ignorer la cible
-        // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que de
-        // dépendre de getCibleObjet(), qui peut échouer selon le nœud (réflexion sceneActive).
-        // C'était le dernier endroit oublié lors de la correction précédente.
         if (noeud.requiertCibleObjet()) {
             if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
-                details.add(Traducteur.get("noeud_format_cible") + "[Objet Impliqué]");
+                details.add(Traducteur.get("noeud_format_cible") + Traducteur.get("noeud_objet_implique_long"));
             } else if (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty()) {
                 details.add(Traducteur.get("noeud_format_cible") + noeud.nomCibleObjet);
             } else if (noeud.getCibleObjet() != null) {
@@ -369,7 +362,7 @@ public class InterfaceBlueprint extends Activity {
         
         if (noeud.requiertCibleObjetB()) {
             if ("__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
-                details.add(Traducteur.get("noeud_format_objet_b") + "[Objet Impliqué]");
+                details.add(Traducteur.get("noeud_format_objet_b") + Traducteur.get("noeud_objet_implique_long"));
             } else if (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty()) {
                 details.add(Traducteur.get("noeud_format_objet_b") + noeud.nomCibleObjetB);
             } else if (noeud.getCibleObjetB() != null) {
@@ -399,7 +392,6 @@ public class InterfaceBlueprint extends Activity {
         return sb.toString();
     }
 // bas 3
-    
 // haut 4
     private void genererCheminLogique(NoeudBase noeudDepart, String portDeclencheur, String indentation, StringBuilder res, Set<String> noeudsVisites) {
         if (noeudDepart == null || blueprintActif.liens == null) return;
@@ -412,14 +404,11 @@ public class InterfaceBlueprint extends Activity {
                     
                     String prefixe = indentation + "-> ";
                     if (!portDeclencheur.equals("Suivant") && !portDeclencheur.equals("Sortie")) {
-                        prefixe = indentation + "(Si " + portDeclencheur + ") -> ";
+                        prefixe = indentation + "(" + Traducteur.get("blueprint_si") + " " + portDeclencheur + ") -> ";
                     }
                     
                     res.append(prefixe).append(formaterNoeud(noeudSuivant)).append("\n");
                     
-                    // CORRECTION BUG ORPHELINS : on parcourt TOUS les ports de sortie
-                    // d'exécution du nœud suivant, quel que soit leur nom (plus robuste
-                    // qu'une liste figée "Suivant"/"Sortie"/"Vrai"/"Faux").
                     for (Port pSortieSuivant : noeudSuivant.portsSortie) {
                         if (Port.TYPE_EXECUTION_SORTIE.equals(pSortieSuivant.type)) {
                             genererCheminLogique(noeudSuivant, pSortieSuivant.nom, indentation + "  ", res, noeudsVisites);
@@ -555,9 +544,6 @@ public class InterfaceBlueprint extends Activity {
                 for (NoeudBase evt : evenements) {
                     noeudsVisites.add(evt.id);
                     res.append(Traducteur.get("msg_evenement")).append(formaterNoeud(evt)).append("\n");
-                    // CORRECTION BUG ORPHELINS : on parcourt TOUS les ports de sortie
-                    // d'exécution du nœud (ex: "Collision", "Sortie", "Suivant", "Vrai", "Faux"...)
-                    // au lieu d'une liste figée qui ignorait les ports personnalisés.
                     for (Port pSortie : evt.portsSortie) {
                         if (Port.TYPE_EXECUTION_SORTIE.equals(pSortie.type)) {
                             genererCheminLogique(evt, pSortie.nom, "  ", res, noeudsVisites);
@@ -630,11 +616,16 @@ public class InterfaceBlueprint extends Activity {
 
 
 
-    
 
-    
 
     
 
 
     
+
+
+    
+
+
+
+        
