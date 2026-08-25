@@ -105,10 +105,7 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         });
-// bas 1
 
-
-// haut 2
         champSaisie.setOnClickListener(v -> {
             if (champActif != null) {
                 String typeEditeur = noeud.getTypeEditeurParametre(champActif);
@@ -126,23 +123,23 @@ public class EditeurNoeudDialog extends Dialog {
                                 }
                             }
                         }
-                        tagsUniques.add("[ Saisir manuellement ]");
+                        tagsUniques.add(Traducteur.get("noeud_tag_manuel"));
                         
                         android.app.AlertDialog.Builder builderTag = new android.app.AlertDialog.Builder(context);
-                        builderTag.setTitle("Choisir un Tag");
+                        builderTag.setTitle(Traducteur.get("noeud_choisir_tag"));
                         String[] tagsArray = tagsUniques.toArray(new String[0]);
                         builderTag.setItems(tagsArray, (dialog, which) -> {
                             if (which == tagsUniques.size() - 1) {
                                 final EditText input = new EditText(context);
                                 input.setText(champSaisie.getText().toString());
                                 new android.app.AlertDialog.Builder(context)
-                                    .setTitle("Saisir un Tag")
+                                    .setTitle(Traducteur.get("noeud_saisir_tag"))
                                     .setView(input)
-                                    .setPositiveButton("OK", (d, w) -> {
+                                    .setPositiveButton(Traducteur.get("bouton_ok"), (d, w) -> {
                                         champSaisie.setText(input.getText().toString().trim());
                                         champSaisie.setSelection(champSaisie.getText().length());
                                     })
-                                    .setNegativeButton("Annuler", null)
+                                    .setNegativeButton(Traducteur.get("bouton_annuler"), null)
                                     .show();
                             } else {
                                 champSaisie.setText(tagsArray[which]);
@@ -154,7 +151,16 @@ public class EditeurNoeudDialog extends Dialog {
                     case NoeudBase.TYPE_COULEUR:
                         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
                         builder.setTitle(Traducteur.get("noeud_choisir_couleur"));
-                        String[] couleurs = {"Bleu", "Rouge", "Vert", "Noir", "Blanc", "Jaune", "Magenta", "Cyan"};
+                        String[] couleurs = {
+                            Traducteur.get("couleur_bleu_defaut"), 
+                            Traducteur.get("couleur_rouge"), 
+                            Traducteur.get("couleur_vert"), 
+                            Traducteur.get("couleur_noir"), 
+                            Traducteur.get("couleur_blanc"), 
+                            Traducteur.get("couleur_jaune"), 
+                            Traducteur.get("couleur_magenta"), 
+                            Traducteur.get("couleur_cyan")
+                        };
                         builder.setItems(couleurs, (dialog, which) -> {
                             champSaisie.setText(couleurs[which]);
                             champSaisie.setSelection(champSaisie.getText().length());
@@ -318,9 +324,8 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         });
-// bas 2
-
-// haut 3
+// bas 1
+// haut 2
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
         wrapperDroite.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.5f));
@@ -343,25 +348,21 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_a"));
             
-            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
-            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud (réflexion
-            // sceneActive). C'était la cause de "Objet A" vide à l'ouverture du dialogue.
-            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[ L'objet impliqué dans l'événement ]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null));
+            String nomAfficheA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? Traducteur.get("noeud_objet_implique_long") : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : (noeud.getCibleObjet() != null ? noeud.getCibleObjet().nom : null));
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheA);
             
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
                     String[] noms = new String[scene.objets.size() + 1];
-                    noms[0] = "[ L'objet impliqué dans l'événement ]";
+                    noms[0] = Traducteur.get("noeud_objet_implique_long");
                     for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
                     
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_a"))
                         .setItems(noms, (d, which) -> {
                             if (which == 0) {
-                                // CORRECTION ICI : On met à null D'ABORD, puis on force le mot-clé !
                                 noeud.setCibleObjet(null);
                                 noeud.nomCibleObjet = "__OBJET_IMPLIQUE__";
-                                mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
+                                mettreAJourAfficheurCible(txtAfficheur, Traducteur.get("noeud_objet_implique_long"));
                             } else {
                                 ObjetBase obj = scene.objets.get(which - 1);
                                 noeud.setCibleObjet(obj);
@@ -379,23 +380,21 @@ public class EditeurNoeudDialog extends Dialog {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_objet_b"));
             
-            // CORRECTION BUG CIBLE PERDUE : même correction pour l'objet B
-            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[ L'objet impliqué dans l'événement ]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null));
+            String nomAfficheB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? Traducteur.get("noeud_objet_implique_long") : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : (noeud.getCibleObjetB() != null ? noeud.getCibleObjetB().nom : null));
             mettreAJourAfficheurCible(txtAfficheur, nomAfficheB);
             
             btnCible.setOnClickListener(v -> {
                 if (scene != null && scene.objets != null) {
                     String[] noms = new String[scene.objets.size() + 1];
-                    noms[0] = "[ L'objet impliqué dans l'événement ]";
+                    noms[0] = Traducteur.get("noeud_objet_implique_long");
                     for (int i = 0; i < scene.objets.size(); i++) noms[i + 1] = scene.objets.get(i).nom;
                     
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_objet_b"))
                         .setItems(noms, (d, which) -> {
                             if (which == 0) {
-                                // CORRECTION ICI AUSSI
                                 noeud.setCibleObjetB(null);
                                 noeud.nomCibleObjetB = "__OBJET_IMPLIQUE__";
-                                mettreAJourAfficheurCible(txtAfficheur, "[ L'objet impliqué dans l'événement ]");
+                                mettreAJourAfficheurCible(txtAfficheur, Traducteur.get("noeud_objet_implique_long"));
                             } else {
                                 ObjetBase obj = scene.objets.get(which - 1);
                                 noeud.setCibleObjetB(obj);
@@ -478,17 +477,14 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollCibles.addView(rangeeCibles);
         colonneDroite.addView(scrollCibles);
-// bas 3
 
-
-// haut 4
         colonneDroite.addView(barreParams);
         colonneDroite.addView(txtResumeExpression);
 
         if (params != null && !params.isEmpty()) {
             String valInit = noeud.getValeurParametre(champActif);
             champSaisie.setText(valInit != null ? valInit : "");
-            champSaisie.setSelection(champSaisie.getText().length()); // Repositionnement sécurité
+            champSaisie.setSelection(champSaisie.getText().length()); 
 
             for (String paramName : params) {
                 Button btnParam = new Button(context);
@@ -513,7 +509,7 @@ public class EditeurNoeudDialog extends Dialog {
                     champActif = paramName;
                     String val = noeud.getValeurParametre(champActif);
                     champSaisie.setText(val != null ? val : "");
-                    champSaisie.setSelection(champSaisie.getText().length()); // Place le curseur en fin de mot !
+                    champSaisie.setSelection(champSaisie.getText().length()); 
 
                     for (int i = 0; i < barreParams.getChildCount(); i++) {
                         View child = barreParams.getChildAt(i);
@@ -541,7 +537,8 @@ public class EditeurNoeudDialog extends Dialog {
         }
 
         colonneDroite.addView(champSaisie);
-
+// bas 2
+   // haut 3
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -563,7 +560,11 @@ public class EditeurNoeudDialog extends Dialog {
 
             for (String touche : ligne) {
                 Button btn = new Button(context);
-                btn.setText(touche);
+                
+                String textToShow = touche;
+                if (touche.equals("ESPACE")) textToShow = Traducteur.get("clavier_espace");
+                btn.setText(textToShow);
+                
                 btn.setAllCaps(false);
                 btn.setTextColor(Palette.texteNormal);
                 btn.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
@@ -585,7 +586,6 @@ public class EditeurNoeudDialog extends Dialog {
                         int start = champSaisie.getSelectionStart();
                         int end = champSaisie.getSelectionEnd();
                         
-                        // Sécurité Android pour palier à la perte de curseur sur certains claviers virtuels
                         if (start < 0 || end < 0) {
                             start = champSaisie.getText().length();
                             end = champSaisie.getText().length();
@@ -612,7 +612,7 @@ public class EditeurNoeudDialog extends Dialog {
         int margeBooleenDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, context.getResources().getDisplayMetrics());
 
         Button btnVrai = new Button(context);
-        btnVrai.setText("Vrai (true)");
+        btnVrai.setText(Traducteur.get("noeud_bool_vrai"));
         btnVrai.setAllCaps(false);
         btnVrai.setBackground(fond(context, Color.parseColor("#4CAF50"), Palette.bordure, 10));
         btnVrai.setTextColor(Palette.texteNormal);
@@ -626,7 +626,7 @@ public class EditeurNoeudDialog extends Dialog {
         });
 
         Button btnFaux = new Button(context);
-        btnFaux.setText("Faux (false)");
+        btnFaux.setText(Traducteur.get("noeud_bool_faux"));
         btnFaux.setAllCaps(false);
         btnFaux.setBackground(fond(context, Color.parseColor("#F44336"), Palette.bordure, 10));
         btnFaux.setTextColor(Palette.texteNormal);
@@ -645,8 +645,7 @@ public class EditeurNoeudDialog extends Dialog {
 
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
-// bas 4
-// haut 5
+
         LinearLayout colonneGauche = new LinearLayout(context);
         colonneGauche.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams lpGauche = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.5f);
@@ -694,9 +693,8 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        // --- NOUVEAU : SECTION TAGS ---
         TextView titreTags = new TextView(context);
-        titreTags.setText("Tags (Insertion)");
+        titreTags.setText(Traducteur.get("noeud_tags_insertion"));
         titreTags.setTextColor(Palette.texteSelectionne);
         titreTags.setTextSize(15f);
         titreTags.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -719,7 +717,7 @@ public class EditeurNoeudDialog extends Dialog {
             
             if (tagsUniques.isEmpty()) {
                 TextView txtAucun = new TextView(context);
-                txtAucun.setText("Aucun tag dans la scène");
+                txtAucun.setText(Traducteur.get("noeud_aucun_tag"));
                 txtAucun.setTextColor(Color.parseColor("#888888"));
                 txtAucun.setTextSize(13f);
                 txtAucun.setPadding(dp(context, 12), dp(context, 4), 0, 0);
@@ -731,7 +729,7 @@ public class EditeurNoeudDialog extends Dialog {
                     btnTag.setAllCaps(false);
                     btnTag.setTextSize(14f);
                     btnTag.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-                    btnTag.setTextColor(Color.parseColor("#FF9800")); // Couleur orange
+                    btnTag.setTextColor(Color.parseColor("#FF9800")); 
                     btnTag.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
                     btnTag.setMinHeight(0);
                     btnTag.setMinimumHeight(0);
@@ -751,7 +749,6 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        // --- SECTION VARIABLES LOCALES ---
         TextView titreVars = new TextView(context);
         titreVars.setText(Traducteur.get("noeud_vars_locales_insertion"));
         titreVars.setTextColor(Palette.texteSelectionne);
@@ -920,7 +917,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
     }
 
-    private void ajouterCoupleALaRangee(Context context, LinearLayout rangee, Button btn, TextView txt) {
+      private void ajouterCoupleALaRangee(Context context, LinearLayout rangee, Button btn, TextView txt) {
         LinearLayout couple = new LinearLayout(context);
         couple.setOrientation(LinearLayout.HORIZONTAL);
         couple.setGravity(Gravity.CENTER_VERTICAL);
@@ -944,10 +941,8 @@ public class EditeurNoeudDialog extends Dialog {
 
         if (noeud instanceof NoeudEventCollisionAB || noeud instanceof NoeudConditionSiObjetToucheZone) {
             txtResume.setVisibility(View.VISIBLE);
-            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
-            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud.
-            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
-            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]"));
+            String objNameA = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? Traducteur.get("noeud_objet_implique") : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
+            String objNameB = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? Traducteur.get("noeud_objet_implique") : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : "[?]"));
             txtResume.setText(Traducteur.get("resume_interaction") + " : " + objNameA + " <-> " + objNameB);
         }
         else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
@@ -974,9 +969,7 @@ public class EditeurNoeudDialog extends Dialog {
             txtResume.setText(Traducteur.get("resume_action") + " : " + varName + " = " + sb.toString());
         } else if (noeud.requiertCibleObjet()) {
             txtResume.setVisibility(View.VISIBLE);
-            // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que
-            // de dépendre de getCibleObjet(), qui peut échouer selon le nœud.
-            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
+            String objName = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? Traducteur.get("noeud_objet_implique") : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : "[?]"));
             StringBuilder sb = new StringBuilder();
             if (noeud.getNomsParametres() != null) {
                 for (String p : noeud.getNomsParametres()) {
@@ -1038,4 +1031,6 @@ public class EditeurNoeudDialog extends Dialog {
         }
     }
 }
-// bas 5
+// bas 3
+    
+    
