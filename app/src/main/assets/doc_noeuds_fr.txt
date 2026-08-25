@@ -1,3 +1,4 @@
+// haut 1
 ================================================
   DOCUMENTATION OFFICIELLE YOP.2D - BLUEPRINT
 ================================================
@@ -5,6 +6,9 @@
 --- ÉVÉNEMENTS ---
 [Au Démarrage]
 S'exécute automatiquement et une seule fois dès que la scène est chargée à l'écran.
+
+[À chaque image]
+S'exécute en continu, à chaque rafraîchissement de l'écran (framerate). Idéal pour des mises à jour constantes.
 
 [Fin de Clic]
 Se déclenche lorsque le joueur relâche son doigt de l'écran, n'importe où.
@@ -17,6 +21,9 @@ Se déclenchent au moment où le joueur commence à faire glisser un objet dépl
 
 [Collision A/B]
 Se déclenche au moment exact où l'Objet A entre en contact physique avec l'Objet B.
+
+[Si objet touche Tag]
+Se déclenche au moment exact où l'objet ciblé entre en collision avec n'importe quel objet portant l'étiquette (Tag) indiquée.
 
 [Entrée de zone] / [Sortie de zone]
 Idéal pour les déclencheurs invisibles. S'active quand un objet entre ou sort d'une zone définie.
@@ -50,6 +57,9 @@ Le comportement inverse de la poursuite. L'Objet A s'éloigne de l'Objet B.
 [Stopper les mouvements]
 Annule instantanément toutes les commandes de poursuite, fuite ou avancée continue sur un objet.
 
+[Arrêter l'objet]
+Stoppe net le déplacement physique ou automatique de l'objet ciblé.
+
 
 --- LOGIQUE SPATIALE ---
 [Distance entre A et B]
@@ -57,6 +67,12 @@ Calcule l'écart en pixels entre l'Objet A et l'Objet B. Possède deux sorties (
 
 [Orienter vers (Look At)]
 Fait pivoter l'Objet A pour qu'il regarde l'Objet B. Le "Décalage d'angle" permet de compenser si l'image de ton objet n'a pas été dessinée orientée vers la droite.
+
+[Sélectionner objet le plus proche]
+Repère et sélectionne automatiquement l'objet le plus proche de la cible pour l'utiliser dans la suite du Blueprint.
+
+[Choisir un objet au hasard]
+Sélectionne aléatoirement un objet parmi ceux présents dans la scène ou portant un Tag spécifique.
 
 
 --- LOGIQUE & CONDITIONS ---
@@ -83,6 +99,9 @@ Déclenche à distance un bloc "Événement Local" situé ailleurs dans le Bluep
 
 [Si Joystick Actif]
 Vérifie si le joueur est actuellement en train de manipuler le joystick virtuel.
+
+[Si Objet en Mouvement]
+Vérifie si l'objet ciblé est actuellement en train de se déplacer à l'écran.
 
 
 --- SCÈNE & HUD ---
@@ -117,6 +136,9 @@ Fait vibrer la tablette pendant la durée indiquée en millisecondes.
 --- APPARENCE & OBJETS ---
 [Déplacer Objet]
 Téléporte instantanément l'objet aux coordonnées X et Y indiquées.
+
+[Pousser objet]
+Décale l'objet ciblé dans une direction donnée de manière fluide.
 
 [Modifier Couleur]
 Change la teinte de base de l'objet (si ce n'est pas une image).
@@ -162,6 +184,24 @@ Fait apparaître/disparaître l'objet à une vitesse donnée (en ms).
 
 [Surbrillance (Glow)]
 Entoure l'objet d'un contour lumineux coloré.
+
+[Sautillement]
+Fait faire de petits sauts réguliers à l'objet pour attirer l'attention (effet visuel).
+
+[Effet Miroir / Inverser]
+Retourne visuellement l'image de l'objet (pratique pour faire se retourner un personnage).
+
+[Lier deux objets]
+Attache solidement l'Objet A à l'Objet B pour qu'ils se déplacent de façon synchronisée.
+
+[Modifier l'Opacité (Alpha)]
+Rend l'objet plus ou moins transparent de façon instantanée.
+
+[Mode de fusion (Effet)]
+Applique un mode de rendu spécial (Additif, Produit...) pour des effets lumineux ou de superposition.
+
+[Facteur de Parallaxe]
+Définit la vitesse de défilement de l'objet par rapport à la caméra pour créer un effet de profondeur.
 
 
 --- TEXTES & DIALOGUES ---
@@ -230,6 +270,18 @@ Déplace l'objet vers de nouvelles coordonnées de manière fluide, avec une dur
 [Jouer Animation]
 Lance une séquence d'images prédéfinie (Sprite animation) sur l'objet.
 
+[Mettre en pause l'animation]
+Gèle l'animation de l'objet sur l'image (frame) actuelle.
+
+[Reprendre l'animation]
+Relance l'animation de l'objet à partir de là où elle avait été mise en pause.
+
+[Vitesse de l'animation]
+Modifie la rapidité de lecture de la séquence d'images.
+
+[Si l'image actuelle est...]
+Vérifie si l'animation en cours de lecture a atteint une frame précise. Idéal pour synchroniser des bruits de pas ou des impacts.
+
 
 --- PHYSIQUE ---
 [Activer Physique (Chute)]
@@ -243,3 +295,8 @@ Modifie la restitution d'énergie de l'objet (0 = bloc de plomb, 1.0 = balle reb
 
 [Si Objet en Chute]
 Vérifie si un objet physique est en train de tomber ou s'il est posé sur un sol.
+
+[Ajouter force (par Angle)]
+Propulse l'objet dans une direction précise calculée en degrés.
+// bas 1
+

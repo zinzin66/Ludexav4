@@ -2,244 +2,299 @@
   DOCUMENTACIÓN OFICIAL YOP.2D - BLUEPRINT
 ================================================
 
---- EVENTOS ---[span_86](start_span)[span_86](end_span)
+--- EVENTOS ---
 [Al Iniciar]
-Se ejecuta automáticamente y una sola vez en cuanto la escena se carga en la pantalla.[span_87](start_span)[span_87](end_span)
+Se ejecuta automáticamente y solo una vez tan pronto como la escena se carga en la pantalla.
+
+[Cada fotograma]
+Se ejecuta continuamente, en cada actualización de la pantalla (framerate). Ideal para actualizaciones constantes.
 
 [Fin de Clic]
-Se activa cuando el jugador suelta el dedo de la pantalla, en cualquier lugar.[span_88](start_span)[span_88](end_span)
+Se activa cuando el jugador levanta su dedo de la pantalla, en cualquier lugar.
 
 [Al Clic en Objeto]
-Se activa cuando el dedo del jugador toca el Objeto objetivo.[span_89](start_span)[span_89](end_span)
+Se activa cuando el dedo del jugador toca el Objeto objetivo.
 
-[Inicio de Arrastre] / [Fin de Arrastre]
-Se activan en el momento en que el jugador empieza a arrastrar un objeto movible, y en el momento en que lo suelta.[span_90](start_span)[span_90](end_span)
+[Inicio de Arrastrar] / [Fin de Arrastrar]
+Se activan en el momento en que el jugador comienza a arrastrar un objeto movible y en el momento en que lo suelta.
 
 [Colisión A/B]
-Se activa en el momento exacto en que el Objeto A entra en contacto físico con el Objeto B.[span_91](start_span)[span_91](end_span)
+Se activa en el momento exacto en que el Objeto A entra en contacto físico con el Objeto B.
+
+[Si el objeto toca el Tag]
+Se activa en el momento exacto en que el objeto objetivo choca con cualquier objeto que tenga la etiqueta (Tag) indicada.
 
 [Entrada de zona] / [Salida de zona]
-Ideal para disparadores invisibles. Se activa cuando un objeto entra o sale de una zona definida.[span_92](start_span)[span_92](end_span)
+Ideal para activadores invisibles. Se activa cuando un objeto entra o sale de una zona definida.
 
-[Al Pasar por Encima] / [Fin de Pasar por Encima]
-Gestiona el paso del dedo o puntero sobre un objeto, sin necesidad de hacer clic.[span_93](start_span)[span_93](end_span)
+[Al Pasar el Ratón] / [Fin de Pasar el Ratón]
+Maneja el paso del dedo o un cursor sobre un objeto, sin necesidad de hacer clic.
 
 [Al Impacto (Física)]
-Detecta cuándo el objeto rebota o choca contra un elemento sólido con la gravedad activada.[span_94](start_span)[span_94](end_span)
+Detecta cuando el objeto rebota o golpea un elemento sólido con la gravedad activada.
 
 [Cuando Variable Cambia]
-Supervisa constantemente una Variable. En cuanto su valor se modifica, este nodo inicia la secuencia lógica.[span_95](start_span)[span_95](end_span)
+Monitorea continuamente una Variable. Tan pronto como su valor se modifica, este nodo inicia la secuencia lógica.
 
 [Evento Local]
-Un evento personalizado que puedes activar a distancia mediante el nodo "Llamar Evento Local".[span_96](start_span)[span_96](end_span)
+Un evento personalizado que puedes activar a distancia gracias al nodo "Llamar Evento Local".
 
 [Al Clic Acción (Aventura)]
-Se activa específicamente cuando se pulsa el botón virtual "ACCIÓN" de la interfaz.[span_97](start_span)[span_97](end_span)
+Se activa específicamente cuando se presiona el botón virtual "ACCIÓN" de la interfaz.
 
 
---- MOVIMIENTOS E IA ---[span_98](start_span)[span_98](end_span)
+--- MOVIMIENTOS E IA ---
 [Avanzar continuamente]
-Aplica una velocidad constante. El objeto avanzará solo en la dirección de su Ángulo de Rotación.[span_99](start_span)[span_99](end_span)
+Aplica una velocidad constante. El objeto avanzará por sí solo en la dirección de su Ángulo de Rotación.
 
 [Perseguir un objeto]
-Hace avanzar automáticamente el Objeto A hacia el Objeto B (como un misil guiado o un enemigo).[span_100](start_span)[span_100](end_span)
+Hace avanzar automáticamente al Objeto A hacia el Objeto B (como un misil guiado o un enemigo).
 
 [Huir de un objeto]
-El comportamiento inverso a la persecución. El Objeto A se aleja del Objeto B.[span_101](start_span)[span_101](end_span)
+El comportamiento opuesto a la persecución. El Objeto A se aleja del Objeto B.
 
 [Detener movimientos]
-Cancela al instante todos los comandos de persecución, huida o avance continuo de un objeto.[span_102](start_span)[span_102](end_span)
+Cancela instantáneamente todos los comandos de persecución, huida o avance continuo en un objeto.
+
+[Detener el objeto]
+Detiene instantáneamente el movimiento físico o automático del objeto objetivo.
 
 
---- LÓGICA ESPACIAL ---[span_103](start_span)[span_103](end_span)
+--- LÓGICA ESPACIAL ---
 [Distancia entre A y B]
-Calcula la separación en píxeles entre el Objeto A y el Objeto B. Tiene dos salidas (Verdadero/Falso) según si la distancia cumple la condición.[span_104](start_span)[span_104](end_span)
+Calcula la separación en píxeles entre el Objeto A y el Objeto B. Tiene dos salidas (Verdadero/Falso) según si la distancia cumple la condición.
 
 [Orientar hacia (Look At)]
-Rota el Objeto A para que mire al Objeto B. El "Desfase de ángulo" permite compensar si la imagen de tu objeto no se dibujó mirando hacia la derecha.[span_105](start_span)[span_105](end_span)
+Hace pivotar el Objeto A para que mire al Objeto B. El "Desplazamiento de ángulo" permite compensar si la imagen de tu objeto no fue dibujada mirando hacia la derecha.
+
+[Seleccionar objeto más cercano]
+Localiza y selecciona automáticamente el objeto más cercano al objetivo para usarlo en el resto del Blueprint.
+
+[Elegir un objeto al azar]
+Selecciona aleatoriamente un objeto entre los presentes en la escena o que tengan un Tag específico.
 
 
---- LÓGICA Y CONDICIONES ---[span_106](start_span)[span_106](end_span)
+--- LÓGICA Y CONDICIONES ---
 [Condición]
-Compara el valor de una Variable con un número o texto. Salida Verdadero o Falso.[span_107](start_span)[span_107](end_span)
+Compara el valor de una Variable con un número o texto. Salida Verdadero o Falso.
 
 [Si objeto A toca zona B]
-Verifica instantáneamente si dos objetos se superponen en el momento preciso en que se llama al nodo.[span_108](start_span)[span_108](end_span)
+Verifica instantáneamente si dos objetos se superponen en el momento exacto en que se llama al nodo.
 
 [Si Objeto Visible]
-Verifica si el objeto objetivo se muestra actualmente en la pantalla.[span_109](start_span)[span_109](end_span)
+Verifica si el objeto objetivo se muestra actualmente en la pantalla.
 
 [Si Objeto tiene el Tag]
-Verifica si el objeto tiene la etiqueta (Tag) solicitada (ej: "Enemigo", "Llave").[span_110](start_span)[span_110](end_span)
+Verifica si el objeto tiene la etiqueta (Tag) solicitada (ej: "Enemigo", "Llave").
 
 [Condición Doble (Y/O)]
-Permite verificar dos condiciones al mismo tiempo.[span_111](start_span)[span_111](end_span)
+Permite verificar dos condiciones al mismo tiempo.
 
 [Llamar Función]
-Ejecuta un Blueprint externo guardado en la carpeta "funciones". Ideal para mecánicas repetitivas.[span_112](start_span)[span_112](end_span)
+Ejecuta un Blueprint externo guardado en la carpeta "fonctions". Ideal para mecánicas repetitivas.
 
 [Llamar Evento Local]
-Activa a distancia un bloque "Evento Local" situado en otro lugar del Blueprint actual.[span_113](start_span)[span_113](end_span)
+Activa a distancia un bloque "Evento Local" ubicado en otro lugar dentro del Blueprint actual.
 
 [Si Joystick Activo]
-Verifica si el jugador está manipulando actualmente el joystick virtual.[span_114](start_span)[span_114](end_span)
+Verifica si el jugador está actualmente manipulando el joystick virtual.
+
+[Si el Objeto está en Movimiento]
+Comprueba si el objeto objetivo se está moviendo actualmente en la pantalla.
 
 
---- ESCENA Y HUD ---[span_115](start_span)[span_115](end_span)
+--- ESCENA Y HUD ---
 [Cambiar de Escena]
-Carga una nueva habitación/nivel. La escena actual se guarda automáticamente.[span_116](start_span)[span_116](end_span)
+Carga una nueva habitación/nivel. La escena actual se guarda automáticamente.
 
 [Recargar Escena actual]
-Reinicia el nivel actual. Perfecto si el jugador falla un acertijo.[span_117](start_span)[span_117](end_span)
+Reinicia el nivel actual. Perfecto si el jugador falla un rompecabezas.
 
 [Abrir HUD] / [Cerrar HUD]
-Muestra una Escena por encima del juego sin pausarlo. Ideal para un inventario o un menú de ajustes.[span_118](start_span)[span_118](end_span)
+Muestra una Escena por encima del juego sin pausarlo. Ideal para un inventario o un menú de configuración.
 
-[Mensaje Toast]
-Muestra un pequeño mensaje de sistema efímero en la parte inferior de la pantalla.[span_119](start_span)[span_119](end_span)
+[Toast]
+Muestra un pequeño mensaje de sistema efímero en la parte inferior de la pantalla.
 
 [Fijar Cámara]
-Engancha la cámara al Objeto objetivo para seguirlo automáticamente en sus movimientos.[span_120](start_span)[span_120](end_span)
+Engancha la cámara al Objeto objetivo para seguirlo automáticamente en sus movimientos.
 
 [Temblor de Cámara]
-Sacude la pantalla. Útil para dar impacto a una explosión o una puerta pesada.[span_121](start_span)[span_121](end_span)
+Sacude la pantalla. Útil para dar impacto a una explosión o una puerta pesada.
 
-[Elasticidad de Cámara]
-Modifica la velocidad (entre 0.01 y 1.0) a la que la cámara sigue a su objetivo para un efecto más fluido o más rígido.[span_122](start_span)[span_122](end_span)
+[Elasticidad Cámara]
+Modifica la velocidad (entre 0.01 y 1.0) a la que la cámara sigue a su objetivo para un efecto más fluido o más rígido.
 
 [Mostrar/Ocultar Joystick] / [Mostrar/Ocultar Acción]
-Controla la visibilidad de las interfaces de movimiento en la pantalla (útil durante una cinemática).[span_123](start_span)[span_123](end_span)
+Controla la visibilidad de las interfaces de movimiento en la pantalla (útil durante una cinemática).
 
 [Vibración]
-Hace vibrar la tablet durante la duración indicada en milisegundos.[span_124](start_span)[span_124](end_span)
+Hace vibrar la tablet durante la duración indicada en milisegundos.
 
 
---- APARIENCIA Y OBJETOS ---[span_125](start_span)[span_125](end_span)
+--- APARIENCIA Y OBJETOS ---
 [Mover Objeto]
-Teletransporta instantáneamente el objeto a las coordenadas X e Y indicadas.[span_126](start_span)[span_126](end_span)
+Teletransporta instantáneamente el objeto a las coordenadas X e Y indicadas.
+
+[Empujar objeto]
+Desplaza suavemente el objeto objetivo en una dirección dada.
 
 [Modificar Color]
-Cambia el tono base del objeto (si no es una imagen).[span_127](start_span)[span_127](end_span)
+Cambia el tono base del objeto (si no es una imagen).
 
 [Visibilidad]
-Muestra u oculta un objeto de la escena.[span_128](start_span)[span_128](end_span)
+Muestra u oculta un objeto de la escena.
 
-[Modificar Arrastrable]
-Permite o prohíbe al jugador arrastrar este objeto con su dedo.[span_129](start_span)[span_129](end_span)
+[Modificar Movible]
+Autoriza o prohíbe al jugador arrastrar este objeto con su dedo.
 
 [Modificar Bloqueo]
-Bloquea un objeto en el editor para evitar moverlo por error al crear el nivel.[span_130](start_span)[span_130](end_span)
+Bloquea un objeto en el editor para evitar moverlo por error al crear el nivel.
 
 [Cambiar Z-Order]
-Modifica la profundidad del objeto (pasa a primer plano o al fondo).[span_131](start_span)[span_131](end_span)
+Modifica la profundidad del objeto (pasa al primer plano o al fondo).
 
 [Cambiar Imagen]
-Sustituye la apariencia (Sprite) del objeto por otro archivo.[span_132](start_span)[span_132](end_span)
+Reemplaza el visual (Sprite) del objeto por otro archivo.
 
 [Rotación]
-Define instantáneamente el ángulo (en grados) del objeto.[span_133](start_span)[span_133](end_span)
+Define instantáneamente el ángulo (en grados) del objeto.
 
 [Definir tamaño (Scale)]
-Modifica la escala (zoom) del objeto en anchura (X) y altura (Y).[span_134](start_span)[span_134](end_span)
+Modifica la escala (zoom) del objeto en ancho (X) y alto (Y).
 
 [Destruir Objeto]
-Elimina definitivamente el objeto de la escena.[span_135](start_span)[span_135](end_span)
+Elimina definitivamente el objeto de la escena.
 
 [Generar clon (Spawner)]
-Clona el objeto Modelo solicitado y lo hace aparecer en el centro del Objeto Objetivo (el punto de aparición).[span_136](start_span)[span_136](end_span)
+Clona el objeto Modelo solicitado y lo hace aparecer en el centro del Objeto Objetivo (el punto de aparición).
 
 [Definir el Tag]
-Asigna una etiqueta (ej: "Proyectil") al objeto objetivo.[span_137](start_span)[span_137](end_span)
+Asigna una etiqueta (ej: "Proyectil") al objeto objetivo.
 
 [Destruir por Tag]
-Elimina de golpe todos los objetos de la escena que lleven la etiqueta solicitada.[span_138](start_span)[span_138](end_span)
+Elimina de una sola vez todos los objetos de la escena que lleven la etiqueta solicitada.
 
-[Filtro de Color]
-Aplica un efecto matricial sobre el objeto (Sepia, Blanco y Negro, Inversión).[span_139](start_span)[span_139](end_span)
+[Filtro Color]
+Aplica un efecto matricial sobre el objeto (Sepia, Blanco y Negro, Inversión).
 
 [Parpadeo (Blink)]
-Hace aparecer/desaparecer el objeto a una velocidad dada (en ms).[span_140](start_span)[span_140](end_span)
+Hace aparecer/desaparecer el objeto a una velocidad dada (en ms).
 
 [Resplandor (Glow)]
-Rodea el objeto con un contorno luminoso de color.[span_141](start_span)[span_141](end_span)
+Rodea el objeto con un contorno luminoso coloreado.
+
+[Saltitos]
+Hace que el objeto dé pequeños saltos regulares para llamar la atención (efecto visual).
+
+[Efecto Espejo / Invertir]
+Invierte visualmente la imagen del objeto (útil para hacer que un personaje se dé la vuelta).
+
+[Vincular dos objetos]
+Fija firmemente el Objeto A al Objeto B para que se muevan de forma sincronizada.
+
+[Modificar la Opacidad (Alpha)]
+Hace que el objeto sea más o menos transparente de forma instantánea.
+
+[Modo de fusión (Efecto)]
+Aplica un modo de renderizado especial (Aditivo, Multiplicar...) para efectos de luz o superposición.
+
+[Factor de Paralaje]
+Establece la velocidad de desplazamiento del objeto en relación con la cámara para crear un efecto de profundidad.
 
 
---- TEXTOS Y DIÁLOGOS ---[span_142](start_span)[span_142](end_span)
+--- TEXTOS Y DIÁLOGOS ---
 [Modificar Texto]
-Reemplaza completamente el contenido de un objeto Texto.[span_143](start_span)[span_143](end_span)
+Reemplaza completamente el contenido de un objeto Texto.
 
 [Añadir al Texto]
-Añade palabras al final de un objeto Texto existente (concatenación).[span_144](start_span)[span_144](end_span)
+Añade palabras al final de un objeto Texto existente (concatenación).
 
 [Mostrar Diálogo]
-Lee una frase del archivo de diálogos mediante su Clave, y la inyecta en un objeto Texto.[span_145](start_span)[span_145](end_span)
+Lee una frase desde el archivo de diálogos a través de su Clave, y la inyecta en un objeto Texto.
 
 
---- VARIABLES E INVENTARIO ---[span_146](start_span)[span_146](end_span)
+--- VARIABLES E INVENTARIO ---
 [Operación Matemática]
-Realiza un cálculo (+, -, *, /) sobre la Variable objetivo con un valor dado.[span_147](start_span)[span_147](end_span)
+Realiza un cálculo (+, -, *, /) sobre la Variable objetivo con un valor dado.
 
 [Limitar Valor (Clamp)]
-Impide que una Variable baje de un Mínimo o supere un Máximo.[span_148](start_span)[span_148](end_span)
+Evita que una Variable baje de un Mínimo o supere un Máximo.
 
 [Modificar Variable] / [Añadir a Variable]
-Reemplaza o suma un valor simple a una Variable.[span_149](start_span)[span_149](end_span)
+Reemplaza o suma un valor simple a una Variable.
 
 [Número Aleatorio]
-Genera un número al azar entre un Mínimo y un Máximo y lo guarda en la Variable objetivo.[span_150](start_span)[span_150](end_span)
+Genera un número al azar entre un Mínimo y un Máximo y lo guarda en la Variable objetivo.
 
-[Añadir al inventario] / [Retirar del inventario]
-Gestiona la lista de objetos que posee el jugador.[span_151](start_span)[span_151](end_span)
+[Añadir al inventario] / [Quitar del inventario]
+Maneja la lista de objetos que posee el jugador.
 
 [Si en el inventario]
-Verifica si el jugador posee un objeto específico. (Salida Verdadero/Falso).[span_152](start_span)[span_152](end_span)
+Verifica si un objeto específico es poseído por el jugador. (Salida Verdadero/Falso).
 
 [Combinación de Objetos]
-Destruye el Objeto A y el Objeto B para hacer aparecer el "Modelo Resultado" (ej: Llave rota + Cinta = Llave reparada).[span_153](start_span)[span_153](end_span)
+Destruye el Objeto A y el Objeto B para que aparezca el "Modelo Resultado" (ej: Llave Rota + Cinta = Llave Reparada).
 
 [Punto de Guardado]
-Fuerza inmediatamente el guardado del estado de la escena y del inventario en la base de datos.[span_154](start_span)[span_154](end_span)
+Fuerza inmediatamente el guardado del estado de la escena y el inventario en la base de datos.
 
 
---- TIEMPO ---[span_155](start_span)[span_155](end_span)
-[Temporizador]
-Inicia una cuenta atrás autónoma. No se ve afectada por el resto del Blueprint.[span_156](start_span)[span_156](end_span)
+--- TIEMPO ---
+[Timer]
+Inicia una cuenta regresiva autónoma. No es afectada por el resto del Blueprint.
 
 [Cronómetro]
-Inicia un cronómetro global para medir el tiempo pasado en un nivel.[span_157](start_span)[span_157](end_span)
+Inicia un cronómetro global para medir el tiempo pasado en un nivel.
 
 [Esperar (ms)]
-Hace una pausa (Retraso) antes de continuar la ejecución de los siguientes nodos.[span_158](start_span)[span_158](end_span)
+Hace una pausa (Retraso) antes de continuar la ejecución de los siguientes nodos.
 
 
---- AUDIO ---[span_159](start_span)[span_159](end_span)
+--- AUDIO ---
 [Reproducir un Sonido]
-Reproduce un efecto de sonido corto. Puede superponerse a otros sonidos.[span_160](start_span)[span_160](end_span)
+Reproduce un efecto de sonido corto. Puede superponerse a otros sonidos.
 
 [Gestionar Música]
-Inicia una pista de audio larga. Detiene automáticamente la música anterior.[span_161](start_span)[span_161](end_span)
+Inicia una pista de audio larga. Detiene automáticamente la música anterior.
 
 
---- ANIMACIONES ---[span_162](start_span)[span_162](end_span)
-[Desvanecimiento (Alpha)]
-Hace que el objeto sea progresivamente transparente u opaco.[span_163](start_span)[span_163](end_span)
+--- ANIMACIONES ---
+[Fundido (Alpha)]
+Hace que el objeto sea gradualmente transparente u opaco.
 
 [Deslizar Hacia]
-Desplaza el objeto hacia nuevas coordenadas de manera fluida, con una duración definida.[span_164](start_span)[span_164](end_span)
+Mueve el objeto a nuevas coordenadas de manera fluida, con una duración definida.
 
 [Reproducir Animación]
-Inicia una secuencia de imágenes predefinida (animación Sprite) sobre el objeto.[span_165](start_span)[span_165](end_span)
+Inicia una secuencia de imágenes predefinida (Animación Sprite) en el objeto.
+
+[Pausar la animación]
+Congela la animación del objeto en el fotograma (frame) actual.
+
+[Reanudar la animación]
+Reinicia la animación del objeto desde donde se pausó.
+
+[Velocidad de la animación]
+Cambia la velocidad de reproducción de la secuencia de imágenes.
+
+[Si el fotograma actual es...]
+Comprueba si la animación en reproducción ha alcanzado un frame específico. Ideal para sincronizar pasos o impactos.
 
 
---- FÍSICA ---[span_166](start_span)[span_166](end_span)
+--- FÍSICA ---
 [Activar Física (Caída)]
-Somete el objeto a la gravedad del motor.[span_167](start_span)[span_167](end_span)
+Somete al objeto a la gravedad terrestre del motor.
 
 [Aplicar Impulso (Salto)]
-Aplica una fuerza hacia arriba a un objeto físico.[span_168](start_span)[span_168](end_span)
+Da una fuerza hacia arriba a un objeto físico.
 
 [Cambiar Rebote]
-Modifica la restitución de energía del objeto (0 = bloque de plomo, 1.0 = pelota que rebota).[span_169](start_span)[span_169](end_span)
+Modifica la restitución de energía del objeto (0 = bloque de plomo, 1.0 = pelota rebotando).
 
 [Si Objeto en Caída]
-Verifica si un objeto físico está cayendo o si está posado sobre el suelo.[span_170](start_span)[span_170](end_span)
+Verifica si un objeto físico está cayendo o si está apoyado en el suelo.
+
+[Añadir fuerza (por Ángulo)]
+Impulsa el objeto en una dirección precisa calculada en grados.
+
