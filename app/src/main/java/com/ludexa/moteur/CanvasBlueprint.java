@@ -346,7 +346,7 @@ public class CanvasBlueprint extends View {
     }
 // bas 2
 
-      // haut 3
+// haut 3
     private Port trouverPortParNom(java.util.ArrayList<Port> ports, String nom) {
         for (Port p : ports) {
             if (p.nom.equals(nom)) return p;
@@ -434,12 +434,12 @@ public class CanvasBlueprint extends View {
         // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que de
         // dépendre de getCibleObjet(), qui peut échouer selon le nœud (réflexion sceneActive).
         if (noeud.requiertCibleObjet()) {
-            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : Traducteur.get("valeur_aucune")));
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? Traducteur.get("noeud_objet_implique") : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : Traducteur.get("valeur_aucune")));
             float w = paintResume.measureText(Traducteur.get("noeud_cible_objet") + " : " + nom) + 30f;
             if (w > max) max = w;
         }
         if (noeud.requiertCibleObjetB()) {
-            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : Traducteur.get("valeur_aucune")));
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? Traducteur.get("noeud_objet_implique") : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : Traducteur.get("valeur_aucune")));
             float w = paintResume.measureText(Traducteur.get("noeud_cible_objet_b") + " : " + nom) + 30f;
             if (w > max) max = w;
         }
@@ -517,17 +517,18 @@ public class CanvasBlueprint extends View {
         
         float currentY = y + 60 + (maxPorts * 40) + 15;
 // bas 3
+
 // haut 4
         // CORRECTION VISUELLE : L'éditeur affichera désormais correctement le texte au lieu de "Aucune"
         // CORRECTION BUG CIBLE PERDUE : on lit nomCibleObjet directement plutôt que de
         // dépendre de getCibleObjet(), qui peut échouer selon le nœud (réflexion sceneActive).
         if (noeud.requiertCibleObjet()) {
-            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? "[Objet Impliqué]" : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : Traducteur.get("valeur_aucune")));
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet) ? Traducteur.get("noeud_objet_implique") : (noeud.nomCibleObjet != null && !noeud.nomCibleObjet.isEmpty() ? noeud.nomCibleObjet : ((noeud.getCibleObjet() != null && noeud.getCibleObjet().nom != null) ? noeud.getCibleObjet().nom : Traducteur.get("valeur_aucune")));
             canvas.drawText(Traducteur.get("noeud_cible_objet") + " : " + nom, x + 15, currentY, paintResume);
             currentY += 28;
         }
         if (noeud.requiertCibleObjetB()) {
-            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? "[Objet Impliqué]" : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : Traducteur.get("valeur_aucune")));
+            String nom = "__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB) ? Traducteur.get("noeud_objet_implique") : (noeud.nomCibleObjetB != null && !noeud.nomCibleObjetB.isEmpty() ? noeud.nomCibleObjetB : ((noeud.getCibleObjetB() != null && noeud.getCibleObjetB().nom != null) ? noeud.getCibleObjetB().nom : Traducteur.get("valeur_aucune")));
             canvas.drawText(Traducteur.get("noeud_cible_objet_b") + " : " + nom, x + 15, currentY, paintResume);
             currentY += 28;
         }
@@ -832,14 +833,15 @@ public class CanvasBlueprint extends View {
 }
 // bas 4
 
-        
+
+
+
+
+
 
         
-
-
 
 
     
-
 
 

@@ -1,10 +1,14 @@
+
 ================================================
-  OFFICIAL YOP.2D DOCUMENTATION - BLUEPRINT
+  OFFICIAL DOCUMENTATION YOP.2D - BLUEPRINT
 ================================================
 
 --- EVENTS ---
 [On Start]
 Executes automatically and only once as soon as the scene is loaded on the screen.
+
+[Every frame]
+Executes continuously, on every screen refresh (framerate). Ideal for constant updates.
 
 [End of Click]
 Triggers when the player releases their finger from the screen, anywhere.
@@ -13,22 +17,25 @@ Triggers when the player releases their finger from the screen, anywhere.
 Triggers when the player's finger touches the targeted Object.
 
 [Drag Start] / [Drag End]
-Triggers when the player starts dragging a movable object, and when they release it.
+Trigger the moment the player starts dragging a movable object, and the moment they release it.
 
 [Collision A/B]
 Triggers at the exact moment Object A comes into physical contact with Object B.
 
+[If object touches Tag]
+Triggers at the exact moment the target object collides with any object carrying the specified Tag.
+
 [Enter Zone] / [Exit Zone]
-Ideal for invisible triggers. Activates when an object enters or exits a defined zone.
+Ideal for invisible triggers. Activates when an object enters or leaves a defined zone.
 
 [On Hover] / [End of Hover]
-Manages the passage of a finger or pointer over an object, without needing to click.
+Handles the passage of a finger or pointer over an object, without needing to click.
 
 [On Impact (Physics)]
-Detects when the object bounces or hits a solid element with gravity enabled.
+Detects when the object bounces or hits a solid element with gravity activated.
 
 [When Variable Changes]
-Continuously monitors a Variable. As soon as its value is modified, this node launches the logical sequence.
+Continuously monitors a Variable. As soon as its value is modified, this node starts the logic sequence.
 
 [Local Event]
 A custom event that you can trigger remotely using the "Call Local Event" node.
@@ -39,16 +46,19 @@ Triggers specifically when the virtual "ACTION" button of the interface is press
 
 --- MOVEMENTS & AI ---
 [Move forward continuously]
-Applies constant velocity. The object will move forward on its own in the direction of its Rotation Angle.
+Applies a constant velocity. The object will move on its own in the direction of its Rotation Angle.
 
 [Chase an object]
-Automatically moves Object A towards Object B (like a guided missile or an enemy).
+Automatically moves Object A towards Object B (like a homing missile or an enemy).
 
 [Flee an object]
-The opposite behavior of chase. Object A moves away from Object B.
+The opposite behavior of chasing. Object A moves away from Object B.
 
 [Stop movements]
 Instantly cancels all chase, flee, or continuous forward commands on an object.
+
+[Stop the object]
+Instantly stops the physical or automatic movement of the target object.
 
 
 --- SPATIAL LOGIC ---
@@ -56,7 +66,13 @@ Instantly cancels all chase, flee, or continuous forward commands on an object.
 Calculates the gap in pixels between Object A and Object B. Has two outputs (True/False) depending on whether the distance meets the condition.
 
 [Orient towards (Look At)]
-Rotates Object A so that it looks at Object B. The "Angle Offset" allows you to compensate if your object's image wasn't drawn facing right.
+Rotates Object A so that it looks at Object B. The "Angle Offset" compensates if your object's image was not drawn facing right.
+
+[Select nearest object]
+Automatically finds and selects the object closest to the target for use in the rest of the Blueprint.
+
+[Choose a random object]
+Randomly selects an object from those present in the scene or carrying a specific Tag.
 
 
 --- LOGIC & CONDITIONS ---
@@ -64,13 +80,13 @@ Rotates Object A so that it looks at Object B. The "Angle Offset" allows you to 
 Compares the value of a Variable with a number or text. True or False output.
 
 [If object A touches zone B]
-Instantly checks if two objects overlap at the precise moment the node is called.
+Instantly checks if two objects overlap at the exact moment the node is called.
 
 [If Object is Visible]
 Checks if the targeted object is currently displayed on the screen.
 
 [If Object has Tag]
-Checks if the object has the requested tag (e.g., "Enemy", "Key").
+Checks if the object has the requested label (Tag) (e.g., "Enemy", "Key").
 
 [Double Condition (AND/OR)]
 Allows checking two conditions at the same time.
@@ -84,6 +100,9 @@ Remotely triggers a "Local Event" block located elsewhere in the current Bluepri
 [If Joystick is Active]
 Checks if the player is currently manipulating the virtual joystick.
 
+[If Object is Moving]
+Checks if the target object is currently moving on the screen.
+
 
 --- SCENE & HUD ---
 [Change Scene]
@@ -96,13 +115,13 @@ Resets the current level. Perfect if the player fails a puzzle.
 Displays a Scene over the game without pausing it. Ideal for an inventory or a settings menu.
 
 [Toast]
-Displays a short, temporary system message at the bottom of the screen.
+Displays a short ephemeral system message at the bottom of the screen.
 
 [Lock Camera]
-Locks the camera onto the targeted Object to automatically follow its movements.
+Attaches the camera to the targeted Object to follow it automatically as it moves.
 
 [Camera Shake]
-Shakes the screen. Useful for giving impact to an explosion or a heavy door.
+Shakes the screen. Useful to give impact to an explosion or a heavy door.
 
 [Camera Elasticity]
 Changes the speed (between 0.01 and 1.0) at which the camera follows its target for a smoother or stiffer effect.
@@ -111,27 +130,30 @@ Changes the speed (between 0.01 and 1.0) at which the camera follows its target 
 Controls the visibility of the on-screen movement interfaces (useful during a cutscene).
 
 [Vibration]
-Vibrates the tablet for the specified duration in milliseconds.
+Vibrates the tablet for the duration indicated in milliseconds.
 
 
 --- APPEARANCE & OBJECTS ---
 [Move Object]
-Instantly teleports the object to the specified X and Y coordinates.
+Instantly teleports the object to the indicated X and Y coordinates.
+
+[Push object]
+Smoothly shifts the target object in a given direction.
 
 [Modify Color]
-Changes the base tint of the object (if it is not an image).
+Changes the base tint of the object (if it's not an image).
 
 [Visibility]
-Shows or hides an object from the scene.
+Shows or hides an object in the scene.
 
 [Modify Draggable]
-Allows or forbids the player to drag this object with their finger.
+Allows or prevents the player from dragging this object with their finger.
 
 [Modify Locked]
-Locks an object in the editor to prevent accidental movement when creating the level.
+Locks an object in the editor to avoid moving it by mistake when creating the level.
 
 [Change Z-Order]
-Changes the depth of the object (moves to the foreground or background).
+Modifies the depth of the object (moves to the foreground or background).
 
 [Change Image]
 Replaces the visual (Sprite) of the object with another file.
@@ -149,19 +171,37 @@ Permanently removes the object from the scene.
 Clones the requested Model object and makes it appear at the center of the Target Object (the spawn point).
 
 [Set Tag]
-Assigns a tag (e.g., "Projectile") to the targeted object.
+Assigns a label (e.g., "Projectile") to the targeted object.
 
 [Destroy by Tag]
-Instantly deletes all objects in the scene carrying the requested tag.
+Instantly removes all objects from the scene bearing the requested label.
 
 [Color Filter]
-Applies a matrix effect to the object (Sepia, Black & White, Invert).
+Applies a matrix effect to the object (Sepia, Black & White, Inversion).
 
 [Blink]
 Makes the object appear/disappear at a given speed (in ms).
 
 [Glow]
-Surrounds the object with a colored luminous outline.
+Surrounds the object with a colored glowing outline.
+
+[Bounce/Hop]
+Makes the object perform small, regular jumps to attract attention (visual effect).
+
+[Mirror Effect / Invert]
+Visually flips the object's image (useful for making a character turn around).
+
+[Link two objects]
+Firmly attaches Object A to Object B so they move synchronously.
+
+[Modify Opacity (Alpha)]
+Instantly makes the object more or less transparent.
+
+[Blend mode (Effect)]
+Applies a special rendering mode (Additive, Multiply...) for lighting or overlay effects.
+
+[Parallax Factor]
+Sets the object's scrolling speed relative to the camera to create a depth effect.
 
 
 --- TEXTS & DIALOGUES ---
@@ -189,21 +229,21 @@ Replaces or adds a simple value to a Variable.
 Generates a random number between a Minimum and a Maximum and stores it in the target Variable.
 
 [Add to inventory] / [Remove from inventory]
-Manages the list of objects possessed by the player.
+Manages the list of objects owned by the player.
 
 [If in inventory]
-Checks if a specific object is possessed by the player. (True/False output).
+Checks if a specific object is owned by the player. (True/False output).
 
 [Combine Objects]
 Destroys Object A and Object B to spawn the "Result Model" (e.g., Broken Key + Tape = Repaired Key).
 
 [Checkpoint]
-Immediately forces the saving of the scene state and inventory to the database.
+Immediately forces the saving of the scene and inventory state to the database.
 
 
 --- TIME ---
 [Timer]
-Starts a standalone countdown. Is not affected by the rest of the Blueprint.
+Triggers an autonomous countdown. Is not affected by the rest of the Blueprint.
 
 [Stopwatch]
 Starts a global stopwatch to measure the time spent in a level.
@@ -222,13 +262,25 @@ Starts a long audio track. Automatically stops the previous music.
 
 --- ANIMATIONS ---
 [Fade (Alpha)]
-Makes the object progressively transparent or opaque.
+Makes the object gradually transparent or opaque.
 
 [Slide To]
-Moves the object to new coordinates smoothly, with a defined duration.
+Smoothly moves the object to new coordinates, with a defined duration.
 
 [Play Animation]
-Plays a predefined sequence of images (Sprite animation) on the object.
+Starts a predefined sequence of images (Sprite animation) on the object.
+
+[Pause animation]
+Freezes the object's animation on the current frame.
+
+[Resume animation]
+Restarts the object's animation from where it was paused.
+
+[Animation speed]
+Changes the playback speed of the image sequence.
+
+[If current frame is...]
+Checks if the currently playing animation has reached a specific frame. Ideal for syncing footsteps or impacts.
 
 
 --- PHYSICS ---
@@ -236,10 +288,13 @@ Plays a predefined sequence of images (Sprite animation) on the object.
 Subjects the object to the engine's gravity.
 
 [Apply Impulse (Jump)]
-Applies an upward force to a physics object.
+Gives an upward force to a physical object.
 
 [Change Bounce]
 Modifies the energy restitution of the object (0 = lead block, 1.0 = bouncing ball).
 
 [If Object is Falling]
-Checks if a physics object is currently falling or if it is resting on the ground.
+Checks if a physical object is currently falling or resting on the ground.
+
+[Add force (by Angle)]
+Propels the object in a precise direction calculated in degrees.

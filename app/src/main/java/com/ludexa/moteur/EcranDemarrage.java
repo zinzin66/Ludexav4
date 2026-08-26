@@ -208,8 +208,8 @@ public class EcranDemarrage extends Activity {
             // CAS 2 : BUILD DE L'APK FINAL (.APK)
             else if (requestCode == REQUEST_CODE_EXPORT_APK) {
                 AlertDialog dialogueProgression = new AlertDialog.Builder(this)
-                        .setTitle("Génération de l'APK")
-                        .setMessage("Initialisation...")
+                        .setTitle(Traducteur.get("export_apk_titre"))
+                        .setMessage(Traducteur.get("export_apk_init"))
                         .setCancelable(false)
                         .show();
 
@@ -237,12 +237,12 @@ public class EcranDemarrage extends Activity {
 
                             new AlertDialog.Builder(EcranDemarrage.this)
                                     .setTitle(Traducteur.get("export_termine"))
-                                    .setMessage("Votre fichier APK est prêt à être installé et partagé !")
+                                    .setMessage(Traducteur.get("export_apk_succes"))
                                     .setPositiveButton(Traducteur.get("bouton_ok"), null)
                                     .show();
 
                         } catch (Exception e) {
-                            surErreur("Erreur lors de la sauvegarde : " + e.getMessage());
+                            surErreur(Traducteur.get("erreur_sauvegarde") + " : " + e.getMessage());
                         }
                     }
 
@@ -251,7 +251,7 @@ public class EcranDemarrage extends Activity {
                         dialogueProgression.dismiss();
                         projetAExporter = null;
                         new AlertDialog.Builder(EcranDemarrage.this)
-                                .setTitle("Erreur d'exportation")
+                                .setTitle(Traducteur.get("erreur_export"))
                                 .setMessage(erreur)
                                 .setPositiveButton(Traducteur.get("bouton_ok"), null)
                                 .show();
@@ -311,34 +311,102 @@ public class EcranDemarrage extends Activity {
 
         colonneGauche.addView(rangeeLangue);
 
+        // --- NOUVEAUX BOUTONS (Mise à jour et Réseaux) ---
+        
+        // 1. Bouton de mise à jour
+        TextView btnMaj = new TextView(this);
+        btnMaj.setText(Traducteur.get("demarrage_maj_verifier"));
+        btnMaj.setTextSize(13f);
+        btnMaj.setGravity(Gravity.CENTER);
+        btnMaj.setPadding(dp(12), dp(9), dp(12), dp(9));
+        btnMaj.setTextColor(Palette.texteNormal);
+        btnMaj.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        btnMaj.setClickable(true);
+        btnMaj.setOnClickListener(v -> verifierMiseAJour());
+        
+        LinearLayout.LayoutParams lpMaj = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpMaj.setMargins(0, dp(30), 0, dp(10));
+        colonneGauche.addView(btnMaj, lpMaj);
+
+        // 2. Ligne pour Discord et Telegram
+        LinearLayout rangeeReseaux = new LinearLayout(this);
+        rangeeReseaux.setOrientation(LinearLayout.HORIZONTAL);
+        
+        TextView btnDiscord = new TextView(this);
+        btnDiscord.setText("Discord");
+        btnDiscord.setTextSize(13f);
+        btnDiscord.setGravity(Gravity.CENTER);
+        btnDiscord.setPadding(dp(12), dp(9), dp(12), dp(9));
+        btnDiscord.setTextColor(Palette.texteNormal);
+        btnDiscord.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        btnDiscord.setClickable(true);
+        btnDiscord.setOnClickListener(v -> ouvrirLien("https://discord.gg/nHqCcqHZNQ"));
+        
+        LinearLayout.LayoutParams lpDiscord = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lpDiscord.setMargins(0, 0, dp(6), 0);
+        rangeeReseaux.addView(btnDiscord, lpDiscord);
+
+        TextView btnTelegram = new TextView(this);
+        btnTelegram.setText("Telegram");
+        btnTelegram.setTextSize(13f);
+        btnTelegram.setGravity(Gravity.CENTER);
+        btnTelegram.setPadding(dp(12), dp(9), dp(12), dp(9));
+        btnTelegram.setTextColor(Palette.texteNormal);
+        btnTelegram.setBackground(fond(Palette.boutonNormal, 6, couleurBordure(), 1));
+        btnTelegram.setClickable(true);
+        btnTelegram.setOnClickListener(v -> ouvrirLien("https://t.me/+7PQ9WKw7n645Y2Zk"));
+        
+        LinearLayout.LayoutParams lpTelegram = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        rangeeReseaux.addView(btnTelegram, lpTelegram);
+
+        colonneGauche.addView(rangeeReseaux, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         return colonneGauche;
     }
 
     private void afficherDialogueLangue() {
-        String[] langues = {
-            Traducteur.get("langue_fr"), 
-            Traducteur.get("langue_en"), 
-            Traducteur.get("langue_es"), 
-            Traducteur.get("langue_pt"), 
-            Traducteur.get("langue_ru")
-        };
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(Traducteur.get("demarrage_choisir_langue"));
-        builder.setItems(langues, (dialog, which) -> {
-            switch (which) {
-                case 0: langueCourante = "fr"; break;
-                case 1: langueCourante = "en"; break;
-                case 2: langueCourante = "es"; break;
-                case 3: langueCourante = "pt"; break;
-                case 4: langueCourante = "ru"; break;
+        try {
+            String[] fichiersAssets = getAssets().list("");
+            java.util.ArrayList<String> codesLangues = new java.util.ArrayList<>();
+            java.util.ArrayList<String> nomsLangues = new java.util.ArrayList<>();
+
+            if (fichiersAssets != null) {
+                for (String fichier : fichiersAssets) {
+                    // On cherche les fichiers comme "lang_fr.json"
+                    if (fichier.startsWith("lang_") && fichier.endsWith(".json")) {
+                        String code = fichier.substring(5, fichier.lastIndexOf('.'));
+                        codesLangues.add(code);
+                        
+                        // On récupère le nom traduit pour l'affichage (ex: "Français" pour la clé "langue_fr")
+                        String nomAffiche = Traducteur.get("langue_" + code);
+                        // Sécurité : si la clé n'existe pas encore dans le dictionnaire actuel, on affiche le code en majuscule
+                        if (nomAffiche.startsWith("[")) nomAffiche = code.toUpperCase();
+                        
+                        nomsLangues.add(nomAffiche);
+                    }
+                }
             }
-            Traducteur.initialiser(this, langueCourante);
-            RegistreNoeuds.initialiser(); 
-            recreate(); 
-        });
-        builder.show();
+
+            if (!codesLangues.isEmpty()) {
+                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+                builder.setTitle(Traducteur.get("demarrage_choisir_langue"));
+                builder.setItems(nomsLangues.toArray(new String[0]), (dialog, which) -> {
+                    langueCourante = codesLangues.get(which);
+                    Traducteur.initialiser(this, langueCourante);
+                    RegistreNoeuds.initialiser(); 
+                    recreate(); 
+                });
+                builder.show();
+            } else {
+                Toast.makeText(this, "Aucun fichier de langue trouvé", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 // bas 1
+                        
 
 // haut 2
     // ---------------------------------------------------------------- colonne droite (DIVISÉE EN DEUX)
@@ -375,7 +443,7 @@ public class EcranDemarrage extends Activity {
         blocBas.setOrientation(LinearLayout.VERTICAL);
         blocBas.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        blocBas.addView(construireEnteteListe("MODÈLES & EXEMPLES"));
+        blocBas.addView(construireEnteteListe(Traducteur.get("demarrage_modeles_exemples")));
         blocBas.addView(construireListeExemples());
 
         colonneDroite.addView(blocHaut);
@@ -474,7 +542,7 @@ public class EcranDemarrage extends Activity {
         barreActions.addView(boutonAction(Traducteur.get("bouton_renommer"), false, v -> actionRenommer()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_dupliquer"), false, v -> actionDupliquer()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_exporter"), false, v -> actionExporterProjet()));
-        barreActions.addView(boutonAction("Build APK", false, v -> actionExporterAPK()));
+        barreActions.addView(boutonAction(Traducteur.get("bouton_build_apk"), false, v -> actionExporterAPK()));
         barreActions.addView(boutonAction(Traducteur.get("bouton_supprimer"), true, v -> actionSupprimer()));
 
         majEtatActions();
@@ -685,7 +753,7 @@ public class EcranDemarrage extends Activity {
                         if (item.nom.length() > 0) {
                             item.nom = item.nom.substring(0, 1).toUpperCase() + item.nom.substring(1);
                         }
-                        item.sousTitre = "Modèle prêt à l'emploi";
+                        item.sousTitre = Traducteur.get("demarrage_modele_pret");
                         itemsExemples.add(item);
                     }
                 }
@@ -700,10 +768,10 @@ public class EcranDemarrage extends Activity {
         listeExemples.setOnItemClickListener((parent, view, position, id) -> {
             ItemProjet item = itemsExemples.get(position);
             new AlertDialog.Builder(this)
-                .setTitle("Ouvrir l'exemple")
-                .setMessage("Créer un nouveau projet à partir du modèle '" + item.nom + "' ?")
-                .setPositiveButton("Oui", (dialog, which) -> actionImporterExemple(item.nomZipExemple, item.nom))
-                .setNegativeButton("Annuler", null)
+                .setTitle(Traducteur.get("dialogue_ouvrir_exemple_titre"))
+                .setMessage(Traducteur.get("dialogue_ouvrir_exemple_msg1") + item.nom + Traducteur.get("dialogue_ouvrir_exemple_msg2"))
+                .setPositiveButton(Traducteur.get("bouton_oui"), (dialog, which) -> actionImporterExemple(item.nomZipExemple, item.nom))
+                .setNegativeButton(Traducteur.get("bouton_annuler"), null)
                 .show();
         });
     }
@@ -766,7 +834,6 @@ public class EcranDemarrage extends Activity {
         return false;
     }
 // bas 3
-
 // haut 4
     // ---------------------------------------------------------------- actions
 
@@ -853,7 +920,6 @@ public class EcranDemarrage extends Activity {
         }
     }
 
-    // Le bouton original pour exporter le projet brut (ZIP)
     private void actionExporterProjet() {
         File source = dossierSelectionne();
         if (source == null) return;
@@ -868,20 +934,18 @@ public class EcranDemarrage extends Activity {
         startActivityForResult(intent, REQUEST_CODE_EXPORT_PROJET);
     }
 
-    // NOUVEAU : Le bouton pour exporter le jeu jouable (APK) avec fenêtre de dialogue
     private void actionExporterAPK() {
         File source = dossierSelectionne();
         if (source == null) return;
         
         String nomActuel = nomProjet(source);
 
-        // Création de l'interface de la boîte de dialogue
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(dp(20), dp(20), dp(20), dp(20));
 
         TextView labelNom = new TextView(this);
-        labelNom.setText("Nom de l'application finale (affiché sur l'écran d'accueil) :");
+        labelNom.setText(Traducteur.get("export_apk_label_nom"));
         labelNom.setTextColor(Palette.texteNormal);
         labelNom.setTextSize(14f);
         labelNom.setPadding(0, 0, 0, dp(10));
@@ -893,16 +957,16 @@ public class EcranDemarrage extends Activity {
         layout.addView(champNom);
 
         TextView labelLogo = new TextView(this);
-        labelLogo.setText("\nAstuce : L'icône de votre jeu sera automatiquement générée à partir de l'image 'vignette.png' de votre projet.");
+        labelLogo.setText(Traducteur.get("export_apk_label_logo"));
         labelLogo.setTextColor(Palette.texteSelectionne);
         labelLogo.setTextSize(12f);
         labelLogo.setPadding(0, dp(10), 0, 0);
         layout.addView(labelLogo);
 
         AlertDialog dialogue = new AlertDialog.Builder(this)
-                .setTitle("Paramètres de compilation")
+                .setTitle(Traducteur.get("export_apk_params_titre"))
                 .setView(layout)
-                .setPositiveButton("Continuer", null)
+                .setPositiveButton(Traducteur.get("bouton_continuer"), null)
                 .setNegativeButton(Traducteur.get("bouton_annuler"), (d, w) -> d.cancel())
                 .create();
         
@@ -911,12 +975,12 @@ public class EcranDemarrage extends Activity {
         dialogue.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String nomJeu = champNom.getText().toString().trim();
             if (nomJeu.isEmpty()) {
-                Toast.makeText(this, "Le nom ne peut pas être vide.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, Traducteur.get("erreur_nom_vide"), Toast.LENGTH_SHORT).show();
                 return;
             }
             
             projetAExporter = source;
-            nomJeuAExporter = nomJeu; // Sauvegarde du nom pour notre script
+            nomJeuAExporter = nomJeu;
             
             String nomFichier = nomJeu.replaceAll("[^a-zA-Z0-9-_ ]", "_").trim();
             
@@ -977,14 +1041,13 @@ public class EcranDemarrage extends Activity {
             zis.close();
             is.close();
             
-            // Forcer la mise à jour du meta.json de l'exemple pour éviter les conflits de nom
             File metaFile = new File(cible, "meta.json");
             if (metaFile.exists()) {
                 JSONObject metaJson = lireJson(metaFile);
-                String nomUnique = nomAffiche + " (Copie)";
+                String nomUnique = nomAffiche + " " + Traducteur.get("projet_copie");
                 int index = 2;
                 while (nomDejaUtilise(nomUnique, null)) {
-                    nomUnique = nomAffiche + " (Copie " + index + ")";
+                    nomUnique = nomAffiche + " " + Traducteur.get("projet_copie") + " " + index;
                     index++;
                 }
                 metaJson.put("nom", nomUnique);
@@ -995,16 +1058,15 @@ public class EcranDemarrage extends Activity {
             }
             
             chargerListeProjets();
-            Toast.makeText(this, "Exemple importé avec succès !", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("toast_exemple_importe"), Toast.LENGTH_SHORT).show();
             
-            // Ouvrir l'éditeur directement avec l'exemple importé
             Intent intent = new Intent(EcranDemarrage.this, InterfaceEditeur.class);
             intent.putExtra("cheminProjet", cible.getAbsolutePath());
             startActivity(intent);
             
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Erreur lors de l'import de l'exemple", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, Traducteur.get("erreur_import_exemple"), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1186,15 +1248,90 @@ public class EcranDemarrage extends Activity {
                 .setPositiveButton("OK", null)
                 .show();
     }
+
+    // ---------------------------------------------------------------- utilitaires web & maj
+
+    private void ouvrirLien(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, Traducteur.get("erreur_ouvrir_lien"), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void verifierMiseAJour() {
+        Toast.makeText(this, Traducteur.get("maj_recherche"), Toast.LENGTH_SHORT).show();
+
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL("https://api.github.com/repos/zinzin66/Ludexav4/releases/latest");
+                java.net.HttpURLConnection connexion = (java.net.HttpURLConnection) url.openConnection();
+                connexion.setRequestMethod("GET");
+                connexion.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+                if (connexion.getResponseCode() == 200) {
+                    InputStream is = connexion.getInputStream();
+                    Scanner scanner = new Scanner(is).useDelimiter("\\A");
+                    String reponse = scanner.hasNext() ? scanner.next() : "";
+                    is.close();
+
+                    JSONObject json = new JSONObject(reponse);
+                    String nomVersion = json.getString("tag_name");
+                    String notes = json.optString("body", Traducteur.get("maj_dispo"));
+                    
+                    org.json.JSONArray assets = json.getJSONArray("assets");
+                    String urlTelechargement = null;
+                    for (int i = 0; i < assets.length(); i++) {
+                        JSONObject asset = assets.getJSONObject(i);
+                        if (asset.getString("name").endsWith(".apk")) {
+                            urlTelechargement = asset.getString("browser_download_url");
+                            break;
+                        }
+                    }
+
+                    if (urlTelechargement != null) {
+                        final String finalUrl = urlTelechargement;
+                        runOnUiThread(() -> afficherAlerteMiseAJour(nomVersion, notes, finalUrl));
+                    } else {
+                        runOnUiThread(() -> Toast.makeText(EcranDemarrage.this, Traducteur.get("maj_aucun_apk"), Toast.LENGTH_LONG).show());
+                    }
+                } else {
+                    runOnUiThread(() -> Toast.makeText(EcranDemarrage.this, Traducteur.get("maj_a_jour"), Toast.LENGTH_SHORT).show());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(EcranDemarrage.this, Traducteur.get("erreur_reseau") + " : " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    private void afficherAlerteMiseAJour(String version, String notes, String url) {
+        new AlertDialog.Builder(this)
+            .setTitle(Traducteur.get("maj_titre") + " : " + version)
+            .setMessage(notes)
+            .setPositiveButton(Traducteur.get("bouton_telecharger"), (dialog, which) -> telechargerMiseAJour(url))
+            .setNegativeButton(Traducteur.get("bouton_plus_tard"), null)
+            .show();
+    }
+
+    private void telechargerMiseAJour(String url) {
+        try {
+            android.app.DownloadManager.Request requete = new android.app.DownloadManager.Request(Uri.parse(url));
+            requete.setTitle(Traducteur.get("maj_titre_dl"));
+            requete.setDescription(Traducteur.get("maj_desc_dl"));
+            requete.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            requete.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "Yop2D_update.apk");
+
+            android.app.DownloadManager gestionnaire = (android.app.DownloadManager) getSystemService(android.content.Context.DOWNLOAD_SERVICE);
+            gestionnaire.enqueue(requete);
+            
+            Toast.makeText(this, Traducteur.get("maj_dl_demarre"), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, Traducteur.get("maj_echec_natif"), Toast.LENGTH_SHORT).show();
+            ouvrirLien(url);
+        }
+    }
 }
 // bas 4
-
-
-
-
-    
-
-
-    
-
-
+ 

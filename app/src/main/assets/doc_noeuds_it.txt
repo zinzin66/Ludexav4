@@ -1,0 +1,299 @@
+================================================
+  DOCUMENTAZIONE UFFICIALE YOP.2D - BLUEPRINT
+================================================
+
+--- EVENTI ---
+[All'Avvio]
+Viene eseguito automaticamente e una sola volta non appena la scena viene caricata sullo schermo.
+
+[Ogni frame]
+Viene eseguito continuamente, a ogni aggiornamento dello schermo (framerate). Ideale per aggiornamenti costanti.
+
+[Fine del Clic]
+Si attiva quando il giocatore solleva il dito dallo schermo, in qualsiasi punto.
+
+[Al Clic sull'Oggetto]
+Si attiva quando il dito del giocatore tocca l'Oggetto bersaglio.
+
+[Inizio Trascinamento] / [Fine Trascinamento]
+Si attivano nel momento in cui il giocatore inizia a trascinare un oggetto mobile e nel momento in cui lo rilascia.
+
+[Collisione A/B]
+Si attiva nel momento esatto in cui l'Oggetto A entra in contatto fisico con l'Oggetto B.
+
+[Se l'oggetto tocca il Tag]
+Si attiva nel momento esatto in cui l'oggetto bersaglio entra in collisione con qualsiasi oggetto che porta l'etichetta (Tag) indicata.
+
+[Entra nella Zona] / [Esci dalla Zona]
+Ideale per trigger invisibili. Si attiva quando un oggetto entra o esce da una zona definita.
+
+[Al Passaggio del Mouse] / [Fine Passaggio del Mouse]
+Gestisce il passaggio del dito o del cursore sopra un oggetto, senza necessità di cliccare.
+
+[All'Impatto (Fisica)]
+Rileva quando l'oggetto rimbalza o colpisce un elemento solido con la gravità attivata.
+
+[Quando la Variabile Cambia]
+Monitora continuamente una Variabile. Non appena il suo valore viene modificato, questo nodo avvia la sequenza logica.
+
+[Evento Locale]
+Un evento personalizzato che puoi attivare a distanza grazie al nodo "Chiama Evento Locale".
+
+[Al Clic Azione (Avventura)]
+Si attiva specificamente quando viene premuto il pulsante virtuale "AZIONE" dell'interfaccia.
+
+
+--- MOVIMENTI E IA ---
+[Avanza continuamente]
+Applica una velocità costante. L'oggetto avanzerà da solo nella direzione del suo Angolo di Rotazione.
+
+[Insegui un oggetto]
+Fa avanzare automaticamente l'Oggetto A verso l'Oggetto B (come un missile a ricerca o un nemico).
+
+[Fuggi da un oggetto]
+Il comportamento opposto all'inseguimento. L'Oggetto A si allontana dall'Oggetto B.
+
+[Ferma i movimenti]
+Annulla istantaneamente tutti i comandi di inseguimento, fuga o avanzamento continuo su un oggetto.
+
+[Ferma l'oggetto]
+Arresta istantaneamente il movimento fisico o automatico dell'oggetto bersaglio.
+
+
+--- LOGICA SPAZIALE ---
+[Distanza tra A e B]
+Calcola la distanza in pixel tra l'Oggetto A e l'Oggetto B. Ha due uscite (Vero/Falso) a seconda che la distanza rispetti la condizione.
+
+[Orienta verso (Look At)]
+Ruota l'Oggetto A in modo che guardi l'Oggetto B. L'"Offset angolo" permette di compensare se l'immagine del tuo oggetto non è stata disegnata rivolta verso destra.
+
+[Seleziona oggetto più vicino]
+Trova e seleziona automaticamente l'oggetto più vicino al bersaglio per usarlo nel resto del Blueprint.
+
+[Scegli un oggetto a caso]
+Seleziona casualmente un oggetto tra quelli presenti nella scena o che hanno un Tag specifico.
+
+
+--- LOGICA E CONDIZIONI ---
+[Condizione]
+Confronta il valore di una Variabile con un numero o un testo. Uscita Vero o Falso.
+
+[Se l'oggetto A tocca la zona B]
+Verifica istantaneamente se due oggetti si sovrappongono nel momento esatto in cui viene chiamato il nodo.
+
+[Se Oggetto Visibile]
+Verifica se l'oggetto bersaglio è attualmente visualizzato sullo schermo.
+
+[Se l'Oggetto ha il Tag]
+Verifica se l'oggetto possiede l'etichetta (Tag) richiesta (es: "Nemico", "Chiave").
+
+[Doppia Condizione (E/O)]
+Permette di verificare due condizioni contemporaneamente.
+
+[Chiama Funzione]
+Esegue un Blueprint esterno salvato nella cartella "fonctions". Ideale per meccaniche ripetitive.
+
+[Chiama Evento Locale]
+Attiva a distanza un blocco "Evento Locale" situato altrove nel Blueprint attuale.
+
+[Se il Joystick è Attivo]
+Verifica se il giocatore sta attualmente manipolando il joystick virtuale.
+
+[Se l'Oggetto è in Movimento]
+Verifica se l'oggetto bersaglio si sta attualmente muovendo sullo schermo.
+
+
+--- SCENA E HUD ---
+[Cambia Scena]
+Carica una nuova stanza/livello. La scena attuale viene salvata automaticamente.
+
+[Ricarica Scena attuale]
+Ripristina il livello in corso. Perfetto se il giocatore fallisce un enigma.
+
+[Apri HUD] / [Chiudi HUD]
+Visualizza una Scena sopra il gioco senza metterlo in pausa. Ideale per un inventario o un menu delle impostazioni.
+
+[Toast]
+Mostra un breve messaggio di sistema effimero nella parte inferiore dello schermo.
+
+[Fissa Fotocamera]
+Aggancia la telecamera all'Oggetto bersaglio per seguirlo automaticamente nei suoi spostamenti.
+
+[Tremore Fotocamera]
+Scuote lo schermo. Utile per dare impatto a un'esplosione o a una porta pesante.
+
+[Elasticità Fotocamera]
+Modifica la velocità (tra 0.01 e 1.0) con cui la telecamera segue il suo bersaglio per un effetto più fluido o più rigido.
+
+[Mostra/Nascondi Joystick] / [Mostra/Nascondi Azione]
+Controlla la visibilità delle interfacce di movimento sullo schermo (utile durante un filmato).
+
+[Vibrazione]
+Fa vibrare il tablet per la durata indicata in millisecondi.
+
+--- ASPETTO E OGGETTI ---
+[Sposta Oggetto]
+Teletrasporta istantaneamente l'oggetto alle coordinate X e Y indicate.
+
+[Spingi l'oggetto]
+Sposta fluidamente l'oggetto bersaglio in una data direzione.
+
+[Modifica Colore]
+Cambia la tinta di base dell'oggetto (se non è un'immagine).
+
+[Visibilità]
+Mostra o nasconde un oggetto della scena.
+
+[Modifica Trascinabile]
+Autorizza o impedisce al giocatore di trascinare questo oggetto con il dito.
+
+[Modifica Blocco]
+Blocca un oggetto nell'editor per evitare di spostarlo per errore durante la creazione del livello.
+
+[Cambia Z-Order]
+Modifica la profondità dell'oggetto (passa in primo piano o sullo sfondo).
+
+[Cambia Immagine]
+Sostituisce la grafica (Sprite) dell'oggetto con un altro file.
+
+[Rotazione]
+Imposta istantaneamente l'angolo (in gradi) dell'oggetto.
+
+[Imposta dimensione (Scala)]
+Modifica la scala (zoom) dell'oggetto in larghezza (X) e altezza (Y).
+
+[Distruggi Oggetto]
+Elimina definitivamente l'oggetto dalla scena.
+
+[Genera clone (Spawner)]
+Clona l'oggetto Modello richiesto e lo fa apparire al centro dell'Oggetto Bersaglio (il punto di spawn).
+
+[Imposta Tag]
+Assegna un'etichetta (es: "Proiettile") all'oggetto bersaglio.
+
+[Distruggi tramite Tag]
+Elimina in un colpo solo tutti gli oggetti della scena che portano l'etichetta richiesta.
+
+[Filtro Colore]
+Applica un effetto matrice sull'oggetto (Seppia, Bianco e Nero, Inversione).
+
+[Lampeggio (Blink)]
+Fa apparire/scomparire l'oggetto a una data velocità (in ms).
+
+[Bagliore (Glow)]
+Circonda l'oggetto con un contorno luminoso colorato.
+
+[Saltelli]
+Fa fare piccoli salti regolari all'oggetto per attirare l'attenzione (effetto visivo).
+
+[Effetto Specchio / Inverti]
+Inverte visivamente l'immagine dell'oggetto (utile per far girare un personaggio).
+
+[Collega due oggetti]
+Fissa saldamente l'Oggetto A all'Oggetto B affinché si muovano in modo sincronizzato.
+
+[Modifica l'Opacità (Alpha)]
+Rende istantaneamente l'oggetto più o meno trasparente.
+
+[Metodo di fusione (Effetto)]
+Applica un metodo di rendering speciale (Additivo, Moltiplica...) per effetti di luce o sovrapposizione.
+
+[Fattore di Parallasse]
+Imposta la velocità di scorrimento dell'oggetto rispetto alla telecamera per creare un effetto di profondità.
+
+
+--- TESTI E DIALOGHI ---
+[Modifica Testo]
+Sostituisce interamente il contenuto di un oggetto Testo.
+
+[Aggiungi al Testo]
+Aggiunge parole alla fine di un oggetto Testo esistente (concatenazione).
+
+[Mostra Dialogo]
+Legge una frase dal file dei dialoghi tramite la sua Chiave, e la inserisce in un oggetto Testo.
+
+
+--- VARIABILI E INVENTARIO ---
+[Operazione Matematica]
+Esegue un calcolo (+, -, *, /) sulla Variabile bersaglio con un valore dato.
+
+[Limita Valore (Clamp)]
+Impedisce a una Variabile di scendere sotto un Minimo o superare un Massimo.
+
+[Modifica Variabile] / [Aggiungi alla Variabile]
+Sostituisce o aggiunge un valore semplice a una Variabile.
+
+[Numero Casuale]
+Genera un numero a caso tra un Minimo e un Massimo e lo memorizza nella Variabile bersaglio.
+
+[Aggiungi all'inventario] / [Rimuovi dall'inventario]
+Gestisce la lista degli oggetti posseduti dal giocatore.
+
+[Se nell'inventario]
+Verifica se un oggetto specifico è posseduto dal giocatore. (Uscita Vero/Falso).
+
+[Combina Oggetti]
+Distrugge l'Oggetto A e l'Oggetto B per far apparire il "Modello Risultato" (es: Chiave Rotta + Nastro = Chiave Riparata).
+
+[Punto di Salvataggio]
+Forza immediatamente il salvataggio dello stato della scena e dell'inventario nel database.
+
+
+--- TEMPO ---
+[Timer]
+Avvia un conto alla rovescia autonomo. Non è influenzato dal resto del Blueprint.
+
+[Cronometro]
+Avvia un cronometro globale per misurare il tempo trascorso in un livello.
+
+[Attendi (ms)]
+Fa una pausa (Ritardo) prima di proseguire l'esecuzione dei nodi successivi.
+
+
+--- AUDIO ---
+[Riproduci Suono]
+Riproduce un breve effetto sonoro. Può sovrapporsi ad altri suoni.
+
+[Gestisci Musica]
+Avvia una traccia audio lunga. Interrompe automaticamente la musica precedente.
+
+
+--- ANIMAZIONI ---
+[Dissolvenza (Alpha)]
+Rende gradualmente l'oggetto trasparente o opaco.
+
+[Scivola Verso]
+Sposta fluidamente l'oggetto verso nuove coordinate, con una durata definita.
+
+[Riproduci Animazione]
+Avvia una sequenza di immagini predefinita (Animazione Sprite) sull'oggetto.
+
+[Metti in pausa l'animazione]
+Congela l'animazione dell'oggetto sul fotogramma (frame) attuale.
+
+[Riprendi l'animazione]
+Riavvia l'animazione dell'oggetto da dove era stata messa in pausa.
+
+[Velocità dell'animazione]
+Modifica la velocità di riproduzione della sequenza di immagini.
+
+[Se il fotogramma attuale è...]
+Verifica se l'animazione in esecuzione ha raggiunto un frame specifico. Ideale per sincronizzare passi o impatti.
+
+
+--- FISICA ---
+[Abilita Fisica (Caduta)]
+Sottopone l'oggetto alla gravità terrestre del motore.
+
+[Applica Impulso (Salto)]
+Dà una forza verso l'alto a un oggetto fisico.
+
+[Cambia Rimbalzo]
+Modifica la restituzione di energia dell'oggetto (0 = blocco di piombo, 1.0 = palla che rimbalza).
+
+[Se l'Oggetto Cade]
+Verifica se un oggetto fisico sta cadendo o se è appoggiato a terra.
+
+[Aggiungi forza (per Angolo)]
+Spinge l'oggetto in una direzione precisa calcolata in gradi.
+
