@@ -147,6 +147,7 @@ public class EditeurAnimationsDialog extends Dialog {
         rafraichirListeAnimations(context);
     }
 // bas 1
+
 // haut 2
     private void chargerFichierAnimations() {
         animationsGlobales.clear();
@@ -255,7 +256,7 @@ public class EditeurAnimationsDialog extends Dialog {
             titreFrames.setText(Traducteur.get("anim_selectionner"));
             return;
         }
-        titreFrames.setText("Séquence de l'animation : " + animationSelectionnee);
+        titreFrames.setText(Traducteur.get("anim_sequence") + " : " + animationSelectionnee);
         List<String> frames = animationsGlobales.get(animationSelectionnee);
         if (frames != null) {
             for (int i = 0; i < frames.size(); i++) {
@@ -375,6 +376,7 @@ public class EditeurAnimationsDialog extends Dialog {
     }
 }
 // bas 2
+
 
 
 

@@ -69,6 +69,7 @@ public class PanneauNoeuds extends ScrollView {
             List<RegistreNoeuds.InfoNoeud> noeuds = entry.getValue();
             
             Button btnCat = new Button(context);
+            // CORRECTION : On retire le Traducteur.get ici car nomCat est déjà traduit par le Registre
             btnCat.setText(nomCat + " ▼");
             
             LinearLayout conteneurCat = new LinearLayout(context);
@@ -118,6 +119,7 @@ public class PanneauNoeuds extends ScrollView {
 
     private TextView creerItemNoeud(Context context, String libelle, String typeClasse) {
         TextView item = new TextView(context);
+        // CORRECTION : On retire le Traducteur.get ici car libelle est déjà traduit par le Registre
         item.setText(libelle);
         item.setTextColor(Palette.texteNormal);
         item.setPadding(20, 20, 20, 20);

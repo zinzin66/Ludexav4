@@ -1,0 +1,299 @@
+================================================
+  OFFIZIELLE DOKUMENTATION YOP.2D - BLUEPRINT
+================================================
+
+--- EREIGNISSE ---
+[Beim Start]
+Wird automatisch und nur einmal ausgeführt, sobald die Szene auf dem Bildschirm geladen ist.
+
+[Jeden Frame]
+Wird kontinuierlich bei jeder Bildschirmaktualisierung (Framerate) ausgeführt. Ideal für ständige Updates.
+
+[Ende des Klicks]
+Wird ausgelöst, wenn der Spieler seinen Finger irgendwo vom Bildschirm nimmt.
+
+[Bei Objektklick]
+Wird ausgelöst, wenn der Finger des Spielers das Zielobjekt berührt.
+
+[Drag Start] / [Drag Ende]
+Werden in dem Moment ausgelöst, in dem der Spieler beginnt, ein bewegliches Objekt zu ziehen, und in dem Moment, in dem er es loslässt.
+
+[Kollision A/B]
+Wird genau in dem Moment ausgelöst, in dem Objekt A in physischen Kontakt mit Objekt B kommt.
+
+[Wenn Objekt Tag berührt]
+Wird genau in dem Moment ausgelöst, in dem das Zielobjekt mit einem beliebigen Objekt kollidiert, das den angegebenen Tag trägt.
+
+[Zone betreten] / [Zone verlassen]
+Ideal für unsichtbare Auslöser (Triggers). Aktiviert sich, wenn ein Objekt eine definierte Zone betritt oder verlässt.
+
+[Beim Hovern] / [Hover Ende]
+Verwaltet das Bewegen eines Fingers oder Mauszeigers über ein Objekt, ohne dass geklickt werden muss.
+
+[Bei Aufprall (Physik)]
+Erkennt, wenn das Objekt abprallt oder auf ein festes Element trifft (bei aktivierter Schwerkraft).
+
+[Wenn Variable ändert]
+Überwacht kontinuierlich eine Variable. Sobald ihr Wert geändert wird, startet dieser Knoten die Logiksequenz.
+
+[Lokales Ereignis]
+Ein benutzerdefiniertes Ereignis, das mit dem Knoten "Lokales Ereignis aufrufen" fernausgelöst werden kann.
+
+[Bei Klick auf Aktion (Adventure)]
+Wird speziell ausgelöst, wenn die virtuelle "AKTION"-Taste der Benutzeroberfläche gedrückt wird.
+
+
+--- BEWEGUNG & KI ---
+[Kontinuierlich vorwärts]
+Wendet eine konstante Geschwindigkeit an. Das Objekt bewegt sich von selbst in Richtung seines Rotationswinkels.
+
+[Objekt verfolgen]
+Bewegt Objekt A automatisch auf Objekt B zu (wie eine Zielsuchrakete oder ein Feind).
+
+[Vor Objekt fliehen]
+Das gegenteilige Verhalten zur Verfolgung. Objekt A bewegt sich von Objekt B weg.
+
+[Bewegungen stoppen]
+Bricht sofort alle Verfolgungs-, Flucht- oder Vorwärtsbefehle für ein Objekt ab.
+
+[Objekt stoppen]
+Stoppt sofort die physische oder automatische Bewegung des Zielobjekts.
+
+
+--- RÄUMLICHE LOGIK ---
+[Distanz zwischen A und B]
+Berechnet den Abstand in Pixeln zwischen Objekt A und Objekt B. Hat zwei Ausgänge (Wahr/Falsch), je nachdem, ob die Entfernung die Bedingung erfüllt.
+
+[Ausrichten nach (Look At)]
+Dreht Objekt A so, dass es auf Objekt B schaut. Der "Winkel-Versatz" gleicht aus, falls das Bild deines Objekts nicht nach rechts gezeichnet wurde.
+
+[Nächstes Objekt wählen]
+Findet und wählt automatisch das dem Ziel am nächsten gelegene Objekt aus, um es im restlichen Blueprint zu verwenden.
+
+[Zufälliges Objekt wählen]
+Wählt zufällig ein Objekt aus den in der Szene vorhandenen oder denen mit einem spezifischen Tag aus.
+
+
+--- LOGIK & BEDINGUNGEN ---
+[Bedingung]
+Vergleicht den Wert einer Variablen mit einer Zahl oder einem Text. Ausgang Wahr oder Falsch.
+
+[Wenn A Zone B berührt]
+Prüft sofort, ob sich zwei Objekte in genau dem Moment überschneiden, in dem der Knoten aufgerufen wird.
+
+[Wenn Objekt sichtbar ist]
+Prüft, ob das Zielobjekt aktuell auf dem Bildschirm angezeigt wird.
+
+[Wenn Objekt Tag hat]
+Prüft, ob das Objekt den angeforderten Tag (Etikett) hat (z.B. "Feind", "Schlüssel").
+
+[Doppelte Bedingung (UND/ODER)]
+Erlaubt die gleichzeitige Überprüfung von zwei Bedingungen.
+
+[Funktion aufrufen]
+Führt einen externen Blueprint aus, der im Ordner "fonctions" gespeichert ist. Ideal für sich wiederholende Mechaniken.
+
+[Lokales Ereignis aufrufen]
+Löst aus der Ferne einen "Lokales Ereignis"-Block aus, der sich an anderer Stelle im aktuellen Blueprint befindet.
+
+[Wenn Joystick aktiv ist]
+Prüft, ob der Spieler aktuell den virtuellen Joystick bedient.
+
+[Wenn Objekt sich bewegt]
+Prüft, ob sich das Zielobjekt aktuell auf dem Bildschirm bewegt.
+
+
+--- SZENE & HUD ---
+[Szene wechseln]
+Lädt einen neuen Raum/Level. Die aktuelle Szene wird automatisch gespeichert.
+
+[Aktuelle Szene neu laden]
+Setzt das aktuelle Level zurück. Perfekt, wenn der Spieler ein Rätsel nicht schafft.
+
+[HUD öffnen] / [HUD schließen]
+Zeigt eine Szene über dem Spiel an, ohne es zu pausieren. Ideal für ein Inventar oder ein Einstellungsmenü.
+
+[Toast]
+Zeigt eine kurze flüchtige Systemmeldung am unteren Bildschirmrand an.
+
+[Kamera anheften]
+Heftet die Kamera an das Zielobjekt, um ihm bei seinen Bewegungen automatisch zu folgen.
+
+[Kamera-Erschütterung]
+Lässt den Bildschirm wackeln. Nützlich, um einer Explosion oder einer schweren Tür Wucht zu verleihen.
+
+[Kamera-Elastizität]
+Ändert die Geschwindigkeit (zwischen 0.01 und 1.0), mit der die Kamera ihrem Ziel folgt, für einen flüssigeren oder starreren Effekt.
+
+[Joystick zeigen/verbergen] / [Aktion zeigen/verbergen]
+Steuert die Sichtbarkeit der Bewegungs-Schnittstellen auf dem Bildschirm (nützlich während einer Zwischensequenz).
+
+[Vibration]
+Lässt das Tablet für die angegebene Dauer in Millisekunden vibrieren.
+
+
+--- AUSSEHEN & OBJEKTE ---
+[Objekt bewegen]
+Teleportiert das Objekt sofort zu den angegebenen X- und Y-Koordinaten.
+
+[Objekt schieben]
+Verschiebt das Zielobjekt sanft in eine bestimmte Richtung.
+
+[Farbe ändern]
+Ändert die Grundfarbe des Objekts (sofern es kein Bild ist).
+
+[Sichtbarkeit]
+Blendet ein Objekt in der Szene ein oder aus.
+
+[Beweglichkeit ändern]
+Erlaubt oder verbietet dem Spieler, dieses Objekt mit dem Finger zu ziehen.
+
+[Sperre ändern]
+Sperrt ein Objekt im Editor, um zu verhindern, dass es bei der Levelerstellung versehentlich verschoben wird.
+
+[Z-Order ändern]
+Ändert die Tiefe des Objekts (verschiebt in den Vorder- oder Hintergrund).
+
+[Bild ändern]
+Ersetzt die Grafik (Sprite) des Objekts durch eine andere Datei.
+
+[Rotation]
+Legt sofort den Winkel (in Grad) des Objekts fest.
+
+[Größe festlegen (Scale)]
+Ändert die Skalierung (Zoom) des Objekts in der Breite (X) und Höhe (Y).
+
+[Objekt zerstören]
+Löscht das Objekt dauerhaft aus der Szene.
+
+[Klon erzeugen (Spawner)]
+Klont das angeforderte Modell-Objekt und lässt es in der Mitte des Zielobjekts (Spawnpunkt) erscheinen.
+
+[Tag setzen]
+Weist dem Zielobjekt ein Etikett (z.B. "Projektil") zu.
+
+[Zerstören nach Tag]
+Löscht auf einen Schlag alle Objekte der Szene, die den angeforderten Tag tragen.
+
+[Farbfilter]
+Wendet einen Matrixeffekt auf das Objekt an (Sepia, Schwarz-Weiß, Inversion).
+
+[Blinken (Blink)]
+Lässt das Objekt in einer bestimmten Geschwindigkeit (in ms) aufblinken/verschwinden.
+
+[Leuchten (Glow)]
+Umrandet das Objekt mit einer farbigen Leuchtkontur.
+
+[Hüpfen/Wippen]
+Lässt das Objekt kleine, regelmäßige Sprünge machen, um Aufmerksamkeit zu erregen (visueller Effekt).
+
+[Spiegeleffekt / Umkehren]
+Spiegelt das Bild des Objekts visuell (nützlich, um eine Figur umdrehen zu lassen).
+
+[Zwei Objekte verknüpfen]
+Bindet Objekt A fest an Objekt B, sodass sie sich synchron bewegen.
+
+[Deckkraft ändern (Alpha)]
+Macht das Objekt sofort mehr oder weniger transparent.
+
+[Mischmodus (Effekt)]
+Wendet einen speziellen Render-Modus (Additiv, Multiplizieren...) für Licht- oder Überlagerungseffekte an.
+
+[Parallaxen-Faktor]
+Legt die Scroll-Geschwindigkeit des Objekts relativ zur Kamera fest, um einen Tiefeneffekt zu erzeugen.
+
+
+--- TEXTE & DIALOGE ---
+[Text ändern]
+Ersetzt den gesamten Inhalt eines Text-Objekts.
+
+[Zu Text hinzufügen]
+Fügt Wörter an das Ende eines bestehenden Text-Objekts an (Verkettung).
+
+[Dialog anzeigen]
+Liest einen Satz aus der Dialogdatei anhand seines Schlüssels und fügt ihn in ein Text-Objekt ein.
+
+
+--- VARIABLEN & INVENTAR ---
+[Mathematische Operation]
+Führt eine Berechnung (+, -, *, /) an der Zielvariablen mit einem gegebenen Wert durch.
+
+[Wert begrenzen (Clamp)]
+Verhindert, dass eine Variable unter ein Minimum fällt oder ein Maximum überschreitet.
+
+[Variable ändern] / [Zu Variable hinzufügen]
+Ersetzt oder addiert einen einfachen Wert zu einer Variablen.
+
+[Zufallszahl]
+Generiert eine Zufallszahl zwischen einem Minimum und einem Maximum und speichert sie in der Zielvariablen.
+
+[Zum Inventar hinzufügen] / [Aus Inventar entfernen]
+Verwaltet die Liste der Gegenstände, die der Spieler besitzt.
+
+[Wenn im Inventar]
+Prüft, ob der Spieler einen bestimmten Gegenstand besitzt. (Ausgang Wahr/Falsch).
+
+[Objekte kombinieren]
+Zerstört Objekt A und Objekt B, um das "Ergebnis-Modell" erscheinen zu lassen (z.B. Kaputter Schlüssel + Klebeband = Reparierter Schlüssel).
+
+[Speicherpunkt (Checkpoint)]
+Erzwingt sofort das Speichern des Szenen- und Inventarstatus in der Datenbank.
+
+
+--- ZEIT ---
+[Timer]
+Startet einen eigenständigen Countdown. Wird vom restlichen Blueprint nicht beeinflusst.
+
+[Stoppuhr]
+Startet eine globale Stoppuhr, um die in einem Level verbrachte Zeit zu messen.
+
+[Warten (ms)]
+Macht eine Pause (Verzögerung), bevor die Ausführung der nachfolgenden Knoten fortgesetzt wird.
+
+
+--- AUDIO ---
+[Sound abspielen]
+Spielt einen kurzen Soundeffekt ab. Kann andere Sounds überlagern.
+
+[Musik verwalten]
+Startet einen langen Audiotrack. Stoppt automatisch die vorherige Musik.
+
+
+--- ANIMATIONEN ---
+[Verblassen (Alpha)]
+Macht das Objekt allmählich transparent oder undurchsichtig.
+
+[Gleiten nach]
+Bewegt das Objekt fließend zu neuen Koordinaten, mit definierter Dauer.
+
+[Animation abspielen]
+Startet eine vordefinierte Bildsequenz (Sprite-Animation) auf dem Objekt.
+
+[Animation pausieren]
+Friert die Animation des Objekts beim aktuellen Bild (Frame) ein.
+
+[Animation fortsetzen]
+Setzt die Animation des Objekts dort fort, wo sie pausiert wurde.
+
+[Animationsgeschwindigkeit]
+Ändert die Abspielgeschwindigkeit der Bildsequenz.
+
+[Wenn das aktuelle Bild...]
+Prüft, ob die laufende Animation einen bestimmten Frame erreicht hat. Ideal zum Synchronisieren von Schritten oder Treffern.
+
+
+--- PHYSIK ---
+[Physik aktivieren (Fall)]
+Unterwirft das Objekt der Schwerkraft der Engine.
+
+[Impuls anwenden (Sprung)]
+Verleiht einem physischen Objekt eine nach oben gerichtete Kraft.
+
+[Sprungkraft ändern]
+Ändert die Energierückgabe des Objekts (0 = Bleiblock, 1.0 = hüpfender Ball).
+
+[Wenn Objekt fällt]
+Prüft, ob ein physisches Objekt gerade fällt oder auf dem Boden ruht.
+
+[Kraft hinzufügen (nach Winkel)]
+Treibt das Objekt in eine exakte Richtung an, berechnet in Grad.
