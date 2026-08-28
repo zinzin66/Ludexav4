@@ -143,7 +143,7 @@ public class VueJeu extends View {
         this.sceneHudActive = scene;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         
-        deballerPrefabs(this.sceneHudActive); // DÉBALLAGE DU HUD
+        deballerPrefabs(this.sceneHudActive);
 
         if (blueprintHud != null) {
             this.moteurHud = new MoteurLogique(blueprintHud);
@@ -161,7 +161,7 @@ public class VueJeu extends View {
         GestionnaireEtat.restaurerEtat(this.sceneActive);
         chargerAnimationsGlobales(nouvelleScene.objets);
 
-        deballerPrefabs(this.sceneActive); // DÉBALLAGE DE LA SCÈNE
+        deballerPrefabs(this.sceneActive);
 
         Blueprint nouveauBlueprint = null;
         if (cheminProjet != null) {
@@ -251,15 +251,23 @@ public class VueJeu extends View {
     private Scene getSceneParId(String id) {
         if (id == null) return null;
         try {
-            java.lang.reflect.Field field = getContext().getClass().getField("listeScenes");
+            // Contournement indispensable sur Android pour passer le wrapper de contexte
+            Context ctx = getContext();
+            while (ctx instanceof android.content.ContextWrapper && !(ctx instanceof android.app.Activity)) {
+                ctx = ((android.content.ContextWrapper) ctx).getBaseContext();
+            }
+            
+            java.lang.reflect.Field field = ctx.getClass().getField("listeScenes");
             @SuppressWarnings("unchecked")
-            List<Scene> scenes = (List<Scene>) field.get(getContext());
+            List<Scene> scenes = (List<Scene>) field.get(ctx);
             if (scenes != null) {
                 for (Scene s : scenes) {
                     if (id.equals(s.id)) return s;
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            android.util.Log.e("VueJeu", "Erreur getSceneParId : " + e.getMessage());
+        }
         return null;
     }
 
@@ -267,12 +275,13 @@ public class VueJeu extends View {
         if (scene == null || scene.objets == null) return;
         List<ObjetBase> prefabs = new ArrayList<>();
         for (ObjetBase obj : scene.objets) {
-            if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null) {
+            // On vérifie obj.visible pour ne pas déballer le prefab deux fois s'il a déjà été traité
+            if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null && obj.visible) {
                 prefabs.add(obj);
             }
         }
         for (ObjetBase prefab : prefabs) {
-            prefab.visible = false; // On cache le rectangle de repère de l'éditeur
+            prefab.visible = false; 
             Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
             if (sceneLiee != null) {
                 instancierScene(sceneLiee, prefab.x, prefab.y);
@@ -284,6 +293,11 @@ public class VueJeu extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        
+        // Déballage sécurisé pour RunnerActivity (quand appelé via constructeur)
+        deballerPrefabs(this.sceneActive); 
+        deballerPrefabs(this.sceneHudActive);
+
         if (this.moteur != null) this.moteur.executerDemarrage();
         if (this.moteurHud != null) this.moteurHud.executerDemarrage();
         
@@ -328,6 +342,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
+    
     
   // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
