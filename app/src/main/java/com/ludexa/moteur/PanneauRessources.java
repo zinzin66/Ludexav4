@@ -424,7 +424,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-  // haut 4 : SECTION OBJETS (Ajout avec icônes explicites et intégration du bouton Prefab)
+// haut 4 : SECTION OBJETS (Ajout avec icônes explicites et intégration du bouton Prefab)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -648,7 +648,7 @@ public class PanneauRessources extends LinearLayout {
                     String nomUnique = genererNomUnique(Traducteur.get("obj_prefix_prefab"), editeur.sceneActive);
                     ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 150f, 150f);
                     nouveau.type = "scene_instance";
-                    nouveau.sceneLieeId = s.id; // <-- CORRECTION ICI : s.id au lieu de s.nom
+                    nouveau.sceneLieeId = s.id; // Garantie absolue de l'ID
                     nouveau.afficherFondColore = true;
                     nouveau.couleur = Color.argb(120, 100, 150, 255); 
                     nouveau.zOrder = editeur.sceneActive.prochainZOrder();
@@ -656,6 +656,10 @@ public class PanneauRessources extends LinearLayout {
                     
                     canvasEditeur.invalidate();
                     rafraichirArborescence();
+                    
+                    // NOUVEAU: Force l'éditeur à sélectionner et inspecter le Prefab instantanément
+                    canvasEditeur.setObjetSelectionne(nouveau);
+                    
                     dialog.dismiss();
                 });
                 layoutDialog.addView(btnScene);
@@ -713,7 +717,7 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
-                                    
+                                                              
      
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
