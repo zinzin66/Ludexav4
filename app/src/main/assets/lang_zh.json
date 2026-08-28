@@ -476,7 +476,11 @@
   "insp_sep_scene_liee": "关联场景 (Prefab)",
   "insp_btn_select_scene_liee": "选择一个场景...",
   "insp_btn_scene_liee_val": "场景: ",
-  "canvas_label_scene": "[ 场景 ]"
+  "canvas_label_scene": "[ 场景 ]",
+    "obj_prefix_prefab": "预制件",
+  "titre_select_scene_liee": "选择要链接的场景",
+  "erreur_aucune_autre_scene": "没有其他可用场景。"
+  
   
 }
 

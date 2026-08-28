@@ -143,6 +143,8 @@ public class VueJeu extends View {
         this.sceneHudActive = scene;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         
+        deballerPrefabs(this.sceneHudActive);
+
         if (blueprintHud != null) {
             this.moteurHud = new MoteurLogique(blueprintHud);
             this.moteurHud.executerDemarrage();
@@ -158,6 +160,8 @@ public class VueJeu extends View {
         this.sceneActive = nouvelleScene;
         GestionnaireEtat.restaurerEtat(this.sceneActive);
         chargerAnimationsGlobales(nouvelleScene.objets);
+
+        deballerPrefabs(this.sceneActive);
 
         Blueprint nouveauBlueprint = null;
         if (cheminProjet != null) {
@@ -184,10 +188,23 @@ public class VueJeu extends View {
     }
 
     // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
+    private java.util.Set<String> pilesInstanciationEnCours = new java.util.HashSet<>();
+
     public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
-        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return; // Sécurité anti-Inception
-        
-        // On récupère le Blueprint de la scène à instancier
+        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return;
+        if (pilesInstanciationEnCours.contains(sceneAInstancier.id)) {
+            android.util.Log.w("VueJeu", "Cycle de prefabs détecté et ignoré pour la scène " + sceneAInstancier.id);
+            return;
+        }
+        pilesInstanciationEnCours.add(sceneAInstancier.id);
+        try {
+            instancierSceneInterne(sceneAInstancier, offsetX, offsetY);
+        } finally {
+            pilesInstanciationEnCours.remove(sceneAInstancier.id);
+        }
+    }
+
+    private void instancierSceneInterne(Scene sceneAInstancier, float offsetX, float offsetY) {
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
             try {
@@ -204,30 +221,61 @@ public class VueJeu extends View {
             } catch (Exception e) {}
         }
         
-        // 1. On clone et injecte les objets de la scène
+        java.util.Map<String, String> mapIds = new java.util.HashMap<>();
+        
         if (sceneAInstancier.objets != null) {
+            List<ObjetBase> objetsInjectes = new ArrayList<>();
             for (ObjetBase objOrigine : sceneAInstancier.objets) {
                 ObjetBase clone = objOrigine.clonerProfond();
+                
+                // CORRECTION : Régénération de l'ID pour garantir l'unicité et éviter les crashs de parenté
+                String nouvelId = java.util.UUID.randomUUID().toString();
+                mapIds.put(clone.id, nouvelId);
+                clone.id = nouvelId;
+                
                 clone.x += offsetX;
                 clone.y += offsetY;
-                // On tague cet objet pour pouvoir le nettoyer plus tard
                 clone.tag = (clone.tag != null ? clone.tag + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
+                objetsInjectes.add(clone);
+            }
+            
+            // CORRECTION : Réparation des liens internes pour les enfants / joysticks
+            for (ObjetBase clone : objetsInjectes) {
+                if (clone.parentId != null && mapIds.containsKey(clone.parentId)) {
+                    clone.parentId = mapIds.get(clone.parentId);
+                }
+                if (clone.cibleJoystickId != null && mapIds.containsKey(clone.cibleJoystickId)) {
+                    clone.cibleJoystickId = mapIds.get(clone.cibleJoystickId);
+                }
+                if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) {
+                    clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
+                }
                 sceneActive.ajouterObjet(clone);
             }
             chargerAnimationsGlobales(sceneActive.objets);
         }
         
-        // 2. On injecte la logique locale dans le Moteur principal
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
             for (NoeudBase noeud : blueprintInstance.noeuds) {
-                // On tague également les nœuds pour le nettoyage
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
+                
+                // Tentative générique de mise à jour des cibles dans le Blueprint
+                try {
+                    java.lang.reflect.Field champCible = noeud.getClass().getField("cibleObjetId");
+                    String ancienneCible = (String) champCible.get(noeud);
+                    if (ancienneCible != null && mapIds.containsKey(ancienneCible)) {
+                        champCible.set(noeud, mapIds.get(ancienneCible));
+                    }
+                } catch (Exception e) {}
+                
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
                 if (noeud instanceof NoeudEventStart) {
                     noeud.executer();
                 }
             }
         }
+
+        deballerPrefabs(this.sceneActive);
     }
 
     public void detruireInstances(Scene sceneCible) {
@@ -235,7 +283,6 @@ public class VueJeu extends View {
         
         String tagRecherche = "_INSTANCE_" + sceneCible.id;
         
-        // Nettoyage des objets
         java.util.Iterator<ObjetBase> itObj = sceneActive.objets.iterator();
         while (itObj.hasNext()) {
             ObjetBase obj = itObj.next();
@@ -244,18 +291,90 @@ public class VueJeu extends View {
             }
         }
         
-        // Nettoyage de la logique
         if (this.moteur != null) {
             this.moteur.nettoyerNoeudsParTag(tagRecherche);
         }
     }
-    // -----------------------------------------------------------
+
+    // --- CORRECTION : Accès hybride (Éditeur en direct / Disque compilé) ---
+    private List<Scene> cacheListeScenesDisque = null;
+
+    private List<Scene> chargerToutesLesScenesDepuisDisque() {
+        if (cacheListeScenesDisque != null) return cacheListeScenesDisque;
+        if (cheminProjet == null) return null;
+        try {
+            java.io.File fileProjet = new java.io.File(cheminProjet, "projet_sauvegarde.json");
+            if (!fileProjet.exists()) return null;
+            java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fileProjet));
+            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<ArrayList<Scene>>(){}.getType();
+            List<Scene> scenes = new com.google.gson.Gson().fromJson(br, listType);
+            br.close();
+            cacheListeScenesDisque = scenes;
+            return scenes;
+        } catch (Exception e) {
+            android.util.Log.e("VueJeu", "Erreur chargerToutesLesScenesDepuisDisque : " + e.getMessage());
+            return null;
+        }
+    }
+
+    // NOUVELLE MÉTHODE : Permet de lire les scènes non sauvegardées en mémoire vive si le jeu tourne dans l'éditeur
+    private List<Scene> obtenirToutesLesScenes() {
+        Context ctx = getContext();
+        if (ctx != null) {
+            try {
+                if ("InterfaceEditeur".equals(ctx.getClass().getSimpleName())) {
+                    java.lang.reflect.Field field = ctx.getClass().getField("listeScenes");
+                    @SuppressWarnings("unchecked")
+                    List<Scene> scenesEditeur = (List<Scene>) field.get(ctx);
+                    if (scenesEditeur != null) return scenesEditeur;
+                }
+            } catch (Exception e) {
+                android.util.Log.e("VueJeu", "Accès refusé à listeScenes de InterfaceEditeur", e);
+            }
+        }
+        return chargerToutesLesScenesDepuisDisque();
+    }
+
+    private Scene getSceneParId(String id) {
+        if (id == null) return null;
+        List<Scene> scenes = obtenirToutesLesScenes();
+        if (scenes != null) {
+            for (Scene s : scenes) {
+                if (id.equals(s.id)) return s;
+            }
+        }
+        return null;
+    }
+
+    private void deballerPrefabs(Scene scene) {
+        if (scene == null || scene.objets == null) return;
+        List<ObjetBase> prefabs = new ArrayList<>();
+        for (ObjetBase obj : scene.objets) {
+            if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null && obj.visible) {
+                prefabs.add(obj);
+            }
+        }
+        for (ObjetBase prefab : prefabs) {
+            prefab.visible = false; 
+            Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
+            if (sceneLiee != null) {
+                instancierScene(sceneLiee, prefab.x, prefab.y);
+            } else {
+                android.util.Log.e("VueJeu", "Déballage échoué : Scène liée introuvable en mémoire/disque (" + prefab.sceneLieeId + ")");
+            }
+        }
+    }
 
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        
+        deballerPrefabs(this.sceneActive); 
+        deballerPrefabs(this.sceneHudActive);
+
         if (this.moteur != null) this.moteur.executerDemarrage();
         if (this.moteurHud != null) this.moteurHud.executerDemarrage();
+        
         postOnAnimation(boucleDeRendu);
     }
 
@@ -297,7 +416,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
-  // haut 3
+// haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         float camX = isHud ? 0f : GestionnaireControles.cameraX;
@@ -433,8 +552,7 @@ public class VueJeu extends View {
         }
     }
 // bas 3
-    
-                
+
 // haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -445,7 +563,6 @@ public class VueJeu extends View {
             
             if (objSurvole != dernierObjetSurvole) {
                 if (dernierObjetSurvole != null) {
-                    // --- AJOUT MÉMOIRE CONTEXTUELLE ---
                     MoteurLogique.dernierObjetImplique = dernierObjetSurvole;
                     
                     if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
@@ -455,7 +572,6 @@ public class VueJeu extends View {
                     }
                 }
                 if (objSurvole != null) {
-                    // --- AJOUT MÉMOIRE CONTEXTUELLE ---
                     MoteurLogique.dernierObjetImplique = objSurvole;
                     
                     if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
@@ -554,7 +670,6 @@ public class VueJeu extends View {
             lastYJeu = yMonde;
             
             if (objetEnGlissement != null) {
-                // --- AJOUT MÉMOIRE CONTEXTUELLE ---
                 MoteurLogique.dernierObjetImplique = objetEnGlissement;
                 
                 if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement) && this.moteurHud != null) {
@@ -581,7 +696,6 @@ public class VueJeu extends View {
                 ObjetBase objSurvole = trouverObjetSousPoint(xVue, yVue, false);
                 if (objSurvole != dernierObjetSurvole) {
                     if (dernierObjetSurvole != null) {
-                        // --- AJOUT MÉMOIRE CONTEXTUELLE ---
                         MoteurLogique.dernierObjetImplique = dernierObjetSurvole;
                         
                         if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(dernierObjetSurvole) && this.moteurHud != null) {
@@ -591,7 +705,6 @@ public class VueJeu extends View {
                         }
                     }
                     if (objSurvole != null) {
-                        // --- AJOUT MÉMOIRE CONTEXTUELLE ---
                         MoteurLogique.dernierObjetImplique = objSurvole;
                         
                         if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objSurvole) && this.moteurHud != null) {
@@ -606,7 +719,6 @@ public class VueJeu extends View {
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             ObjetBase objClick = trouverObjetSousPoint(xVue, yVue, false);
             if (objClick != null && !objClick.estDesactive) {
-                // --- AJOUT MÉMOIRE CONTEXTUELLE ---
                 MoteurLogique.dernierObjetImplique = objClick;
                 
                 if (sceneHudActive != null && sceneHudActive.objets.contains(objClick) && this.moteurHud != null) {
@@ -618,7 +730,6 @@ public class VueJeu extends View {
             if (this.moteur != null) this.moteur.executerEvenement(NoeudEventFinClic.class);
 
             if (objetEnGlissement != null) {
-                // --- AJOUT MÉMOIRE CONTEXTUELLE ---
                 MoteurLogique.dernierObjetImplique = objetEnGlissement;
                 
                 if (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(objetEnGlissement) && this.moteurHud != null) {
@@ -632,8 +743,6 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-                                
-
 
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
@@ -956,14 +1065,13 @@ public class VueJeu extends View {
             }
         }
 
-        // --- NOUVEAU : On exécute le noeud "À chaque image" juste avant les collisions ---
         if (this.moteur != null && sceneActive != null && sceneActive.objets != null) {
-            this.moteur.executerEvenement(NoeudEventChaqueImage.class); // <-- Ajout ici
+            this.moteur.executerEvenement(NoeudEventChaqueImage.class); 
             this.moteur.verifierCollisions(this, sceneActive.objets);
             this.moteur.verifierVariablesChangees(); 
         }
         if (this.moteurHud != null && sceneHudActive != null && sceneHudActive.objets != null) {
-            this.moteurHud.executerEvenement(NoeudEventChaqueImage.class); // <-- Ajout ici
+            this.moteurHud.executerEvenement(NoeudEventChaqueImage.class); 
             this.moteurHud.verifierCollisions(this, sceneHudActive.objets);
             this.moteurHud.verifierVariablesChangees(); 
         }
@@ -1002,7 +1110,7 @@ public class VueJeu extends View {
             shakeY = (float) ((Math.random() - 0.5) * 2.0 * tremblementIntensite);
         }
 
-        canvas.save();
+      canvas.save();
         canvas.translate(-GestionnaireControles.cameraX + shakeX, -GestionnaireControles.cameraY + shakeY);
         if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false, GestionnaireControles.cameraX, GestionnaireControles.cameraY);
         canvas.restore(); 
