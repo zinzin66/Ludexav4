@@ -127,8 +127,6 @@ public class VueJeu extends View {
         }
     }
 // bas 1
-
-
 // haut 2
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
@@ -185,6 +183,74 @@ public class VueJeu extends View {
         }
     }
 
+    // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
+    public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
+        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return; // Sécurité anti-Inception
+        
+        // On récupère le Blueprint de la scène à instancier
+        Blueprint blueprintInstance = null;
+        if (cheminProjet != null) {
+            try {
+                java.io.File dossierLogique = new java.io.File(cheminProjet, "logique");
+                java.io.File fileBlueprint = new java.io.File(dossierLogique, sceneAInstancier.id + ".json");
+                if (fileBlueprint.exists()) {
+                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fileBlueprint));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) sb.append(line);
+                    br.close();
+                    blueprintInstance = Blueprint.fromJson(sb.toString(), sceneAInstancier);
+                }
+            } catch (Exception e) {}
+        }
+        
+        // 1. On clone et injecte les objets de la scène
+        if (sceneAInstancier.objets != null) {
+            for (ObjetBase objOrigine : sceneAInstancier.objets) {
+                ObjetBase clone = objOrigine.clonerProfond();
+                clone.x += offsetX;
+                clone.y += offsetY;
+                // On tague cet objet pour pouvoir le nettoyer plus tard
+                clone.tag = (clone.tag != null ? clone.tag + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
+                sceneActive.ajouterObjet(clone);
+            }
+            chargerAnimationsGlobales(sceneActive.objets);
+        }
+        
+        // 2. On injecte la logique locale dans le Moteur principal
+        if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
+            for (NoeudBase noeud : blueprintInstance.noeuds) {
+                // On tague également les nœuds pour le nettoyage
+                noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
+                this.moteur.ajouterNoeudAuBlueprintActif(noeud);
+                if (noeud instanceof NoeudEventStart) {
+                    noeud.executer();
+                }
+            }
+        }
+    }
+
+    public void detruireInstances(Scene sceneCible) {
+        if (sceneCible == null || sceneActive == null || sceneActive.objets == null) return;
+        
+        String tagRecherche = "_INSTANCE_" + sceneCible.id;
+        
+        // Nettoyage des objets
+        java.util.Iterator<ObjetBase> itObj = sceneActive.objets.iterator();
+        while (itObj.hasNext()) {
+            ObjetBase obj = itObj.next();
+            if (obj.tag != null && obj.tag.contains(tagRecherche)) {
+                itObj.remove();
+            }
+        }
+        
+        // Nettoyage de la logique
+        if (this.moteur != null) {
+            this.moteur.nettoyerNoeudsParTag(tagRecherche);
+        }
+    }
+    // -----------------------------------------------------------
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -231,8 +297,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
-
-// haut 3
+  // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         float camX = isHud ? 0f : GestionnaireControles.cameraX;
@@ -368,6 +433,8 @@ public class VueJeu extends View {
         }
     }
 // bas 3
+    
+                
 // haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {

@@ -42,7 +42,6 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_au_clic_action_aventure"), Traducteur.get("cat_evenements"), "NoeudEventBoutonAction"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_objet_touche_tag"), Traducteur.get("cat_evenements"), "NoeudEventCollisionTag"));
         
-
         // MOUVEMENTS & IA
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_avancer_en_continu"), Traducteur.get("cat_mouvements_ia"), "NoeudActionAvancerContinu"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_poursuivre_un_objet"), Traducteur.get("cat_mouvements_ia"), "NoeudActionPoursuivre"));
@@ -66,12 +65,18 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_mouvement"), Traducteur.get("cat_logique_conditions"), "NoeudConditionMouvement"));
-
+// bas 1
+    // haut 2
         // SCÈNE & HUD
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_changer_de_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionChangerScene"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_recharger_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionRechargerScene"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_ouvrir_hud"), Traducteur.get("cat_scene_hud"), "NoeudActionOuvrirHUD"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fermer_hud"), Traducteur.get("cat_scene_hud"), "NoeudActionFermerHUD"));
+        
+        // NOUVEAUX NOEUDS POUR LE SYSTEME DE PREFABS
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_instancier_scene"), Traducteur.get("cat_scene_hud"), "NoeudActionInstancierScene"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fermer_instance"), Traducteur.get("cat_scene_hud"), "NoeudActionFermerInstance"));
+        
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_toast"), Traducteur.get("cat_scene_hud"), "NoeudActionToast"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_fixer_camera"), Traducteur.get("cat_scene_hud"), "NoeudActionFixerCamera"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_tremblement_camera"), Traducteur.get("cat_scene_hud"), "NoeudActionTremblement"));
@@ -162,4 +167,4 @@ public class RegistreNoeuds {
         return map;
     }
 }
-// bas 1
+// bas 2
