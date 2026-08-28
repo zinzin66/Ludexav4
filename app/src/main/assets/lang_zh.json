@@ -468,6 +468,15 @@
   "noeud_reprendre_anim": "恢复动画",
   "noeud_vitesse_anim": "动画速度",
   "noeud_condition_frame": "如果当前帧是...",
-  "noeud_force_angle": "添加力 (按角度)"
+  "noeud_force_angle": "添加力 (按角度)",
+    "noeud_instancier_scene": "实例化场景 (Prefab)",
+  "noeud_fermer_instance": "关闭实例 (Prefab)",
+  "param_x": "X 坐标",
+  "param_y": "Y 坐标",
+  "insp_sep_scene_liee": "关联场景 (Prefab)",
+  "insp_btn_select_scene_liee": "选择一个场景...",
+  "insp_btn_scene_liee_val": "场景: ",
+  "canvas_label_scene": "[ 场景 ]"
+  
 }
 
