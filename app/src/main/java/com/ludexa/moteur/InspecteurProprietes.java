@@ -700,12 +700,12 @@ public class InspecteurProprietes extends LinearLayout {
         styliserSection(blocSceneInstance);
 
         TextView sepSceneLiee = new TextView(context);
-        sepSceneLiee.setText("Scène Liée (Prefab)"); // A terme à mettre dans Traducteur
+        sepSceneLiee.setText(Traducteur.get("insp_sep_scene_liee"));
         styliserSousTitre(sepSceneLiee);
         blocSceneInstance.addView(sepSceneLiee);
 
         btnSelectSceneLiee = new Button(context);
-        btnSelectSceneLiee.setText("Sélectionner une scène...");
+        btnSelectSceneLiee.setText(Traducteur.get("insp_btn_select_scene_liee"));
         styliserBouton(btnSelectSceneLiee);
         blocSceneInstance.addView(btnSelectSceneLiee);
         
@@ -889,7 +889,7 @@ public class InspecteurProprietes extends LinearLayout {
             }
             
             new AlertDialog.Builder(context)
-                .setTitle("Lier une Scène")
+                .setTitle(Traducteur.get("insp_sep_scene_liee"))
                 .setItems(noms.toArray(new String[0]), (dialog, which) -> {
                     objetCourant.sceneLieeId = ids.get(which);
                     canvasEditeur.invalidate();
@@ -1330,7 +1330,7 @@ public class InspecteurProprietes extends LinearLayout {
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
                 blocJoystick.setVisibility(View.GONE);
-                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
+                blocSceneInstance.setVisibility(View.GONE);
                 
                 champContenu.setText(objet.contenuTexte);
                 champTaille.setText(String.valueOf(objet.tailleFonte));
@@ -1357,10 +1357,10 @@ public class InspecteurProprietes extends LinearLayout {
                         }
                     }
                 }
-                btnSelectSceneLiee.setText("Scène : " + nomScene);
+                btnSelectSceneLiee.setText(Traducteur.get("insp_btn_scene_liee_val") + nomScene);
             } else {
                 blocTexte.setVisibility(View.GONE);
-                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
+                blocSceneInstance.setVisibility(View.GONE);
                 blocImage.setVisibility(View.VISIBLE);
 
                 if (objet.cheminImage != null) {
@@ -1459,3 +1459,4 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 5
+
