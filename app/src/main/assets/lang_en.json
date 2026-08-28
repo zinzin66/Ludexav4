@@ -466,7 +466,12 @@
   "noeud_reprendre_anim": "Resume animation",
   "noeud_vitesse_anim": "Animation speed",
   "noeud_condition_frame": "If current frame is...",
-  "noeud_force_angle": "Add force (by Angle)"
+  "noeud_force_angle": "Add force (by Angle)",
+    "noeud_instancier_scene": "Instantiate Scene (Prefab)",
+  "noeud_fermer_instance": "Close Instance (Prefab)",
+  "param_x": "Position X",
+  "param_y": "Position Y"
+  
   
 
 
