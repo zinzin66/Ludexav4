@@ -1,7 +1,6 @@
 // haut 1
 package com.ludexa.moteur;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -62,8 +61,10 @@ public class NoeudActionInstancierScene extends NoeudBase {
 
     @Override
     public void executer() {
-        if (contexteApplication instanceof VueJeu) {
-            // L'instanciation de la scène sera implémentée dans VueJeu ou MoteurLogique plus tard
+        if (contexteApplication instanceof InterfaceEditeur) {
+            // L'instanciation de la scène sera implémentée ici
+        } else if (contexteApplication instanceof RunnerActivity) {
+            // L'instanciation de la scène sera implémentée ici
         }
         propagerExecution("Sortie");
     }
