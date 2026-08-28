@@ -470,7 +470,12 @@
     "noeud_instancier_scene": "Создать сцену (Prefab)",
   "noeud_fermer_instance": "Закрыть экземпляр (Prefab)",
   "param_x": "Позиция X",
-  "param_y": "Позиция Y"
+  "param_y": "Позиция Y",
+    "insp_sep_scene_liee": "Связанная сцена (Prefab)",
+  "insp_btn_select_scene_liee": "Выбрать сцену...",
+  "insp_btn_scene_liee_val": "Сцена: ",
+  "canvas_label_scene": "[ СЦЕНА ]"
+  
   
   
 
