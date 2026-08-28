@@ -399,8 +399,8 @@ public class CanvasEditeur extends View {
                     }
                     dessinerImage(canvas, objet, cheminAAfficher);
                 } else if ("scene_instance".equals(objet.type)) {
-                    // NOUVEAU : Dessin spécifique pour un Prefab (Scène Imbriquée)
-                    paintObjet.setColor(Color.argb(120, 50, 150, 255)); // Bleu clair semi-transparent
+                    // NOUVEAU : Dessin spécifique pour un Prefab avec Traduction
+                    paintObjet.setColor(Color.argb(120, 50, 150, 255));
                     paintObjet.setAlpha((int) (0.5f * alphaVal)); 
                     canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                     
@@ -411,7 +411,7 @@ public class CanvasEditeur extends View {
                     paintTexte.setAlpha(alphaVal);
                     paintTexte.setTextSize(objet.largeur > 80 ? 14f : 10f);
                     paintTexte.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-                    String label = "[ SCÈNE ]";
+                    String label = Traducteur.get("canvas_label_scene");
                     float textWidth = paintTexte.measureText(label);
                     canvas.drawText(label, (objet.largeur - textWidth) / 2f, objet.hauteur / 2f + 5f, paintTexte);
                 } else {
@@ -532,6 +532,7 @@ public class CanvasEditeur extends View {
         return null;
     }
 // bas 2
+                
     // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
