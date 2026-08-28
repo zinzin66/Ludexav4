@@ -45,10 +45,12 @@ public class NoeudActionFermerInstance extends NoeudBase {
 
     @Override
     public void executer() {
-        if (contexteApplication instanceof InterfaceEditeur) {
-            // La fermeture/destruction de l'instance sera implémentée ici
-        } else if (contexteApplication instanceof RunnerActivity) {
-            // La fermeture/destruction de l'instance sera implémentée ici
+        if (sceneCible != null) {
+            if (contexteApplication instanceof InterfaceEditeur) {
+                ((InterfaceEditeur) contexteApplication).getVueJeu().detruireInstances(sceneCible);
+            } else if (contexteApplication instanceof RunnerActivity) {
+                ((RunnerActivity) contexteApplication).getVueJeu().detruireInstances(sceneCible);
+            }
         }
         propagerExecution("Sortie");
     }
