@@ -188,8 +188,25 @@ public class VueJeu extends View {
     }
 
     // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
+    // Garde anti-cycle : évite une récursion infinie si deux scènes se référencent
+    // mutuellement en prefab (A contient B, B contient A, etc.).
+    private java.util.Set<String> pilesInstanciationEnCours = new java.util.HashSet<>();
+
     public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
-        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return; 
+        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return;
+        if (pilesInstanciationEnCours.contains(sceneAInstancier.id)) {
+            android.util.Log.w("VueJeu", "Cycle de prefabs détecté et ignoré pour la scène " + sceneAInstancier.id);
+            return;
+        }
+        pilesInstanciationEnCours.add(sceneAInstancier.id);
+        try {
+            instancierSceneInterne(sceneAInstancier, offsetX, offsetY);
+        } finally {
+            pilesInstanciationEnCours.remove(sceneAInstancier.id);
+        }
+    }
+
+    private void instancierSceneInterne(Scene sceneAInstancier, float offsetX, float offsetY) {
         
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
@@ -227,6 +244,11 @@ public class VueJeu extends View {
                 }
             }
         }
+
+        // Support des prefabs imbriqués : si la scène qu'on vient d'injecter contient
+        // elle-même des scene_instance, on les déballe aussi (récursif via deballerPrefabs,
+        // qui n'agit que sur sceneActive.objets fraîchement ajoutés).
+        deballerPrefabs(this.sceneActive);
     }
 
     public void detruireInstances(Scene sceneCible) {
@@ -248,25 +270,37 @@ public class VueJeu extends View {
     }
 
     // --- NOUVEAU : Auto-déballage des Prefabs statiques au lancement ---
+    // On lit directement le fichier de sauvegarde du projet sur le disque plutôt que
+    // de passer par réflexion sur le Context. Ça marche à l'identique que VueJeu soit
+    // hébergée par InterfaceEditeur (Play depuis l'éditeur) ou par RunnerActivity
+    // (jeu buildé en APK), qui elle n'a jamais eu de champ "listeScenes".
+    private List<Scene> cacheListeScenesDisque = null;
+
+    private List<Scene> chargerToutesLesScenesDepuisDisque() {
+        if (cacheListeScenesDisque != null) return cacheListeScenesDisque;
+        if (cheminProjet == null) return null;
+        try {
+            java.io.File fileProjet = new java.io.File(cheminProjet, "projet_sauvegarde.json");
+            if (!fileProjet.exists()) return null;
+            java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(fileProjet));
+            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<ArrayList<Scene>>(){}.getType();
+            List<Scene> scenes = new com.google.gson.Gson().fromJson(br, listType);
+            br.close();
+            cacheListeScenesDisque = scenes;
+            return scenes;
+        } catch (Exception e) {
+            android.util.Log.e("VueJeu", "Erreur chargerToutesLesScenesDepuisDisque : " + e.getMessage());
+            return null;
+        }
+    }
+
     private Scene getSceneParId(String id) {
         if (id == null) return null;
-        try {
-            // Contournement indispensable sur Android pour passer le wrapper de contexte
-            Context ctx = getContext();
-            while (ctx instanceof android.content.ContextWrapper && !(ctx instanceof android.app.Activity)) {
-                ctx = ((android.content.ContextWrapper) ctx).getBaseContext();
+        List<Scene> scenes = chargerToutesLesScenesDepuisDisque();
+        if (scenes != null) {
+            for (Scene s : scenes) {
+                if (id.equals(s.id)) return s;
             }
-            
-            java.lang.reflect.Field field = ctx.getClass().getField("listeScenes");
-            @SuppressWarnings("unchecked")
-            List<Scene> scenes = (List<Scene>) field.get(ctx);
-            if (scenes != null) {
-                for (Scene s : scenes) {
-                    if (id.equals(s.id)) return s;
-                }
-            }
-        } catch (Exception e) {
-            android.util.Log.e("VueJeu", "Erreur getSceneParId : " + e.getMessage());
         }
         return null;
     }
@@ -342,7 +376,6 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
-    
     
   // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
