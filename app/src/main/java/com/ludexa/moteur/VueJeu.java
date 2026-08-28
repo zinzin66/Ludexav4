@@ -143,6 +143,8 @@ public class VueJeu extends View {
         this.sceneHudActive = scene;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         
+        deballerPrefabs(this.sceneHudActive); // DÉBALLAGE DU HUD
+
         if (blueprintHud != null) {
             this.moteurHud = new MoteurLogique(blueprintHud);
             this.moteurHud.executerDemarrage();
@@ -158,6 +160,8 @@ public class VueJeu extends View {
         this.sceneActive = nouvelleScene;
         GestionnaireEtat.restaurerEtat(this.sceneActive);
         chargerAnimationsGlobales(nouvelleScene.objets);
+
+        deballerPrefabs(this.sceneActive); // DÉBALLAGE DE LA SCÈNE
 
         Blueprint nouveauBlueprint = null;
         if (cheminProjet != null) {
@@ -282,10 +286,6 @@ public class VueJeu extends View {
         super.onAttachedToWindow();
         if (this.moteur != null) this.moteur.executerDemarrage();
         if (this.moteurHud != null) this.moteurHud.executerDemarrage();
-        
-        // On déballe les prefabs APRÈS le démarrage global pour éviter de déclencher leurs événements "Start" en double
-        deballerPrefabs(sceneActive); 
-        deballerPrefabs(sceneHudActive);
         
         postOnAnimation(boucleDeRendu);
     }
