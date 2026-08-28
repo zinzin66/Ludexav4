@@ -468,6 +468,15 @@
   "noeud_reprendre_anim": "Riprendi l'animazione",
   "noeud_vitesse_anim": "Velocità dell'animazione",
   "noeud_condition_frame": "Se il fotogramma attuale è...",
-  "noeud_force_angle": "Aggiungi forza (per Angolo)"
+  "noeud_force_angle": "Aggiungi forza (per Angolo)",
+    "noeud_instancier_scene": "Istanzia Scena (Prefab)",
+  "noeud_fermer_instance": "Chiudi Istanza (Prefab)",
+  "param_x": "Posizione X",
+  "param_y": "Posizione Y",
+  "insp_sep_scene_liee": "Scena Collegata (Prefab)",
+  "insp_btn_select_scene_liee": "Seleziona una scena...",
+  "insp_btn_scene_liee_val": "Scena: ",
+  "canvas_label_scene": "[ SCENA ]"
+  
 }
 
