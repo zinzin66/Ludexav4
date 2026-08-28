@@ -11,6 +11,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.view.DragEvent;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector; // AJOUT : Import pour le Pinch-to-Zoom
 import android.view.View;
 import android.widget.Toast;
 
@@ -32,6 +33,9 @@ public class CanvasBlueprint extends View {
     private float lastTouchX, lastTouchY;
     private float niveauZoom = 1.0f;
     
+    private ScaleGestureDetector scaleDetector; // AJOUT : Détecteur de pincement
+    private boolean wasMultiTouch = false; // AJOUT : Sécurité pour éviter les sauts de caméra
+
     public Scene sceneActive; 
     private long lastDownTime = 0;
     private float touchDownX = 0;
@@ -123,6 +127,17 @@ public class CanvasBlueprint extends View {
         paintResume.setAntiAlias(true);
         
         setBackgroundColor(Palette.canvasFond); 
+
+        // AJOUT : Initialisation du ScaleGestureDetector
+        scaleDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            @Override
+            public boolean onScale(ScaleGestureDetector detector) {
+                niveauZoom *= detector.getScaleFactor();
+                niveauZoom = Math.max(0.2f, Math.min(niveauZoom, 5.0f)); // Limite le zoom pour éviter les crashs d'affichage
+                invalidate();
+                return true;
+            }
+        });
 
         this.setOnDragListener((v, event) -> {
             switch (event.getAction()) {
@@ -345,7 +360,6 @@ public class CanvasBlueprint extends View {
         canvas.restore();
     }
 // bas 2
-
 // haut 3
     private Port trouverPortParNom(java.util.ArrayList<Port> ports, String nom) {
         for (Port p : ports) {
@@ -517,6 +531,7 @@ public class CanvasBlueprint extends View {
         
         float currentY = y + 60 + (maxPorts * 40) + 15;
 // bas 3
+
 
 // haut 4
         // CORRECTION VISUELLE : L'éditeur affichera désormais correctement le texte au lieu de "Aucune"
@@ -697,11 +712,29 @@ public class CanvasBlueprint extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        // AJOUT : On donne la priorité au détecteur de pincement
+        scaleDetector.onTouchEvent(event);
+
         float x = event.getX();
         float y = event.getY();
 
-        switch (event.getAction()) {
+        // AJOUT : Sécurité Multi-Touch pour éviter les sauts ou conflits
+        if (event.getPointerCount() > 1) {
+            wasMultiTouch = true;
+            lastDownTime = 0; // Annule la détection de clic
+            if (portDepartDrag != null || noeudEnDeplacement != null) {
+                portDepartDrag = null;
+                noeudDepartDrag = null;
+                noeudEnDeplacement = null;
+                invalidate();
+            }
+            return true;
+        }
+
+        // CHANGEMENT : Utilisation de getActionMasked pour mieux gérer le relâché de doigts multiples
+        switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                wasMultiTouch = false;
                 lastTouchX = x;
                 lastTouchY = y;
                 lastDownTime = System.currentTimeMillis();
@@ -736,6 +769,14 @@ public class CanvasBlueprint extends View {
                 return true;
 
             case MotionEvent.ACTION_MOVE:
+                // AJOUT : Si on vient de finir un pinch-to-zoom, on réinitialise lastTouch pour éviter un saut de caméra
+                if (wasMultiTouch) {
+                    lastTouchX = x;
+                    lastTouchY = y;
+                    wasMultiTouch = false;
+                    return true;
+                }
+                
                 if (portDepartDrag != null) {
                     dragCurrentX = ((x - getWidth() / 2f) / niveauZoom) + getWidth() / 2f - cameraX;
                     dragCurrentY = ((y - getHeight() / 2f) / niveauZoom) + getHeight() / 2f - cameraY;
@@ -834,14 +875,11 @@ public class CanvasBlueprint extends View {
 // bas 4
 
 
-
-
-
-
-
         
 
 
+
     
+
 
 
