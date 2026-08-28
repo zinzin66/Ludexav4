@@ -173,7 +173,6 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
-
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -1330,7 +1329,7 @@ public class InspecteurProprietes extends LinearLayout {
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
                 blocJoystick.setVisibility(View.GONE);
-                blocSceneInstance.setVisibility(View.GONE);
+                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
                 
                 champContenu.setText(objet.contenuTexte);
                 champTaille.setText(String.valueOf(objet.tailleFonte));
@@ -1360,7 +1359,7 @@ public class InspecteurProprietes extends LinearLayout {
                 btnSelectSceneLiee.setText(Traducteur.get("insp_btn_scene_liee_val") + nomScene);
             } else {
                 blocTexte.setVisibility(View.GONE);
-                blocSceneInstance.setVisibility(View.GONE);
+                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
                 blocImage.setVisibility(View.VISIBLE);
 
                 if (objet.cheminImage != null) {
@@ -1459,4 +1458,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 5
+
+
 
