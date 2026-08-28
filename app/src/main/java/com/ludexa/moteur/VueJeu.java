@@ -185,9 +185,8 @@ public class VueJeu extends View {
 
     // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
     public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
-        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return; // Sécurité anti-Inception
+        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return; 
         
-        // On récupère le Blueprint de la scène à instancier
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
             try {
@@ -204,23 +203,19 @@ public class VueJeu extends View {
             } catch (Exception e) {}
         }
         
-        // 1. On clone et injecte les objets de la scène
         if (sceneAInstancier.objets != null) {
             for (ObjetBase objOrigine : sceneAInstancier.objets) {
                 ObjetBase clone = objOrigine.clonerProfond();
                 clone.x += offsetX;
                 clone.y += offsetY;
-                // On tague cet objet pour pouvoir le nettoyer plus tard
                 clone.tag = (clone.tag != null ? clone.tag + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
                 sceneActive.ajouterObjet(clone);
             }
             chargerAnimationsGlobales(sceneActive.objets);
         }
         
-        // 2. On injecte la logique locale dans le Moteur principal
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
             for (NoeudBase noeud : blueprintInstance.noeuds) {
-                // On tague également les nœuds pour le nettoyage
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
                 if (noeud instanceof NoeudEventStart) {
@@ -235,7 +230,6 @@ public class VueJeu extends View {
         
         String tagRecherche = "_INSTANCE_" + sceneCible.id;
         
-        // Nettoyage des objets
         java.util.Iterator<ObjetBase> itObj = sceneActive.objets.iterator();
         while (itObj.hasNext()) {
             ObjetBase obj = itObj.next();
@@ -244,9 +238,41 @@ public class VueJeu extends View {
             }
         }
         
-        // Nettoyage de la logique
         if (this.moteur != null) {
             this.moteur.nettoyerNoeudsParTag(tagRecherche);
+        }
+    }
+
+    // --- NOUVEAU : Auto-déballage des Prefabs statiques au lancement ---
+    private Scene getSceneParId(String id) {
+        if (id == null) return null;
+        try {
+            java.lang.reflect.Field field = getContext().getClass().getField("listeScenes");
+            @SuppressWarnings("unchecked")
+            List<Scene> scenes = (List<Scene>) field.get(getContext());
+            if (scenes != null) {
+                for (Scene s : scenes) {
+                    if (id.equals(s.id)) return s;
+                }
+            }
+        } catch (Exception e) {}
+        return null;
+    }
+
+    private void deballerPrefabs(Scene scene) {
+        if (scene == null || scene.objets == null) return;
+        List<ObjetBase> prefabs = new ArrayList<>();
+        for (ObjetBase obj : scene.objets) {
+            if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null) {
+                prefabs.add(obj);
+            }
+        }
+        for (ObjetBase prefab : prefabs) {
+            prefab.visible = false; // On cache le rectangle de repère de l'éditeur
+            Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
+            if (sceneLiee != null) {
+                instancierScene(sceneLiee, prefab.x, prefab.y);
+            }
         }
     }
     // -----------------------------------------------------------
@@ -256,6 +282,11 @@ public class VueJeu extends View {
         super.onAttachedToWindow();
         if (this.moteur != null) this.moteur.executerDemarrage();
         if (this.moteurHud != null) this.moteurHud.executerDemarrage();
+        
+        // On déballe les prefabs APRÈS le démarrage global pour éviter de déclencher leurs événements "Start" en double
+        deballerPrefabs(sceneActive); 
+        deballerPrefabs(sceneHudActive);
+        
         postOnAnimation(boucleDeRendu);
     }
 
@@ -297,6 +328,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
+    
   // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
