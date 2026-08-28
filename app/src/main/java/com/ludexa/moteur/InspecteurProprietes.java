@@ -1,4 +1,4 @@
-    // haut 1
+// haut 1
 package com.ludexa.moteur;
 
 import android.app.AlertDialog;
@@ -27,7 +27,6 @@ public class InspecteurProprietes extends LinearLayout {
     private EditText champNom;
     private Button btnValiderNom;
     
-    // NOUVEAUX ELEMENTS POUR LE TAG
     private EditText champTag;
     private Button btnTagsExistants;
 
@@ -58,6 +57,10 @@ public class InspecteurProprietes extends LinearLayout {
 
     private LinearLayout blocJoystick;
     private Button btnCibleJoystick;
+
+    // NOUVEAU : Bloc pour la Scène Liée (Prefab)
+    private LinearLayout blocSceneInstance;
+    private Button btnSelectSceneLiee;
 
     private LinearLayout blocPhysique;
     private CheckBox cbEstPhysique;
@@ -170,7 +173,6 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
-
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -258,7 +260,6 @@ public class InspecteurProprietes extends LinearLayout {
 
         blocProprietes.addView(layoutNom);
 
-        // INTERFACE POUR LE TAG
         TextView labelTag = new TextView(context);
         labelTag.setText(Traducteur.get("insp_label_tag")); 
         styliserLabel(labelTag);
@@ -691,6 +692,24 @@ public class InspecteurProprietes extends LinearLayout {
         });
 
         blocProprietes.addView(blocJoystick);
+
+        // --- NOUVEAU : UI POUR SCENE INSTANCE ---
+        blocSceneInstance = new LinearLayout(context);
+        blocSceneInstance.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocSceneInstance);
+
+        TextView sepSceneLiee = new TextView(context);
+        sepSceneLiee.setText(Traducteur.get("insp_sep_scene_liee"));
+        styliserSousTitre(sepSceneLiee);
+        blocSceneInstance.addView(sepSceneLiee);
+
+        btnSelectSceneLiee = new Button(context);
+        btnSelectSceneLiee.setText(Traducteur.get("insp_btn_select_scene_liee"));
+        styliserBouton(btnSelectSceneLiee);
+        blocSceneInstance.addView(btnSelectSceneLiee);
+        
+        blocProprietes.addView(blocSceneInstance);
+        // ----------------------------------------
         
         blocPhysique = new LinearLayout(context);
         blocPhysique.setOrientation(LinearLayout.VERTICAL);
@@ -814,7 +833,6 @@ public class InspecteurProprietes extends LinearLayout {
 
         btnValiderNom.setOnClickListener(v -> { verifierEtConfirmerRenommage(context); cacherClavier(context, champNom); });
 
-        // LISTENERS POUR LE TAG
         champTag.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 cacherClavier(context, v);
@@ -852,7 +870,32 @@ public class InspecteurProprietes extends LinearLayout {
                     }
                 }).show();
         });
-        // FIN LISTENERS TAG
+
+        // --- NOUVEAU : LISTENER SCENE INSTANCE ---
+        btnSelectSceneLiee.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            List<String> noms = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            noms.add(Traducteur.get("valeur_aucune"));
+            ids.add(null);
+            
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            for (Scene s : editeur.listeScenes) {
+                if (s != editeur.sceneActive) { // Interdire de lier la scène actuelle à elle-même (Inception)
+                    noms.add(s.nom);
+                    ids.add(s.id);
+                }
+            }
+            
+            new AlertDialog.Builder(context)
+                .setTitle(Traducteur.get("insp_sep_scene_liee"))
+                .setItems(noms.toArray(new String[0]), (dialog, which) -> {
+                    objetCourant.sceneLieeId = ids.get(which);
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                }).show();
+        });
+        // -----------------------------------------
 
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
@@ -1188,7 +1231,7 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
-    // haut 5
+// haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
         String nouveauNom = champNom.getText().toString().trim();
@@ -1230,7 +1273,6 @@ public class InspecteurProprietes extends LinearLayout {
 
             champNom.setText(objet.nom);
             
-            // CHARGEMENT DU TAG
             champTag.setText(objet.tag != null ? objet.tag : "");
 
             champX.setText(String.valueOf((int) objet.x));
@@ -1287,6 +1329,7 @@ public class InspecteurProprietes extends LinearLayout {
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
                 blocJoystick.setVisibility(View.GONE);
+                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
                 
                 champContenu.setText(objet.contenuTexte);
                 champTaille.setText(String.valueOf(objet.tailleFonte));
@@ -1296,8 +1339,27 @@ public class InspecteurProprietes extends LinearLayout {
                 } else {
                     btnPolice.setText(Traducteur.get("insp_btn_police_selecteur"));
                 }
+            } else if ("scene_instance".equals(objet.type)) { // NOUVEAU : Gestion spécifique de l'affichage UI Prefab
+                blocTexte.setVisibility(View.GONE);
+                blocImage.setVisibility(View.GONE);
+                blocBouton.setVisibility(View.GONE);
+                blocJoystick.setVisibility(View.GONE);
+                blocSceneInstance.setVisibility(View.VISIBLE);
+                
+                String nomScene = Traducteur.get("valeur_aucune");
+                if (objet.sceneLieeId != null) {
+                    InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+                    for (Scene s : editeur.listeScenes) {
+                        if (s.id.equals(objet.sceneLieeId)) {
+                            nomScene = s.nom != null ? s.nom : Traducteur.get("insp_objet_sans_nom");
+                            break;
+                        }
+                    }
+                }
+                btnSelectSceneLiee.setText(Traducteur.get("insp_btn_scene_liee_val") + nomScene);
             } else {
                 blocTexte.setVisibility(View.GONE);
+                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
                 blocImage.setVisibility(View.VISIBLE);
 
                 if (objet.cheminImage != null) {
@@ -1397,6 +1459,5 @@ public class InspecteurProprietes extends LinearLayout {
 }
 // bas 5
 
-            
-            
-    
+
+

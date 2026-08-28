@@ -86,6 +86,12 @@ public class Traducteur {
         if (cle.equals("noeud_vitesse_anim")) return "Vitesse de l'animation";
         if (cle.equals("noeud_condition_frame")) return "Si l'image actuelle est...";
         
+        // --- NOUVEAUX NOEUDS INSTANCIATION ---
+        if (cle.equals("noeud_instancier_scene")) return "Instancier Scène (Prefab)";
+        if (cle.equals("noeud_fermer_instance")) return "Fermer Instance (Prefab)";
+        if (cle.equals("param_x")) return "Position X";
+        if (cle.equals("param_y")) return "Position Y";
+        
         if (cle.equals("port_entree")) return "Entrée";
         if (cle.equals("port_sortie")) return "Sortie";
         if (cle.equals("port_vrai")) return "Vrai";

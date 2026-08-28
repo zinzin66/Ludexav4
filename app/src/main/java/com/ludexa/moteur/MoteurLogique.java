@@ -5,7 +5,6 @@ import java.util.List;
 
 public class MoteurLogique {
     
-    // NOUVEAU : Mémoire contextuelle
     public static ObjetBase dernierObjetImplique = null;
     
     private Blueprint blueprintActif;
@@ -13,10 +12,32 @@ public class MoteurLogique {
     public MoteurLogique(Blueprint blueprint) {
         this.blueprintActif = blueprint;
     }
+    
+    // NOUVEAU : Méthodes pour injecter et nettoyer la logique des Prefabs dynamiquement
+    public void ajouterNoeudAuBlueprintActif(NoeudBase noeud) {
+        if (blueprintActif != null && blueprintActif.noeuds != null) {
+            blueprintActif.noeuds.add(noeud);
+        }
+    }
+    
+    public void nettoyerNoeudsParTag(String tag) {
+        if (blueprintActif == null || blueprintActif.noeuds == null || tag == null) return;
+        java.util.Iterator<NoeudBase> it = blueprintActif.noeuds.iterator();
+        while (it.hasNext()) {
+            NoeudBase n = it.next();
+            if (n.categorie != null && n.categorie.contains(tag)) {
+                it.remove();
+            }
+        }
+    }
+    // --------------------------------------------------------------------------------
 
     public void executerDemarrage() {
         if (blueprintActif == null || blueprintActif.noeuds == null) return;
-        for (NoeudBase noeud : blueprintActif.noeuds) {
+        // Pour éviter un crash de modification concurrente (ConcurrentModificationException)
+        // si un "NoeudEventStart" déclenche une instanciation qui ajoute des nœuds :
+        java.util.List<NoeudBase> copieNoeuds = new java.util.ArrayList<>(blueprintActif.noeuds);
+        for (NoeudBase noeud : copieNoeuds) {
             if (noeud instanceof NoeudEventStart) {
                 noeud.executer();
             }
@@ -25,7 +46,8 @@ public class MoteurLogique {
 
     public void executerEvenement(Class<? extends NoeudBase> typeEvenement) {
         if (blueprintActif == null || blueprintActif.noeuds == null) return;
-        for (NoeudBase noeud : blueprintActif.noeuds) {
+        java.util.List<NoeudBase> copieNoeuds = new java.util.ArrayList<>(blueprintActif.noeuds);
+        for (NoeudBase noeud : copieNoeuds) {
             if (typeEvenement.isInstance(noeud)) {
                 noeud.executer();
             }
@@ -34,7 +56,8 @@ public class MoteurLogique {
 
     public void executerEvenementSurObjet(Class<? extends NoeudBase> typeEvenement, ObjetBase objetTouche) {
         if (blueprintActif == null || blueprintActif.noeuds == null || objetTouche == null) return;
-        for (NoeudBase noeud : blueprintActif.noeuds) {
+        java.util.List<NoeudBase> copieNoeuds = new java.util.ArrayList<>(blueprintActif.noeuds);
+        for (NoeudBase noeud : copieNoeuds) {
             if (typeEvenement.isInstance(noeud) && noeud.requiertCibleObjet()) {
                 ObjetBase cible = noeud.getCibleObjet();
                 if (cible != null && cible.id.equals(objetTouche.id)) {
@@ -47,7 +70,8 @@ public class MoteurLogique {
     public void verifierCollisions(VueJeu vueJeu, List<ObjetBase> objetsContexte) {
         if (blueprintActif == null || blueprintActif.noeuds == null || objetsContexte == null) return;
         
-        for (NoeudBase noeud : blueprintActif.noeuds) {
+        java.util.List<NoeudBase> copieNoeuds = new java.util.ArrayList<>(blueprintActif.noeuds);
+        for (NoeudBase noeud : copieNoeuds) {
             if (noeud instanceof NoeudEventCollisionAB) {
                 NoeudEventCollisionAB noeudCol = (NoeudEventCollisionAB) noeud;
                 ObjetBase objA = noeudCol.getCibleObjet();
@@ -79,7 +103,6 @@ public class MoteurLogique {
                     }
                 }
             } 
-            // GESTION DE LA COLLISION PAR TAG
             else if (noeud instanceof NoeudEventCollisionTag) {
                 NoeudEventCollisionTag noeudTag = (NoeudEventCollisionTag) noeud;
                 ObjetBase objA = noeudTag.getCibleObjet();
@@ -101,10 +124,7 @@ public class MoteurLogique {
 
                     if (enCollision && !noeudTag.isEtaitEnCollision()) {
                         noeudTag.setEtaitEnCollision(true);
-                        
-                        // NOUVEAU : Sauvegarde de l'objet touché avant exécution
                         MoteurLogique.dernierObjetImplique = objetCloneTouche;
-                        
                         noeudTag.executer();
                     } else if (!enCollision && noeudTag.isEtaitEnCollision()) {
                         noeudTag.setEtaitEnCollision(false);
@@ -117,7 +137,8 @@ public class MoteurLogique {
     public void verifierVariablesChangees() {
         if (blueprintActif == null || blueprintActif.noeuds == null) return;
         
-        for (NoeudBase noeud : blueprintActif.noeuds) {
+        java.util.List<NoeudBase> copieNoeuds = new java.util.ArrayList<>(blueprintActif.noeuds);
+        for (NoeudBase noeud : copieNoeuds) {
             if (noeud instanceof NoeudEventVariableChange) {
                 ((NoeudEventVariableChange) noeud).verifierEtDeclencher();
             }
@@ -125,3 +146,4 @@ public class MoteurLogique {
     }
 }
 // bas 1
+                        

@@ -468,7 +468,16 @@
   "noeud_reprendre_anim": "アニメーションを再開",
   "noeud_vitesse_anim": "アニメーション速度",
   "noeud_condition_frame": "現在のフレームが...の場合",
-  "noeud_force_angle": "力を加える (角度)"
+  "noeud_force_angle": "力を加える (角度)",
+    "noeud_instancier_scene": "シーンのインスタンス化 (Prefab)",
+  "noeud_fermer_instance": "インスタンスを閉じる (Prefab)",
+  "param_x": "X 座標",
+  "param_y": "Y 座標",
+  "insp_sep_scene_liee": "リンクされたシーン (Prefab)",
+  "insp_btn_select_scene_liee": "シーンを選択...",
+  "insp_btn_scene_liee_val": "シーン: ",
+  "canvas_label_scene": "[ シーン ]"
+  
 }
 
 
