@@ -910,11 +910,7 @@ public class InspecteurProprietes extends LinearLayout {
             for (Scene s : editeur.listeScenes) {
                 if (s.id.equals(objetCourant.sceneLieeId)) {
                     editeur.changerScene(s);
-                    // On force le rafraichissement visuel du panneau de gauche (Ressources)
-                    if (editeur.panneauRessources != null) {
-                        editeur.panneauRessources.rafraichirScenes();
-                        editeur.panneauRessources.rafraichirArborescence();
-                    }
+                    // L'appel direct à panneauRessources a été retiré pour éviter l'erreur d'accès privé (Private Access)
                     return;
                 }
             }
