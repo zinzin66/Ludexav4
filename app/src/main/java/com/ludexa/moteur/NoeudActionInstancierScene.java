@@ -1,14 +1,12 @@
 // haut 1
 package com.ludexa.moteur;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NoeudActionInstancierScene extends NoeudBase {
 
     private Scene sceneCible;
-    private String paramX = "0";
-    private String paramY = "0";
 
     public NoeudActionInstancierScene() {
         super(genererId(), "noeud_instancier_scene", "cat_scene_hud");
@@ -32,26 +30,27 @@ public class NoeudActionInstancierScene extends NoeudBase {
     }
 
     @Override
+    public boolean requiertCibleObjet() {
+        return true; // Active automatiquement le sélecteur d'objet dans l'éditeur
+    }
+
+    @Override
     public boolean aDesParametresEditables() {
-        return true;
+        return false; // Les paramètres X et Y manuels sont supprimés
     }
 
     @Override
     public List<String> getNomsParametres() {
-        return Arrays.asList("param_x", "param_y");
+        return new ArrayList<>();
     }
 
     @Override
     public String getValeurParametre(String nom) {
-        if ("param_x".equals(nom)) return paramX;
-        if ("param_y".equals(nom)) return paramY;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        if ("param_x".equals(nom)) paramX = valeur;
-        if ("param_y".equals(nom)) paramY = valeur;
     }
     
     @Override
@@ -64,8 +63,18 @@ public class NoeudActionInstancierScene extends NoeudBase {
         if (sceneCible != null) {
             float xVal = 0f;
             float yVal = 0f;
-            try { xVal = Float.parseFloat(paramX); } catch (Exception e) {}
-            try { yVal = Float.parseFloat(paramY); } catch (Exception e) {}
+            
+            // Résolution dynamique de la cible
+            ObjetBase cible = getCibleObjet();
+            if (cible == null && "__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
+                cible = MoteurLogique.dernierObjetImplique;
+            }
+            
+            // Récupération des coordonnées en temps réel
+            if (cible != null) {
+                xVal = cible.x;
+                yVal = cible.y;
+            }
 
             if (contexteApplication instanceof InterfaceEditeur) {
                 ((InterfaceEditeur) contexteApplication).getVueJeu().instancierScene(sceneCible, xVal, yVal);
