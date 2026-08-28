@@ -477,7 +477,10 @@
   "canvas_label_scene": "[ SCÈNE ]",
     "obj_prefix_prefab": "Prefab",
   "titre_select_scene_liee": "Sélectionner une scène à lier",
-  "erreur_aucune_autre_scene": "Aucune autre scène disponible."
+  "erreur_aucune_autre_scene": "Aucune autre scène disponible.",
+    "insp_btn_editer_scene_liee": "Éditer la scène source ➔",
+  "insp_erreur_scene_introuvable": "Erreur : Scène introuvable"
+  
   
   
   
