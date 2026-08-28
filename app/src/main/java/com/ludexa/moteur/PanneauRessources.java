@@ -424,7 +424,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-// haut 4 : SECTION OBJETS (Ajout avec icônes explicites et intégration du bouton Prefab)
+  // haut 4 : SECTION OBJETS (Ajout avec icônes explicites et intégration du bouton Prefab)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -607,7 +607,6 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
-        // --- NOUVEAU BOUTON : AJOUTER UN PREFAB (SCENE_INSTANCE) ---
         ImageButton btnAjouterPrefab = new ImageButton(context);
         btnAjouterPrefab.setImageResource(R.drawable.display_add_24px);
         styliserBoutonIcone(btnAjouterPrefab);
@@ -649,7 +648,7 @@ public class PanneauRessources extends LinearLayout {
                     String nomUnique = genererNomUnique(Traducteur.get("obj_prefix_prefab"), editeur.sceneActive);
                     ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 150f, 150f);
                     nouveau.type = "scene_instance";
-                    nouveau.sceneLieeId = s.nom; 
+                    nouveau.sceneLieeId = s.id; // <-- CORRECTION ICI : s.id au lieu de s.nom
                     nouveau.afficherFondColore = true;
                     nouveau.couleur = Color.argb(120, 100, 150, 255); 
                     nouveau.zOrder = editeur.sceneActive.prochainZOrder();
@@ -692,7 +691,7 @@ public class PanneauRessources extends LinearLayout {
 
         ligne4.addView(btnAjouterJoystick);
         ligne4.addView(btnAjouterBtnAction);
-        ligne4.addView(btnAjouterPrefab); // L'espace vide a été remplacé par le bouton Prefab
+        ligne4.addView(btnAjouterPrefab); 
 
         contenu.addView(ligne1);
         contenu.addView(ligne2);
@@ -714,6 +713,8 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
+                                    
+     
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
