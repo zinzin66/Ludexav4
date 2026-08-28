@@ -474,7 +474,11 @@
     "insp_sep_scene_liee": "Linked Scene (Prefab)",
   "insp_btn_select_scene_liee": "Select a scene...",
   "insp_btn_scene_liee_val": "Scene: ",
-  "canvas_label_scene": "[ SCENE ]"
+  "canvas_label_scene": "[ SCENE ]",
+    "obj_prefix_prefab": "Prefab",
+  "titre_select_scene_liee": "Select a scene to link",
+  "erreur_aucune_autre_scene": "No other scene available."
+  
   
   
   
