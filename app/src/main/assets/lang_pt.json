@@ -477,7 +477,10 @@
   "canvas_label_scene": "[ CENA ]",
     "obj_prefix_prefab": "Prefab",
   "titre_select_scene_liee": "Selecionar uma cena para vincular",
-  "erreur_aucune_autre_scene": "Nenhuma outra cena disponível."
+  "erreur_aucune_autre_scene": "Nenhuma outra cena disponível.",
+    "insp_btn_editer_scene_liee": "Editar cena de origem ➔",
+  "insp_erreur_scene_introuvable": "Erro: Cena não encontrada"
+  
   
   
   
