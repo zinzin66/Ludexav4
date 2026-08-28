@@ -61,10 +61,17 @@ public class NoeudActionInstancierScene extends NoeudBase {
 
     @Override
     public void executer() {
-        if (contexteApplication instanceof InterfaceEditeur) {
-            // L'instanciation de la scène sera implémentée ici
-        } else if (contexteApplication instanceof RunnerActivity) {
-            // L'instanciation de la scène sera implémentée ici
+        if (sceneCible != null) {
+            float xVal = 0f;
+            float yVal = 0f;
+            try { xVal = Float.parseFloat(paramX); } catch (Exception e) {}
+            try { yVal = Float.parseFloat(paramY); } catch (Exception e) {}
+
+            if (contexteApplication instanceof InterfaceEditeur) {
+                ((InterfaceEditeur) contexteApplication).getVueJeu().instancierScene(sceneCible, xVal, yVal);
+            } else if (contexteApplication instanceof RunnerActivity) {
+                ((RunnerActivity) contexteApplication).getVueJeu().instancierScene(sceneCible, xVal, yVal);
+            }
         }
         propagerExecution("Sortie");
     }
