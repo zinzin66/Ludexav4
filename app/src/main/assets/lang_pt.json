@@ -470,7 +470,12 @@
     "noeud_instancier_scene": "Instanciar Cena (Prefab)",
   "noeud_fermer_instance": "Fechar Instância (Prefab)",
   "param_x": "Posição X",
-  "param_y": "Posição Y"
+  "param_y": "Posição Y",
+    "insp_sep_scene_liee": "Cena Vinculada (Prefab)",
+  "insp_btn_select_scene_liee": "Selecionar uma cena...",
+  "insp_btn_scene_liee_val": "Cena: ",
+  "canvas_label_scene": "[ CENA ]"
+  
   
   
 
