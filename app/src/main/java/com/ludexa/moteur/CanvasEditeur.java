@@ -310,7 +310,6 @@ public class CanvasEditeur extends View {
             for (ObjetBase objet : objetsTries) {
                 if (!estVisibleEffectif(objet)) continue; 
 
-                // --- GESTION DE LA TRANSPARENCE (ALPHA) CORRIGÉE ---
                 int alphaVal = (int) (objet.alpha * 255);
                 if (alphaVal < 0) alphaVal = 0;
                 if (alphaVal > 255) alphaVal = 255;
@@ -331,14 +330,14 @@ public class CanvasEditeur extends View {
                 if ("rond".equals(objet.type)) {
                     if (objet.afficherFondColore || cheminAAfficher == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                        paintObjet.setAlpha(alphaVal); // Remettre l'alpha après avoir changé la couleur
+                        paintObjet.setAlpha(alphaVal);
                         float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
                         canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
                     }
                     dessinerImage(canvas, objet, cheminAAfficher);
                 } else if ("texte".equals(objet.type)) {
                     paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                    paintTexte.setAlpha(alphaVal); // Remettre l'alpha après avoir changé la couleur
+                    paintTexte.setAlpha(alphaVal);
                     String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
                     
                     if (objet.cheminPolice != null && cheminProjet != null) {
@@ -399,6 +398,22 @@ public class CanvasEditeur extends View {
                         canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
                     }
                     dessinerImage(canvas, objet, cheminAAfficher);
+                } else if ("scene_instance".equals(objet.type)) {
+                    // NOUVEAU : Dessin spécifique pour un Prefab (Scène Imbriquée)
+                    paintObjet.setColor(Color.argb(120, 50, 150, 255)); // Bleu clair semi-transparent
+                    paintObjet.setAlpha((int) (0.5f * alphaVal)); 
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    
+                    paintSelection.setStrokeWidth(2f);
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintSelection);
+                    
+                    paintTexte.setColor(Color.WHITE);
+                    paintTexte.setAlpha(alphaVal);
+                    paintTexte.setTextSize(objet.largeur > 80 ? 14f : 10f);
+                    paintTexte.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+                    String label = "[ SCÈNE ]";
+                    float textWidth = paintTexte.measureText(label);
+                    canvas.drawText(label, (objet.largeur - textWidth) / 2f, objet.hauteur / 2f + 5f, paintTexte);
                 } else {
                     if (objet.afficherFondColore || cheminAAfficher == null) {
                         paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
@@ -425,10 +440,8 @@ public class CanvasEditeur extends View {
                     float objHauteur = getHauteurReelle(objet);
                     float b = objHauteur + 4f / scaleFactorY;
                     
-                    // On dessine TOUJOURS le cadre
                     canvas.drawRect(l, t, r, b, paintSelection);
                     
-                    // On ne dessine les poignées QUE si on n'est PAS en mode déplacement
                     if (!isModeDeplacementObjet) {
                         float hsX = 12f / scaleFactorX;
                         float hsY = 12f / scaleFactorY;
@@ -519,7 +532,7 @@ public class CanvasEditeur extends View {
         return null;
     }
 // bas 2
-// haut 3
+    // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
         float sx = scenePos[0], sy = scenePos[1];
@@ -541,7 +554,6 @@ public class CanvasEditeur extends View {
             float rotY = -50f / scaleY;
             float objHauteur = getHauteurReelle(objetSelectionne);
 
-            // NOUVEAU : Si on n'est PAS en mode déplacement, on vérifie les poignées
             if (!isModeDeplacementObjet) {
                 if (Math.hypot(lx - midX, ly - rotY) < hitAvg) return 8; 
                 
@@ -551,7 +563,6 @@ public class CanvasEditeur extends View {
                 if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly - objHauteur) < hitY) return 7; 
             }
             
-            // Si on touche le corps de l'objet, c'est le déplacement
             if (lx >= 0 && lx <= objetSelectionne.largeur && ly >= 0 && ly <= objHauteur) return 2; 
         }
         
@@ -704,27 +715,22 @@ public class CanvasEditeur extends View {
         }
     }
 
-    // NOUVELLE FONCTION POUR SAUVEGARDER LA VIGNETTE DU PROJET
     public void sauvegarderVignette(String cheminVignette) {
         try {
             int w = getWidth();
             int h = getHeight();
-            if (w <= 0 || h <= 0) return; // Sécurité si la vue n'est pas encore prête
+            if (w <= 0 || h <= 0) return; 
 
             android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888);
             android.graphics.Canvas tempCanvas = new android.graphics.Canvas(bitmap);
 
-            // Masquer la sélection temporairement pour une capture d'écran propre
             ObjetBase selectionMemoire = this.objetSelectionne;
             this.objetSelectionne = null;
             
-            // Dessiner l'état actuel sur le canvas temporaire
             this.draw(tempCanvas);
             
-            // Restaurer la sélection
             this.objetSelectionne = selectionMemoire;
 
-            // Redimensionner (max 300px) pour éviter un fichier lourd
             float maxSize = 300f;
             float scale = Math.min(maxSize / w, maxSize / h);
             int newW = Math.max(1, Math.round(w * scale));
@@ -732,35 +738,18 @@ public class CanvasEditeur extends View {
             
             android.graphics.Bitmap vignette = android.graphics.Bitmap.createScaledBitmap(bitmap, newW, newH, true);
 
-            // Sauvegarder en PNG sur le disque
             java.io.File file = new java.io.File(cheminVignette);
             java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
             vignette.compress(android.graphics.Bitmap.CompressFormat.PNG, 90, fos);
             fos.flush();
             fos.close();
 
-            // Nettoyage de la mémoire (indispensable pour les Bitmaps sur Android)
             bitmap.recycle();
             vignette.recycle();
             
         } catch (Exception e) {
             e.printStackTrace();
-            // Le catch attrape tout silencieusement pour garantir que le moteur ne crashera pas
         }
     }
 }
 // bas 3
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
