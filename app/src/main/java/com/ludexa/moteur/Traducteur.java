@@ -100,6 +100,11 @@ public class Traducteur {
         if (cle.equals("cat_animations")) return "Animations";
         if (cle.equals("cat_physique")) return "Physique";
 
+        // --- PREFABS & SCENES IMBRIQUEES ---
+        if (cle.equals("obj_prefix_prefab")) return "Prefab";
+        if (cle.equals("titre_select_scene_liee")) return "Sélectionner une scène à lier";
+        if (cle.equals("erreur_aucune_autre_scene")) return "Aucune autre scène disponible.";
+
         return "[" + cle + "]";
     }
 
