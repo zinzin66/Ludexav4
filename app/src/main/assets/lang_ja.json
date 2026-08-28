@@ -476,7 +476,11 @@
   "insp_sep_scene_liee": "リンクされたシーン (Prefab)",
   "insp_btn_select_scene_liee": "シーンを選択...",
   "insp_btn_scene_liee_val": "シーン: ",
-  "canvas_label_scene": "[ シーン ]"
+  "canvas_label_scene": "[ シーン ]",
+    "obj_prefix_prefab": "プレハブ",
+  "titre_select_scene_liee": "リンクするシーンを選択",
+  "erreur_aucune_autre_scene": "他に利用可能なシーンがありません。"
+  
   
 }
 
