@@ -815,8 +815,447 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
+// haut 4
+        boutonMasquer.setOnClickListener(v -> {
+            if (scrollInspecteur.getVisibility() == View.VISIBLE) {
+                scrollInspecteur.setVisibility(View.GONE);
+                titreInspecteur.setVisibility(View.GONE);
+                boutonMasquer.setText("<");
+                this.setLayoutParams(paramsFerme);
+            } else {
+                scrollInspecteur.setVisibility(View.VISIBLE);
+                titreInspecteur.setVisibility(View.VISIBLE);
+                boutonMasquer.setText(">");
+                this.setLayoutParams(paramsOuvert);
+            }
+        });
 
+        champNom.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                verifierEtConfirmerRenommage(context);
+                cacherClavier(context, v);
+                return true;
+            }
+            return false;
+        });
 
+        btnValiderNom.setOnClickListener(v -> { verifierEtConfirmerRenommage(context); cacherClavier(context, champNom); });
+
+        champTag.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                cacherClavier(context, v);
+                return true;
+            }
+            return false;
+        });
+
+        champTag.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                objetCourant.tag = texte.trim();
+            }
+        }));
+
+        btnTagsExistants.setOnClickListener(v -> {
+            if (sceneActive == null || sceneActive.objets == null) return;
+            List<String> tagsUniques = new ArrayList<>();
+            for (ObjetBase o : sceneActive.objets) {
+                if (o.tag != null && !o.tag.trim().isEmpty() && !tagsUniques.contains(o.tag.trim())) {
+                    tagsUniques.add(o.tag.trim());
+                }
+            }
+            if (tagsUniques.isEmpty()) {
+                Toast.makeText(context, Traducteur.get("insp_toast_aucun_tag"), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            new AlertDialog.Builder(context)
+                .setTitle(Traducteur.get("insp_titre_choisir_tag"))
+                .setItems(tagsUniques.toArray(new String[0]), (dialog, which) -> {
+                    if (objetCourant != null) {
+                        miseAJourEnCours = true;
+                        champTag.setText(tagsUniques.get(which));
+                        objetCourant.tag = tagsUniques.get(which);
+                        miseAJourEnCours = false;
+                    }
+                }).show();
+        });
+
+        // --- NOUVEAU : LISTENER SCENE INSTANCE ---
+        btnSelectSceneLiee.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            List<String> noms = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            noms.add(Traducteur.get("valeur_aucune"));
+            ids.add(null);
+            
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            for (Scene s : editeur.listeScenes) {
+                if (s != editeur.sceneActive) { 
+                    noms.add(s.nom);
+                    ids.add(s.id);
+                }
+            }
+            
+            new AlertDialog.Builder(context)
+                .setTitle(Traducteur.get("insp_sep_scene_liee"))
+                .setItems(noms.toArray(new String[0]), (dialog, which) -> {
+                    objetCourant.sceneLieeId = ids.get(which);
+                    canvasEditeur.invalidate();
+                    afficherObjet(objetCourant);
+                }).show();
+        });
+
+        btnEditerSceneLiee.setOnClickListener(v -> {
+            if (objetCourant == null || objetCourant.sceneLieeId == null) return;
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            for (Scene s : editeur.listeScenes) {
+                if (s.id.equals(objetCourant.sceneLieeId)) {
+                    editeur.changerScene(s);
+                    // On force le rafraichissement visuel du panneau de gauche (Ressources)
+                    if (editeur.panneauRessources != null) {
+                        editeur.panneauRessources.rafraichirScenes();
+                        editeur.panneauRessources.rafraichirArborescence();
+                    }
+                    return;
+                }
+            }
+            Toast.makeText(context, Traducteur.get("insp_erreur_scene_introuvable"), Toast.LENGTH_SHORT).show();
+        });
+        // -----------------------------------------
+
+        btnChargerImage.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            if (cheminProjet == null) { Toast.makeText(context, Traducteur.get("erreur_chemin_projet"), Toast.LENGTH_SHORT).show(); return; }
+            java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
+            List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
+            if (images.isEmpty()) { Toast.makeText(context, Traducteur.get("insp_aucune_image"), Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_select_image")).setItems(images.toArray(new String[0]), (dialog, which) -> {
+                objetCourant.cheminImage = images.get(which);
+                canvasEditeur.invalidate();
+                afficherObjet(objetCourant);
+            }).show();
+        });
+
+        btnSupprimerImage.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.cheminImage = null;
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        btnChargerImagePresse.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            if (cheminProjet == null) return;
+            java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
+            List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
+            if (images.isEmpty()) { Toast.makeText(context, Traducteur.get("insp_aucune_image"), Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_image_presse")).setItems(images.toArray(new String[0]), (dialog, which) -> {
+                objetCourant.cheminImagePresse = images.get(which);
+                canvasEditeur.invalidate();
+                afficherObjet(objetCourant);
+            }).show();
+        });
+
+        btnSupprimerImagePresse.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.cheminImagePresse = null;
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        btnChargerImageDesactive.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            if (cheminProjet == null) return;
+            java.io.File dossierImages = new java.io.File(cheminProjet, "assets_ludexa/Images");
+            List<String> images = listerImagesLocales(dossierImages, "assets_ludexa/Images/");
+            if (images.isEmpty()) { Toast.makeText(context, Traducteur.get("insp_aucune_image"), Toast.LENGTH_SHORT).show(); return; }
+            new AlertDialog.Builder(context).setTitle(Traducteur.get("insp_titre_image_desac")).setItems(images.toArray(new String[0]), (dialog, which) -> {
+                objetCourant.cheminImageDesactive = images.get(which);
+                canvasEditeur.invalidate();
+                afficherObjet(objetCourant);
+            }).show();
+        });
+
+        btnSupprimerImageDesactive.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.cheminImageDesactive = null;
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        cbFondColore.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.afficherFondColore = isChecked; canvasEditeur.invalidate(); }
+        });
+        
+        cbEstPhysique.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { 
+                objetCourant.estPhysique = isChecked; 
+                canvasEditeur.invalidate(); 
+                afficherObjet(objetCourant); 
+            }
+        });
+
+        btnTogglePhysique.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            objetCourant.estStatique = !objetCourant.estStatique;
+            if (!objetCourant.estStatique) {
+                objetCourant.estPhysique = true;
+            }
+            canvasEditeur.invalidate();
+            afficherObjet(objetCourant);
+        });
+
+        champRebond.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { 
+                try { 
+                    objetCourant.rebond = Float.parseFloat(texte); 
+                } catch (NumberFormatException ignored) {} 
+            }
+        }));
+
+        champGravite.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try {
+                    objetCourant.graviteScale = Float.parseFloat(texte);
+                } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        cbRamassable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) objetCourant.estRamassable = isChecked;
+        });
+        cbZoneDeClic.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) objetCourant.estZoneDeClic = isChecked;
+        });
+        cbDeplacable.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) objetCourant.estDeplacable = isChecked;
+        });
+        cbVerrouille.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.estVerrouille = isChecked; canvasEditeur.invalidate(); }
+        });
+        cbDesactive.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.estDesactive = isChecked; canvasEditeur.invalidate(); }
+        });
+
+        champX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.x = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+        champY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.y = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+        champLargeur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.largeur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+        champHauteur.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.hauteur = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+
+        champScaleX.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.scaleX = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+        champScaleY.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.scaleY = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+
+        champParallaxe.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { 
+                try { 
+                    objetCourant.facteurParallaxe = Float.parseFloat(texte); 
+                    canvasEditeur.invalidate(); 
+                } catch (NumberFormatException ignored) {} 
+            }
+        }));
+
+        champAlpha.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) {
+                try {
+                    String valeurSaisie = texte.replace(",", "."); 
+                    if (valeurSaisie.trim().isEmpty() || valeurSaisie.equals(".")) return;
+                    
+                    float val = Float.parseFloat(valeurSaisie);
+                    if (val < 0.0f) val = 0.0f;
+                    if (val > 1.0f) val = 1.0f;
+                    objetCourant.alpha = val;
+                    canvasEditeur.invalidate();
+                } catch (NumberFormatException ignored) {}
+            }
+        }));
+
+        champRotation.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.rotation = Float.parseFloat(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+        champZOrder.addTextChangedListener(creerWatcherSimple(texte -> {
+            if (objetCourant != null) { try { objetCourant.zOrder = Integer.parseInt(texte); canvasEditeur.invalidate(); } catch (NumberFormatException ignored) {} }
+        }));
+
+        cbVisible.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (objetCourant != null && !miseAJourEnCours) { objetCourant.visible = isChecked; canvasEditeur.invalidate(); }
+        });
+
+        View.OnClickListener selecteurCouleurListener = v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(Traducteur.get("insp_titre_select_couleur"));
+
+            LinearLayout layoutMain = new LinearLayout(context);
+            layoutMain.setOrientation(LinearLayout.VERTICAL);
+            layoutMain.setPadding(dp(16), dp(16), dp(16), dp(16));
+
+            LinearLayout layoutTop = new LinearLayout(context);
+            layoutTop.setOrientation(LinearLayout.HORIZONTAL);
+            layoutTop.setGravity(Gravity.CENTER_VERTICAL);
+
+            View previewColor = new View(context);
+            LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(44), dp(44));
+            previewParams.setMargins(0, 0, dp(12), 0);
+            previewColor.setLayoutParams(previewParams);
+            
+            final float[] currentHsv = new float[3];
+            Color.colorToHSV(objetCourant.couleur, currentHsv);
+            
+            android.graphics.drawable.GradientDrawable fondPreview = new android.graphics.drawable.GradientDrawable();
+            fondPreview.setColor(objetCourant.couleur);
+            fondPreview.setCornerRadius(dp(8));
+            fondPreview.setStroke(dp(1), Palette.bordure);
+            previewColor.setBackground(fondPreview);
+
+            EditText champHex = new EditText(context);
+            champHex.setSingleLine(true);
+            champHex.setText(String.format("#%06X", (0xFFFFFF & objetCourant.couleur)));
+            styliserChampFlexible(champHex);
+            champHex.setFilters(new android.text.InputFilter[] { new android.text.InputFilter.LengthFilter(7) });
+
+            layoutTop.addView(previewColor);
+            layoutTop.addView(champHex);
+            layoutMain.addView(layoutTop);
+
+            final boolean[] isUpdating = {false};
+
+            View spectreView = new View(context) {
+                private android.graphics.Paint paintHue = new android.graphics.Paint();
+                private android.graphics.Paint paintVal = new android.graphics.Paint();
+                private android.graphics.Paint indicatorPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+
+                @Override
+                protected void onDraw(android.graphics.Canvas canvas) {
+                    int[] hueColors = {Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED};
+                    paintHue.setShader(new android.graphics.LinearGradient(0, 0, getWidth(), 0, hueColors, null, android.graphics.Shader.TileMode.CLAMP));
+                    canvas.drawRect(0, 0, getWidth(), getHeight(), paintHue);
+
+                    paintVal.setShader(new android.graphics.LinearGradient(0, 0, 0, getHeight(), Color.TRANSPARENT, Color.BLACK, android.graphics.Shader.TileMode.CLAMP));
+                    canvas.drawRect(0, 0, getWidth(), getHeight(), paintVal);
+
+                    indicatorPaint.setColor(Color.WHITE);
+                    indicatorPaint.setStyle(android.graphics.Paint.Style.STROKE);
+                    indicatorPaint.setStrokeWidth(dp(2));
+                    
+                    float x = (currentHsv[0] / 360f) * getWidth();
+                    float y = (1f - currentHsv[2]) * getHeight();
+                    
+                    canvas.drawCircle(x, y, dp(10), indicatorPaint);
+                    indicatorPaint.setColor(Color.BLACK);
+                    canvas.drawCircle(x, y, dp(11), indicatorPaint);
+                }
+
+                @Override
+                public boolean onTouchEvent(android.view.MotionEvent event) {
+                    if (event.getAction() == android.view.MotionEvent.ACTION_DOWN || event.getAction() == android.view.MotionEvent.ACTION_MOVE) {
+                        float x = Math.max(0, Math.min(event.getX(), getWidth()));
+                        float y = Math.max(0, Math.min(event.getY(), getHeight()));
+                        
+                        currentHsv[0] = (x / getWidth()) * 360f;
+                        currentHsv[1] = 1f; 
+                        currentHsv[2] = 1f - (y / getHeight());
+                        
+                        int newColor = Color.HSVToColor(currentHsv);
+                        
+                        isUpdating[0] = true;
+                        champHex.setText(String.format("#%06X", (0xFFFFFF & newColor)));
+                        isUpdating[0] = false;
+                        
+                        ((android.graphics.drawable.GradientDrawable)previewColor.getBackground()).setColor(newColor);
+                        invalidate();
+                        return true;
+                    }
+                    return super.onTouchEvent(event);
+                }
+            };
+            
+            LinearLayout.LayoutParams spectreParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(160));
+            spectreParams.setMargins(0, dp(16), 0, dp(16));
+            spectreView.setLayoutParams(spectreParams);
+            layoutMain.addView(spectreView);
+
+            champHex.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override public void afterTextChanged(android.text.Editable s) {
+                    if (isUpdating[0]) return;
+                    try {
+                        String hexStr = s.toString();
+                        if (!hexStr.startsWith("#")) hexStr = "#" + hexStr;
+                        if (hexStr.length() == 7) {
+                            int parsedColor = Color.parseColor(hexStr);
+                            Color.colorToHSV(parsedColor, currentHsv);
+                            ((android.graphics.drawable.GradientDrawable)previewColor.getBackground()).setColor(parsedColor);
+                            spectreView.invalidate();
+                        }
+                    } catch (IllegalArgumentException ignored) {}
+                }
+            });
+
+            HorizontalScrollView scrollPalette = new HorizontalScrollView(context);
+            scrollPalette.setHorizontalScrollBarEnabled(false);
+            LinearLayout layoutPalette = new LinearLayout(context);
+            layoutPalette.setOrientation(LinearLayout.HORIZONTAL);
+            
+           int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
+            for (int c : couleursRapides) {
+                View pastille = new View(context);
+                LinearLayout.LayoutParams pastilleParams = new LinearLayout.LayoutParams(dp(40), dp(40));
+                pastilleParams.setMargins(0, 0, dp(12), 0);
+                pastille.setLayoutParams(pastilleParams);
+                
+                android.graphics.drawable.GradientDrawable bgPastille = new android.graphics.drawable.GradientDrawable();
+                bgPastille.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                bgPastille.setColor(c);
+                bgPastille.setStroke(dp(1), Palette.bordure);
+                pastille.setBackground(bgPastille);
+                
+                pastille.setOnClickListener(vp -> {
+                    Color.colorToHSV(c, currentHsv);
+                    isUpdating[0] = true;
+                    champHex.setText(String.format("#%06X", (0xFFFFFF & c)));
+                    isUpdating[0] = false;
+                    ((android.graphics.drawable.GradientDrawable)previewColor.getBackground()).setColor(c);
+                    spectreView.invalidate();
+                });
+                layoutPalette.addView(pastille);
+            }
+            scrollPalette.addView(layoutPalette);
+            layoutMain.addView(scrollPalette);
+
+            builder.setView(layoutMain);
+            builder.setPositiveButton(Traducteur.get("bouton_valider"), (dialog, which) -> {
+                try {
+                    String finalHex = champHex.getText().toString();
+                    if (!finalHex.startsWith("#")) finalHex = "#" + finalHex;
+                    objetCourant.couleur = Color.parseColor(finalHex);
+                    canvasEditeur.invalidate();
+                } catch (Exception e) {}
+            });
+            builder.setNegativeButton(Traducteur.get("bouton_annuler"), null);
+            builder.show();
+        };
+
+        btnCouleur.setOnClickListener(selecteurCouleurListener);
+        btnCouleurTexte.setOnClickListener(selecteurCouleurListener);
+    }
+
+    private void cacherClavier(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+// bas 4
 // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
