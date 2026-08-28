@@ -33,6 +33,9 @@ public class ObjetBase {
     
     public String cibleJoystickId = null;
     
+    // NOUVEAU : Stocke l'ID de la scène à instancier (Prefab)
+    public String sceneLieeId = null;
+    
     public String filtreCouleur = "Aucun";
     
     public boolean clignotementActif = false;
@@ -89,7 +92,6 @@ public class ObjetBase {
     public long sautillementDureeMs = 0;
     public long tempsDebutSautillement = 0;
     
-    // NOUVEAU : Variables pour traquer le mouvement
     public boolean sautillementInfiniMouvement = false;
     public transient float ancienneX = 0f;
     public transient float ancienneY = 0f;
@@ -130,6 +132,7 @@ public class ObjetBase {
         copie.cheminImageDesactive = this.cheminImageDesactive;
         copie.estDesactive = this.estDesactive;
         copie.cibleJoystickId = this.cibleJoystickId;
+        copie.sceneLieeId = this.sceneLieeId; // NOUVEAU : Duplication de la référence de scène
         
         copie.filtreCouleur = this.filtreCouleur;
         copie.clignotementActif = this.clignotementActif;
