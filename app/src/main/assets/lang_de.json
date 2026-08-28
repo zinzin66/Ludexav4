@@ -468,5 +468,14 @@
   "noeud_reprendre_anim": "Animation fortsetzen",
   "noeud_vitesse_anim": "Animationsgeschwindigkeit",
   "noeud_condition_frame": "Wenn das aktuelle Bild...",
-  "noeud_force_angle": "Kraft hinzufügen (nach Winkel)"
+  "noeud_force_angle": "Kraft hinzufügen (nach Winkel)",
+    "noeud_instancier_scene": "Szene instanziieren (Prefab)",
+  "noeud_fermer_instance": "Instanz schließen (Prefab)",
+  "param_x": "Position X",
+  "param_y": "Position Y",
+  "insp_sep_scene_liee": "Verknüpfte Szene (Prefab)",
+  "insp_btn_select_scene_liee": "Eine Szene auswählen...",
+  "insp_btn_scene_liee_val": "Szene: ",
+  "canvas_label_scene": "[ SZENE ]"
+  
 }
