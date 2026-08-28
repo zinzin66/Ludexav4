@@ -474,7 +474,11 @@
     "insp_sep_scene_liee": "Cena Vinculada (Prefab)",
   "insp_btn_select_scene_liee": "Selecionar uma cena...",
   "insp_btn_scene_liee_val": "Cena: ",
-  "canvas_label_scene": "[ CENA ]"
+  "canvas_label_scene": "[ CENA ]",
+    "obj_prefix_prefab": "Prefab",
+  "titre_select_scene_liee": "Selecionar uma cena para vincular",
+  "erreur_aucune_autre_scene": "Nenhuma outra cena disponível."
+  
   
   
   
