@@ -479,7 +479,11 @@
   "titre_select_scene_liee": "Sélectionner une scène à lier",
   "erreur_aucune_autre_scene": "Aucune autre scène disponible.",
     "insp_btn_editer_scene_liee": "Éditer la scène source ➔",
-  "insp_erreur_scene_introuvable": "Erreur : Scène introuvable"
+  "insp_erreur_scene_introuvable": "Erreur : Scène introuvable",
+    "insp_sep_surcharge_vars": "Variables Locales (Surcharge)",
+  "insp_valeur_sur_mesure": "Valeur spécifique",
+  "insp_valeur_defaut": "Défaut"
+  
   
   
   
