@@ -133,8 +133,7 @@ public class VueJeu extends View {
         }
     }
 // bas 1
-
-   // haut 2
+// haut 2
     private void majCibleNoeud(NoeudBase noeud, String nomChamp, java.util.Map<String, String> mapRemplacement) {
         try {
             java.lang.reflect.Field champ = null;
@@ -155,7 +154,7 @@ public class VueJeu extends View {
 
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
-        NoeudBase.sceneHudActiveCourante = this.sceneHudActive; // NOUVEAU
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         if (scene == null) this.moteurHud = null;
     }
@@ -163,12 +162,12 @@ public class VueJeu extends View {
     public void ouvrirHudDynamique(Scene scene, Blueprint blueprintHud) {
         if (this.sceneHudActive != null && this.sceneHudActive == scene && this.moteurHud != null) {
             this.sceneHudActive = scene; 
-            NoeudBase.sceneHudActiveCourante = this.sceneHudActive; // NOUVEAU
+            NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
             return;
         }
 
         this.sceneHudActive = scene;
-        NoeudBase.sceneHudActiveCourante = this.sceneHudActive; // NOUVEAU
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         
         deballerPrefabs(this.sceneHudActive);
@@ -186,7 +185,7 @@ public class VueJeu extends View {
         if (this.sceneActive != null) GestionnaireEtat.sauvegarderEtat(this.sceneActive);
 
         this.sceneActive = nouvelleScene;
-        NoeudBase.sceneActiveCourante = this.sceneActive; // NOUVEAU
+        NoeudBase.sceneActiveCourante = this.sceneActive;
         GestionnaireEtat.restaurerEtat(this.sceneActive);
         chargerAnimationsGlobales(nouvelleScene.objets);
 
@@ -293,10 +292,7 @@ public class VueJeu extends View {
             }
         }
 
-        // IMPORTANT : on garde une correspondance POSITIONNELLE objOrigine -> clone,
-        // locale à CETTE instanciation précise. Contrairement à mapNoms (partagée entre
-        // instances et donc écrasée à chaque appel), cette map n'est utilisée qu'une fois,
-        // ici, pour lier les nœuds de CE lot précis à leurs bons clones.
+        // Correspondance POSITIONNELLE objOrigine -> clone, locale à CETTE instanciation.
         java.util.Map<String, ObjetBase> mapNomOrigineVersClone = new java.util.HashMap<>();
 
         if (sceneAInstancier.objets != null) {
@@ -312,8 +308,6 @@ public class VueJeu extends View {
                 mapNoms.put(objOrigine.nom, nouveauNom);
                 clone.nom = nouveauNom;
                 
-                // NOUVEAU : on retient, pour CETTE instanciation, à quel clone correspond
-                // le nom d'origine (tel qu'il apparaît dans le JSON du Blueprint source).
                 mapNomOrigineVersClone.put(objOrigine.nom, clone);
                 
                 clone.x += offsetX;
@@ -324,7 +318,6 @@ public class VueJeu extends View {
             }
             
             for (ObjetBase clone : objetsInjectes) {
-                // CORRECTION : Transfert des propriétés physiques et Tags du conteneur vers les clones racines
                 if (clone.parentId == null) {
                     if (prefab.tag != null && !prefab.tag.trim().isEmpty()) {
                         clone.tag = prefab.tag;
@@ -355,13 +348,12 @@ public class VueJeu extends View {
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
             }
 
+            // PASSE 1 : liaison complète de TOUS les nœuds du lot (aucune exécution ici).
+            // Garantit que chaque cible est résolue avant qu'un événement ne se déclenche,
+            // quel que soit l'ordre de sérialisation des nœuds dans le JSON du Blueprint.
+            // C'est ce qui corrige le bug "le premier prefab n'anime jamais" : avant, Start
+            // pouvait exécuter "Jouer Animation" avant que ce dernier n'ait reçu sa cible.
             for (NoeudBase noeud : blueprintInstance.noeuds) {
-                
-                // SUPPRIMÉ : majCibleNoeud(noeud, "nomCibleObjet", mapNoms) et 
-                // majCibleNoeud(noeud, "nomCibleObjetB", mapNoms) — mapNoms est partagée entre
-                // instances et s'écrase à chaque appel, ce qui causait le bug "Highlander"
-                // (une seule instance animée, les autres retargetées vers la dernière créée).
-                // Remplacé par une liaison directe par référence, ci-dessous.
                 
                 majCibleNoeud(noeud, "nomCible", mapNoms); 
                 
@@ -395,11 +387,6 @@ public class VueJeu extends View {
                     if (ancienFaux != null && mapNoeudsIds.containsKey(ancienFaux)) champFaux.set(noeud, mapNoeudsIds.get(ancienFaux));
                 } catch (Exception e) {}
                 
-                // NOUVEAU : liaison directe par référence, à la place de l'ancienne
-                // "PRÉ-LIAISON DES NŒUDS" par réflexion. On résout le nom D'ORIGINE
-                // (tel qu'écrit dans le JSON de la scène source, non suffixé) vers
-                // le clone correspondant à CETTE instanciation précise, via
-                // mapNomOrigineVersClone construite juste au-dessus.
                 if (noeud.requiertCibleObjet() && noeud.nomCibleObjet != null
                     && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
                     ObjetBase cibleResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjet);
@@ -416,6 +403,10 @@ public class VueJeu extends View {
                 }
                 
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
+            }
+
+            // PASSE 2 : exécution des événements de démarrage, UNE FOIS le lot entièrement lié.
+            for (NoeudBase noeud : blueprintInstance.noeuds) {
                 if (noeud instanceof NoeudEventStart) {
                     noeud.executer();
                 }
@@ -424,7 +415,7 @@ public class VueJeu extends View {
         
         // SUPPRIMÉ ICI : Le déballage récursif de sceneActive qui provoquait la fausse boucle infinie (cycle).
     }
-// bas 2 
+// bas 2
 
 // haut 3
     public void detruireInstances(Scene sceneCible) {
