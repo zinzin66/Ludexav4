@@ -190,6 +190,14 @@ public class VueJeu extends View {
     // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
     private java.util.Set<String> pilesInstanciationEnCours = new java.util.HashSet<>();
 
+    // CORRECTION : Surcharge pour compatibilité avec le Blueprint (NoeudActionInstancierScene)
+    public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
+        ObjetBase dummyPrefab = new ObjetBase("Prefab_Dynamique", offsetX, offsetY, 0, 0);
+        dummyPrefab.type = "scene_instance";
+        if (sceneAInstancier != null) dummyPrefab.sceneLieeId = sceneAInstancier.id;
+        instancierScene(sceneAInstancier, dummyPrefab);
+    }
+
     public void instancierScene(Scene sceneAInstancier, ObjetBase prefab) {
         if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive || prefab == null) return;
         if (pilesInstanciationEnCours.contains(sceneAInstancier.id)) {
@@ -464,6 +472,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
+    
     
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
