@@ -58,10 +58,11 @@ public class InspecteurProprietes extends LinearLayout {
     private LinearLayout blocJoystick;
     private Button btnCibleJoystick;
 
-    // NOUVEAU : Bloc pour la Scène Liée (Prefab)
     private LinearLayout blocSceneInstance;
     private Button btnSelectSceneLiee;
     private Button btnEditerSceneLiee; 
+    // NOUVEAU : Conteneur dynamique pour lister les variables locales du Prefab
+    private LinearLayout conteurVariablesSurcharge;
 
     private LinearLayout blocPhysique;
     private CheckBox cbEstPhysique;
@@ -174,6 +175,7 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
+    
 
 // haut 2
     private void initialiserInterface(Context context) {
@@ -879,7 +881,35 @@ public class InspecteurProprietes extends LinearLayout {
                 }).show();
         });
 
-        // --- NOUVEAU : LISTENER SCENE INSTANCE ---
+        // --- UI POUR SCENE INSTANCE ET SURCHARGES ---
+        blocSceneInstance = new LinearLayout(context);
+        blocSceneInstance.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocSceneInstance);
+
+        TextView sepSceneLiee = new TextView(context);
+        sepSceneLiee.setText(Traducteur.get("insp_sep_scene_liee"));
+        styliserSousTitre(sepSceneLiee);
+        blocSceneInstance.addView(sepSceneLiee);
+
+        btnSelectSceneLiee = new Button(context);
+        btnSelectSceneLiee.setText(Traducteur.get("insp_btn_select_scene_liee"));
+        styliserBouton(btnSelectSceneLiee);
+        blocSceneInstance.addView(btnSelectSceneLiee);
+        
+        btnEditerSceneLiee = new Button(context);
+        btnEditerSceneLiee.setText(Traducteur.get("insp_btn_editer_scene_liee"));
+        styliserBouton(btnEditerSceneLiee);
+        btnEditerSceneLiee.setTextColor(Color.parseColor("#4CAF50")); 
+        blocSceneInstance.addView(btnEditerSceneLiee);
+        
+        // Initialisation du conteneur de variables
+        conteurVariablesSurcharge = new LinearLayout(context);
+        conteurVariablesSurcharge.setOrientation(LinearLayout.VERTICAL);
+        blocSceneInstance.addView(conteurVariablesSurcharge);
+        
+        blocProprietes.addView(blocSceneInstance);
+        // -----------------------------------------
+
         btnSelectSceneLiee.setOnClickListener(v -> {
             if (objetCourant == null) return;
             List<String> noms = new ArrayList<>();
@@ -910,13 +940,11 @@ public class InspecteurProprietes extends LinearLayout {
             for (Scene s : editeur.listeScenes) {
                 if (s.id.equals(objetCourant.sceneLieeId)) {
                     editeur.changerScene(s);
-                    // L'appel direct à panneauRessources a été retiré pour éviter l'erreur d'accès privé (Private Access)
                     return;
                 }
             }
             Toast.makeText(context, Traducteur.get("insp_erreur_scene_introuvable"), Toast.LENGTH_SHORT).show();
         });
-        // -----------------------------------------
 
         btnChargerImage.setOnClickListener(v -> {
             if (objetCourant == null) return;
@@ -1252,6 +1280,7 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
+
 // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
@@ -1369,6 +1398,7 @@ public class InspecteurProprietes extends LinearLayout {
                 
                 String nomScene = Traducteur.get("valeur_aucune");
                 boolean aUneScene = false;
+                Scene sceneLieeTrouvee = null;
                 
                 if (objet.sceneLieeId != null) {
                     InterfaceEditeur editeur = (InterfaceEditeur) getContext();
@@ -1376,16 +1406,78 @@ public class InspecteurProprietes extends LinearLayout {
                         if (s.id.equals(objet.sceneLieeId)) {
                             nomScene = s.nom != null ? s.nom : Traducteur.get("insp_objet_sans_nom");
                             aUneScene = true;
+                            sceneLieeTrouvee = s;
                             break;
                         }
                     }
                 }
                 
                 btnSelectSceneLiee.setText(Traducteur.get("insp_btn_scene_liee_val") + nomScene);
-                
-                // Le bouton d'édition n'apparaît que si le Prefab a une scène valide
                 btnEditerSceneLiee.setVisibility(aUneScene ? View.VISIBLE : View.GONE);
-                
+
+                // NOUVEAU : Création dynamique de la liste des variables locales
+                conteurVariablesSurcharge.removeAllViews();
+                if (sceneLieeTrouvee != null && sceneLieeTrouvee.variablesLocales != null && !sceneLieeTrouvee.variablesLocales.isEmpty()) {
+                    TextView sepVars = new TextView(getContext());
+                    sepVars.setText(Traducteur.get("insp_sep_surcharge_vars"));
+                    styliserSousTitre(sepVars);
+                    conteurVariablesSurcharge.addView(sepVars);
+
+                    for (Variable var : sceneLieeTrouvee.variablesLocales) {
+                        TextView labelVar = new TextView(getContext());
+                        labelVar.setText(var.nom + " (" + Traducteur.get("var_type_" + var.type.toLowerCase()) + ")");
+                        styliserLabel(labelVar);
+                        conteurVariablesSurcharge.addView(labelVar);
+
+                        if ("BOOLEEN".equals(var.type)) {
+                            CheckBox cbVar = new CheckBox(getContext());
+                            cbVar.setText(Traducteur.get("insp_valeur_sur_mesure"));
+                            styliserCase(cbVar);
+
+                            if (objet.surchargesVariables != null && objet.surchargesVariables.containsKey(var.nom)) {
+                                String val = objet.surchargesVariables.get(var.nom);
+                                cbVar.setChecked(val != null && (val.equalsIgnoreCase("oui") || val.equalsIgnoreCase("vrai") || val.equalsIgnoreCase("true")));
+                            } else {
+                                if (var.valeur instanceof Boolean) {
+                                    cbVar.setChecked((Boolean) var.valeur);
+                                } else {
+                                    cbVar.setChecked(false);
+                                }
+                            }
+
+                            cbVar.setOnCheckedChangeListener((btn, isChecked) -> {
+                                if (!miseAJourEnCours) {
+                                    if (objet.surchargesVariables == null) objet.surchargesVariables = new java.util.HashMap<>();
+                                    objet.surchargesVariables.put(var.nom, isChecked ? "vrai" : "faux");
+                                }
+                            });
+                            conteurVariablesSurcharge.addView(cbVar);
+
+                        } else {
+                            EditText champVar = new EditText(getContext());
+                            champVar.setHint(Traducteur.get("insp_valeur_defaut") + " : " + var.valeur);
+                            if ("CHIFFRE".equals(var.type) || "ENTIER".equals(var.type)) {
+                                champVar.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+                            }
+                            styliserChamp(champVar);
+
+                            if (objet.surchargesVariables != null && objet.surchargesVariables.containsKey(var.nom)) {
+                                champVar.setText(objet.surchargesVariables.get(var.nom));
+                            }
+
+                            champVar.addTextChangedListener(creerWatcherSimple(texte -> {
+                                if (objet.surchargesVariables == null) objet.surchargesVariables = new java.util.HashMap<>();
+                                if (texte.trim().isEmpty()) {
+                                    objet.surchargesVariables.remove(var.nom); 
+                                } else {
+                                    objet.surchargesVariables.put(var.nom, texte.trim());
+                                }
+                            }));
+                            conteurVariablesSurcharge.addView(champVar);
+                        }
+                    }
+                }
+
             } else {
                 blocTexte.setVisibility(View.GONE);
                 blocSceneInstance.setVisibility(View.GONE); 
