@@ -133,14 +133,10 @@ public class VueJeu extends View {
         }
     }
 // bas 1
+
 // haut 2
     private void logDiag(String message) {
-        try {
-            java.io.File logFile = new java.io.File(cheminProjet, "diag_ludexa.txt");
-            java.io.FileWriter fw = new java.io.FileWriter(logFile, true);
-            fw.write(System.currentTimeMillis() + " - " + message + "\n");
-            fw.close();
-        } catch (Exception e) {}
+        DiagLogger.log(cheminProjet, message);
     }
 
     private void majCibleNoeud(NoeudBase noeud, String nomChamp, java.util.Map<String, String> mapRemplacement) {
@@ -235,9 +231,8 @@ public class VueJeu extends View {
 
     public void instancierScene(Scene sceneAInstancier, ObjetBase prefab) {
         if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive || prefab == null) return;
-        logDiag("APPEL instancierScene prefab=" + prefab.nom + " scene=" + sceneAInstancier.nom);
         if (pilesInstanciationEnCours.contains(sceneAInstancier.id)) {
-            logDiag("CYCLE BLOQUE pour prefab=" + prefab.nom);
+            logDiag("ATTENTION: cycle de prefabs détecté et ignoré pour la scène " + sceneAInstancier.nom + " (prefab=" + prefab.nom + ")");
             return;
         }
         pilesInstanciationEnCours.add(sceneAInstancier.id);
@@ -249,7 +244,6 @@ public class VueJeu extends View {
     }
 
     private void instancierSceneInterne(Scene sceneAInstancier, ObjetBase prefab) {
-        logDiag("DEBUT instancierSceneInterne prefab=" + prefab.nom);
         float offsetX = prefab.x;
         float offsetY = prefab.y;
         Blueprint blueprintInstance = null;
@@ -270,11 +264,9 @@ public class VueJeu extends View {
                     sceneAInstancier.id = idOriginal;
                 }
             } catch (Exception e) {
-                logDiag("EXCEPTION chargement JSON prefab=" + prefab.nom + " : " + e.toString());
+                logDiag("ERREUR: exception au chargement du Blueprint pour prefab=" + prefab.nom + " scene=" + sceneAInstancier.nom + " : " + e.toString());
             }
         }
-        
-        logDiag("blueprintInstance " + (blueprintInstance == null ? "NULL" : ("charge, nbNoeuds=" + blueprintInstance.noeuds.size())) + " pour prefab=" + prefab.nom);
         
         java.util.Map<String, String> mapIds = new java.util.HashMap<>();
         java.util.Map<String, String> mapVars = new java.util.HashMap<>();
@@ -362,6 +354,7 @@ public class VueJeu extends View {
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
             }
 
+            // PASSE 1 : liaison complète de TOUS les nœuds du lot avant toute exécution.
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 
                 majCibleNoeud(noeud, "nomCible", mapNoms); 
@@ -413,27 +406,34 @@ public class VueJeu extends View {
                 
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
 
+                // VÉRIFICATION AUTOMATIQUE DE CÂBLAGE : si un nœud a besoin d'une cible et
+                // qu'elle est toujours introuvable après la tentative de liaison, on le
+                // signale dans le journal permanent du projet. C'est ce contrôle qui aurait
+                // détecté immédiatement le bug du champ nomCibleObjet dupliqué dans
+                // NoeudActionJouerAnimation, au lieu de 2 jours d'investigation manuelle.
                 if (noeud.requiertCibleObjet() && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
-                    String etatDiag = (noeud.getCibleObjet() != null) ? "OK:" + noeud.getCibleObjet().nom : "ECHEC";
-                    logDiag("Liaison " + noeud.getClass().getSimpleName() + " prefab=" + prefab.nom + " -> " + etatDiag);
+                    if (noeud.getCibleObjet() == null) {
+                        logDiag("ATTENTION: nœud " + noeud.getClass().getSimpleName() + " du prefab " + prefab.nom + " (scène " + sceneAInstancier.nom + ") sans cible objet valide après liaison (nomCibleObjet=" + noeud.nomCibleObjet + ")");
+                    }
+                }
+                if (noeud.requiertCibleObjetB() && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
+                    if (noeud.getCibleObjetB() == null) {
+                        logDiag("ATTENTION: nœud " + noeud.getClass().getSimpleName() + " du prefab " + prefab.nom + " (scène " + sceneAInstancier.nom + ") sans cible objet B valide après liaison (nomCibleObjetB=" + noeud.nomCibleObjetB + ")");
+                    }
                 }
             }
 
+            // PASSE 2 : exécution des événements de démarrage, une fois le lot entièrement lié.
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 if (noeud instanceof NoeudEventStart) {
-                    logDiag("EXEC Start prefab=" + prefab.nom);
                     noeud.executer();
                 }
             }
-        } else {
-            logDiag("BLOC NOEUDS SAUTE pour prefab=" + prefab.nom + " (blueprintInstance null ou moteur null)");
         }
         
-        logDiag("FIN instancierSceneInterne prefab=" + prefab.nom);
         // SUPPRIMÉ ICI : Le déballage récursif de sceneActive qui provoquait la fausse boucle infinie (cycle).
     }
 // bas 2
-
 
 // haut 3
     public void detruireInstances(Scene sceneCible) {
