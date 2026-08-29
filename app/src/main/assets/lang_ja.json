@@ -479,7 +479,10 @@
   "canvas_label_scene": "[ シーン ]",
     "obj_prefix_prefab": "プレハブ",
   "titre_select_scene_liee": "リンクするシーンを選択",
-  "erreur_aucune_autre_scene": "他に利用可能なシーンがありません。"
+  "erreur_aucune_autre_scene": "他に利用可能なシーンがありません。",
+    "insp_btn_editer_scene_liee": "元のシーンを編集 ➔",
+  "insp_erreur_scene_introuvable": "エラー：シーンが見つかりません"
+  
   
   
 }

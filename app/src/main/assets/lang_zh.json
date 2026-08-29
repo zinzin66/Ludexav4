@@ -479,7 +479,10 @@
   "canvas_label_scene": "[ 场景 ]",
     "obj_prefix_prefab": "预制件",
   "titre_select_scene_liee": "选择要链接的场景",
-  "erreur_aucune_autre_scene": "没有其他可用场景。"
+  "erreur_aucune_autre_scene": "没有其他可用场景。",
+    "insp_btn_editer_scene_liee": "编辑源场景 ➔",
+  "insp_erreur_scene_introuvable": "错误：未找到场景"
+  
   
   
 }

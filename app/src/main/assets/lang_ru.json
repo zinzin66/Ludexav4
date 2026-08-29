@@ -477,7 +477,10 @@
   "canvas_label_scene": "[ СЦЕНА ]",
     "obj_prefix_prefab": "Префаб",
   "titre_select_scene_liee": "Выберите сцену для привязки",
-  "erreur_aucune_autre_scene": "Нет других доступных сцен."
+  "erreur_aucune_autre_scene": "Нет других доступных сцен.",
+    "insp_btn_editer_scene_liee": "Редактировать исходную сцену ➔",
+  "insp_erreur_scene_introuvable": "Ошибка: Сцена не найдена"
+  
   
   
   

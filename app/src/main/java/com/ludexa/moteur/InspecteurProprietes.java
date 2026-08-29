@@ -61,6 +61,7 @@ public class InspecteurProprietes extends LinearLayout {
     // NOUVEAU : Bloc pour la Scène Liée (Prefab)
     private LinearLayout blocSceneInstance;
     private Button btnSelectSceneLiee;
+    private Button btnEditerSceneLiee; 
 
     private LinearLayout blocPhysique;
     private CheckBox cbEstPhysique;
@@ -173,6 +174,7 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
+
 // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
@@ -484,6 +486,7 @@ public class InspecteurProprietes extends LinearLayout {
         });
 // bas 2
 
+
 // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -708,6 +711,12 @@ public class InspecteurProprietes extends LinearLayout {
         styliserBouton(btnSelectSceneLiee);
         blocSceneInstance.addView(btnSelectSceneLiee);
         
+        btnEditerSceneLiee = new Button(context);
+        btnEditerSceneLiee.setText("Éditer la scène source ➔");
+        styliserBouton(btnEditerSceneLiee);
+        btnEditerSceneLiee.setTextColor(Color.parseColor("#4CAF50")); // Couleur verte pour indiquer une action forte
+        blocSceneInstance.addView(btnEditerSceneLiee);
+        
         blocProprietes.addView(blocSceneInstance);
         // ----------------------------------------
         
@@ -806,7 +815,6 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
-
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
@@ -881,7 +889,7 @@ public class InspecteurProprietes extends LinearLayout {
             
             InterfaceEditeur editeur = (InterfaceEditeur) getContext();
             for (Scene s : editeur.listeScenes) {
-                if (s != editeur.sceneActive) { // Interdire de lier la scène actuelle à elle-même (Inception)
+                if (s != editeur.sceneActive) { 
                     noms.add(s.nom);
                     ids.add(s.id);
                 }
@@ -894,6 +902,19 @@ public class InspecteurProprietes extends LinearLayout {
                     canvasEditeur.invalidate();
                     afficherObjet(objetCourant);
                 }).show();
+        });
+
+        btnEditerSceneLiee.setOnClickListener(v -> {
+            if (objetCourant == null || objetCourant.sceneLieeId == null) return;
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            for (Scene s : editeur.listeScenes) {
+                if (s.id.equals(objetCourant.sceneLieeId)) {
+                    editeur.changerScene(s);
+                    // L'appel direct à panneauRessources a été retiré pour éviter l'erreur d'accès privé (Private Access)
+                    return;
+                }
+            }
+            Toast.makeText(context, Traducteur.get("insp_erreur_scene_introuvable"), Toast.LENGTH_SHORT).show();
         });
         // -----------------------------------------
 
@@ -1329,7 +1350,7 @@ public class InspecteurProprietes extends LinearLayout {
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
                 blocJoystick.setVisibility(View.GONE);
-                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
+                blocSceneInstance.setVisibility(View.GONE); 
                 
                 champContenu.setText(objet.contenuTexte);
                 champTaille.setText(String.valueOf(objet.tailleFonte));
@@ -1339,7 +1360,7 @@ public class InspecteurProprietes extends LinearLayout {
                 } else {
                     btnPolice.setText(Traducteur.get("insp_btn_police_selecteur"));
                 }
-            } else if ("scene_instance".equals(objet.type)) { // NOUVEAU : Gestion spécifique de l'affichage UI Prefab
+            } else if ("scene_instance".equals(objet.type)) { 
                 blocTexte.setVisibility(View.GONE);
                 blocImage.setVisibility(View.GONE);
                 blocBouton.setVisibility(View.GONE);
@@ -1347,19 +1368,27 @@ public class InspecteurProprietes extends LinearLayout {
                 blocSceneInstance.setVisibility(View.VISIBLE);
                 
                 String nomScene = Traducteur.get("valeur_aucune");
+                boolean aUneScene = false;
+                
                 if (objet.sceneLieeId != null) {
                     InterfaceEditeur editeur = (InterfaceEditeur) getContext();
                     for (Scene s : editeur.listeScenes) {
                         if (s.id.equals(objet.sceneLieeId)) {
                             nomScene = s.nom != null ? s.nom : Traducteur.get("insp_objet_sans_nom");
+                            aUneScene = true;
                             break;
                         }
                     }
                 }
+                
                 btnSelectSceneLiee.setText(Traducteur.get("insp_btn_scene_liee_val") + nomScene);
+                
+                // Le bouton d'édition n'apparaît que si le Prefab a une scène valide
+                btnEditerSceneLiee.setVisibility(aUneScene ? View.VISIBLE : View.GONE);
+                
             } else {
                 blocTexte.setVisibility(View.GONE);
-                blocSceneInstance.setVisibility(View.GONE); // NOUVEAU
+                blocSceneInstance.setVisibility(View.GONE); 
                 blocImage.setVisibility(View.VISIBLE);
 
                 if (objet.cheminImage != null) {
@@ -1458,6 +1487,15 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 5
+
+
+
+        
+
+
+
+        
+
 
 
 

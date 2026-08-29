@@ -20,7 +20,7 @@ public class CanvasEditeur extends View {
     private float cameraX = 0, cameraY = 0;
     private float lastTouchX, lastTouchY;
     private boolean isPanMode = false;
-    private boolean isModeDeplacementObjet = false; // NOUVEAU
+    private boolean isModeDeplacementObjet = false;
     private float niveauZoom = 1.0f;
 
     private Scene sceneActive;
@@ -39,6 +39,9 @@ public class CanvasEditeur extends View {
     
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
     private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
+    
+    // NOUVEAU : Sécurité anti-boucle infinie pour les scènes imbriquées
+    private java.util.Set<String> pilesRenduEnCours = new java.util.HashSet<>();
 
     public CanvasEditeur(Context context) {
         super(context);
@@ -151,22 +154,40 @@ public class CanvasEditeur extends View {
         return null;
     }
 
-    public boolean estVisibleEffectif(ObjetBase obj) {
+    // NOUVEAU : Fonction de visibilité générique pour s'adapter aux Prefabs
+    public boolean estVisibleEffectifGen(ObjetBase obj, List<ObjetBase> contexte) {
         ObjetBase cur = obj;
         while (cur != null) {
             if (!cur.visible) return false;
-            cur = getObjetById(cur.parentId);
+            ObjetBase parent = null;
+            if (cur.parentId != null) {
+                for (ObjetBase o : contexte) {
+                    if (o.id.equals(cur.parentId)) { parent = o; break; }
+                }
+            }
+            cur = parent;
         }
         return true;
     }
 
-    public Matrix getAbsoluteMatrix(ObjetBase obj) {
+    public boolean estVisibleEffectif(ObjetBase obj) {
+        return estVisibleEffectifGen(obj, sceneActive != null ? sceneActive.objets : new ArrayList<>());
+    }
+
+    // NOUVEAU : Fonction de calcul de matrice générique pour s'adapter aux sous-scènes (Prefabs)
+    public Matrix getAbsoluteMatrixGen(ObjetBase obj, List<ObjetBase> contexte) {
         Matrix m = new Matrix();
         List<ObjetBase> chaine = new ArrayList<>();
         ObjetBase cur = obj;
         while (cur != null) {
             chaine.add(cur);
-            cur = getObjetById(cur.parentId);
+            ObjetBase parent = null;
+            if (cur.parentId != null) {
+                for (ObjetBase o : contexte) {
+                    if (o.id.equals(cur.parentId)) { parent = o; break; }
+                }
+            }
+            cur = parent;
         }
         
         for (int i = chaine.size() - 1; i >= 0; i--) {
@@ -179,6 +200,10 @@ public class CanvasEditeur extends View {
             m.preConcat(local); 
         }
         return m;
+    }
+
+    public Matrix getAbsoluteMatrix(ObjetBase obj) {
+        return getAbsoluteMatrixGen(obj, sceneActive != null ? sceneActive.objets : new ArrayList<>());
     }
 
     public Matrix getParentMatrix(ObjetBase obj) {
@@ -232,12 +257,9 @@ public class CanvasEditeur extends View {
 
 // haut 2
     private float getHauteurReelle(ObjetBase objet) {
-        if (!"texte".equals(objet.type)) {
-            return objet.hauteur;
-        }
+        if (!"texte".equals(objet.type)) return objet.hauteur;
 
         String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-        
         Paint p = new Paint(paintTexte);
         if (objet.cheminPolice != null && cheminProjet != null) {
             android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
@@ -262,19 +284,239 @@ public class CanvasEditeur extends View {
             while (start < paragraphe.length()) {
                 int count = p.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
                 if (count <= 0) count = 1;
-
                 int end = start + count;
                 if (end < paragraphe.length()) {
                     int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
-                    if (dernierEspace > start) {
-                        end = dernierEspace + 1;
-                    }
+                    if (dernierEspace > start) end = dernierEspace + 1;
                 }
                 totalLines++;
                 start = end;
             }
         }
         return totalLines * hauteurLigne;
+    }
+
+    // NOUVEAU : Récupération de la scène liée pour la Phase 3
+    private Scene getSceneLiee(String sceneLieeId) {
+        if (sceneLieeId == null || editeurLie == null || editeurLie.listeScenes == null) return null;
+        for (Scene s : editeurLie.listeScenes) {
+            if (s.id.equals(sceneLieeId)) return s;
+        }
+        return null;
+    }
+
+    // NOUVEAU : Phase 2 - Calcul du redimensionnement dynamique de la Hitbox
+    private android.graphics.RectF calculerLimitesScene(Scene scene) {
+        if (scene == null || scene.objets == null || scene.objets.isEmpty()) {
+            return new android.graphics.RectF(0, 0, 150, 150);
+        }
+        float minX = Float.MAX_VALUE;
+        float minY = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE;
+        float maxY = -Float.MAX_VALUE;
+        boolean hasVisible = false;
+
+        for (ObjetBase obj : scene.objets) {
+            if (!obj.visible || "zone".equals(obj.type)) continue;
+            
+            Matrix objMatrix = getAbsoluteMatrixGen(obj, scene.objets);
+            float objW = obj.largeur;
+            float objH = getHauteurReelle(obj); 
+            
+            float[] corners = {0, 0, objW, 0, 0, objH, objW, objH};
+            objMatrix.mapPoints(corners);
+            
+            for (int i = 0; i < 8; i += 2) {
+                float px = corners[i];
+                float py = corners[i+1];
+                if (px < minX) minX = px;
+                if (py < minY) minY = py;
+                if (px > maxX) maxX = px;
+                if (py > maxY) maxY = py;
+            }
+            hasVisible = true;
+        }
+        if (!hasVisible) return new android.graphics.RectF(0, 0, 150, 150);
+        return new android.graphics.RectF(minX, minY, maxX, maxY);
+    }
+
+    // NOUVEAU : Fonction de dessin modulaire et récursive (Remplace l'ancienne boucle OnDraw)
+    private void dessinerObjetBase(Canvas canvas, ObjetBase objet, List<ObjetBase> contexteObjets, int baseAlpha, boolean isRoot) {
+        int alphaVal = (int) (objet.alpha * baseAlpha);
+        if (alphaVal < 0) alphaVal = 0;
+        if (alphaVal > 255) alphaVal = 255;
+        paintObjet.setAlpha(alphaVal);
+        paintTexte.setAlpha(alphaVal);
+
+        Matrix absMatrix = getAbsoluteMatrixGen(objet, contexteObjets);
+        
+        canvas.save();
+        if (isRoot) canvas.translate(cameraX, cameraY);
+        canvas.concat(absMatrix);
+        
+        String cheminAAfficher = objet.cheminImage;
+        if ("bouton".equals(objet.type) && objet.estDesactive && objet.cheminImageDesactive != null) {
+            cheminAAfficher = objet.cheminImageDesactive;
+        }
+
+        if ("rond".equals(objet.type)) {
+            if (objet.afficherFondColore || cheminAAfficher == null) {
+                paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                paintObjet.setAlpha(alphaVal);
+                float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
+                canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
+            }
+            dessinerImage(canvas, objet, cheminAAfficher);
+        } else if ("texte".equals(objet.type)) {
+            paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+            paintTexte.setAlpha(alphaVal);
+            String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
+            
+            if (objet.cheminPolice != null && cheminProjet != null) {
+                android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
+                if (tf == null) {
+                    try {
+                        java.io.File fontFile = new java.io.File(cheminProjet, objet.cheminPolice);
+                        if (fontFile.exists()) {
+                            tf = android.graphics.Typeface.createFromFile(fontFile);
+                            cachePolices.put(objet.cheminPolice, tf);
+                        }
+                    } catch (Exception e) {}
+                }
+                paintTexte.setTypeface(tf != null ? tf : android.graphics.Typeface.DEFAULT);
+            } else {
+                paintTexte.setTypeface(android.graphics.Typeface.DEFAULT);
+            }
+
+            paintTexte.setTextSize(objet.tailleFonte);
+            paintTexte.setTextScaleX(1.0f);
+            
+            float hauteurLigne = objet.tailleFonte * 1.2f;
+            float currentY = hauteurLigne;
+            float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
+            
+            String[] paragraphes = txt.split("\n", -1);
+            for (String paragraphe : paragraphes) {
+                if (paragraphe.isEmpty()) { currentY += hauteurLigne; continue; }
+                int start = 0;
+                while (start < paragraphe.length()) {
+                    int count = paintTexte.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
+                    if (count <= 0) count = 1; 
+                    int end = start + count;
+                    if (end < paragraphe.length()) {
+                        int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
+                        if (dernierEspace > start) end = dernierEspace + 1;
+                    }
+                    String ligne = paragraphe.substring(start, end);
+                    canvas.drawText(ligne, 0, currentY, paintTexte);
+                    currentY += hauteurLigne;
+                    start = end;
+                }
+            }
+        } else if ("image".equals(objet.type)) {
+            if (objet.afficherFondColore) {
+                paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                paintObjet.setAlpha(alphaVal);
+                canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+            }
+            dessinerImage(canvas, objet, cheminAAfficher);
+            
+        } else if ("scene_instance".equals(objet.type)) {
+            if (pilesRenduEnCours.contains(objet.sceneLieeId)) {
+                // Securité : Boucle infinie interceptée
+                paintObjet.setColor(Color.argb(120, 255, 0, 0));
+                canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                paintTexte.setColor(Color.WHITE);
+                paintTexte.setTextSize(14f);
+                canvas.drawText("BOUCLE PREFAB", 10f, objet.hauteur / 2f, paintTexte);
+            } else {
+                Scene sceneLiee = getSceneLiee(objet.sceneLieeId);
+                if (sceneLiee != null) {
+                    pilesRenduEnCours.add(objet.sceneLieeId);
+                    
+                    // Phase 2 : Redimensionnement automatique de la boîte de contrôle
+                    android.graphics.RectF limites = calculerLimitesScene(sceneLiee);
+                    objet.largeur = Math.max(150f, limites.right);
+                    objet.hauteur = Math.max(150f, limites.bottom);
+                    
+                    // Discret fond teinté
+                    paintObjet.setColor(Color.argb(30, 50, 150, 255));
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    
+                    // Phase 3 : Rendu WYSIWYG de tous les enfants
+                    List<ObjetBase> enfants = new ArrayList<>(sceneLiee.objets);
+                    Collections.sort(enfants, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
+                    for (ObjetBase enfant : enfants) {
+                        if (estVisibleEffectifGen(enfant, sceneLiee.objets)) {
+                            // On passe isRoot=false car le canvas est déjà ajusté aux coordonnées du Prefab
+                            dessinerObjetBase(canvas, enfant, sceneLiee.objets, alphaVal, false);
+                        }
+                    }
+                    
+                    // Bordure stylisée pour bien comprendre que c'est un "bloc"
+                    paintSelection.setColor(Color.argb(150, 50, 150, 255));
+                    paintSelection.setStrokeWidth(2f);
+                    paintSelection.setPathEffect(new android.graphics.DashPathEffect(new float[]{10f, 10f}, 0f));
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintSelection);
+                    paintSelection.setPathEffect(null);
+                    paintSelection.setColor(Palette.texteSelectionne);
+                    
+                    pilesRenduEnCours.remove(objet.sceneLieeId);
+                } else {
+                    paintObjet.setColor(Color.argb(120, 255, 50, 50));
+                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    paintTexte.setColor(Color.WHITE);
+                    paintTexte.setTextSize(14f);
+                    canvas.drawText("SCÈNE INTROUVABLE", 10f, objet.hauteur / 2f, paintTexte);
+                }
+            }
+        } else {
+            if (objet.afficherFondColore || cheminAAfficher == null) {
+                paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
+                paintObjet.setAlpha(alphaVal);
+                canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+            }
+            dessinerImage(canvas, objet, cheminAAfficher);
+        }
+
+        // --- DESSIN DU CADRE DE SÉLECTION ---
+        if (objet == objetSelectionne) {
+            float scaleFactorX = Math.abs(objet.scaleX);
+            if (scaleFactorX < 0.01f) scaleFactorX = 0.01f;
+            float scaleFactorY = Math.abs(objet.scaleY);
+            if (scaleFactorY < 0.01f) scaleFactorY = 0.01f;
+
+            float maxScale = Math.max(scaleFactorX, scaleFactorY);
+            paintSelection.setStrokeWidth(2f / maxScale);
+            
+            float l = -4f / scaleFactorX;
+            float t = -4f / scaleFactorY;
+            float r = objet.largeur + 4f / scaleFactorX;
+            float objHauteur = getHauteurReelle(objet);
+            float b = objHauteur + 4f / scaleFactorY;
+            
+            canvas.drawRect(l, t, r, b, paintSelection);
+            
+            if (!isModeDeplacementObjet) {
+                float hsX = 12f / scaleFactorX;
+                float hsY = 12f / scaleFactorY;
+                float rcX = 4f / scaleFactorX;
+                float rcY = 4f / scaleFactorY;
+                
+                canvas.drawRoundRect(new android.graphics.RectF(l - hsX, t - hsY, l + hsX, t + hsY), rcX, rcY, paintPoignee);
+                canvas.drawRoundRect(new android.graphics.RectF(r - hsX, t - hsY, r + hsX, t + hsY), rcX, rcY, paintPoignee);
+                canvas.drawRoundRect(new android.graphics.RectF(l - hsX, b - hsY, l + hsX, b + hsY), rcX, rcY, paintPoignee);
+                canvas.drawRoundRect(new android.graphics.RectF(r - hsX, b - hsY, r + hsX, b + hsY), rcX, rcY, paintPoignee);
+                
+                float cx = objet.largeur / 2f;
+                float rotY = t - (50f / scaleFactorY);
+                canvas.drawLine(cx, t, cx, rotY, paintSelection);
+                
+                float scaleFactorAvg = (scaleFactorX + scaleFactorY) / 2f;
+                canvas.drawCircle(cx, rotY, 15f / scaleFactorAvg, paintPoignee);
+            }
+        }
+        canvas.restore();
     }
 
     @Override
@@ -300,168 +542,11 @@ public class CanvasEditeur extends View {
 
         if (sceneActive != null) {
             List<ObjetBase> objetsTries = new ArrayList<>(sceneActive.objets);
-            Collections.sort(objetsTries, new Comparator<ObjetBase>() {
-                @Override
-                public int compare(ObjetBase o1, ObjetBase o2) {
-                    return Integer.compare(o1.zOrder, o2.zOrder);
-                }
-            });
+            Collections.sort(objetsTries, (o1, o2) -> Integer.compare(o1.zOrder, o2.zOrder));
 
             for (ObjetBase objet : objetsTries) {
-                if (!estVisibleEffectif(objet)) continue; 
-
-                int alphaVal = (int) (objet.alpha * 255);
-                if (alphaVal < 0) alphaVal = 0;
-                if (alphaVal > 255) alphaVal = 255;
-                paintObjet.setAlpha(alphaVal);
-                paintTexte.setAlpha(alphaVal);
-
-                Matrix absMatrix = getAbsoluteMatrix(objet);
-                
-                canvas.save();
-                canvas.translate(cameraX, cameraY);
-                canvas.concat(absMatrix);
-                
-                String cheminAAfficher = objet.cheminImage;
-                if ("bouton".equals(objet.type) && objet.estDesactive && objet.cheminImageDesactive != null) {
-                    cheminAAfficher = objet.cheminImageDesactive;
-                }
-
-                if ("rond".equals(objet.type)) {
-                    if (objet.afficherFondColore || cheminAAfficher == null) {
-                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                        paintObjet.setAlpha(alphaVal);
-                        float rayon = Math.min(objet.largeur, objet.hauteur) / 2f;
-                        canvas.drawCircle(objet.largeur / 2f, objet.hauteur / 2f, rayon, paintObjet);
-                    }
-                    dessinerImage(canvas, objet, cheminAAfficher);
-                } else if ("texte".equals(objet.type)) {
-                    paintTexte.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                    paintTexte.setAlpha(alphaVal);
-                    String txt = (objet.contenuTexte != null && !objet.contenuTexte.isEmpty()) ? objet.contenuTexte : objet.nom;
-                    
-                    if (objet.cheminPolice != null && cheminProjet != null) {
-                        android.graphics.Typeface tf = cachePolices.get(objet.cheminPolice);
-                        if (tf == null) {
-                            try {
-                                java.io.File fontFile = new java.io.File(cheminProjet, objet.cheminPolice);
-                                if (fontFile.exists()) {
-                                    tf = android.graphics.Typeface.createFromFile(fontFile);
-                                    cachePolices.put(objet.cheminPolice, tf);
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        paintTexte.setTypeface(tf != null ? tf : android.graphics.Typeface.DEFAULT);
-                    } else {
-                        paintTexte.setTypeface(android.graphics.Typeface.DEFAULT);
-                    }
-
-                    paintTexte.setTextSize(objet.tailleFonte);
-                    paintTexte.setTextScaleX(1.0f);
-                    
-                    float hauteurLigne = objet.tailleFonte * 1.2f;
-                    float currentY = hauteurLigne;
-                    float largeurMax = objet.largeur > 0 ? objet.largeur : 1f;
-                    
-                    String[] paragraphes = txt.split("\n", -1);
-                    for (String paragraphe : paragraphes) {
-                        if (paragraphe.isEmpty()) {
-                            currentY += hauteurLigne;
-                            continue;
-                        }
-
-                        int start = 0;
-                        while (start < paragraphe.length()) {
-                            int count = paintTexte.breakText(paragraphe, start, paragraphe.length(), true, largeurMax, null);
-                            if (count <= 0) count = 1; 
-                            
-                            int end = start + count;
-                            if (end < paragraphe.length()) {
-                                int dernierEspace = paragraphe.lastIndexOf(' ', end - 1);
-                                if (dernierEspace > start) {
-                                    end = dernierEspace + 1;
-                                }
-                            }
-                            
-                            String ligne = paragraphe.substring(start, end);
-                            canvas.drawText(ligne, 0, currentY, paintTexte);
-                            currentY += hauteurLigne;
-                            start = end;
-                        }
-                    }
-                } else if ("image".equals(objet.type)) {
-                    if (objet.afficherFondColore) {
-                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                        paintObjet.setAlpha(alphaVal);
-                        canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
-                    }
-                    dessinerImage(canvas, objet, cheminAAfficher);
-                } else if ("scene_instance".equals(objet.type)) {
-                    // NOUVEAU : Dessin spécifique pour un Prefab avec Traduction
-                    paintObjet.setColor(Color.argb(120, 50, 150, 255));
-                    paintObjet.setAlpha((int) (0.5f * alphaVal)); 
-                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
-                    
-                    paintSelection.setStrokeWidth(2f);
-                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintSelection);
-                    
-                    paintTexte.setColor(Color.WHITE);
-                    paintTexte.setAlpha(alphaVal);
-                    paintTexte.setTextSize(objet.largeur > 80 ? 14f : 10f);
-                    paintTexte.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-                    String label = Traducteur.get("canvas_label_scene");
-                    float textWidth = paintTexte.measureText(label);
-                    canvas.drawText(label, (objet.largeur - textWidth) / 2f, objet.hauteur / 2f + 5f, paintTexte);
-                } else {
-                    if (objet.afficherFondColore || cheminAAfficher == null) {
-                        paintObjet.setColor(objet.couleur != 0 ? objet.couleur : Color.BLUE);
-                        paintObjet.setAlpha(alphaVal);
-                        canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
-                    }
-                    dessinerImage(canvas, objet, cheminAAfficher);
-                }
-
-                if (objet == objetSelectionne) {
-                    float scaleFactorX = Math.abs(objet.scaleX);
-                    if (scaleFactorX < 0.01f) scaleFactorX = 0.01f;
-                    
-                    float scaleFactorY = Math.abs(objet.scaleY);
-                    if (scaleFactorY < 0.01f) scaleFactorY = 0.01f;
-
-                    float maxScale = Math.max(scaleFactorX, scaleFactorY);
-                    paintSelection.setStrokeWidth(2f / maxScale);
-                    
-                    float l = -4f / scaleFactorX;
-                    float t = -4f / scaleFactorY;
-                    float r = objet.largeur + 4f / scaleFactorX;
-                    
-                    float objHauteur = getHauteurReelle(objet);
-                    float b = objHauteur + 4f / scaleFactorY;
-                    
-                    canvas.drawRect(l, t, r, b, paintSelection);
-                    
-                    if (!isModeDeplacementObjet) {
-                        float hsX = 12f / scaleFactorX;
-                        float hsY = 12f / scaleFactorY;
-                        float rcX = 4f / scaleFactorX;
-                        float rcY = 4f / scaleFactorY;
-                        
-                        canvas.drawRoundRect(new android.graphics.RectF(l - hsX, t - hsY, l + hsX, t + hsY), rcX, rcY, paintPoignee);
-                        canvas.drawRoundRect(new android.graphics.RectF(r - hsX, t - hsY, r + hsX, t + hsY), rcX, rcY, paintPoignee);
-                        canvas.drawRoundRect(new android.graphics.RectF(l - hsX, b - hsY, l + hsX, b + hsY), rcX, rcY, paintPoignee);
-                        canvas.drawRoundRect(new android.graphics.RectF(r - hsX, b - hsY, r + hsX, b + hsY), rcX, rcY, paintPoignee);
-                        
-                        float cx = objet.largeur / 2f;
-                        float rotY = t - (50f / scaleFactorY);
-                        canvas.drawLine(cx, t, cx, rotY, paintSelection);
-                        
-                        float scaleFactorAvg = (scaleFactorX + scaleFactorY) / 2f;
-                        canvas.drawCircle(cx, rotY, 15f / scaleFactorAvg, paintPoignee);
-                    }
-                }
-                canvas.restore();
+                if (!estVisibleEffectifGen(objet, sceneActive.objets)) continue; 
+                dessinerObjetBase(canvas, objet, sceneActive.objets, 255, true);
             }
         }
         canvas.restore();
@@ -479,9 +564,7 @@ public class CanvasEditeur extends View {
                             cacheImages.put(cheminAAfficher, bmp);
                         }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                } catch (Exception e) {}
             }
             if (bmp != null) {
                 if ("rond".equals(objet.type)) {
@@ -532,8 +615,8 @@ public class CanvasEditeur extends View {
         return null;
     }
 // bas 2
-                
-    // haut 3
+
+// haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
         float sx = scenePos[0], sy = scenePos[1];
@@ -754,3 +837,12 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
+
+
+
+
+
+    
+
+
+
