@@ -127,6 +127,7 @@ public class VueJeu extends View {
         }
     }
 // bas 1
+
 // haut 2
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
@@ -232,11 +233,8 @@ public class VueJeu extends View {
         java.util.Map<String, String> mapIds = new java.util.HashMap<>();
         java.util.Map<String, String> mapVars = new java.util.HashMap<>();
 
-        // 1. IMPORT ET SURCHARGE DES VARIABLES LOCALES
         if (sceneAInstancier.variablesLocales != null) {
-            if (sceneActive.variablesLocales == null) {
-                sceneActive.variablesLocales = new ArrayList<>();
-            }
+            if (sceneActive.variablesLocales == null) sceneActive.variablesLocales = new ArrayList<>();
             for (Variable varOrigine : sceneAInstancier.variablesLocales) {
                 Variable varClone = new Variable(varOrigine.nom, varOrigine.scope, varOrigine.type);
                 varClone.valeur = varOrigine.valeur;
@@ -258,12 +256,10 @@ public class VueJeu extends View {
                 String nouveauNomVar = prefab.id + "_" + varOrigine.nom;
                 mapVars.put(varOrigine.nom, nouveauNomVar);
                 varClone.nom = nouveauNomVar;
-                
                 sceneActive.variablesLocales.add(varClone);
             }
         }
 
-        // 2. INJECTION ET CORRECTION DES OBJETS
         if (sceneAInstancier.objets != null) {
             List<ObjetBase> objetsInjectes = new ArrayList<>();
             for (ObjetBase objOrigine : sceneAInstancier.objets) {
@@ -275,30 +271,26 @@ public class VueJeu extends View {
                 
                 clone.x += offsetX;
                 clone.y += offsetY;
-                clone.tag = (clone.tag != null ? clone.tag + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
+                
+                // CORRECTION MAJEURE ICI : On ne pollue plus le TAG pour le repérage de l'instance !
+                // On utilise sceneLieeId (inutilisée sur un objet classique) pour marquer la provenance du clone.
+                clone.sceneLieeId = sceneAInstancier.id;
+                
                 objetsInjectes.add(clone);
             }
             
             for (ObjetBase clone : objetsInjectes) {
-                if (clone.parentId != null && mapIds.containsKey(clone.parentId)) {
-                    clone.parentId = mapIds.get(clone.parentId);
-                }
-                if (clone.cibleJoystickId != null && mapIds.containsKey(clone.cibleJoystickId)) {
-                    clone.cibleJoystickId = mapIds.get(clone.cibleJoystickId);
-                }
-                if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) {
-                    clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
-                }
+                if (clone.parentId != null && mapIds.containsKey(clone.parentId)) clone.parentId = mapIds.get(clone.parentId);
+                if (clone.cibleJoystickId != null && mapIds.containsKey(clone.cibleJoystickId)) clone.cibleJoystickId = mapIds.get(clone.cibleJoystickId);
+                if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
                 sceneActive.ajouterObjet(clone);
             }
             chargerAnimationsGlobales(sceneActive.objets);
         }
         
-        // 3. INJECTION ET CORRECTION DES NOEUDS BLUEPRINT (SÉCURITÉ ANTI-ÉCRASEMENT)
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
             java.util.Map<String, String> mapNoeudsIds = new java.util.HashMap<>();
 
-            // Passe 1 : Générer de nouveaux IDs pour les nœuds clonés
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 String nouvelIdNoeud = java.util.UUID.randomUUID().toString();
                 mapNoeudsIds.put(noeud.id, nouvelIdNoeud);
@@ -306,7 +298,6 @@ public class VueJeu extends View {
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
             }
 
-            // Passe 2 : Mettre à jour toutes les connexions (liens) et cibles
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 try {
                     java.lang.reflect.Field champCible = noeud.getClass().getField("cibleObjetId");
@@ -332,7 +323,6 @@ public class VueJeu extends View {
                     if (ancienneVar2 != null && mapVars.containsKey(ancienneVar2)) champVar2.set(noeud, mapVars.get(ancienneVar2));
                 } catch (Exception e) {}
 
-                // Redirection des liens d'exécution vers les nouveaux nœuds
                 try {
                     java.lang.reflect.Field champSuivant = noeud.getClass().getField("noeudSuivantId");
                     String ancienSuivant = (String) champSuivant.get(noeud);
@@ -364,17 +354,17 @@ public class VueJeu extends View {
     public void detruireInstances(Scene sceneCible) {
         if (sceneCible == null || sceneActive == null || sceneActive.objets == null) return;
         
-        String tagRecherche = "_INSTANCE_" + sceneCible.id;
-        
         java.util.Iterator<ObjetBase> itObj = sceneActive.objets.iterator();
         while (itObj.hasNext()) {
             ObjetBase obj = itObj.next();
-            if (obj.tag != null && obj.tag.contains(tagRecherche)) {
+            // NOUVEAU : On repère les clones via sceneLieeId plutôt que par le tag
+            if (obj.sceneLieeId != null && obj.sceneLieeId.equals(sceneCible.id) && !"scene_instance".equals(obj.type)) {
                 itObj.remove();
             }
         }
         
         if (this.moteur != null) {
+            String tagRecherche = "_INSTANCE_" + sceneCible.id;
             this.moteur.nettoyerNoeudsParTag(tagRecherche);
         }
     }
@@ -438,8 +428,6 @@ public class VueJeu extends View {
             Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
             if (sceneLiee != null) {
                 instancierScene(sceneLiee, prefab);
-            } else {
-                android.util.Log.e("VueJeu", "Déballage échoué : Scène liée introuvable (" + prefab.sceneLieeId + ")");
             }
         }
     }
@@ -495,8 +483,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
-                        
-    
+            
     
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
