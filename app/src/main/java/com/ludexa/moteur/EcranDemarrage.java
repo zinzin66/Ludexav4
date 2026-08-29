@@ -421,7 +421,6 @@ public class EcranDemarrage extends Activity {
         lp.setMargins(dp(10), 0, 0, 0);
         colonneDroite.setLayoutParams(lp);
 
-        // --- BLOC HAUT : MES PROJETS ---
         LinearLayout blocHaut = new LinearLayout(this);
         blocHaut.setOrientation(LinearLayout.VERTICAL);
         blocHaut.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
@@ -431,14 +430,12 @@ public class EcranDemarrage extends Activity {
         blocHaut.addView(construireListeProjets());
         blocHaut.addView(construireBarreActions());
 
-        // --- SEPARATEUR HORIZONTAL ---
         View separateurH = new View(this);
         separateurH.setBackgroundColor(couleurBordure());
         LinearLayout.LayoutParams lpH = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
         lpH.setMargins(0, dp(6), 0, dp(6));
         separateurH.setLayoutParams(lpH);
 
-        // --- BLOC BAS : PROJETS D'EXEMPLE ---
         LinearLayout blocBas = new LinearLayout(this);
         blocBas.setOrientation(LinearLayout.VERTICAL);
         blocBas.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
@@ -467,8 +464,10 @@ public class EcranDemarrage extends Activity {
 
         bandeau.addView(separateurVertical());
 
+        // MODIFIÉ : le bouton "bug" ouvre désormais le journal de debug du projet sélectionné
+        // (diag_ludexa.txt), au lieu de l'ancien diagnostic de dossier.
         bandeau.addView(boutonBandeau(R.drawable.bug_report_24px, Traducteur.get("demarrage_diagnostic"),
-                v -> afficherDiagnosticDossier()));
+                v -> afficherLogProjet()));
         bandeau.addView(boutonBandeau(R.drawable.build_24px, Traducteur.get("demarrage_test_mkdirs"),
                 v -> afficherTestMkdirs()));
 
@@ -587,23 +586,20 @@ public class EcranDemarrage extends Activity {
                 ligne.setGravity(Gravity.CENTER_VERTICAL);
                 ligne.setPadding(dp(8), dp(8), dp(8), dp(8));
 
-                // L'image de la vignette
                 vignette = new ImageView(EcranDemarrage.this);
                 vignette.setTag("vignette");
                 LinearLayout.LayoutParams lpImg = new LinearLayout.LayoutParams(dp(54), dp(54));
                 lpImg.setMargins(0, 0, dp(12), 0);
                 vignette.setLayoutParams(lpImg);
                 
-                // Fond de la vignette (arrondi et bordure)
                 GradientDrawable fondImg = new GradientDrawable();
                 fondImg.setCornerRadius(dp(6));
                 fondImg.setColor(Palette.fondPanneaux);
                 fondImg.setStroke(dp(1), Palette.bordure);
                 vignette.setBackground(fondImg);
-                vignette.setClipToOutline(true); // Coupe l'image pour respecter les bords arrondis
+                vignette.setClipToOutline(true);
                 ligne.addView(vignette);
 
-                // Conteneur Texte
                 LinearLayout textLayout = new LinearLayout(EcranDemarrage.this);
                 textLayout.setOrientation(LinearLayout.VERTICAL);
 
@@ -643,7 +639,6 @@ public class EcranDemarrage extends Activity {
             sousTitre.setText(item.sousTitre);
             sousTitre.setTextColor(couleurTexteSecondaire());
 
-            // Chargement de l'image sécurisé
             android.graphics.Bitmap bmp = null;
             if (item.estExemple) {
                 String nomFichierSansExt = item.nomZipExemple.substring(0, item.nomZipExemple.lastIndexOf('.'));
@@ -659,7 +654,6 @@ public class EcranDemarrage extends Activity {
                 }
             }
 
-            // Application de l'image ou de l'icône par défaut
             if (bmp != null) {
                 vignette.setImageBitmap(bmp);
                 vignette.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -1198,37 +1192,48 @@ public class EcranDemarrage extends Activity {
 
     // ---------------------------------------------------------------- debug
 
-    private void afficherDiagnosticDossier() {
-        File dossierProjets = new File(getFilesDir(), "projets");
-        StringBuilder info = new StringBuilder();
+    // REMPLACÉ : ancien afficherDiagnosticDossier() -> nouveau visualiseur du journal
+    // de debug permanent (diag_ludexa.txt) du projet actuellement sélectionné dans la liste.
+    // Alimenté par DiagLogger / VueJeu.logDiag() pendant les sessions de test en jeu.
+    private void afficherLogProjet() {
+        File dossier = dossierSelectionne();
+        if (dossier == null) return;
 
-        info.append("Chemin absolu : ").append(dossierProjets.getAbsolutePath()).append("\n");
-        info.append("Existe : ").append(dossierProjets.exists()).append("\n");
-        info.append("Est un dossier : ").append(dossierProjets.isDirectory()).append("\n\n");
-
-        File[] sousDossiers = dossierProjets.listFiles();
-        if (sousDossiers == null) {
-            info.append("listFiles() a retourné null\n");
-        } else if (sousDossiers.length == 0) {
-            info.append("Aucun sous-dossier trouvé\n");
-        } else {
-            for (File sousDossier : sousDossiers) {
-                info.append("Dossier : ").append(sousDossier.getName()).append("\n");
-                File metaFile = new File(sousDossier, "meta.json");
-                boolean metaExiste = metaFile.exists();
-                info.append("  -> meta.json existe : ").append(metaExiste);
-                if (metaExiste) {
-                    info.append(" (Taille : ").append(metaFile.length()).append(" octets)");
-                }
-                info.append("\n");
-            }
+        String contenu = DiagLogger.lire(dossier.getAbsolutePath());
+        if (contenu.isEmpty()) {
+            contenu = "Aucun log pour ce projet pour l'instant.\n\nLancez une partie depuis l'éditeur, puis revenez ici.";
         }
 
-        new AlertDialog.Builder(this)
-                .setTitle("Debug : Dossier projets")
-                .setMessage(info.toString())
-                .setPositiveButton("OK", null)
-                .show();
+        TextView texteLog = new TextView(this);
+        texteLog.setText(contenu);
+        texteLog.setTextSize(12f);
+        texteLog.setTextColor(Palette.texteNormal);
+        texteLog.setPadding(dp(12), dp(12), dp(12), dp(12));
+        texteLog.setTextIsSelectable(true);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setBackground(fond(couleurFondListe(), 6, couleurBordure(), 1));
+        scroll.addView(texteLog);
+
+        final File dossierFinal = dossier;
+        AlertDialog dialogue = new AlertDialog.Builder(this)
+                .setTitle("Journal de debug")
+                .setView(scroll)
+                .setPositiveButton(Traducteur.get("bouton_fermer"), null)
+                .setNeutralButton("Effacer", (d, w) -> {
+                    DiagLogger.effacer(dossierFinal.getAbsolutePath());
+                    Toast.makeText(this, "Journal effacé", Toast.LENGTH_SHORT).show();
+                })
+                .create();
+        dialogue.show();
+
+        android.view.Window window = dialogue.getWindow();
+        if (window != null) {
+            android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+            int width = (int) (metrics.widthPixels * 0.85);
+            int height = (int) (metrics.heightPixels * 0.75);
+            window.setLayout(width, height);
+        }
     }
 
     private void afficherTestMkdirs() {
@@ -1334,4 +1339,3 @@ public class EcranDemarrage extends Activity {
     }
 }
 // bas 4
- 
