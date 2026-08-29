@@ -187,10 +187,8 @@ public class VueJeu extends View {
         }
     }
 
-    // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
     private java.util.Set<String> pilesInstanciationEnCours = new java.util.HashSet<>();
 
-    // CORRECTION : Surcharge pour compatibilité avec le Blueprint (NoeudActionInstancierScene)
     public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
         ObjetBase dummyPrefab = new ObjetBase("Prefab_Dynamique", offsetX, offsetY, 0, 0);
         dummyPrefab.type = "scene_instance";
@@ -243,7 +241,6 @@ public class VueJeu extends View {
                 Variable varClone = new Variable(varOrigine.nom, varOrigine.scope, varOrigine.type);
                 varClone.valeur = varOrigine.valeur;
                 
-                // On applique la surcharge de la variable si elle a été modifiée dans l'éditeur
                 if (prefab.surchargesVariables != null && prefab.surchargesVariables.containsKey(varOrigine.nom)) {
                     String valSurcharge = prefab.surchargesVariables.get(varOrigine.nom);
                     if ("CHIFFRE".equals(varOrigine.type)) {
@@ -258,7 +255,6 @@ public class VueJeu extends View {
                     }
                 }
 
-                // Renommage de sécurité pour garantir l'indépendance de chaque instance
                 String nouveauNomVar = prefab.id + "_" + varOrigine.nom;
                 mapVars.put(varOrigine.nom, nouveauNomVar);
                 varClone.nom = nouveauNomVar;
@@ -298,34 +294,61 @@ public class VueJeu extends View {
             chargerAnimationsGlobales(sceneActive.objets);
         }
         
-        // 3. INJECTION ET CORRECTION DES NOEUDS BLUEPRINT
+        // 3. INJECTION ET CORRECTION DES NOEUDS BLUEPRINT (SÉCURITÉ ANTI-ÉCRASEMENT)
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
+            java.util.Map<String, String> mapNoeudsIds = new java.util.HashMap<>();
+
+            // Passe 1 : Générer de nouveaux IDs pour les nœuds clonés
             for (NoeudBase noeud : blueprintInstance.noeuds) {
+                String nouvelIdNoeud = java.util.UUID.randomUUID().toString();
+                mapNoeudsIds.put(noeud.id, nouvelIdNoeud);
+                noeud.id = nouvelIdNoeud;
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
-                
+            }
+
+            // Passe 2 : Mettre à jour toutes les connexions (liens) et cibles
+            for (NoeudBase noeud : blueprintInstance.noeuds) {
                 try {
                     java.lang.reflect.Field champCible = noeud.getClass().getField("cibleObjetId");
                     String ancienneCible = (String) champCible.get(noeud);
-                    if (ancienneCible != null && mapIds.containsKey(ancienneCible)) {
-                        champCible.set(noeud, mapIds.get(ancienneCible));
-                    }
+                    if (ancienneCible != null && mapIds.containsKey(ancienneCible)) champCible.set(noeud, mapIds.get(ancienneCible));
                 } catch (Exception e) {}
                 
-                // NOUVEAU : Le Blueprint pointe désormais vers les variables renommées de l'instance
+                try {
+                    java.lang.reflect.Field champCibleB = noeud.getClass().getField("cibleObjetBId");
+                    String ancienneCibleB = (String) champCibleB.get(noeud);
+                    if (ancienneCibleB != null && mapIds.containsKey(ancienneCibleB)) champCibleB.set(noeud, mapIds.get(ancienneCibleB));
+                } catch (Exception e) {}
+                
                 try {
                     java.lang.reflect.Field champVar = noeud.getClass().getField("nomVariable");
                     String ancienneVar = (String) champVar.get(noeud);
-                    if (ancienneVar != null && mapVars.containsKey(ancienneVar)) {
-                        champVar.set(noeud, mapVars.get(ancienneVar));
-                    }
+                    if (ancienneVar != null && mapVars.containsKey(ancienneVar)) champVar.set(noeud, mapVars.get(ancienneVar));
                 } catch (Exception e) {}
                 
                 try {
                     java.lang.reflect.Field champVar2 = noeud.getClass().getField("cibleVariableId");
                     String ancienneVar2 = (String) champVar2.get(noeud);
-                    if (ancienneVar2 != null && mapVars.containsKey(ancienneVar2)) {
-                        champVar2.set(noeud, mapVars.get(ancienneVar2));
-                    }
+                    if (ancienneVar2 != null && mapVars.containsKey(ancienneVar2)) champVar2.set(noeud, mapVars.get(ancienneVar2));
+                } catch (Exception e) {}
+
+                // Redirection des liens d'exécution vers les nouveaux nœuds
+                try {
+                    java.lang.reflect.Field champSuivant = noeud.getClass().getField("noeudSuivantId");
+                    String ancienSuivant = (String) champSuivant.get(noeud);
+                    if (ancienSuivant != null && mapNoeudsIds.containsKey(ancienSuivant)) champSuivant.set(noeud, mapNoeudsIds.get(ancienSuivant));
+                } catch (Exception e) {}
+
+                try {
+                    java.lang.reflect.Field champVrai = noeud.getClass().getField("noeudSuivantVraiId");
+                    String ancienVrai = (String) champVrai.get(noeud);
+                    if (ancienVrai != null && mapNoeudsIds.containsKey(ancienVrai)) champVrai.set(noeud, mapNoeudsIds.get(ancienVrai));
+                } catch (Exception e) {}
+
+                try {
+                    java.lang.reflect.Field champFaux = noeud.getClass().getField("noeudSuivantFauxId");
+                    String ancienFaux = (String) champFaux.get(noeud);
+                    if (ancienFaux != null && mapNoeudsIds.containsKey(ancienFaux)) champFaux.set(noeud, mapNoeudsIds.get(ancienFaux));
                 } catch (Exception e) {}
                 
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
@@ -416,7 +439,7 @@ public class VueJeu extends View {
             if (sceneLiee != null) {
                 instancierScene(sceneLiee, prefab);
             } else {
-                android.util.Log.e("VueJeu", "Déballage échoué : Scène liée introuvable en mémoire/disque (" + prefab.sceneLieeId + ")");
+                android.util.Log.e("VueJeu", "Déballage échoué : Scène liée introuvable (" + prefab.sceneLieeId + ")");
             }
         }
     }
@@ -472,6 +495,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
+                        
     
     
 // haut 3
