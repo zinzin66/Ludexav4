@@ -15,7 +15,18 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     }
 
     private void neutraliserEtRetirer(ObjetBase obj) {
-        if (obj == null || contexteApplication == null) return;
+        if (obj == null) return;
+        
+        // CORRECTION : On neutralise l'objet IMMÉDIATEMENT pour la physique et le rendu.
+        // Même si la scène n'est pas trouvée par réflexion, l'abeille disparaît.
+        obj.visible = false;
+        obj.estPhysique = false;
+        obj.estZoneDeClic = false;
+        obj.estRamassable = false;
+        obj.x = -99999;
+        obj.y = -99999;
+        
+        if (contexteApplication == null) return;
         
         Scene sceneParent = null;
         try {
@@ -50,20 +61,11 @@ public class NoeudActionDetruireObjet extends NoeudBase {
             neutraliserEtRetirer(enfant);
         }
 
-        obj.visible = false;
-        obj.estPhysique = false;
-        obj.estZoneDeClic = false;
-        obj.estRamassable = false;
-        obj.x = -99999;
-        obj.y = -99999;
-        
         try {
             sceneParent.objets.remove(obj);
         } catch (Exception e) {}
     }
-// bas 1
 
-// haut 2
     @Override
     public void executer() {
         ObjetBase cibleActuelle = getCibleObjet();
@@ -80,7 +82,6 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
         
-        // CORRECTION : On protège farouchement le mot-clé si l'éditeur rafraîchit à null
         if (objet != null) {
             this.nomCibleObjet = objet.nom;
         } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
@@ -90,7 +91,6 @@ public class NoeudActionDetruireObjet extends NoeudBase {
 
     @Override
     public ObjetBase getCibleObjet() {
-        // Interception prioritaire : si le mot-clé est détecté, on pioche dans la mémoire globale
         if ("__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
             return MoteurLogique.dernierObjetImplique;
         }
@@ -124,4 +124,4 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         return this.cible;
     }
 }
-// bas 2
+// bas 1
