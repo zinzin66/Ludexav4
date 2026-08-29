@@ -17,8 +17,6 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     private void neutraliserEtRetirer(ObjetBase obj) {
         if (obj == null) return;
         
-        // CORRECTION : On neutralise l'objet IMMÉDIATEMENT pour la physique et le rendu.
-        // Même si la scène n'est pas trouvée par réflexion, l'abeille disparaît.
         obj.visible = false;
         obj.estPhysique = false;
         obj.estZoneDeClic = false;
@@ -38,15 +36,34 @@ public class NoeudActionDetruireObjet extends NoeudBase {
                     sceneParent = editeur.sceneHudActive;
                 }
             } else {
-                java.lang.reflect.Field fieldAct = contexteApplication.getClass().getField("sceneActive");
-                Scene sAct = (Scene) fieldAct.get(contexteApplication);
-                if (sAct != null && sAct.objets != null && sAct.objets.contains(obj)) sceneParent = sAct;
-                else {
+                // RECHERCHE AGRESSIVE : On force la lecture même si c'est privé
+                try {
+                    java.lang.reflect.Field sf = contexteApplication.getClass().getDeclaredField("sceneActive");
+                    sf.setAccessible(true);
+                    Scene sAct = (Scene) sf.get(contexteApplication);
+                    if (sAct != null && sAct.objets != null && sAct.objets.contains(obj)) sceneParent = sAct;
+                } catch(Exception e) {}
+                
+                if (sceneParent == null) {
                     try {
-                        java.lang.reflect.Field fieldHud = contexteApplication.getClass().getField("sceneHudActive");
-                        Scene sHud = (Scene) fieldHud.get(contexteApplication);
-                        if (sHud != null && sHud.objets != null && sHud.objets.contains(obj)) sceneParent = sHud;
-                    } catch (Exception e) {}
+                        java.lang.reflect.Field vf = contexteApplication.getClass().getDeclaredField("vueJeu");
+                        vf.setAccessible(true);
+                        Object vueObj = vf.get(contexteApplication);
+                        if (vueObj != null) {
+                            java.lang.reflect.Field sf = vueObj.getClass().getDeclaredField("sceneActive");
+                            sf.setAccessible(true);
+                            Scene sAct = (Scene) sf.get(vueObj);
+                            if (sAct != null && sAct.objets != null && sAct.objets.contains(obj)) sceneParent = sAct;
+                            else {
+                                try {
+                                    java.lang.reflect.Field hf = vueObj.getClass().getDeclaredField("sceneHudActive");
+                                    hf.setAccessible(true);
+                                    Scene sHud = (Scene) hf.get(vueObj);
+                                    if (sHud != null && sHud.objets != null && sHud.objets.contains(obj)) sceneParent = sHud;
+                                } catch(Exception e2) {}
+                            }
+                        }
+                    } catch(Exception e) {}
                 }
             }
         } catch (Exception e) {}
@@ -81,7 +98,6 @@ public class NoeudActionDetruireObjet extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) { 
         this.cible = objet;
-        
         if (objet != null) {
             this.nomCibleObjet = objet.nom;
         } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
@@ -106,18 +122,40 @@ public class NoeudActionDetruireObjet extends NoeudBase {
                         for (ObjetBase o : editeur.sceneHudActive.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                     }
                 } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene sAct = (Scene) sceneField.get(contexteApplication);
+                    Scene sAct = null;
+                    Scene sHud = null;
+                    
+                    try {
+                        java.lang.reflect.Field sf = contexteApplication.getClass().getDeclaredField("sceneActive");
+                        sf.setAccessible(true);
+                        sAct = (Scene) sf.get(contexteApplication);
+                    } catch(Exception e) {}
+                    
+                    if (sAct == null) {
+                        try {
+                            java.lang.reflect.Field vf = contexteApplication.getClass().getDeclaredField("vueJeu");
+                            vf.setAccessible(true);
+                            Object vueObj = vf.get(contexteApplication);
+                            if (vueObj != null) {
+                                java.lang.reflect.Field sf = vueObj.getClass().getDeclaredField("sceneActive");
+                                sf.setAccessible(true);
+                                sAct = (Scene) sf.get(vueObj);
+                                
+                                try {
+                                    java.lang.reflect.Field hf = vueObj.getClass().getDeclaredField("sceneHudActive");
+                                    hf.setAccessible(true);
+                                    sHud = (Scene) hf.get(vueObj);
+                                } catch(Exception e2) {}
+                            }
+                        } catch(Exception e) {}
+                    }
+                    
                     if (sAct != null && sAct.objets != null) {
                         for (ObjetBase o : sAct.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
                     }
-                    try {
-                        java.lang.reflect.Field sceneHudField = contexteApplication.getClass().getField("sceneHudActive");
-                        Scene sHud = (Scene) sceneHudField.get(contexteApplication);
-                        if (sHud != null && sHud.objets != null) {
-                            for (ObjetBase o : sHud.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
-                        }
-                    } catch (Exception e) {}
+                    if (sHud != null && sHud.objets != null) {
+                        for (ObjetBase o : sHud.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
+                    }
                 }
             } catch (Exception e) {}
         }
