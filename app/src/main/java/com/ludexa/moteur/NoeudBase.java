@@ -10,6 +10,11 @@ import java.util.UUID;
 public abstract class NoeudBase {
     public static Context contexteApplication;
 
+    // NOUVEAU : références directes à la scène active, pour éviter toute réflexion
+    // dans le contexte APK compilé. Mises à jour par VueJeu à chaque changement de scène.
+    public static Scene sceneActiveCourante;
+    public static Scene sceneHudActiveCourante;
+
     public static final String TYPE_TEXTE_LIBRE = "TYPE_TEXTE_LIBRE";
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
     public static final String TYPE_COULEUR = "TYPE_COULEUR";
@@ -27,6 +32,13 @@ public abstract class NoeudBase {
     
     public String nomCibleObjet = null;
     public String nomCibleObjetB = null;
+
+    // NOUVEAU : références directes posées UNE SEULE FOIS à l'instanciation d'un prefab
+    // par VueJeu.instancierSceneInterne(). Transitoires : jamais sérialisées en JSON,
+    // donc aucun impact sur la sauvegarde/le chargement des Blueprints.
+    // Prioritaires sur la résolution par nom (nomCibleObjet) dans getCibleObjet()/getCibleObjetB().
+    protected transient ObjetBase cibleObjetResolue = null;
+    protected transient ObjetBase cibleObjetBResolue = null;
 
     public boolean estReplie = false;
 
@@ -127,12 +139,21 @@ public abstract class NoeudBase {
         InfoParametre p = parametresDynamiques.get(nomParametre);
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
-
+// bas 1
+// haut 2
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
+
+    // NOUVEAU : appelée UNIQUEMENT par VueJeu lors de l'instanciation d'un prefab.
+    // Ne modifie JAMAIS nomCibleObjet (qui reste la valeur "éditeur" / JSON d'origine).
+    public void lierCibleObjetInstance(ObjetBase objet) {
+        this.cibleObjetResolue = objet;
+    }
     
-    // NOUVEAU : Interception Objet A + Restauration recherche par nom
+    // Interception Objet A : référence directe d'instance en priorité, sinon comportement d'origine
     public ObjetBase getCibleObjet() { 
+        if (cibleObjetResolue != null) return cibleObjetResolue;
+
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
             return MoteurLogique.dernierObjetImplique;
         }
@@ -156,9 +177,16 @@ public abstract class NoeudBase {
     
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
+
+    // NOUVEAU : pendant de lierCibleObjetInstance() pour la cible B
+    public void lierCibleObjetBInstance(ObjetBase objet) {
+        this.cibleObjetBResolue = objet;
+    }
     
-    // NOUVEAU : Interception Objet B + Restauration recherche par nom
+    // Interception Objet B : référence directe d'instance en priorité, sinon comportement d'origine
     public ObjetBase getCibleObjetB() { 
+        if (cibleObjetBResolue != null) return cibleObjetBResolue;
+
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) {
             return MoteurLogique.dernierObjetImplique;
         }
@@ -194,4 +222,7 @@ public abstract class NoeudBase {
         return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleObjetB() || requiertCibleVariable() || requiertCibleScene();
     }
 }
-// bas 1
+// bas 2
+
+
+    

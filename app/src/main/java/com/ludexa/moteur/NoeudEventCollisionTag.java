@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudEventCollisionTag extends NoeudBase {
     
     private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet;
     private String tagCible = "";
     private transient boolean etaitEnCollision = false;
 
@@ -51,38 +50,31 @@ public class NoeudEventCollisionTag extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) {
         this.cible = objet;
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+        if (objet != null) {
+            this.nomCibleObjet = objet.nom;
+        }
     }
 
+    // SIMPLIFIÉ : référence directe d'instance en priorité (posée par VueJeu à l'instanciation),
+    // puis __OBJET_IMPLIQUE__, puis fallback sur le champ cible local (utilisé par l'éditeur).
+    // Toute la réflexion agressive sur contexteApplication a été supprimée : elle est
+    // remplacée par le mécanisme de liaison directe cibleObjetResolue de NoeudBase.
     @Override
     public ObjetBase getCibleObjet() {
+        if (cibleObjetResolue != null) return cibleObjetResolue;
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
 
-        if (nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                    }
-                    if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneHudActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene sAct = (Scene) sceneField.get(contexteApplication);
-                    if (sAct != null && sAct.objets != null) {
-                        for (ObjetBase o : sAct.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                    }
-                    try {
-                        java.lang.reflect.Field sceneHudField = contexteApplication.getClass().getField("sceneHudActive");
-                        Scene sHud = (Scene) sceneHudField.get(contexteApplication);
-                        if (sHud != null && sHud.objets != null) {
-                            for (ObjetBase o : sHud.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                        }
-                    } catch (Exception e) {}
+        if (nomCibleObjet != null) {
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
                 }
-            } catch (Exception e) {}
+            }
+            if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneHudActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
         }
         return this.cible;
     }

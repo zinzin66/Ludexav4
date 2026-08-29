@@ -479,7 +479,11 @@
   "titre_select_scene_liee": "Select a scene to link",
   "erreur_aucune_autre_scene": "No other scene available.",
     "insp_btn_editer_scene_liee": "Edit source scene ➔",
-  "insp_erreur_scene_introuvable": "Error: Scene not found"
+  "insp_erreur_scene_introuvable": "Error: Scene not found",
+    "insp_sep_surcharge_vars": "Local Variables (Override)",
+  "insp_valeur_sur_mesure": "Custom value",
+  "insp_valeur_defaut": "Default"
+  
   
   
   

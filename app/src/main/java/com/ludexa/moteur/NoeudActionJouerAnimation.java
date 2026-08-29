@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudActionJouerAnimation extends NoeudBase {
 
     private transient ObjetBase cible;
-    private String nomCibleObjet;
     private String nomAnimation = "Ouverture";
     private String vitesse = "8";
     private String boucle = "false";
@@ -68,32 +67,44 @@ public class NoeudActionJouerAnimation extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) {
         this.cible = objet;
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+        // CORRECTION : on écrit désormais le champ nomCibleObjet HÉRITÉ de NoeudBase
+        // (public), et non plus un champ privé du même nom qui le masquait silencieusement.
+        // C'est ce champ public que VueJeu.instancierSceneInterne lit pour lier
+        // correctement chaque clone à l'exécution (lierCibleObjetInstance).
+        // L'ancien champ privé faisait que ce nœud échappait totalement au système
+        // de liaison directe par référence, et retombait sur une résolution par nom
+        // fragile, dépendante de l'état de sceneActive au moment précis de l'exécution.
+        if (objet != null) {
+            this.nomCibleObjet = objet.nom;
+        } else if (!"__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
+            this.nomCibleObjet = null;
+        }
     }
     
+    // SIMPLIFIÉ : référence directe d'instance en priorité (posée par VueJeu à l'instanciation),
+    // puis __OBJET_IMPLIQUE__, puis résolution par nom via les scènes courantes, puis fallback
+    // sur le champ local. Toute la réflexion agressive sur contexteApplication a été supprimée.
     @Override
     public ObjetBase getCibleObjet() {
-        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) {
-                            if (nomCibleObjet.equals(o.nom)) { cible = o; break; }
-                        }
-                    }
-                }
-            } catch (Exception e) {}
+        if (cibleObjetResolue != null) return cibleObjetResolue;
+
+        if ("__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
+            return MoteurLogique.dernierObjetImplique;
         }
-        return cible;
+
+        if (this.nomCibleObjet != null) {
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
+                    if (this.nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
+            if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneHudActiveCourante.objets) {
+                    if (this.nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
+        }
+        return this.cible;
     }
     
     @Override
