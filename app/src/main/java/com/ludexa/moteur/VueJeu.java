@@ -240,7 +240,8 @@ public class VueJeu extends View {
     }
 
     private void instancierSceneInterne(Scene sceneAInstancier, ObjetBase prefab) {
-        float offsetX = prefab.x;
+        android.widget.Toast.makeText(getContext(), "DEBUT instancierSceneInterne prefab=" + prefab.nom, android.widget.Toast.LENGTH_LONG).show();
+    float offsetX = prefab.x;
         float offsetY = prefab.y;
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
