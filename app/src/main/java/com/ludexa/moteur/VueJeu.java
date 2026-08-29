@@ -61,6 +61,12 @@ public class VueJeu extends View {
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
+        // NOUVEAU : on tient à jour les références statiques de NoeudBase dès la construction.
+        // C'est ce qui permet à getCibleObjet()/neutraliserEtRetirer() de retrouver la bonne
+        // scène sans réflexion, aussi bien en APK qu'en mode test-éditeur (basculerVersJeu()).
+        NoeudBase.sceneActiveCourante = this.sceneActive;
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
+
         GestionnaireEtat.viderCache();
 
         if (scene != null) chargerAnimationsGlobales(scene.objets);
@@ -128,7 +134,7 @@ public class VueJeu extends View {
     }
 // bas 1
 
-// haut 2
+   // haut 2
     private void majCibleNoeud(NoeudBase noeud, String nomChamp, java.util.Map<String, String> mapRemplacement) {
         try {
             java.lang.reflect.Field champ = null;
@@ -149,6 +155,7 @@ public class VueJeu extends View {
 
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive; // NOUVEAU
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         if (scene == null) this.moteurHud = null;
     }
@@ -156,10 +163,12 @@ public class VueJeu extends View {
     public void ouvrirHudDynamique(Scene scene, Blueprint blueprintHud) {
         if (this.sceneHudActive != null && this.sceneHudActive == scene && this.moteurHud != null) {
             this.sceneHudActive = scene; 
+            NoeudBase.sceneHudActiveCourante = this.sceneHudActive; // NOUVEAU
             return;
         }
 
         this.sceneHudActive = scene;
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive; // NOUVEAU
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         
         deballerPrefabs(this.sceneHudActive);
@@ -177,6 +186,7 @@ public class VueJeu extends View {
         if (this.sceneActive != null) GestionnaireEtat.sauvegarderEtat(this.sceneActive);
 
         this.sceneActive = nouvelleScene;
+        NoeudBase.sceneActiveCourante = this.sceneActive; // NOUVEAU
         GestionnaireEtat.restaurerEtat(this.sceneActive);
         chargerAnimationsGlobales(nouvelleScene.objets);
 
@@ -283,6 +293,12 @@ public class VueJeu extends View {
             }
         }
 
+        // IMPORTANT : on garde une correspondance POSITIONNELLE objOrigine -> clone,
+        // locale à CETTE instanciation précise. Contrairement à mapNoms (partagée entre
+        // instances et donc écrasée à chaque appel), cette map n'est utilisée qu'une fois,
+        // ici, pour lier les nœuds de CE lot précis à leurs bons clones.
+        java.util.Map<String, ObjetBase> mapNomOrigineVersClone = new java.util.HashMap<>();
+
         if (sceneAInstancier.objets != null) {
             List<ObjetBase> objetsInjectes = new ArrayList<>();
             for (ObjetBase objOrigine : sceneAInstancier.objets) {
@@ -295,6 +311,10 @@ public class VueJeu extends View {
                 String nouveauNom = objOrigine.nom + "_" + nouvelId.substring(0, 5);
                 mapNoms.put(objOrigine.nom, nouveauNom);
                 clone.nom = nouveauNom;
+                
+                // NOUVEAU : on retient, pour CETTE instanciation, à quel clone correspond
+                // le nom d'origine (tel qu'il apparaît dans le JSON du Blueprint source).
+                mapNomOrigineVersClone.put(objOrigine.nom, clone);
                 
                 clone.x += offsetX;
                 clone.y += offsetY;
@@ -337,10 +357,12 @@ public class VueJeu extends View {
 
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 
-                majCibleNoeud(noeud, "cibleObjetId", mapIds);
-                majCibleNoeud(noeud, "cibleObjetBId", mapIds);
-                majCibleNoeud(noeud, "nomCibleObjet", mapNoms);
-                majCibleNoeud(noeud, "nomCibleObjetB", mapNoms);
+                // SUPPRIMÉ : majCibleNoeud(noeud, "nomCibleObjet", mapNoms) et 
+                // majCibleNoeud(noeud, "nomCibleObjetB", mapNoms) — mapNoms est partagée entre
+                // instances et s'écrase à chaque appel, ce qui causait le bug "Highlander"
+                // (une seule instance animée, les autres retargetées vers la dernière créée).
+                // Remplacé par une liaison directe par référence, ci-dessous.
+                
                 majCibleNoeud(noeud, "nomCible", mapNoms); 
                 
                 try {
@@ -373,28 +395,23 @@ public class VueJeu extends View {
                     if (ancienFaux != null && mapNoeudsIds.containsKey(ancienFaux)) champFaux.set(noeud, mapNoeudsIds.get(ancienFaux));
                 } catch (Exception e) {}
                 
-                // CORRECTION : PRÉ-LIAISON DES NŒUDS. Court-circuite totalement la réflexion foireuse de l'APK.
-                if (noeud.requiertCibleObjet()) {
-                    String nomCibleActuel = null;
-                    try {
-                        java.lang.reflect.Field f = null;
-                        Class<?> c = noeud.getClass();
-                        while(c != null && f == null) {
-                            try { f = c.getDeclaredField("nomCibleObjet"); } catch(Exception e){ c = c.getSuperclass(); }
-                        }
-                        if (f != null) {
-                            f.setAccessible(true);
-                            nomCibleActuel = (String) f.get(noeud);
-                        }
-                    } catch(Exception e){}
-                    
-                    if (nomCibleActuel != null && !"__OBJET_IMPLIQUE__".equals(nomCibleActuel)) {
-                        for (ObjetBase o : sceneActive.objets) {
-                            if (nomCibleActuel.equals(o.nom)) {
-                                noeud.setCibleObjet(o);
-                                break;
-                            }
-                        }
+                // NOUVEAU : liaison directe par référence, à la place de l'ancienne
+                // "PRÉ-LIAISON DES NŒUDS" par réflexion. On résout le nom D'ORIGINE
+                // (tel qu'écrit dans le JSON de la scène source, non suffixé) vers
+                // le clone correspondant à CETTE instanciation précise, via
+                // mapNomOrigineVersClone construite juste au-dessus.
+                if (noeud.requiertCibleObjet() && noeud.nomCibleObjet != null
+                    && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
+                    ObjetBase cibleResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjet);
+                    if (cibleResolue != null) {
+                        noeud.lierCibleObjetInstance(cibleResolue);
+                    }
+                }
+                if (noeud.requiertCibleObjetB() && noeud.nomCibleObjetB != null
+                    && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
+                    ObjetBase cibleBResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjetB);
+                    if (cibleBResolue != null) {
+                        noeud.lierCibleObjetBInstance(cibleBResolue);
                     }
                 }
                 
@@ -407,7 +424,8 @@ public class VueJeu extends View {
         
         // SUPPRIMÉ ICI : Le déballage récursif de sceneActive qui provoquait la fausse boucle infinie (cycle).
     }
-// bas 2
+// bas 2 
+
 // haut 3
     public void detruireInstances(Scene sceneCible) {
         if (sceneCible == null || sceneActive == null || sceneActive.objets == null) return;
