@@ -127,6 +127,7 @@ public class VueJeu extends View {
         }
     }
 // bas 1
+
 // haut 2
     private void majCibleNoeud(NoeudBase noeud, String nomChamp, java.util.Map<String, String> mapRemplacement) {
         try {
@@ -303,6 +304,19 @@ public class VueJeu extends View {
             }
             
             for (ObjetBase clone : objetsInjectes) {
+                // CORRECTION : Transfert des propriétés physiques et Tags du conteneur vers les clones racines
+                if (clone.parentId == null) {
+                    if (prefab.tag != null && !prefab.tag.trim().isEmpty()) {
+                        clone.tag = prefab.tag;
+                    }
+                    if (prefab.estPhysique) {
+                        clone.estPhysique = true;
+                        clone.estStatique = prefab.estStatique;
+                        clone.graviteScale = prefab.graviteScale;
+                        clone.rebond = prefab.rebond;
+                    }
+                }
+                
                 if (clone.parentId != null && mapIds.containsKey(clone.parentId)) clone.parentId = mapIds.get(clone.parentId);
                 if (clone.cibleJoystickId != null && mapIds.containsKey(clone.cibleJoystickId)) clone.cibleJoystickId = mapIds.get(clone.cibleJoystickId);
                 if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
@@ -359,16 +373,42 @@ public class VueJeu extends View {
                     if (ancienFaux != null && mapNoeudsIds.containsKey(ancienFaux)) champFaux.set(noeud, mapNoeudsIds.get(ancienFaux));
                 } catch (Exception e) {}
                 
+                // CORRECTION : PRÉ-LIAISON DES NŒUDS. Court-circuite totalement la réflexion foireuse de l'APK.
+                if (noeud.requiertCibleObjet()) {
+                    String nomCibleActuel = null;
+                    try {
+                        java.lang.reflect.Field f = null;
+                        Class<?> c = noeud.getClass();
+                        while(c != null && f == null) {
+                            try { f = c.getDeclaredField("nomCibleObjet"); } catch(Exception e){ c = c.getSuperclass(); }
+                        }
+                        if (f != null) {
+                            f.setAccessible(true);
+                            nomCibleActuel = (String) f.get(noeud);
+                        }
+                    } catch(Exception e){}
+                    
+                    if (nomCibleActuel != null && !"__OBJET_IMPLIQUE__".equals(nomCibleActuel)) {
+                        for (ObjetBase o : sceneActive.objets) {
+                            if (nomCibleActuel.equals(o.nom)) {
+                                noeud.setCibleObjet(o);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
                 if (noeud instanceof NoeudEventStart) {
                     noeud.executer();
                 }
             }
         }
-
-        deballerPrefabs(this.sceneActive);
+        
+        // SUPPRIMÉ ICI : Le déballage récursif de sceneActive qui provoquait la fausse boucle infinie (cycle).
     }
-
+// bas 2
+// haut 3
     public void detruireInstances(Scene sceneCible) {
         if (sceneCible == null || sceneActive == null || sceneActive.objets == null) return;
         
@@ -434,26 +474,36 @@ public class VueJeu extends View {
 
     private void deballerPrefabs(Scene scene) {
         if (scene == null || scene.objets == null) return;
-        List<ObjetBase> prefabs = new ArrayList<>();
-        for (ObjetBase obj : scene.objets) {
-            if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null && obj.visible) {
-                prefabs.add(obj);
-            }
-        }
-        for (ObjetBase prefab : prefabs) {
-            Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
-            if (sceneLiee != null) {
-                instancierScene(sceneLiee, prefab);
+        
+        // CORRECTION : Boucle d'itération sécurisée pour traiter les prefabs un par un,
+        // sans déclencher le bloqueur de boucle infinie (cycle detector) sur les frères.
+        boolean aDeballe = true;
+        while (aDeballe) {
+            aDeballe = false;
+            ObjetBase prefabATraiter = null;
+            
+            for (ObjetBase obj : scene.objets) {
+                if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null && obj.visible) {
+                    prefabATraiter = obj;
+                    break;
+                }
             }
             
-            // CORRECTION : On neutralise le conteneur UNIQUEMENT APRES 
-            // avoir lancé l'instanciation pour ne pas perdre ses coordonnées !
-            prefab.visible = false; 
-            prefab.estPhysique = false;
-            prefab.estZoneDeClic = false;
-            prefab.tag = ""; 
-            prefab.x = -99999;
-            prefab.y = -99999;
+            if (prefabATraiter != null) {
+                prefabATraiter.visible = false; 
+                Scene sceneLiee = getSceneParId(prefabATraiter.sceneLieeId);
+                if (sceneLiee != null) {
+                    instancierScene(sceneLiee, prefabATraiter);
+                }
+                
+                prefabATraiter.estPhysique = false;
+                prefabATraiter.estZoneDeClic = false;
+                prefabATraiter.tag = ""; 
+                prefabATraiter.x = -99999;
+                prefabATraiter.y = -99999;
+                
+                aDeballe = true; 
+            }
         }
     }
 
@@ -507,10 +557,7 @@ public class VueJeu extends View {
         }
         return null;
     }
-// bas 2
-    
 
-// haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         float camX = isHud ? 0f : GestionnaireControles.cameraX;
@@ -545,7 +592,8 @@ public class VueJeu extends View {
         }
         return m;
     }
-    
+// bas 3
+// haut 4
     private boolean pointDansObjet(float xVue, float yVue, float xMonde, float yMonde, ObjetBase obj) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         List<ObjetBase> contexte = isHud ? sceneHudActive.objets : sceneActive.objets;
@@ -645,8 +693,7 @@ public class VueJeu extends View {
             objet.y += deltaY;
         }
     }
-// bas 3
-// haut 4
+
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
@@ -836,7 +883,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-    // haut 5
+// haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
