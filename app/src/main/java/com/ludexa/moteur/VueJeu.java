@@ -190,21 +190,23 @@ public class VueJeu extends View {
     // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
     private java.util.Set<String> pilesInstanciationEnCours = new java.util.HashSet<>();
 
-    public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
-        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return;
+    public void instancierScene(Scene sceneAInstancier, ObjetBase prefab) {
+        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive || prefab == null) return;
         if (pilesInstanciationEnCours.contains(sceneAInstancier.id)) {
             android.util.Log.w("VueJeu", "Cycle de prefabs détecté et ignoré pour la scène " + sceneAInstancier.id);
             return;
         }
         pilesInstanciationEnCours.add(sceneAInstancier.id);
         try {
-            instancierSceneInterne(sceneAInstancier, offsetX, offsetY);
+            instancierSceneInterne(sceneAInstancier, prefab);
         } finally {
             pilesInstanciationEnCours.remove(sceneAInstancier.id);
         }
     }
 
-    private void instancierSceneInterne(Scene sceneAInstancier, float offsetX, float offsetY) {
+    private void instancierSceneInterne(Scene sceneAInstancier, ObjetBase prefab) {
+        float offsetX = prefab.x;
+        float offsetY = prefab.y;
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
             try {
@@ -222,13 +224,47 @@ public class VueJeu extends View {
         }
         
         java.util.Map<String, String> mapIds = new java.util.HashMap<>();
-        
+        java.util.Map<String, String> mapVars = new java.util.HashMap<>();
+
+        // 1. IMPORT ET SURCHARGE DES VARIABLES LOCALES
+        if (sceneAInstancier.variablesLocales != null) {
+            if (sceneActive.variablesLocales == null) {
+                sceneActive.variablesLocales = new ArrayList<>();
+            }
+            for (Variable varOrigine : sceneAInstancier.variablesLocales) {
+                Variable varClone = new Variable(varOrigine.nom, varOrigine.scope, varOrigine.type);
+                varClone.valeur = varOrigine.valeur;
+                
+                // On applique la surcharge de la variable si elle a été modifiée dans l'éditeur
+                if (prefab.surchargesVariables != null && prefab.surchargesVariables.containsKey(varOrigine.nom)) {
+                    String valSurcharge = prefab.surchargesVariables.get(varOrigine.nom);
+                    if ("CHIFFRE".equals(varOrigine.type)) {
+                        try { varClone.valeur = Float.parseFloat(valSurcharge); } catch (Exception e) {}
+                    } else if ("TEXTE".equals(varOrigine.type)) {
+                        varClone.valeur = valSurcharge;
+                    } else if ("BOOLEEN".equals(varOrigine.type)) {
+                        String clean = valSurcharge.toLowerCase();
+                        varClone.valeur = (clean.equals("oui") || clean.equals("vrai") || clean.equals("true"));
+                    } else if ("ENTIER".equals(varOrigine.type)) {
+                        try { varClone.valeur = Integer.parseInt(valSurcharge); } catch (Exception e) {}
+                    }
+                }
+
+                // Renommage de sécurité pour garantir l'indépendance de chaque instance
+                String nouveauNomVar = prefab.id + "_" + varOrigine.nom;
+                mapVars.put(varOrigine.nom, nouveauNomVar);
+                varClone.nom = nouveauNomVar;
+                
+                sceneActive.variablesLocales.add(varClone);
+            }
+        }
+
+        // 2. INJECTION ET CORRECTION DES OBJETS
         if (sceneAInstancier.objets != null) {
             List<ObjetBase> objetsInjectes = new ArrayList<>();
             for (ObjetBase objOrigine : sceneAInstancier.objets) {
                 ObjetBase clone = objOrigine.clonerProfond();
                 
-                // CORRECTION : Régénération de l'ID pour garantir l'unicité et éviter les crashs de parenté
                 String nouvelId = java.util.UUID.randomUUID().toString();
                 mapIds.put(clone.id, nouvelId);
                 clone.id = nouvelId;
@@ -239,7 +275,6 @@ public class VueJeu extends View {
                 objetsInjectes.add(clone);
             }
             
-            // CORRECTION : Réparation des liens internes pour les enfants / joysticks
             for (ObjetBase clone : objetsInjectes) {
                 if (clone.parentId != null && mapIds.containsKey(clone.parentId)) {
                     clone.parentId = mapIds.get(clone.parentId);
@@ -255,16 +290,33 @@ public class VueJeu extends View {
             chargerAnimationsGlobales(sceneActive.objets);
         }
         
+        // 3. INJECTION ET CORRECTION DES NOEUDS BLUEPRINT
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
                 
-                // Tentative générique de mise à jour des cibles dans le Blueprint
                 try {
                     java.lang.reflect.Field champCible = noeud.getClass().getField("cibleObjetId");
                     String ancienneCible = (String) champCible.get(noeud);
                     if (ancienneCible != null && mapIds.containsKey(ancienneCible)) {
                         champCible.set(noeud, mapIds.get(ancienneCible));
+                    }
+                } catch (Exception e) {}
+                
+                // NOUVEAU : Le Blueprint pointe désormais vers les variables renommées de l'instance
+                try {
+                    java.lang.reflect.Field champVar = noeud.getClass().getField("nomVariable");
+                    String ancienneVar = (String) champVar.get(noeud);
+                    if (ancienneVar != null && mapVars.containsKey(ancienneVar)) {
+                        champVar.set(noeud, mapVars.get(ancienneVar));
+                    }
+                } catch (Exception e) {}
+                
+                try {
+                    java.lang.reflect.Field champVar2 = noeud.getClass().getField("cibleVariableId");
+                    String ancienneVar2 = (String) champVar2.get(noeud);
+                    if (ancienneVar2 != null && mapVars.containsKey(ancienneVar2)) {
+                        champVar2.set(noeud, mapVars.get(ancienneVar2));
                     }
                 } catch (Exception e) {}
                 
@@ -296,7 +348,6 @@ public class VueJeu extends View {
         }
     }
 
-    // --- CORRECTION : Accès hybride (Éditeur en direct / Disque compilé) ---
     private List<Scene> cacheListeScenesDisque = null;
 
     private List<Scene> chargerToutesLesScenesDepuisDisque() {
@@ -317,7 +368,6 @@ public class VueJeu extends View {
         }
     }
 
-    // NOUVELLE MÉTHODE : Permet de lire les scènes non sauvegardées en mémoire vive si le jeu tourne dans l'éditeur
     private List<Scene> obtenirToutesLesScenes() {
         Context ctx = getContext();
         if (ctx != null) {
@@ -328,9 +378,7 @@ public class VueJeu extends View {
                     List<Scene> scenesEditeur = (List<Scene>) field.get(ctx);
                     if (scenesEditeur != null) return scenesEditeur;
                 }
-            } catch (Exception e) {
-                android.util.Log.e("VueJeu", "Accès refusé à listeScenes de InterfaceEditeur", e);
-            }
+            } catch (Exception e) {}
         }
         return chargerToutesLesScenesDepuisDisque();
     }
@@ -358,7 +406,7 @@ public class VueJeu extends View {
             prefab.visible = false; 
             Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
             if (sceneLiee != null) {
-                instancierScene(sceneLiee, prefab.x, prefab.y);
+                instancierScene(sceneLiee, prefab);
             } else {
                 android.util.Log.e("VueJeu", "Déballage échoué : Scène liée introuvable en mémoire/disque (" + prefab.sceneLieeId + ")");
             }
@@ -416,6 +464,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
+    
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
