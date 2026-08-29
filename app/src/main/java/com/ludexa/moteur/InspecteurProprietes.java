@@ -61,7 +61,6 @@ public class InspecteurProprietes extends LinearLayout {
     private LinearLayout blocSceneInstance;
     private Button btnSelectSceneLiee;
     private Button btnEditerSceneLiee; 
-    // NOUVEAU : Conteneur dynamique pour lister les variables locales du Prefab
     private LinearLayout conteurVariablesSurcharge;
 
     private LinearLayout blocPhysique;
@@ -175,7 +174,6 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
-    
 
 // haut 2
     private void initialiserInterface(Context context) {
@@ -488,7 +486,6 @@ public class InspecteurProprietes extends LinearLayout {
         });
 // bas 2
 
-
 // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
@@ -698,7 +695,7 @@ public class InspecteurProprietes extends LinearLayout {
 
         blocProprietes.addView(blocJoystick);
 
-        // --- NOUVEAU : UI POUR SCENE INSTANCE ---
+        // --- UI POUR SCENE INSTANCE ET SURCHARGES ---
         blocSceneInstance = new LinearLayout(context);
         blocSceneInstance.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocSceneInstance);
@@ -714,10 +711,14 @@ public class InspecteurProprietes extends LinearLayout {
         blocSceneInstance.addView(btnSelectSceneLiee);
         
         btnEditerSceneLiee = new Button(context);
-        btnEditerSceneLiee.setText("Éditer la scène source ➔");
+        btnEditerSceneLiee.setText(Traducteur.get("insp_btn_editer_scene_liee"));
         styliserBouton(btnEditerSceneLiee);
-        btnEditerSceneLiee.setTextColor(Color.parseColor("#4CAF50")); // Couleur verte pour indiquer une action forte
+        btnEditerSceneLiee.setTextColor(Color.parseColor("#4CAF50")); 
         blocSceneInstance.addView(btnEditerSceneLiee);
+        
+        conteurVariablesSurcharge = new LinearLayout(context);
+        conteurVariablesSurcharge.setOrientation(LinearLayout.VERTICAL);
+        blocSceneInstance.addView(conteurVariablesSurcharge);
         
         blocProprietes.addView(blocSceneInstance);
         // ----------------------------------------
@@ -817,6 +818,8 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
+
+
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
             if (scrollInspecteur.getVisibility() == View.VISIBLE) {
@@ -880,35 +883,6 @@ public class InspecteurProprietes extends LinearLayout {
                     }
                 }).show();
         });
-
-        // --- UI POUR SCENE INSTANCE ET SURCHARGES ---
-        blocSceneInstance = new LinearLayout(context);
-        blocSceneInstance.setOrientation(LinearLayout.VERTICAL);
-        styliserSection(blocSceneInstance);
-
-        TextView sepSceneLiee = new TextView(context);
-        sepSceneLiee.setText(Traducteur.get("insp_sep_scene_liee"));
-        styliserSousTitre(sepSceneLiee);
-        blocSceneInstance.addView(sepSceneLiee);
-
-        btnSelectSceneLiee = new Button(context);
-        btnSelectSceneLiee.setText(Traducteur.get("insp_btn_select_scene_liee"));
-        styliserBouton(btnSelectSceneLiee);
-        blocSceneInstance.addView(btnSelectSceneLiee);
-        
-        btnEditerSceneLiee = new Button(context);
-        btnEditerSceneLiee.setText(Traducteur.get("insp_btn_editer_scene_liee"));
-        styliserBouton(btnEditerSceneLiee);
-        btnEditerSceneLiee.setTextColor(Color.parseColor("#4CAF50")); 
-        blocSceneInstance.addView(btnEditerSceneLiee);
-        
-        // Initialisation du conteneur de variables
-        conteurVariablesSurcharge = new LinearLayout(context);
-        conteurVariablesSurcharge.setOrientation(LinearLayout.VERTICAL);
-        blocSceneInstance.addView(conteurVariablesSurcharge);
-        
-        blocProprietes.addView(blocSceneInstance);
-        // -----------------------------------------
 
         btnSelectSceneLiee.setOnClickListener(v -> {
             if (objetCourant == null) return;
@@ -1280,7 +1254,6 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
-
 // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
@@ -1415,7 +1388,6 @@ public class InspecteurProprietes extends LinearLayout {
                 btnSelectSceneLiee.setText(Traducteur.get("insp_btn_scene_liee_val") + nomScene);
                 btnEditerSceneLiee.setVisibility(aUneScene ? View.VISIBLE : View.GONE);
 
-                // NOUVEAU : Création dynamique de la liste des variables locales
                 conteurVariablesSurcharge.removeAllViews();
                 if (sceneLieeTrouvee != null && sceneLieeTrouvee.variablesLocales != null && !sceneLieeTrouvee.variablesLocales.isEmpty()) {
                     TextView sepVars = new TextView(getContext());
@@ -1582,12 +1554,18 @@ public class InspecteurProprietes extends LinearLayout {
 
 
 
-        
+
+
+    
 
 
 
         
 
+
+
+
+        
 
 
 
