@@ -231,7 +231,7 @@ public class VueJeu extends View {
         
         java.util.Map<String, String> mapIds = new java.util.HashMap<>();
         java.util.Map<String, String> mapVars = new java.util.HashMap<>();
-        java.util.Map<String, String> mapNoms = new java.util.HashMap<>(); // CORRECTION : Cartographie des noms
+        java.util.Map<String, String> mapNoms = new java.util.HashMap<>();
 
         if (sceneAInstancier.variablesLocales != null) {
             if (sceneActive.variablesLocales == null) sceneActive.variablesLocales = new ArrayList<>();
@@ -269,7 +269,6 @@ public class VueJeu extends View {
                 mapIds.put(clone.id, nouvelId);
                 clone.id = nouvelId;
                 
-                // CORRECTION : On isole la logique du clone en rendant son nom unique
                 String nouveauNom = objOrigine.nom + "_" + nouvelId.substring(0, 5);
                 mapNoms.put(objOrigine.nom, nouveauNom);
                 clone.nom = nouveauNom;
@@ -343,20 +342,34 @@ public class VueJeu extends View {
                     if (ancienFaux != null && mapNoeudsIds.containsKey(ancienFaux)) champFaux.set(noeud, mapNoeudsIds.get(ancienFaux));
                 } catch (Exception e) {}
                 
-                // CORRECTION : Remapper les cibles textuelles (nomCibleObjet) pour lier le Blueprint au bon clone
+                // CORRECTION : Renommage agressif en forçant getDeclaredField sur toute la hiérarchie !
                 try {
-                    java.lang.reflect.Field champCibleNom = noeud.getClass().getField("nomCibleObjet");
-                    String ancienneCibleNom = (String) champCibleNom.get(noeud);
-                    if (ancienneCibleNom != null && !"__OBJET_IMPLIQUE__".equals(ancienneCibleNom) && mapNoms.containsKey(ancienneCibleNom)) {
-                        champCibleNom.set(noeud, mapNoms.get(ancienneCibleNom));
+                    java.lang.reflect.Field champCibleNom = null;
+                    Class<?> c = noeud.getClass();
+                    while(c != null && champCibleNom == null) {
+                        try { champCibleNom = c.getDeclaredField("nomCibleObjet"); } catch(Exception e) { c = c.getSuperclass(); }
+                    }
+                    if (champCibleNom != null) {
+                        champCibleNom.setAccessible(true);
+                        String ancienneCibleNom = (String) champCibleNom.get(noeud);
+                        if (ancienneCibleNom != null && !"__OBJET_IMPLIQUE__".equals(ancienneCibleNom) && mapNoms.containsKey(ancienneCibleNom)) {
+                            champCibleNom.set(noeud, mapNoms.get(ancienneCibleNom));
+                        }
                     }
                 } catch (Exception e) {}
                 
                 try {
-                    java.lang.reflect.Field champCibleNomB = noeud.getClass().getField("nomCibleObjetB");
-                    String ancienneCibleNomB = (String) champCibleNomB.get(noeud);
-                    if (ancienneCibleNomB != null && !"__OBJET_IMPLIQUE__".equals(ancienneCibleNomB) && mapNoms.containsKey(ancienneCibleNomB)) {
-                        champCibleNomB.set(noeud, mapNoms.get(ancienneCibleNomB));
+                    java.lang.reflect.Field champCibleNomB = null;
+                    Class<?> c = noeud.getClass();
+                    while(c != null && champCibleNomB == null) {
+                        try { champCibleNomB = c.getDeclaredField("nomCibleObjetB"); } catch(Exception e) { c = c.getSuperclass(); }
+                    }
+                    if (champCibleNomB != null) {
+                        champCibleNomB.setAccessible(true);
+                        String ancienneCibleNomB = (String) champCibleNomB.get(noeud);
+                        if (ancienneCibleNomB != null && !"__OBJET_IMPLIQUE__".equals(ancienneCibleNomB) && mapNoms.containsKey(ancienneCibleNomB)) {
+                            champCibleNomB.set(noeud, mapNoms.get(ancienneCibleNomB));
+                        }
                     }
                 } catch (Exception e) {}
                 
@@ -501,8 +514,6 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
-
-
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
@@ -639,8 +650,6 @@ public class VueJeu extends View {
         }
     }
 // bas 3
-
-
 // haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -831,7 +840,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-    // haut 5
+// haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
