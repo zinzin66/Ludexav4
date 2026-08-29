@@ -481,7 +481,11 @@
   "titre_select_scene_liee": "Zu verknüpfende Szene auswählen",
   "erreur_aucune_autre_scene": "Keine andere Szene verfügbar.",
     "insp_btn_editer_scene_liee": "Quellszene bearbeiten ➔",
-  "insp_erreur_scene_introuvable": "Fehler: Szene nicht gefunden"
+  "insp_erreur_scene_introuvable": "Fehler: Szene nicht gefunden",
+    "insp_sep_surcharge_vars": "Lokale Variablen (Überschreiben)",
+  "insp_valeur_sur_mesure": "Benutzerdefinierter Wert",
+  "insp_valeur_defaut": "Standard"
+  
   
   
   
