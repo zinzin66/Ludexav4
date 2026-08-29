@@ -140,3 +140,89 @@ public abstract class NoeudBase {
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
 // bas 1
+// haut 2
+    public boolean requiertCibleObjet() { return false; }
+    public void setCibleObjet(ObjetBase objet) {}
+
+    // NOUVEAU : appelée UNIQUEMENT par VueJeu lors de l'instanciation d'un prefab.
+    // Ne modifie JAMAIS nomCibleObjet (qui reste la valeur "éditeur" / JSON d'origine).
+    public void lierCibleObjetInstance(ObjetBase objet) {
+        this.cibleObjetResolue = objet;
+    }
+    
+    // Interception Objet A : référence directe d'instance en priorité, sinon comportement d'origine
+    public ObjetBase getCibleObjet() { 
+        if (cibleObjetResolue != null) return cibleObjetResolue;
+
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
+            return MoteurLogique.dernierObjetImplique;
+        }
+        
+        if (nomCibleObjet != null && contexteApplication != null) {
+            try {
+                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                Scene scene = (Scene) sceneField.get(contexteApplication);
+                
+                if (scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (nomCibleObjet.equals(obj.nom)) {
+                            return obj;
+                        }
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return null; 
+    }
+    
+    public boolean requiertCibleObjetB() { return false; }
+    public void setCibleObjetB(ObjetBase objet) {}
+
+    // NOUVEAU : pendant de lierCibleObjetInstance() pour la cible B
+    public void lierCibleObjetBInstance(ObjetBase objet) {
+        this.cibleObjetBResolue = objet;
+    }
+    
+    // Interception Objet B : référence directe d'instance en priorité, sinon comportement d'origine
+    public ObjetBase getCibleObjetB() { 
+        if (cibleObjetBResolue != null) return cibleObjetBResolue;
+
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) {
+            return MoteurLogique.dernierObjetImplique;
+        }
+        
+        if (nomCibleObjetB != null && contexteApplication != null) {
+            try {
+                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                Scene scene = (Scene) sceneField.get(contexteApplication);
+                
+                if (scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (nomCibleObjetB.equals(obj.nom)) {
+                            return obj;
+                        }
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return null; 
+    }
+    
+    public boolean requiertCibleVariable() { return false; }
+    public void setCibleVariable(Variable v) {}
+    public Variable getCibleVariable() { return null; }
+    
+    public boolean requiertCibleScene() { return false; }
+    public void setCibleScene(Scene s) {}
+    public Scene getCibleScene() { return null; }
+    
+    public boolean utiliseClavierTexte() { return false; }
+    
+    public boolean aDesParametresEditables() {
+        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleObjetB() || requiertCibleVariable() || requiertCibleScene();
+    }
+}
+// bas 2
+
+
+    
