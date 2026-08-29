@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudEventCollisionTag extends NoeudBase {
     
     private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet;
     private String tagCible = "";
     private transient boolean etaitEnCollision = false;
 
@@ -51,7 +50,9 @@ public class NoeudEventCollisionTag extends NoeudBase {
     @Override
     public void setCibleObjet(ObjetBase objet) {
         this.cible = objet;
-        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+        if (objet != null) {
+            this.nomCibleObjet = objet.nom;
+        }
     }
 
     @Override
@@ -69,18 +70,41 @@ public class NoeudEventCollisionTag extends NoeudBase {
                         for (ObjetBase o : editeur.sceneHudActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
                     }
                 } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene sAct = (Scene) sceneField.get(contexteApplication);
+                    // CORRECTION : Recherche agressive (Débloque la collision dans l'APK)
+                    Scene sAct = null;
+                    Scene sHud = null;
+                    
+                    try {
+                        java.lang.reflect.Field sf = contexteApplication.getClass().getDeclaredField("sceneActive");
+                        sf.setAccessible(true);
+                        sAct = (Scene) sf.get(contexteApplication);
+                    } catch(Exception e) {}
+                    
+                    if (sAct == null) {
+                        try {
+                            java.lang.reflect.Field vf = contexteApplication.getClass().getDeclaredField("vueJeu");
+                            vf.setAccessible(true);
+                            Object vueObj = vf.get(contexteApplication);
+                            if (vueObj != null) {
+                                java.lang.reflect.Field sf = vueObj.getClass().getDeclaredField("sceneActive");
+                                sf.setAccessible(true);
+                                sAct = (Scene) sf.get(vueObj);
+                                
+                                try {
+                                    java.lang.reflect.Field hf = vueObj.getClass().getDeclaredField("sceneHudActive");
+                                    hf.setAccessible(true);
+                                    sHud = (Scene) hf.get(vueObj);
+                                } catch(Exception e2) {}
+                            }
+                        } catch(Exception e) {}
+                    }
+                    
                     if (sAct != null && sAct.objets != null) {
                         for (ObjetBase o : sAct.objets) if (nomCibleObjet.equals(o.nom)) return o;
                     }
-                    try {
-                        java.lang.reflect.Field sceneHudField = contexteApplication.getClass().getField("sceneHudActive");
-                        Scene sHud = (Scene) sceneHudField.get(contexteApplication);
-                        if (sHud != null && sHud.objets != null) {
-                            for (ObjetBase o : sHud.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                        }
-                    } catch (Exception e) {}
+                    if (sHud != null && sHud.objets != null) {
+                        for (ObjetBase o : sHud.objets) if (nomCibleObjet.equals(o.nom)) return o;
+                    }
                 }
             } catch (Exception e) {}
         }
