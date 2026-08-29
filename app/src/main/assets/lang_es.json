@@ -479,7 +479,11 @@
   "titre_select_scene_liee": "Seleccionar una escena para vincular",
   "erreur_aucune_autre_scene": "No hay ninguna otra escena disponible.",
     "insp_btn_editer_scene_liee": "Editar escena de origen ➔",
-  "insp_erreur_scene_introuvable": "Error: Escena no encontrada"
+  "insp_erreur_scene_introuvable": "Error: Escena no encontrada",
+    "insp_sep_surcharge_vars": "Variables locales (Sobrescribir)",
+  "insp_valeur_sur_mesure": "Valor personalizado",
+  "insp_valeur_defaut": "Por defecto"
+  
   
   
   

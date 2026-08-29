@@ -61,6 +61,12 @@ public class VueJeu extends View {
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
 
+        // NOUVEAU : on tient à jour les références statiques de NoeudBase dès la construction.
+        // C'est ce qui permet à getCibleObjet()/neutraliserEtRetirer() de retrouver la bonne
+        // scène sans réflexion, aussi bien en APK qu'en mode test-éditeur (basculerVersJeu()).
+        NoeudBase.sceneActiveCourante = this.sceneActive;
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
+
         GestionnaireEtat.viderCache();
 
         if (scene != null) chargerAnimationsGlobales(scene.objets);
@@ -128,8 +134,27 @@ public class VueJeu extends View {
     }
 // bas 1
 // haut 2
+    private void majCibleNoeud(NoeudBase noeud, String nomChamp, java.util.Map<String, String> mapRemplacement) {
+        try {
+            java.lang.reflect.Field champ = null;
+            Class<?> c = noeud.getClass();
+            while (c != null && champ == null) {
+                try { champ = c.getDeclaredField(nomChamp); } 
+                catch (Exception e) { c = c.getSuperclass(); }
+            }
+            if (champ != null) {
+                champ.setAccessible(true);
+                String ancienneVal = (String) champ.get(noeud);
+                if (ancienneVal != null && !"__OBJET_IMPLIQUE__".equals(ancienneVal) && mapRemplacement.containsKey(ancienneVal)) {
+                    champ.set(noeud, mapRemplacement.get(ancienneVal));
+                }
+            }
+        } catch (Exception e) {}
+    }
+
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         if (scene == null) this.moteurHud = null;
     }
@@ -137,10 +162,12 @@ public class VueJeu extends View {
     public void ouvrirHudDynamique(Scene scene, Blueprint blueprintHud) {
         if (this.sceneHudActive != null && this.sceneHudActive == scene && this.moteurHud != null) {
             this.sceneHudActive = scene; 
+            NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
             return;
         }
 
         this.sceneHudActive = scene;
+        NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
         
         deballerPrefabs(this.sceneHudActive);
@@ -158,6 +185,7 @@ public class VueJeu extends View {
         if (this.sceneActive != null) GestionnaireEtat.sauvegarderEtat(this.sceneActive);
 
         this.sceneActive = nouvelleScene;
+        NoeudBase.sceneActiveCourante = this.sceneActive;
         GestionnaireEtat.restaurerEtat(this.sceneActive);
         chargerAnimationsGlobales(nouvelleScene.objets);
 
@@ -187,24 +215,32 @@ public class VueJeu extends View {
         }
     }
 
-    // --- NOUVEAU : Mécanique de Prefabs / Scènes Imbriquées ---
     private java.util.Set<String> pilesInstanciationEnCours = new java.util.HashSet<>();
 
     public void instancierScene(Scene sceneAInstancier, float offsetX, float offsetY) {
-        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive) return;
+        ObjetBase dummyPrefab = new ObjetBase("Prefab_Dynamique", offsetX, offsetY, 0, 0);
+        dummyPrefab.type = "scene_instance";
+        if (sceneAInstancier != null) dummyPrefab.sceneLieeId = sceneAInstancier.id;
+        instancierScene(sceneAInstancier, dummyPrefab);
+    }
+
+    public void instancierScene(Scene sceneAInstancier, ObjetBase prefab) {
+        if (sceneAInstancier == null || sceneActive == null || sceneAInstancier == sceneActive || prefab == null) return;
         if (pilesInstanciationEnCours.contains(sceneAInstancier.id)) {
             android.util.Log.w("VueJeu", "Cycle de prefabs détecté et ignoré pour la scène " + sceneAInstancier.id);
             return;
         }
         pilesInstanciationEnCours.add(sceneAInstancier.id);
         try {
-            instancierSceneInterne(sceneAInstancier, offsetX, offsetY);
+            instancierSceneInterne(sceneAInstancier, prefab);
         } finally {
             pilesInstanciationEnCours.remove(sceneAInstancier.id);
         }
     }
 
-    private void instancierSceneInterne(Scene sceneAInstancier, float offsetX, float offsetY) {
+    private void instancierSceneInterne(Scene sceneAInstancier, ObjetBase prefab) {
+        float offsetX = prefab.x;
+        float offsetY = prefab.y;
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
             try {
@@ -216,87 +252,189 @@ public class VueJeu extends View {
                     String line;
                     while ((line = br.readLine()) != null) sb.append(line);
                     br.close();
+                    
+                    String idOriginal = sceneAInstancier.id;
+                    sceneAInstancier.id = idOriginal + "_" + java.util.UUID.randomUUID().toString().substring(0, 5);
                     blueprintInstance = Blueprint.fromJson(sb.toString(), sceneAInstancier);
+                    sceneAInstancier.id = idOriginal;
                 }
             } catch (Exception e) {}
         }
         
         java.util.Map<String, String> mapIds = new java.util.HashMap<>();
-        
+        java.util.Map<String, String> mapVars = new java.util.HashMap<>();
+        java.util.Map<String, String> mapNoms = new java.util.HashMap<>();
+
+        if (sceneAInstancier.variablesLocales != null) {
+            if (sceneActive.variablesLocales == null) sceneActive.variablesLocales = new ArrayList<>();
+            for (Variable varOrigine : sceneAInstancier.variablesLocales) {
+                Variable varClone = new Variable(varOrigine.nom, varOrigine.scope, varOrigine.type);
+                varClone.valeur = varOrigine.valeur;
+                
+                if (prefab.surchargesVariables != null && prefab.surchargesVariables.containsKey(varOrigine.nom)) {
+                    String valSurcharge = prefab.surchargesVariables.get(varOrigine.nom);
+                    if ("CHIFFRE".equals(varOrigine.type)) {
+                        try { varClone.valeur = Float.parseFloat(valSurcharge); } catch (Exception e) {}
+                    } else if ("TEXTE".equals(varOrigine.type)) {
+                        varClone.valeur = valSurcharge;
+                    } else if ("BOOLEEN".equals(varOrigine.type)) {
+                        String clean = valSurcharge.toLowerCase();
+                        varClone.valeur = (clean.equals("oui") || clean.equals("vrai") || clean.equals("true"));
+                    } else if ("ENTIER".equals(varOrigine.type)) {
+                        try { varClone.valeur = Integer.parseInt(valSurcharge); } catch (Exception e) {}
+                    }
+                }
+
+                String nouveauNomVar = prefab.id + "_" + varOrigine.nom;
+                mapVars.put(varOrigine.nom, nouveauNomVar);
+                varClone.nom = nouveauNomVar;
+                sceneActive.variablesLocales.add(varClone);
+            }
+        }
+
+        // Correspondance POSITIONNELLE objOrigine -> clone, locale à CETTE instanciation.
+        java.util.Map<String, ObjetBase> mapNomOrigineVersClone = new java.util.HashMap<>();
+
         if (sceneAInstancier.objets != null) {
             List<ObjetBase> objetsInjectes = new ArrayList<>();
             for (ObjetBase objOrigine : sceneAInstancier.objets) {
                 ObjetBase clone = objOrigine.clonerProfond();
                 
-                // CORRECTION : Régénération de l'ID pour garantir l'unicité et éviter les crashs de parenté
                 String nouvelId = java.util.UUID.randomUUID().toString();
-                mapIds.put(clone.id, nouvelId);
+                mapIds.put(objOrigine.id, nouvelId); 
                 clone.id = nouvelId;
+                
+                String nouveauNom = objOrigine.nom + "_" + nouvelId.substring(0, 5);
+                mapNoms.put(objOrigine.nom, nouveauNom);
+                clone.nom = nouveauNom;
+                
+                mapNomOrigineVersClone.put(objOrigine.nom, clone);
                 
                 clone.x += offsetX;
                 clone.y += offsetY;
-                clone.tag = (clone.tag != null ? clone.tag + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
+                clone.sceneLieeId = sceneAInstancier.id;
+                
                 objetsInjectes.add(clone);
             }
             
-            // CORRECTION : Réparation des liens internes pour les enfants / joysticks
             for (ObjetBase clone : objetsInjectes) {
-                if (clone.parentId != null && mapIds.containsKey(clone.parentId)) {
-                    clone.parentId = mapIds.get(clone.parentId);
+                if (clone.parentId == null) {
+                    if (prefab.tag != null && !prefab.tag.trim().isEmpty()) {
+                        clone.tag = prefab.tag;
+                    }
+                    if (prefab.estPhysique) {
+                        clone.estPhysique = true;
+                        clone.estStatique = prefab.estStatique;
+                        clone.graviteScale = prefab.graviteScale;
+                        clone.rebond = prefab.rebond;
+                    }
                 }
-                if (clone.cibleJoystickId != null && mapIds.containsKey(clone.cibleJoystickId)) {
-                    clone.cibleJoystickId = mapIds.get(clone.cibleJoystickId);
-                }
-                if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) {
-                    clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
-                }
+                
+                if (clone.parentId != null && mapIds.containsKey(clone.parentId)) clone.parentId = mapIds.get(clone.parentId);
+                if (clone.cibleJoystickId != null && mapIds.containsKey(clone.cibleJoystickId)) clone.cibleJoystickId = mapIds.get(clone.cibleJoystickId);
+                if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
                 sceneActive.ajouterObjet(clone);
             }
             chargerAnimationsGlobales(sceneActive.objets);
         }
         
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
+            java.util.Map<String, String> mapNoeudsIds = new java.util.HashMap<>();
+
             for (NoeudBase noeud : blueprintInstance.noeuds) {
+                String nouvelIdNoeud = java.util.UUID.randomUUID().toString();
+                mapNoeudsIds.put(noeud.id, nouvelIdNoeud);
+                noeud.id = nouvelIdNoeud;
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
+            }
+
+            // PASSE 1 : liaison complète de TOUS les nœuds du lot (aucune exécution ici).
+            // Garantit que chaque cible est résolue avant qu'un événement ne se déclenche,
+            // quel que soit l'ordre de sérialisation des nœuds dans le JSON du Blueprint.
+            // C'est ce qui corrige le bug "le premier prefab n'anime jamais" : avant, Start
+            // pouvait exécuter "Jouer Animation" avant que ce dernier n'ait reçu sa cible.
+            for (NoeudBase noeud : blueprintInstance.noeuds) {
                 
-                // Tentative générique de mise à jour des cibles dans le Blueprint
+                majCibleNoeud(noeud, "nomCible", mapNoms); 
+                
                 try {
-                    java.lang.reflect.Field champCible = noeud.getClass().getField("cibleObjetId");
-                    String ancienneCible = (String) champCible.get(noeud);
-                    if (ancienneCible != null && mapIds.containsKey(ancienneCible)) {
-                        champCible.set(noeud, mapIds.get(ancienneCible));
-                    }
+                    java.lang.reflect.Field champVar = noeud.getClass().getField("nomVariable");
+                    String ancienneVar = (String) champVar.get(noeud);
+                    if (ancienneVar != null && mapVars.containsKey(ancienneVar)) champVar.set(noeud, mapVars.get(ancienneVar));
                 } catch (Exception e) {}
                 
+                try {
+                    java.lang.reflect.Field champVar2 = noeud.getClass().getField("cibleVariableId");
+                    String ancienneVar2 = (String) champVar2.get(noeud);
+                    if (ancienneVar2 != null && mapVars.containsKey(ancienneVar2)) champVar2.set(noeud, mapVars.get(ancienneVar2));
+                } catch (Exception e) {}
+
+                try {
+                    java.lang.reflect.Field champSuivant = noeud.getClass().getField("noeudSuivantId");
+                    String ancienSuivant = (String) champSuivant.get(noeud);
+                    if (ancienSuivant != null && mapNoeudsIds.containsKey(ancienSuivant)) champSuivant.set(noeud, mapNoeudsIds.get(ancienSuivant));
+                } catch (Exception e) {}
+
+                try {
+                    java.lang.reflect.Field champVrai = noeud.getClass().getField("noeudSuivantVraiId");
+                    String ancienVrai = (String) champVrai.get(noeud);
+                    if (ancienVrai != null && mapNoeudsIds.containsKey(ancienVrai)) champVrai.set(noeud, mapNoeudsIds.get(ancienVrai));
+                } catch (Exception e) {}
+
+                try {
+                    java.lang.reflect.Field champFaux = noeud.getClass().getField("noeudSuivantFauxId");
+                    String ancienFaux = (String) champFaux.get(noeud);
+                    if (ancienFaux != null && mapNoeudsIds.containsKey(ancienFaux)) champFaux.set(noeud, mapNoeudsIds.get(ancienFaux));
+                } catch (Exception e) {}
+                
+                if (noeud.requiertCibleObjet() && noeud.nomCibleObjet != null
+                    && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
+                    ObjetBase cibleResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjet);
+                    if (cibleResolue != null) {
+                        noeud.lierCibleObjetInstance(cibleResolue);
+                    }
+                }
+                if (noeud.requiertCibleObjetB() && noeud.nomCibleObjetB != null
+                    && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
+                    ObjetBase cibleBResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjetB);
+                    if (cibleBResolue != null) {
+                        noeud.lierCibleObjetBInstance(cibleBResolue);
+                    }
+                }
+                
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
+            }
+
+            // PASSE 2 : exécution des événements de démarrage, UNE FOIS le lot entièrement lié.
+            for (NoeudBase noeud : blueprintInstance.noeuds) {
                 if (noeud instanceof NoeudEventStart) {
                     noeud.executer();
                 }
             }
         }
-
-        deballerPrefabs(this.sceneActive);
+        
+        // SUPPRIMÉ ICI : Le déballage récursif de sceneActive qui provoquait la fausse boucle infinie (cycle).
     }
+// bas 2
 
+// haut 3
     public void detruireInstances(Scene sceneCible) {
         if (sceneCible == null || sceneActive == null || sceneActive.objets == null) return;
-        
-        String tagRecherche = "_INSTANCE_" + sceneCible.id;
         
         java.util.Iterator<ObjetBase> itObj = sceneActive.objets.iterator();
         while (itObj.hasNext()) {
             ObjetBase obj = itObj.next();
-            if (obj.tag != null && obj.tag.contains(tagRecherche)) {
+            if (obj.sceneLieeId != null && obj.sceneLieeId.equals(sceneCible.id) && !"scene_instance".equals(obj.type)) {
                 itObj.remove();
             }
         }
         
         if (this.moteur != null) {
+            String tagRecherche = "_INSTANCE_" + sceneCible.id;
             this.moteur.nettoyerNoeudsParTag(tagRecherche);
         }
     }
 
-    // --- CORRECTION : Accès hybride (Éditeur en direct / Disque compilé) ---
     private List<Scene> cacheListeScenesDisque = null;
 
     private List<Scene> chargerToutesLesScenesDepuisDisque() {
@@ -317,7 +455,6 @@ public class VueJeu extends View {
         }
     }
 
-    // NOUVELLE MÉTHODE : Permet de lire les scènes non sauvegardées en mémoire vive si le jeu tourne dans l'éditeur
     private List<Scene> obtenirToutesLesScenes() {
         Context ctx = getContext();
         if (ctx != null) {
@@ -328,9 +465,7 @@ public class VueJeu extends View {
                     List<Scene> scenesEditeur = (List<Scene>) field.get(ctx);
                     if (scenesEditeur != null) return scenesEditeur;
                 }
-            } catch (Exception e) {
-                android.util.Log.e("VueJeu", "Accès refusé à listeScenes de InterfaceEditeur", e);
-            }
+            } catch (Exception e) {}
         }
         return chargerToutesLesScenesDepuisDisque();
     }
@@ -348,19 +483,35 @@ public class VueJeu extends View {
 
     private void deballerPrefabs(Scene scene) {
         if (scene == null || scene.objets == null) return;
-        List<ObjetBase> prefabs = new ArrayList<>();
-        for (ObjetBase obj : scene.objets) {
-            if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null && obj.visible) {
-                prefabs.add(obj);
+        
+        // CORRECTION : Boucle d'itération sécurisée pour traiter les prefabs un par un,
+        // sans déclencher le bloqueur de boucle infinie (cycle detector) sur les frères.
+        boolean aDeballe = true;
+        while (aDeballe) {
+            aDeballe = false;
+            ObjetBase prefabATraiter = null;
+            
+            for (ObjetBase obj : scene.objets) {
+                if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null && obj.visible) {
+                    prefabATraiter = obj;
+                    break;
+                }
             }
-        }
-        for (ObjetBase prefab : prefabs) {
-            prefab.visible = false; 
-            Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
-            if (sceneLiee != null) {
-                instancierScene(sceneLiee, prefab.x, prefab.y);
-            } else {
-                android.util.Log.e("VueJeu", "Déballage échoué : Scène liée introuvable en mémoire/disque (" + prefab.sceneLieeId + ")");
+            
+            if (prefabATraiter != null) {
+                prefabATraiter.visible = false; 
+                Scene sceneLiee = getSceneParId(prefabATraiter.sceneLieeId);
+                if (sceneLiee != null) {
+                    instancierScene(sceneLiee, prefabATraiter);
+                }
+                
+                prefabATraiter.estPhysique = false;
+                prefabATraiter.estZoneDeClic = false;
+                prefabATraiter.tag = ""; 
+                prefabATraiter.x = -99999;
+                prefabATraiter.y = -99999;
+                
+                aDeballe = true; 
             }
         }
     }
@@ -415,8 +566,7 @@ public class VueJeu extends View {
         }
         return null;
     }
-// bas 2
-// haut 3
+
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         float camX = isHud ? 0f : GestionnaireControles.cameraX;
@@ -451,7 +601,8 @@ public class VueJeu extends View {
         }
         return m;
     }
-    
+// bas 3
+// haut 4
     private boolean pointDansObjet(float xVue, float yVue, float xMonde, float yMonde, ObjetBase obj) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         List<ObjetBase> contexte = isHud ? sceneHudActive.objets : sceneActive.objets;
@@ -551,9 +702,7 @@ public class VueJeu extends View {
             objet.y += deltaY;
         }
     }
-// bas 3
 
-// haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
@@ -743,7 +892,6 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {

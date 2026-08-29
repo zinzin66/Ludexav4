@@ -33,8 +33,10 @@ public class ObjetBase {
     
     public String cibleJoystickId = null;
     
-    // NOUVEAU : Stocke l'ID de la scène à instancier (Prefab)
     public String sceneLieeId = null;
+    
+    // NOUVEAU : Dictionnaire des surcharges de variables pour les instances
+    public HashMap<String, String> surchargesVariables = new HashMap<>();
     
     public String filtreCouleur = "Aucun";
     
@@ -132,7 +134,10 @@ public class ObjetBase {
         copie.cheminImageDesactive = this.cheminImageDesactive;
         copie.estDesactive = this.estDesactive;
         copie.cibleJoystickId = this.cibleJoystickId;
-        copie.sceneLieeId = this.sceneLieeId; // NOUVEAU : Duplication de la référence de scène
+        copie.sceneLieeId = this.sceneLieeId; 
+        
+        // NOUVEAU : On duplique proprement les valeurs surchargées
+        copie.surchargesVariables = new HashMap<>(this.surchargesVariables);
         
         copie.filtreCouleur = this.filtreCouleur;
         copie.clignotementActif = this.clignotementActif;
