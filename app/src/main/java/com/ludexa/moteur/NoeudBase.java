@@ -10,6 +10,11 @@ import java.util.UUID;
 public abstract class NoeudBase {
     public static Context contexteApplication;
 
+    // NOUVEAU : références directes à la scène active, pour éviter toute réflexion
+    // dans le contexte APK compilé. Mises à jour par VueJeu à chaque changement de scène.
+    public static Scene sceneActiveCourante;
+    public static Scene sceneHudActiveCourante;
+
     public static final String TYPE_TEXTE_LIBRE = "TYPE_TEXTE_LIBRE";
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
     public static final String TYPE_COULEUR = "TYPE_COULEUR";
@@ -27,6 +32,13 @@ public abstract class NoeudBase {
     
     public String nomCibleObjet = null;
     public String nomCibleObjetB = null;
+
+    // NOUVEAU : références directes posées UNE SEULE FOIS à l'instanciation d'un prefab
+    // par VueJeu.instancierSceneInterne(). Transitoires : jamais sérialisées en JSON,
+    // donc aucun impact sur la sauvegarde/le chargement des Blueprints.
+    // Prioritaires sur la résolution par nom (nomCibleObjet) dans getCibleObjet()/getCibleObjetB().
+    protected transient ObjetBase cibleObjetResolue = null;
+    protected transient ObjetBase cibleObjetBResolue = null;
 
     public boolean estReplie = false;
 
@@ -127,71 +139,4 @@ public abstract class NoeudBase {
         InfoParametre p = parametresDynamiques.get(nomParametre);
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
-
-    public boolean requiertCibleObjet() { return false; }
-    public void setCibleObjet(ObjetBase objet) {}
-    
-    // NOUVEAU : Interception Objet A + Restauration recherche par nom
-    public ObjetBase getCibleObjet() { 
-        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) {
-            return MoteurLogique.dernierObjetImplique;
-        }
-        
-        if (nomCibleObjet != null && contexteApplication != null) {
-            try {
-                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                Scene scene = (Scene) sceneField.get(contexteApplication);
-                
-                if (scene != null && scene.objets != null) {
-                    for (ObjetBase obj : scene.objets) {
-                        if (nomCibleObjet.equals(obj.nom)) {
-                            return obj;
-                        }
-                    }
-                }
-            } catch (Exception e) {}
-        }
-        return null; 
-    }
-    
-    public boolean requiertCibleObjetB() { return false; }
-    public void setCibleObjetB(ObjetBase objet) {}
-    
-    // NOUVEAU : Interception Objet B + Restauration recherche par nom
-    public ObjetBase getCibleObjetB() { 
-        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjetB)) {
-            return MoteurLogique.dernierObjetImplique;
-        }
-        
-        if (nomCibleObjetB != null && contexteApplication != null) {
-            try {
-                java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                Scene scene = (Scene) sceneField.get(contexteApplication);
-                
-                if (scene != null && scene.objets != null) {
-                    for (ObjetBase obj : scene.objets) {
-                        if (nomCibleObjetB.equals(obj.nom)) {
-                            return obj;
-                        }
-                    }
-                }
-            } catch (Exception e) {}
-        }
-        return null; 
-    }
-    
-    public boolean requiertCibleVariable() { return false; }
-    public void setCibleVariable(Variable v) {}
-    public Variable getCibleVariable() { return null; }
-    
-    public boolean requiertCibleScene() { return false; }
-    public void setCibleScene(Scene s) {}
-    public Scene getCibleScene() { return null; }
-    
-    public boolean utiliseClavierTexte() { return false; }
-    
-    public boolean aDesParametresEditables() {
-        return (getNomsParametres() != null && !getNomsParametres().isEmpty()) || requiertCibleObjet() || requiertCibleObjetB() || requiertCibleVariable() || requiertCibleScene();
-    }
-}
 // bas 1
