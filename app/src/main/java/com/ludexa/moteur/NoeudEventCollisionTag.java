@@ -55,58 +55,26 @@ public class NoeudEventCollisionTag extends NoeudBase {
         }
     }
 
+    // SIMPLIFIÉ : référence directe d'instance en priorité (posée par VueJeu à l'instanciation),
+    // puis __OBJET_IMPLIQUE__, puis fallback sur le champ cible local (utilisé par l'éditeur).
+    // Toute la réflexion agressive sur contexteApplication a été supprimée : elle est
+    // remplacée par le mécanisme de liaison directe cibleObjetResolue de NoeudBase.
     @Override
     public ObjetBase getCibleObjet() {
+        if (cibleObjetResolue != null) return cibleObjetResolue;
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
 
-        if (nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                    }
-                    if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneHudActive.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                    }
-                } else {
-                    // CORRECTION : Recherche agressive (Débloque la collision dans l'APK)
-                    Scene sAct = null;
-                    Scene sHud = null;
-                    
-                    try {
-                        java.lang.reflect.Field sf = contexteApplication.getClass().getDeclaredField("sceneActive");
-                        sf.setAccessible(true);
-                        sAct = (Scene) sf.get(contexteApplication);
-                    } catch(Exception e) {}
-                    
-                    if (sAct == null) {
-                        try {
-                            java.lang.reflect.Field vf = contexteApplication.getClass().getDeclaredField("vueJeu");
-                            vf.setAccessible(true);
-                            Object vueObj = vf.get(contexteApplication);
-                            if (vueObj != null) {
-                                java.lang.reflect.Field sf = vueObj.getClass().getDeclaredField("sceneActive");
-                                sf.setAccessible(true);
-                                sAct = (Scene) sf.get(vueObj);
-                                
-                                try {
-                                    java.lang.reflect.Field hf = vueObj.getClass().getDeclaredField("sceneHudActive");
-                                    hf.setAccessible(true);
-                                    sHud = (Scene) hf.get(vueObj);
-                                } catch(Exception e2) {}
-                            }
-                        } catch(Exception e) {}
-                    }
-                    
-                    if (sAct != null && sAct.objets != null) {
-                        for (ObjetBase o : sAct.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                    }
-                    if (sHud != null && sHud.objets != null) {
-                        for (ObjetBase o : sHud.objets) if (nomCibleObjet.equals(o.nom)) return o;
-                    }
+        if (nomCibleObjet != null) {
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
                 }
-            } catch (Exception e) {}
+            }
+            if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneHudActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
         }
         return this.cible;
     }
