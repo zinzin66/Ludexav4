@@ -128,7 +128,6 @@ public class VueJeu extends View {
     }
 // bas 1
 // haut 2
-    // NOUVELLE FONCTION : Remplace agressivement les cibles dans les nœuds
     private void majCibleNoeud(NoeudBase noeud, String nomChamp, java.util.Map<String, String> mapRemplacement) {
         try {
             java.lang.reflect.Field champ = null;
@@ -244,9 +243,6 @@ public class VueJeu extends View {
                     while ((line = br.readLine()) != null) sb.append(line);
                     br.close();
                     
-                    // CORRECTION MAJEURE ANTI-CACHE (Bug d'Animation)
-                    // On modifie temporairement l'ID de la scène pour tromper le cache du parseur JSON
-                    // Cela force la création d'instances de Nœuds totalement neuves et séparées pour CHAQUE clone !
                     String idOriginal = sceneAInstancier.id;
                     sceneAInstancier.id = idOriginal + "_" + java.util.UUID.randomUUID().toString().substring(0, 5);
                     blueprintInstance = Blueprint.fromJson(sb.toString(), sceneAInstancier);
@@ -292,7 +288,7 @@ public class VueJeu extends View {
                 ObjetBase clone = objOrigine.clonerProfond();
                 
                 String nouvelId = java.util.UUID.randomUUID().toString();
-                mapIds.put(objOrigine.id, nouvelId); // Correction : On map l'ID d'origine !
+                mapIds.put(objOrigine.id, nouvelId); 
                 clone.id = nouvelId;
                 
                 String nouveauNom = objOrigine.nom + "_" + nouvelId.substring(0, 5);
@@ -327,7 +323,6 @@ public class VueJeu extends View {
 
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 
-                // Isolation impitoyable des cibles
                 majCibleNoeud(noeud, "cibleObjetId", mapIds);
                 majCibleNoeud(noeud, "cibleObjetBId", mapIds);
                 majCibleNoeud(noeud, "nomCibleObjet", mapNoms);
@@ -446,18 +441,19 @@ public class VueJeu extends View {
             }
         }
         for (ObjetBase prefab : prefabs) {
-            // CORRECTION COLISION FANTÔME : On retire ABSOLUMENT TOUT du conteneur
+            Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
+            if (sceneLiee != null) {
+                instancierScene(sceneLiee, prefab);
+            }
+            
+            // CORRECTION : On neutralise le conteneur UNIQUEMENT APRES 
+            // avoir lancé l'instanciation pour ne pas perdre ses coordonnées !
             prefab.visible = false; 
             prefab.estPhysique = false;
             prefab.estZoneDeClic = false;
             prefab.tag = ""; 
             prefab.x = -99999;
             prefab.y = -99999;
-            
-            Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
-            if (sceneLiee != null) {
-                instancierScene(sceneLiee, prefab);
-            }
         }
     }
 
@@ -512,6 +508,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
+    
 
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
