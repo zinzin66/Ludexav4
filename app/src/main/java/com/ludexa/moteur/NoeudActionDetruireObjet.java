@@ -14,6 +14,9 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
     }
 
+    // SIMPLIFIÉ : utilise NoeudBase.sceneActiveCourante / sceneHudActiveCourante
+    // (posées directement par VueJeu) au lieu de fouiller contexteApplication par réflexion.
+    // Fiable en APK compilé/obfusqué, contrairement à l'ancienne version.
     private void neutraliserEtRetirer(ObjetBase obj) {
         if (obj == null) return;
         
@@ -24,49 +27,14 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         obj.x = -99999;
         obj.y = -99999;
         
-        if (contexteApplication == null) return;
-        
         Scene sceneParent = null;
-        try {
-            if (contexteApplication instanceof InterfaceEditeur) {
-                InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                if (editeur.sceneActive != null && editeur.sceneActive.objets != null && editeur.sceneActive.objets.contains(obj)) {
-                    sceneParent = editeur.sceneActive;
-                } else if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null && editeur.sceneHudActive.objets.contains(obj)) {
-                    sceneParent = editeur.sceneHudActive;
-                }
-            } else {
-                // RECHERCHE AGRESSIVE : On force la lecture même si c'est privé
-                try {
-                    java.lang.reflect.Field sf = contexteApplication.getClass().getDeclaredField("sceneActive");
-                    sf.setAccessible(true);
-                    Scene sAct = (Scene) sf.get(contexteApplication);
-                    if (sAct != null && sAct.objets != null && sAct.objets.contains(obj)) sceneParent = sAct;
-                } catch(Exception e) {}
-                
-                if (sceneParent == null) {
-                    try {
-                        java.lang.reflect.Field vf = contexteApplication.getClass().getDeclaredField("vueJeu");
-                        vf.setAccessible(true);
-                        Object vueObj = vf.get(contexteApplication);
-                        if (vueObj != null) {
-                            java.lang.reflect.Field sf = vueObj.getClass().getDeclaredField("sceneActive");
-                            sf.setAccessible(true);
-                            Scene sAct = (Scene) sf.get(vueObj);
-                            if (sAct != null && sAct.objets != null && sAct.objets.contains(obj)) sceneParent = sAct;
-                            else {
-                                try {
-                                    java.lang.reflect.Field hf = vueObj.getClass().getDeclaredField("sceneHudActive");
-                                    hf.setAccessible(true);
-                                    Scene sHud = (Scene) hf.get(vueObj);
-                                    if (sHud != null && sHud.objets != null && sHud.objets.contains(obj)) sceneParent = sHud;
-                                } catch(Exception e2) {}
-                            }
-                        }
-                    } catch(Exception e) {}
-                }
-            }
-        } catch (Exception e) {}
+        if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null 
+            && NoeudBase.sceneActiveCourante.objets.contains(obj)) {
+            sceneParent = NoeudBase.sceneActiveCourante;
+        } else if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null 
+            && NoeudBase.sceneHudActiveCourante.objets.contains(obj)) {
+            sceneParent = NoeudBase.sceneHudActiveCourante;
+        }
         
         if (sceneParent == null) return;
         
@@ -105,59 +73,28 @@ public class NoeudActionDetruireObjet extends NoeudBase {
         }
     }
 
+    // SIMPLIFIÉ : référence directe d'instance en priorité, puis __OBJET_IMPLIQUE__,
+    // puis résolution par nom via les scènes courantes, puis fallback sur le champ local.
+    // Toute la réflexion agressive sur contexteApplication a été supprimée.
     @Override
     public ObjetBase getCibleObjet() {
+        if (cibleObjetResolue != null) return cibleObjetResolue;
+
         if ("__OBJET_IMPLIQUE__".equals(this.nomCibleObjet)) {
             return MoteurLogique.dernierObjetImplique;
         }
 
-        if (this.nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneActive.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
-                    }
-                    if (editeur.sceneHudActive != null && editeur.sceneHudActive.objets != null) {
-                        for (ObjetBase o : editeur.sceneHudActive.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
-                    }
-                } else {
-                    Scene sAct = null;
-                    Scene sHud = null;
-                    
-                    try {
-                        java.lang.reflect.Field sf = contexteApplication.getClass().getDeclaredField("sceneActive");
-                        sf.setAccessible(true);
-                        sAct = (Scene) sf.get(contexteApplication);
-                    } catch(Exception e) {}
-                    
-                    if (sAct == null) {
-                        try {
-                            java.lang.reflect.Field vf = contexteApplication.getClass().getDeclaredField("vueJeu");
-                            vf.setAccessible(true);
-                            Object vueObj = vf.get(contexteApplication);
-                            if (vueObj != null) {
-                                java.lang.reflect.Field sf = vueObj.getClass().getDeclaredField("sceneActive");
-                                sf.setAccessible(true);
-                                sAct = (Scene) sf.get(vueObj);
-                                
-                                try {
-                                    java.lang.reflect.Field hf = vueObj.getClass().getDeclaredField("sceneHudActive");
-                                    hf.setAccessible(true);
-                                    sHud = (Scene) hf.get(vueObj);
-                                } catch(Exception e2) {}
-                            }
-                        } catch(Exception e) {}
-                    }
-                    
-                    if (sAct != null && sAct.objets != null) {
-                        for (ObjetBase o : sAct.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
-                    }
-                    if (sHud != null && sHud.objets != null) {
-                        for (ObjetBase o : sHud.objets) if (this.nomCibleObjet.equals(o.nom)) return o;
-                    }
+        if (this.nomCibleObjet != null) {
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
+                    if (this.nomCibleObjet.equals(o.nom)) return o;
                 }
-            } catch (Exception e) {}
+            }
+            if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneHudActiveCourante.objets) {
+                    if (this.nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
         }
         return this.cible;
     }
