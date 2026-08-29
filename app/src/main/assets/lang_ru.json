@@ -474,7 +474,14 @@
     "insp_sep_scene_liee": "Связанная сцена (Prefab)",
   "insp_btn_select_scene_liee": "Выбрать сцену...",
   "insp_btn_scene_liee_val": "Сцена: ",
-  "canvas_label_scene": "[ СЦЕНА ]"
+  "canvas_label_scene": "[ СЦЕНА ]",
+    "obj_prefix_prefab": "Префаб",
+  "titre_select_scene_liee": "Выберите сцену для привязки",
+  "erreur_aucune_autre_scene": "Нет других доступных сцен.",
+    "insp_btn_editer_scene_liee": "Редактировать исходную сцену ➔",
+  "insp_erreur_scene_introuvable": "Ошибка: Сцена не найдена"
+  
+  
   
   
   

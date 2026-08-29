@@ -474,7 +474,14 @@
     "insp_sep_scene_liee": "Escena Vinculada (Prefab)",
   "insp_btn_select_scene_liee": "Seleccionar una escena...",
   "insp_btn_scene_liee_val": "Escena: ",
-  "canvas_label_scene": "[ ESCENA ]"
+  "canvas_label_scene": "[ ESCENA ]",
+    "obj_prefix_prefab": "Prefab",
+  "titre_select_scene_liee": "Seleccionar una escena para vincular",
+  "erreur_aucune_autre_scene": "No hay ninguna otra escena disponible.",
+    "insp_btn_editer_scene_liee": "Editar escena de origen ➔",
+  "insp_erreur_scene_introuvable": "Error: Escena no encontrada"
+  
+  
   
   
   

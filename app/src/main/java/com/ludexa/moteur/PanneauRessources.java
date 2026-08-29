@@ -130,7 +130,6 @@ public class PanneauRessources extends LinearLayout {
         });
     }
 // bas 1
-
 // haut 2 : UTILITAIRES GRAPHIQUES ET NOMMAGE
     private int dp(int valeur) {
         return (int) (valeur * getResources().getDisplayMetrics().density);
@@ -425,7 +424,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-// haut 4 : SECTION OBJETS (Ajout avec icônes explicites)
+// haut 4 : SECTION OBJETS (Ajout avec icônes explicites et intégration du bouton Prefab)
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -608,6 +607,76 @@ public class PanneauRessources extends LinearLayout {
             rafraichirArborescence();
         });
 
+        ImageButton btnAjouterPrefab = new ImageButton(context);
+        btnAjouterPrefab.setImageResource(R.drawable.display_add_24px);
+        styliserBoutonIcone(btnAjouterPrefab);
+        btnAjouterPrefab.setOnClickListener(v -> {
+            InterfaceEditeur editeur = (InterfaceEditeur) getContext();
+            
+            List<Scene> autresScenes = new ArrayList<>();
+            if (editeur.listeScenes != null) {
+                for (Scene s : editeur.listeScenes) {
+                    if (s != editeur.sceneActive) {
+                        autresScenes.add(s);
+                    }
+                }
+            }
+            
+            if (autresScenes.isEmpty()) {
+                Toast.makeText(context, Traducteur.get("erreur_aucune_autre_scene"), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            Dialog dialog = new Dialog(context);
+            dialog.setTitle(Traducteur.get("titre_select_scene_liee"));
+            LinearLayout layoutDialog = new LinearLayout(context);
+            layoutDialog.setOrientation(LinearLayout.VERTICAL);
+            styliserDialogue(layoutDialog);
+            
+            for (Scene s : autresScenes) {
+                Button btnScene = new Button(context);
+                btnScene.setText(s.nom);
+                btnScene.setTextColor(Palette.texteNormal);
+                btnScene.setBackground(fond(Palette.fondListe, Palette.bordure, 8));
+                btnScene.setPadding(dp(12), dp(12), dp(12), dp(12));
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lp.setMargins(0, 0, 0, dp(8));
+                btnScene.setLayoutParams(lp);
+                
+                btnScene.setOnClickListener(vScene -> {
+                    String nomUnique = genererNomUnique(Traducteur.get("obj_prefix_prefab"), editeur.sceneActive);
+                    ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 150f, 150f);
+                    nouveau.type = "scene_instance";
+                    nouveau.sceneLieeId = s.id; // Garantie absolue de l'ID
+                    nouveau.afficherFondColore = true;
+                    nouveau.couleur = Color.argb(120, 100, 150, 255); 
+                    nouveau.zOrder = editeur.sceneActive.prochainZOrder();
+                    editeur.sceneActive.ajouterObjet(nouveau);
+                    
+                    canvasEditeur.invalidate();
+                    rafraichirArborescence();
+                    
+                    // NOUVEAU: Force l'éditeur à sélectionner et inspecter le Prefab instantanément
+                    canvasEditeur.setObjetSelectionne(nouveau);
+                    
+                    dialog.dismiss();
+                });
+                layoutDialog.addView(btnScene);
+            }
+            
+            Button btnAnnuler = new Button(context);
+            btnAnnuler.setText(Traducteur.get("bouton_annuler"));
+            btnAnnuler.setTextColor(Palette.texteNormal);
+            btnAnnuler.setBackground(fond(Palette.boutonNormal, Palette.bordure, 8));
+            btnAnnuler.setPadding(dp(16), dp(12), dp(16), dp(12));
+            btnAnnuler.setOnClickListener(vAnnuler -> dialog.dismiss());
+            layoutDialog.addView(btnAnnuler);
+            
+            dialog.setContentView(layoutDialog);
+            dialog.show();
+        });
+
         ligne1.addView(btnAjouterCarre);
         ligne1.addView(btnAjouterTexte);
         ligne1.addView(btnAjouterRond);
@@ -626,9 +695,7 @@ public class PanneauRessources extends LinearLayout {
 
         ligne4.addView(btnAjouterJoystick);
         ligne4.addView(btnAjouterBtnAction);
-        View espace3 = new View(context);
-        espace3.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        ligne4.addView(espace3);
+        ligne4.addView(btnAjouterPrefab); 
 
         contenu.addView(ligne1);
         contenu.addView(ligne2);
@@ -650,7 +717,8 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
-
+                                                              
+     
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -727,8 +795,6 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 5
-
-
     // haut 6
     private boolean isRacineIndestructible(File dir) {
         if (dir == null) return false;
@@ -941,7 +1007,6 @@ public class PanneauRessources extends LinearLayout {
     }
 // bas 6
     
-
 // haut 7 : SECTION ASSETS LOGIQUE (Popups et import)
     private void rafraichirListeAssets() {
         if (conteneurListeAssets == null || currentFolderSelected == null) return;
@@ -1344,8 +1409,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 8
-
-// haut 9 : SECTION VARIABLES UI
+   // haut 9 : SECTION VARIABLES UI
     private View creerSectionVariables(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -1467,9 +1531,7 @@ public class PanneauRessources extends LinearLayout {
         conteneurVariables.addView(conteneurLigne);
     }
 // bas 9
-
-
-// haut 10 : SECTION VARIABLES POPUPS
+   // haut 10 : SECTION VARIABLES POPUPS
     private void afficherPopupCreerVariable(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.setTitle(Traducteur.get("popup_creer_var_titre"));
@@ -1957,21 +2019,6 @@ public class PanneauRessources extends LinearLayout {
 
     
 
-
-
-
-    
-
-
-
-    
-
-
-
-
-
-
-
     
 
 
@@ -1980,6 +2027,8 @@ public class PanneauRessources extends LinearLayout {
     
 
 
+
+    
 
 
     

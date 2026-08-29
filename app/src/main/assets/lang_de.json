@@ -476,6 +476,13 @@
   "insp_sep_scene_liee": "Verknüpfte Szene (Prefab)",
   "insp_btn_select_scene_liee": "Eine Szene auswählen...",
   "insp_btn_scene_liee_val": "Szene: ",
-  "canvas_label_scene": "[ SZENE ]"
+  "canvas_label_scene": "[ SZENE ]",
+    "obj_prefix_prefab": "Prefab",
+  "titre_select_scene_liee": "Zu verknüpfende Szene auswählen",
+  "erreur_aucune_autre_scene": "Keine andere Szene verfügbar.",
+    "insp_btn_editer_scene_liee": "Quellszene bearbeiten ➔",
+  "insp_erreur_scene_introuvable": "Fehler: Szene nicht gefunden"
+  
+  
   
 }
