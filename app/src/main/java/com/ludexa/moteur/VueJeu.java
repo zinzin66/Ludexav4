@@ -128,6 +128,25 @@ public class VueJeu extends View {
     }
 // bas 1
 // haut 2
+    // NOUVELLE FONCTION : Remplace agressivement les cibles dans les nœuds
+    private void majCibleNoeud(NoeudBase noeud, String nomChamp, java.util.Map<String, String> mapRemplacement) {
+        try {
+            java.lang.reflect.Field champ = null;
+            Class<?> c = noeud.getClass();
+            while (c != null && champ == null) {
+                try { champ = c.getDeclaredField(nomChamp); } 
+                catch (Exception e) { c = c.getSuperclass(); }
+            }
+            if (champ != null) {
+                champ.setAccessible(true);
+                String ancienneVal = (String) champ.get(noeud);
+                if (ancienneVal != null && !"__OBJET_IMPLIQUE__".equals(ancienneVal) && mapRemplacement.containsKey(ancienneVal)) {
+                    champ.set(noeud, mapRemplacement.get(ancienneVal));
+                }
+            }
+        } catch (Exception e) {}
+    }
+
     public void setSceneHud(Scene scene) {
         this.sceneHudActive = scene;
         if (scene != null) chargerAnimationsGlobales(scene.objets);
@@ -224,7 +243,14 @@ public class VueJeu extends View {
                     String line;
                     while ((line = br.readLine()) != null) sb.append(line);
                     br.close();
+                    
+                    // CORRECTION MAJEURE ANTI-CACHE (Bug d'Animation)
+                    // On modifie temporairement l'ID de la scène pour tromper le cache du parseur JSON
+                    // Cela force la création d'instances de Nœuds totalement neuves et séparées pour CHAQUE clone !
+                    String idOriginal = sceneAInstancier.id;
+                    sceneAInstancier.id = idOriginal + "_" + java.util.UUID.randomUUID().toString().substring(0, 5);
                     blueprintInstance = Blueprint.fromJson(sb.toString(), sceneAInstancier);
+                    sceneAInstancier.id = idOriginal;
                 }
             } catch (Exception e) {}
         }
@@ -266,7 +292,7 @@ public class VueJeu extends View {
                 ObjetBase clone = objOrigine.clonerProfond();
                 
                 String nouvelId = java.util.UUID.randomUUID().toString();
-                mapIds.put(clone.id, nouvelId);
+                mapIds.put(objOrigine.id, nouvelId); // Correction : On map l'ID d'origine !
                 clone.id = nouvelId;
                 
                 String nouveauNom = objOrigine.nom + "_" + nouvelId.substring(0, 5);
@@ -300,17 +326,13 @@ public class VueJeu extends View {
             }
 
             for (NoeudBase noeud : blueprintInstance.noeuds) {
-                try {
-                    java.lang.reflect.Field champCible = noeud.getClass().getField("cibleObjetId");
-                    String ancienneCible = (String) champCible.get(noeud);
-                    if (ancienneCible != null && mapIds.containsKey(ancienneCible)) champCible.set(noeud, mapIds.get(ancienneCible));
-                } catch (Exception e) {}
                 
-                try {
-                    java.lang.reflect.Field champCibleB = noeud.getClass().getField("cibleObjetBId");
-                    String ancienneCibleB = (String) champCibleB.get(noeud);
-                    if (ancienneCibleB != null && mapIds.containsKey(ancienneCibleB)) champCibleB.set(noeud, mapIds.get(ancienneCibleB));
-                } catch (Exception e) {}
+                // Isolation impitoyable des cibles
+                majCibleNoeud(noeud, "cibleObjetId", mapIds);
+                majCibleNoeud(noeud, "cibleObjetBId", mapIds);
+                majCibleNoeud(noeud, "nomCibleObjet", mapNoms);
+                majCibleNoeud(noeud, "nomCibleObjetB", mapNoms);
+                majCibleNoeud(noeud, "nomCible", mapNoms); 
                 
                 try {
                     java.lang.reflect.Field champVar = noeud.getClass().getField("nomVariable");
@@ -340,37 +362,6 @@ public class VueJeu extends View {
                     java.lang.reflect.Field champFaux = noeud.getClass().getField("noeudSuivantFauxId");
                     String ancienFaux = (String) champFaux.get(noeud);
                     if (ancienFaux != null && mapNoeudsIds.containsKey(ancienFaux)) champFaux.set(noeud, mapNoeudsIds.get(ancienFaux));
-                } catch (Exception e) {}
-                
-                // CORRECTION : Renommage agressif en forçant getDeclaredField sur toute la hiérarchie !
-                try {
-                    java.lang.reflect.Field champCibleNom = null;
-                    Class<?> c = noeud.getClass();
-                    while(c != null && champCibleNom == null) {
-                        try { champCibleNom = c.getDeclaredField("nomCibleObjet"); } catch(Exception e) { c = c.getSuperclass(); }
-                    }
-                    if (champCibleNom != null) {
-                        champCibleNom.setAccessible(true);
-                        String ancienneCibleNom = (String) champCibleNom.get(noeud);
-                        if (ancienneCibleNom != null && !"__OBJET_IMPLIQUE__".equals(ancienneCibleNom) && mapNoms.containsKey(ancienneCibleNom)) {
-                            champCibleNom.set(noeud, mapNoms.get(ancienneCibleNom));
-                        }
-                    }
-                } catch (Exception e) {}
-                
-                try {
-                    java.lang.reflect.Field champCibleNomB = null;
-                    Class<?> c = noeud.getClass();
-                    while(c != null && champCibleNomB == null) {
-                        try { champCibleNomB = c.getDeclaredField("nomCibleObjetB"); } catch(Exception e) { c = c.getSuperclass(); }
-                    }
-                    if (champCibleNomB != null) {
-                        champCibleNomB.setAccessible(true);
-                        String ancienneCibleNomB = (String) champCibleNomB.get(noeud);
-                        if (ancienneCibleNomB != null && !"__OBJET_IMPLIQUE__".equals(ancienneCibleNomB) && mapNoms.containsKey(ancienneCibleNomB)) {
-                            champCibleNomB.set(noeud, mapNoms.get(ancienneCibleNomB));
-                        }
-                    }
                 } catch (Exception e) {}
                 
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
@@ -455,7 +446,14 @@ public class VueJeu extends View {
             }
         }
         for (ObjetBase prefab : prefabs) {
+            // CORRECTION COLISION FANTÔME : On retire ABSOLUMENT TOUT du conteneur
             prefab.visible = false; 
+            prefab.estPhysique = false;
+            prefab.estZoneDeClic = false;
+            prefab.tag = ""; 
+            prefab.x = -99999;
+            prefab.y = -99999;
+            
             Scene sceneLiee = getSceneParId(prefab.sceneLieeId);
             if (sceneLiee != null) {
                 instancierScene(sceneLiee, prefab);
@@ -514,6 +512,7 @@ public class VueJeu extends View {
         return null;
     }
 // bas 2
+
 // haut 3
     public Matrix getAbsoluteMatrix(ObjetBase obj, List<ObjetBase> contexteObjets) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
@@ -840,7 +839,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-// haut 5
+    // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
             android.graphics.Bitmap bmp = cacheImages.get(cheminAAfficher);
