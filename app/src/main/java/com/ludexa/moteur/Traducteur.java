@@ -79,6 +79,9 @@ public class Traducteur {
         if (cle.equals("noeud_objet_proche")) return "Sélectionner objet le plus proche";
         if (cle.equals("noeud_objet_hasard")) return "Choisir un objet au hasard";
         if (cle.equals("cat_logique_spatiale")) return "Logique Spatiale";
+        if (cle.equals("noeud_si_bouton_maintenu")) return "Si Bouton Maintenu";
+        
+        
         
         // --- NOUVEAUX NOEUDS ANIMATION ---
         if (cle.equals("noeud_pause_anim")) return "Mettre en pause l'animation";
