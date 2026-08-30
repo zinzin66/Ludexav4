@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -5,14 +6,10 @@ import java.util.List;
 
 public class NoeudConditionSiJoystick extends NoeudBase {
 
-    private ObjetBase cible;
-    private float vitesse = 5f;
-    
-    // Le symbole 🕹️ devient la valeur par défaut
     private String directionRequise = "🕹️"; 
 
     public NoeudConditionSiJoystick() {
-        super(genererId(), "Si Joystick", "Condition");
+        super(genererId(), Traducteur.get("noeud_si_joystick_actif"), "Condition");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Vrai", Port.TYPE_EXECUTION_SORTIE));
         this.ajouterPort(new Port("Faux", Port.TYPE_EXECUTION_SORTIE));
@@ -23,7 +20,6 @@ public class NoeudConditionSiJoystick extends NoeudBase {
         boolean joystickActif = (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0);
         boolean conditionRemplie = false;
 
-        // Évaluation basée sur les symboles
         if ("⏸️".equals(directionRequise)) {
             conditionRemplie = !joystickActif;
         } else if (joystickActif) {
@@ -41,10 +37,6 @@ public class NoeudConditionSiJoystick extends NoeudBase {
         }
 
         if (conditionRemplie) {
-            if (cible != null && joystickActif) {
-                cible.x += GestionnaireControles.joyDirX * vitesse;
-                cible.y += GestionnaireControles.joyDirY * vitesse;
-            }
             propagerExecution("Vrai");
         } else {
             propagerExecution("Faux");
@@ -53,22 +45,18 @@ public class NoeudConditionSiJoystick extends NoeudBase {
 
     @Override
     public List<String> getNomsParametres() {
-        return Arrays.asList("Vitesse", "Direction");
+        return Arrays.asList("Direction");
     }
 
     @Override
     public String getValeurParametre(String nom) {
-        if ("Vitesse".equals(nom)) return String.valueOf(vitesse);
         if ("Direction".equals(nom)) return directionRequise;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        try {
-            if ("Vitesse".equals(nom)) vitesse = Float.parseFloat(valeur);
-            if ("Direction".equals(nom)) directionRequise = valeur;
-        } catch (NumberFormatException e) {}
+        if ("Direction".equals(nom)) directionRequise = valeur;
     }
 
     @Override
@@ -80,21 +68,15 @@ public class NoeudConditionSiJoystick extends NoeudBase {
     @Override
     public List<String> getOptionsChoixListe(String nom) {
         if ("Direction".equals(nom)) {
-            // Liste déroulante visuelle sans besoin de traduction
             return Arrays.asList("🕹️", "⬆️", "⬇️", "⬅️", "➡️", "⏸️");
         }
         return super.getOptionsChoixListe(nom);
     }
 
     @Override
-    public boolean requiertCibleObjet() { return true; }
-
-    @Override
-    public void setCibleObjet(ObjetBase objet) { this.cible = objet; }
-
-    @Override
-    public ObjetBase getCibleObjet() { return this.cible; }
+    public boolean requiertCibleObjet() { return false; }
     
     @Override
-    public boolean utiliseClavierTexte() { return true; }
+    public boolean utiliseClavierTexte() { return false; }
 }
+// bas 1
