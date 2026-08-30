@@ -7,7 +7,6 @@ import java.util.List;
 public class NoeudActionModifierTexte extends NoeudBase {
 
     private transient ObjetBase cible;
-    // SUPPRIMÉ : private String nomCibleObjet;
     private String texteSaisi = "";
 
     public NoeudActionModifierTexte() {
@@ -41,6 +40,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
                     String nomVar = tokenCourant.toString().trim();
                     if (!nomVar.isEmpty()) {
                         Variable v = trouverVariable(nomVar);
+                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE token(+): nomVar=" + nomVar + " trouve=" + (v != null) + " valeur=" + (v != null ? v.valeur : "null"));
                         resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                     }
                     tokenCourant.setLength(0);
@@ -53,11 +53,14 @@ public class NoeudActionModifierTexte extends NoeudBase {
                 String nomVar = tokenCourant.toString().trim();
                 if (!nomVar.isEmpty()) {
                     Variable v = trouverVariable(nomVar);
+                    DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE token(fin): nomVar=" + nomVar + " trouve=" + (v != null) + " valeur=" + (v != null ? v.valeur : "null"));
                     resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                 }
             } else {
                 resultatFinal.append(tokenCourant.toString());
             }
+
+            DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE resultat final pour " + cibleActuelle.nom + " : \"" + resultatFinal.toString() + "\"");
 
             cibleActuelle.contenuTexte = resultatFinal.toString();
         }
@@ -66,6 +69,20 @@ public class NoeudActionModifierTexte extends NoeudBase {
 
     @SuppressWarnings("unchecked")
     private Variable trouverVariable(String nomVar) {
+        // CORRECTIF : résolution fiable via les références statiques posées par VueJeu,
+        // au lieu de la réflexion fragile sur contexteApplication (jamais posé en jeu réel).
+        if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.variablesLocales != null) {
+            for (Variable v : NoeudBase.sceneActiveCourante.variablesLocales) {
+                if (v.nom.equals(nomVar)) return v;
+            }
+        }
+        if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.variablesLocales != null) {
+            for (Variable v : NoeudBase.sceneHudActiveCourante.variablesLocales) {
+                if (v.nom.equals(nomVar)) return v;
+            }
+        }
+
+        // Fallback compatibilité éditeur (inchangé)
         if (contexteApplication instanceof InterfaceEditeur) {
             InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
             if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
@@ -128,23 +145,20 @@ public class NoeudActionModifierTexte extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() {
+        if (cibleObjetResolue != null) return cibleObjetResolue;
         if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
 
-        if (cible == null && nomCibleObjet != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    Scene s = ((InterfaceEditeur) contexteApplication).sceneActive;
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.objets != null) {
-                        for (ObjetBase o : s.objets) if (o.nom.equals(nomCibleObjet)) cible = o;
-                    }
+        if (nomCibleObjet != null) {
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
                 }
-            } catch (Exception e) {}
+            }
+            if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneHudActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
         }
         return this.cible;
     }
