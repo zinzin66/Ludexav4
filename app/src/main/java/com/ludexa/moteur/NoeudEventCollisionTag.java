@@ -18,9 +18,10 @@ public class NoeudEventCollisionTag extends NoeudBase {
     }
 
     @Override
-    public void executer() {
-        propagerExecution("Sortie");
-    }
+public void executer() {
+    DiagLogger.log(NoeudBase.cheminProjetCourant, "COLLISION_TAG executer() appele, propagation Sortie...");
+    propagerExecution("Sortie");
+}
 
     @Override
     public List<String> getNomsParametres() {
