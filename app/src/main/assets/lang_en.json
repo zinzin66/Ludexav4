@@ -482,7 +482,8 @@
   "insp_erreur_scene_introuvable": "Error: Scene not found",
     "insp_sep_surcharge_vars": "Local Variables (Override)",
   "insp_valeur_sur_mesure": "Custom value",
-  "insp_valeur_defaut": "Default"
+  "insp_valeur_defaut": "Default",
+  "noeud_si_bouton_maintenu": "If Button Held"
   
   
   
