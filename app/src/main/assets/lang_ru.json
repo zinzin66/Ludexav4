@@ -483,7 +483,8 @@
     "insp_sep_surcharge_vars": "Локальные переменные (Переопределение)",
   "insp_valeur_sur_mesure": "Специальное значение",
   "insp_valeur_defaut": "По умолчанию",
-  "noeud_si_bouton_maintenu": "Если кнопка удерживается"
+  "noeud_si_bouton_maintenu": "Если кнопка удерживается",
+  "noeud_arreter_anim": "Остановить анимацию"
   
   
   
