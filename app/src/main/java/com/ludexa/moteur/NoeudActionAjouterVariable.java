@@ -21,6 +21,11 @@ public void executer() {
     Variable cibleActuelle = getCibleVariable();
     String valeurSaisie = getValeurParametre("Valeur à ajouter");
 
+    DiagLogger.log(NoeudBase.cheminProjetCourant, "AJOUTER_VARIABLE APPELE: nomCibleVariable=" + nomCibleVariable
+        + " cibleTrouvee=" + (cibleActuelle != null)
+        + " sceneActiveCouranteNull=" + (NoeudBase.sceneActiveCourante == null)
+        + (cibleActuelle != null ? " valeurAvant=" + cibleActuelle.valeur + " type=" + cibleActuelle.type : ""));
+
     if (NoeudBase.sceneActiveCourante != null) {
         DiagLogger.log(NoeudBase.cheminProjetCourant, "AJOUTER_VARIABLE: nomCibleVariable=" + nomCibleVariable
             + " cibleTrouvee=" + (cibleActuelle != null)
