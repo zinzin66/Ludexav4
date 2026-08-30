@@ -483,7 +483,8 @@
     "insp_sep_surcharge_vars": "Local Variables (Override)",
   "insp_valeur_sur_mesure": "Custom value",
   "insp_valeur_defaut": "Default",
-  "noeud_si_bouton_maintenu": "If Button Held"
+  "noeud_si_bouton_maintenu": "If Button Held",
+  "noeud_arreter_anim": "Stop Animation"
   
   
   
