@@ -78,31 +78,43 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     @SuppressWarnings("unchecked")
     @Override
     public Variable getCibleVariable() { 
-        if (cible == null && nomCibleVariable != null && contexteApplication != null) {
-            try {
-                if (contexteApplication instanceof InterfaceEditeur) {
-                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
-                    if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
-                        for (Variable v : editeur.sceneActive.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
-                    }
-                    if (cible == null && editeur.variablesGlobales != null) {
-                        for (Variable v : editeur.variablesGlobales) if (v.nom.equals(nomCibleVariable)) cible = v;
-                    }
-                } else {
-                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
-                    Scene s = (Scene) sceneField.get(contexteApplication);
-                    if (s != null && s.variablesLocales != null) {
-                        for (Variable v : s.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
-                    }
-                    if (cible == null) {
+        if (cible != null) return cible;
+
+        if (nomCibleVariable != null) {
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.variablesLocales != null) {
+                for (Variable v : NoeudBase.sceneActiveCourante.variablesLocales) {
+                    if (nomCibleVariable.equals(v.nom)) return v;
+                }
+            }
+            if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.variablesLocales != null) {
+                for (Variable v : NoeudBase.sceneHudActiveCourante.variablesLocales) {
+                    if (nomCibleVariable.equals(v.nom)) return v;
+                }
+            }
+            if (contexteApplication != null) {
+                try {
+                    if (contexteApplication instanceof InterfaceEditeur) {
+                        InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                        if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
+                            for (Variable v : editeur.sceneActive.variablesLocales) if (v.nom.equals(nomCibleVariable)) return v;
+                        }
+                        if (editeur.variablesGlobales != null) {
+                            for (Variable v : editeur.variablesGlobales) if (v.nom.equals(nomCibleVariable)) return v;
+                        }
+                    } else {
+                        java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                        Scene s = (Scene) sceneField.get(contexteApplication);
+                        if (s != null && s.variablesLocales != null) {
+                            for (Variable v : s.variablesLocales) if (v.nom.equals(nomCibleVariable)) return v;
+                        }
                         java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
                         List<Variable> globales = (List<Variable>) varsField.get(contexteApplication);
                         if (globales != null) {
-                            for (Variable v : globales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                            for (Variable v : globales) if (v.nom.equals(nomCibleVariable)) return v;
                         }
                     }
-                }
-            } catch (Exception e) {}
+                } catch (Exception e) {}
+            }
         }
         return this.cible; 
     }
