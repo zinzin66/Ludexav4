@@ -485,7 +485,8 @@
     "insp_sep_surcharge_vars": "Lokale Variablen (Überschreiben)",
   "insp_valeur_sur_mesure": "Benutzerdefinierter Wert",
   "insp_valeur_defaut": "Standard",
-  "noeud_si_bouton_maintenu": "Wenn Taste Gehalten"
+  "noeud_si_bouton_maintenu": "Wenn Taste Gehalten",
+  "noeud_arreter_anim": "Animation stoppen"
   
   
   
