@@ -8,13 +8,12 @@ public class MoteurLogique {
     public static ObjetBase dernierObjetImplique = null;
     
     private Blueprint blueprintActif;
-    private String cheminProjet; // AJOUT : nécessaire pour écrire les logs de diagnostic
+    private String cheminProjet;
 
     public MoteurLogique(Blueprint blueprint) {
         this.blueprintActif = blueprint;
     }
 
-    // AJOUT : permet à VueJeu de fournir le chemin projet pour le logging de diagnostic
     public void setCheminProjet(String cheminProjet) {
         this.cheminProjet = cheminProjet;
     }
@@ -44,8 +43,6 @@ public class MoteurLogique {
 
     public void executerDemarrage() {
         if (blueprintActif == null || blueprintActif.noeuds == null) return;
-        // Pour éviter un crash de modification concurrente (ConcurrentModificationException)
-        // si un "NoeudEventStart" déclenche une instanciation qui ajoute des nœuds :
         java.util.List<NoeudBase> copieNoeuds = new java.util.ArrayList<>(blueprintActif.noeuds);
         for (NoeudBase noeud : copieNoeuds) {
             if (noeud instanceof NoeudEventStart) {
@@ -120,14 +117,11 @@ public class MoteurLogique {
 
                 if (objA != null && cibleTag != null && !cibleTag.trim().isEmpty()) {
 
-                    // CORRECTIF : on ne s'arrête plus au premier objet du tag trouvé en collision
-                    // (l'ancien "break" masquait les autres instances du même tag). On teste
-                    // TOUS les objets du tag et on déclenche un événement par objet dont l'état
-                    // de collision passe de "hors contact" à "en contact", indépendamment des
-                    // autres instances du même tag.
                     java.util.Set<String> idsEnCollisionCetteFrame = new java.util.HashSet<>();
+                    java.util.List<ObjetBase> objetsADeclencher = new java.util.ArrayList<>();
+                    java.util.List<ObjetBase> copieContexte = new java.util.ArrayList<>(objetsContexte);
 
-                    for (ObjetBase objB : objetsContexte) {
+                    for (ObjetBase objB : copieContexte) {
                         if (objA != objB && objB.tag != null && cibleTag.trim().equalsIgnoreCase(objB.tag.trim())) {
                             if (UtilCollision.rectanglesSeChevauchent(objA, objetsContexte, objB, objetsContexte, vueJeu)) {
                                 idsEnCollisionCetteFrame.add(objB.id);
@@ -138,25 +132,29 @@ public class MoteurLogique {
 
                                 if (!noeudTag.isEnCollisionAvec(objB.id)) {
                                     noeudTag.marquerEnCollision(objB.id);
-                                    MoteurLogique.dernierObjetImplique = objB;
-
-                                    logDiag("COLLISION_TAG DECLENCHEMENT: objA=" + objA.nom
-                                        + " objB=" + objB.nom + " (id=" + objB.id + ") -> executer()");
-
-                                    noeudTag.executer();
+                                    objetsADeclencher.add(objB);
                                 }
                             }
                         }
                     }
 
-                    // Nettoyage : tout id précédemment marqué "en collision" mais absent cette
-                    // frame (sorti de contact OU détruit) repasse "hors collision".
                     java.util.Iterator<String> it = noeudTag.getObjetsEnCollisionActuels().iterator();
                     while (it.hasNext()) {
                         String idSuivi = it.next();
                         if (!idsEnCollisionCetteFrame.contains(idSuivi)) {
                             logDiag("COLLISION_TAG FIN_CONTACT: id=" + idSuivi + " tag=" + cibleTag);
                             it.remove();
+                        }
+                    }
+
+                    for (ObjetBase objB : objetsADeclencher) {
+                        MoteurLogique.dernierObjetImplique = objB;
+                        logDiag("COLLISION_TAG DECLENCHEMENT: objA=" + objA.nom
+                            + " objB=" + objB.nom + " (id=" + objB.id + ") -> executer()");
+                        try {
+                            noeudTag.executer();
+                        } catch (Exception e) {
+                            logDiag("ERREUR COLLISION_TAG executer(): " + e.toString());
                         }
                     }
                 }
