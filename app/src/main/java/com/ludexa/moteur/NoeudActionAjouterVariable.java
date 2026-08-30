@@ -17,54 +17,65 @@ public class NoeudActionAjouterVariable extends NoeudBase {
     }
 
     @Override
-    public void executer() {
-        Variable cibleActuelle = getCibleVariable();
-        String valeurSaisie = getValeurParametre("Valeur à ajouter");
-        
-        if (cibleActuelle != null && "CHIFFRE".equals(cibleActuelle.type)) {
-            float valeurCourante = 0f;
-            if (cibleActuelle.valeur instanceof Float) {
-                valeurCourante = (Float) cibleActuelle.valeur;
-            } else if (cibleActuelle.valeur != null) {
-                try {
-                    valeurCourante = Float.parseFloat(cibleActuelle.valeur.toString());
-                } catch (NumberFormatException e) {
-                    valeurCourante = 0f;
-                }
-            }
-            
-            float valeurAJoindre = 0f;
-            try {
-                valeurAJoindre = Float.parseFloat(valeurSaisie);
-            } catch (NumberFormatException e) {
-                valeurAJoindre = 0f;
-            }
-            
-            cibleActuelle.valeur = valeurCourante + valeurAJoindre;
-        } else if (cibleActuelle != null && "ENTIER".equals(cibleActuelle.type)) {
-            int valeurCourante = 0;
-            if (cibleActuelle.valeur instanceof Integer) {
-                valeurCourante = (Integer) cibleActuelle.valeur;
-            } else if (cibleActuelle.valeur != null) {
-                try {
-                    valeurCourante = Integer.parseInt(cibleActuelle.valeur.toString().trim());
-                } catch (NumberFormatException e) {
-                    valeurCourante = 0;
-                }
-            }
+public void executer() {
+    Variable cibleActuelle = getCibleVariable();
+    String valeurSaisie = getValeurParametre("Valeur à ajouter");
 
-            int valeurAJoindre = 0;
+    if (NoeudBase.sceneActiveCourante != null) {
+        DiagLogger.log(NoeudBase.cheminProjetCourant, "AJOUTER_VARIABLE: nomCibleVariable=" + nomCibleVariable
+            + " cibleTrouvee=" + (cibleActuelle != null)
+            + (cibleActuelle != null ? " valeurAvant=" + cibleActuelle.valeur + " type=" + cibleActuelle.type : ""));
+    }
+    
+    if (cibleActuelle != null && "CHIFFRE".equals(cibleActuelle.type)) {
+        float valeurCourante = 0f;
+        if (cibleActuelle.valeur instanceof Float) {
+            valeurCourante = (Float) cibleActuelle.valeur;
+        } else if (cibleActuelle.valeur != null) {
             try {
-                valeurAJoindre = Integer.parseInt(valeurSaisie.trim());
+                valeurCourante = Float.parseFloat(cibleActuelle.valeur.toString());
             } catch (NumberFormatException e) {
-                valeurAJoindre = 0;
+                valeurCourante = 0f;
             }
-
-            cibleActuelle.valeur = valeurCourante + valeurAJoindre;
         }
         
-        propagerExecution("Suivant");
+        float valeurAJoindre = 0f;
+        try {
+            valeurAJoindre = Float.parseFloat(valeurSaisie);
+        } catch (NumberFormatException e) {
+            valeurAJoindre = 0f;
+        }
+        
+        cibleActuelle.valeur = valeurCourante + valeurAJoindre;
+    } else if (cibleActuelle != null && "ENTIER".equals(cibleActuelle.type)) {
+        int valeurCourante = 0;
+        if (cibleActuelle.valeur instanceof Integer) {
+            valeurCourante = (Integer) cibleActuelle.valeur;
+        } else if (cibleActuelle.valeur != null) {
+            try {
+                valeurCourante = Integer.parseInt(cibleActuelle.valeur.toString().trim());
+            } catch (NumberFormatException e) {
+                valeurCourante = 0;
+            }
+        }
+
+        int valeurAJoindre = 0;
+        try {
+            valeurAJoindre = Integer.parseInt(valeurSaisie.trim());
+        } catch (NumberFormatException e) {
+            valeurAJoindre = 0;
+        }
+
+        cibleActuelle.valeur = valeurCourante + valeurAJoindre;
     }
+
+    if (cibleActuelle != null) {
+        DiagLogger.log(NoeudBase.cheminProjetCourant, "AJOUTER_VARIABLE: nomCibleVariable=" + nomCibleVariable
+            + " valeurApres=" + cibleActuelle.valeur);
+    }
+    
+    propagerExecution("Suivant");
+}
 
     @Override
     public boolean requiertCibleVariable() { return true; }
