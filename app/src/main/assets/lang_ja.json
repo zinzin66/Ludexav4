@@ -485,7 +485,8 @@
     "insp_sep_surcharge_vars": "ローカル変数 (上書き)",
   "insp_valeur_sur_mesure": "カスタム値",
   "insp_valeur_defaut": "デフォルト",
-  "noeud_si_bouton_maintenu": "ボタン保持時"
+  "noeud_si_bouton_maintenu": "ボタン保持時",
+  "noeud_arreter_anim": "アニメーションを停止"
   
   
   
