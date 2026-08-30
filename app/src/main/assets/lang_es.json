@@ -483,7 +483,8 @@
     "insp_sep_surcharge_vars": "Variables locales (Sobrescribir)",
   "insp_valeur_sur_mesure": "Valor personalizado",
   "insp_valeur_defaut": "Por defecto",
-  "noeud_si_bouton_maintenu": "Si Botón Mantenido"
+  "noeud_si_bouton_maintenu": "Si Botón Mantenido",
+  "noeud_arreter_anim": "Detener animación"
   
   
   
