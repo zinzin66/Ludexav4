@@ -60,6 +60,7 @@ public class VueJeu extends View {
         this.sceneActive = scene;
         this.sceneHudActive = sceneHud;
         this.cheminProjet = cheminProjet;
+        NoeudBase.cheminProjetCourant = cheminProjet;
 
         // NOUVEAU : on tient à jour les références statiques de NoeudBase dès la construction.
         // C'est ce qui permet à getCibleObjet()/neutraliserEtRetirer() de retrouver la bonne
