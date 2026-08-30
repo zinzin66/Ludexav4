@@ -482,7 +482,8 @@
   "insp_erreur_scene_introuvable": "Erro: Cena não encontrada",
     "insp_sep_surcharge_vars": "Variáveis Locais (Sobrescrever)",
   "insp_valeur_sur_mesure": "Valor personalizado",
-  "insp_valeur_defaut": "Padrão"
+  "insp_valeur_defaut": "Padrão",
+  "noeud_si_bouton_maintenu": "Se Botão Mantido"
   
   
   
