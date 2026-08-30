@@ -14,6 +14,7 @@ public abstract class NoeudBase {
     // dans le contexte APK compilé. Mises à jour par VueJeu à chaque changement de scène.
     public static Scene sceneActiveCourante;
     public static Scene sceneHudActiveCourante;
+    public static String cheminProjetCourant;
 
     public static final String TYPE_TEXTE_LIBRE = "TYPE_TEXTE_LIBRE";
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
