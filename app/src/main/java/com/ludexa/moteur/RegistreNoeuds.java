@@ -146,6 +146,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_reprendre_anim"), Traducteur.get("cat_animations"), "NoeudActionReprendreAnimation"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_vitesse_anim"), Traducteur.get("cat_animations"), "NoeudActionVitesseAnimation"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition_frame"), Traducteur.get("cat_animations"), "NoeudConditionFrameAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_arreter_anim"), Traducteur.get("cat_animations"), "NoeudActionArreterAnimation"));
+        
         
         // PHYSIQUE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_activer_physique"), Traducteur.get("cat_physique"), "NoeudActionModifierPhysique"));
