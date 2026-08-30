@@ -2,13 +2,15 @@
 package com.ludexa.moteur;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class NoeudEventCollisionTag extends NoeudBase {
     
     private transient ObjetBase cible;
     private String tagCible = "";
-    private transient boolean etaitEnCollision = false;
+    private transient Set<String> objetsEnCollision = new HashSet<>();
 
     public NoeudEventCollisionTag() {
         super(genererId(), "Si objet touche Tag", "Événements");
@@ -79,8 +81,28 @@ public class NoeudEventCollisionTag extends NoeudBase {
         return this.cible;
     }
 
-    public boolean isEtaitEnCollision() { return etaitEnCollision; }
-    public void setEtaitEnCollision(boolean etat) { this.etaitEnCollision = etat; }
+    // CORRECTIF : remplace l'ancien booléen unique etaitEnCollision (qui ne pouvait mémoriser
+    // qu'UN SEUL état de collision pour tout le tag, quel que soit le nombre d'instances
+    // portant ce tag) par un état par-objet-touché (via son id). C'est ce qui causait les
+    // pertes de vie excessives quand plusieurs objets du même tag (ex: plusieurs "bee")
+    // étaient proches/simultanés : le flag global oscillait vrai/faux entre eux et
+    // redéclenchait l'événement plusieurs fois en quelques frames.
+    public boolean isEnCollisionAvec(String idObjet) {
+        return idObjet != null && objetsEnCollision.contains(idObjet);
+    }
+
+    public void marquerEnCollision(String idObjet) {
+        if (idObjet != null) objetsEnCollision.add(idObjet);
+    }
+
+    public void marquerHorsCollision(String idObjet) {
+        if (idObjet != null) objetsEnCollision.remove(idObjet);
+    }
+
+    public Set<String> getObjetsEnCollisionActuels() {
+        return objetsEnCollision;
+    }
+
     public String getTagCible() { return tagCible; }
 }
 // bas 1
