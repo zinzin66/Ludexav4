@@ -483,7 +483,8 @@
     "insp_sep_surcharge_vars": "Variables Locales (Surcharge)",
   "insp_valeur_sur_mesure": "Valeur spécifique",
   "insp_valeur_defaut": "Défaut",
-  "noeud_si_bouton_maintenu": "Si Bouton Maintenu"
+  "noeud_si_bouton_maintenu": "Si Bouton Maintenu",
+  "noeud_arreter_anim": "Arrêter l'animation"
   
   
   
