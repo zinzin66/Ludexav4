@@ -65,6 +65,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_mouvement"), Traducteur.get("cat_logique_conditions"), "NoeudConditionMouvement"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_bouton_maintenu"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiBoutonMaintenu"));
+        
 // bas 1
     // haut 2
         // SCÈNE & HUD
