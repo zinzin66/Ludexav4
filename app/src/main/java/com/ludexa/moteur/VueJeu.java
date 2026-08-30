@@ -90,13 +90,15 @@ public class VueJeu extends View {
 
         this.moteurPhysique = new MoteurPhysique(); 
 
-        if (blueprintActif != null) {
-            this.moteur = new MoteurLogique(blueprintActif);
-        }
-        
-        if (blueprintHud != null) {
-            this.moteurHud = new MoteurLogique(blueprintHud);
-        }
+if (blueprintActif != null) {
+    this.moteur = new MoteurLogique(blueprintActif);
+    this.moteur.setCheminProjet(this.cheminProjet);
+}
+
+if (blueprintHud != null) {
+    this.moteurHud = new MoteurLogique(blueprintHud);
+    this.moteurHud.setCheminProjet(this.cheminProjet);
+}
     }
 
     private void chargerAnimationsGlobales(List<ObjetBase> objets) {
@@ -178,8 +180,9 @@ public class VueJeu extends View {
         deballerPrefabs(this.sceneHudActive);
 
         if (blueprintHud != null) {
-            this.moteurHud = new MoteurLogique(blueprintHud);
-            this.moteurHud.executerDemarrage();
+    this.moteurHud = new MoteurLogique(blueprintHud);
+    this.moteurHud.setCheminProjet(this.cheminProjet);
+    this.moteurHud.executerDemarrage();
         } else {
             this.moteurHud = null;
         }
@@ -213,8 +216,9 @@ public class VueJeu extends View {
         }
 
         if (nouveauBlueprint != null) {
-            this.moteur = new MoteurLogique(nouveauBlueprint);
-            this.moteur.executerDemarrage();
+    this.moteur = new MoteurLogique(nouveauBlueprint);
+    this.moteur.setCheminProjet(this.cheminProjet);
+    this.moteur.executerDemarrage();
         } else {
             this.moteur = null; 
         }
