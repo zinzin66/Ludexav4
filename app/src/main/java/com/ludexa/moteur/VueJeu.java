@@ -184,7 +184,6 @@ public class VueJeu extends View {
         }
     }
 // bas 1
-
 // haut 2
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
@@ -336,6 +335,11 @@ public class VueJeu extends View {
                         clone.graviteScale = prefab.graviteScale;
                         clone.rebond = prefab.rebond;
                     }
+                    
+                    // --- CORRECTION : On relie le conteneur vide à son vrai contenu instancié ---
+                    if (prefab.idCloneRacine == null) {
+                        prefab.idCloneRacine = clone.id;
+                    }
                 }
                 
                 if (clone.parentId != null && mapIds.containsKey(clone.parentId)) clone.parentId = mapIds.get(clone.parentId);
@@ -432,7 +436,6 @@ public class VueJeu extends View {
         }
     }
 // bas 2
-                                                                                                           
 // haut 3
     private List<Scene> cacheListeScenesDisque = null;
 
@@ -816,7 +819,6 @@ public class VueJeu extends View {
             lastXJeu = xMonde;
             lastYJeu = yMonde;
             
-            // --- CORRECTION : Activation du booléen estTouche ---
             if (objetEnGlissement != null) objetEnGlissement.estTouche = true;
             
             if (objetEnGlissement != null) {
@@ -888,7 +890,6 @@ public class VueJeu extends View {
                     this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
                 }
                 
-                // --- CORRECTION : Désactivation du booléen estTouche ---
                 objetEnGlissement.estTouche = false;
             }
             objetEnGlissement = null;
@@ -896,6 +897,7 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
+
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -1085,7 +1087,7 @@ public class VueJeu extends View {
                 peintureTexte.setColor(Color.WHITE);
                 peintureTexte.setTextSize(objet.largeur * 0.25f);
                 peintureTexte.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText("ACTION", objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
+                canvas.drawText(Traducteur.get("cle_action"), objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
                 peintureTexte.setTextAlign(Paint.Align.LEFT);
                 
             } else if ("rond".equals(objet.type)) {
@@ -1158,40 +1160,29 @@ public class VueJeu extends View {
                 
                 ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
                 
-                // --- CORRECTION : RECHERCHE INTELLIGENTE PAR UUID ---
-                if (joueurCible == null) {
-                    String uuidOriginal = joystickObj.cibleJoystickId; 
-                    String nomOriginal = null;
-                    
-                    // 1. Retrouver le vrai nom de l'objet à partir de son ID d'origine
-                    List<Scene> toutesScenes = obtenirToutesLesScenes();
-                    if (toutesScenes != null) {
-                        for (Scene s : toutesScenes) {
-                            if (s.objets != null) {
-                                for (ObjetBase o : s.objets) {
-                                    if (uuidOriginal.equals(o.id)) {
-                                        nomOriginal = o.nom;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (nomOriginal != null) break;
-                        }
+                // --- CORRECTION DÉFINITIVE : REDIRECTION DU PREFAB VERS LE VRAI JOUEUR ---
+                // Si la cible est le conteneur "boîte vide" configuré dans l'éditeur (scene_instance)
+                if (joueurCible != null && "scene_instance".equals(joueurCible.type)) {
+                    if (joueurCible.idCloneRacine != null) {
+                        // OPTIMISATION EXTRÊME : On redirige définitivement le joystick vers le vrai ID généré
+                        joystickObj.cibleJoystickId = joueurCible.idCloneRacine;
+                        joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
+                    } else {
+                        joueurCible = null; // La boîte n'a pas pu créer d'enfant
                     }
-
-                    // 2. Chercher l'instance clonée avec ce nom dans la scène active
-                    if (nomOriginal != null) {
-                        for (ObjetBase obj : sceneActive.objets) {
-                            if (obj.nom != null && (obj.nom.equals(nomOriginal) || obj.nom.startsWith(nomOriginal + "_"))) {
-                                joueurCible = obj;
-                                // 3. OPTIMISATION EXTRÊME : Lier le joystick au nouvel ID pour ne plus jamais refaire ce calcul !
-                                joystickObj.cibleJoystickId = joueurCible.id;
-                                break;
-                            }
+                }
+                
+                // Sécurité : Si le lien est totalement rompu (ex: changement de scène imprévu)
+                if (joueurCible == null) {
+                    for (ObjetBase obj : sceneActive.objets) {
+                        if (obj.tag != null && (obj.tag.equalsIgnoreCase("Joueur") || obj.tag.equalsIgnoreCase("Player"))) {
+                            joueurCible = obj;
+                            joystickObj.cibleJoystickId = joueurCible.id; // On lie définitivement
+                            break;
                         }
                     }
                 }
-                // ----------------------------------------------------
+                // -------------------------------------------------------------------------
 
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
