@@ -24,7 +24,6 @@ public class ObjetBase {
     public boolean estRamassable = false;
     public boolean estZoneDeClic = false;
     
-    // NOUVEAU : Propriété éphémère pour le tactile
     public transient boolean estTouche = false;
     
     public int couleur = Color.BLUE;
@@ -99,6 +98,9 @@ public class ObjetBase {
     public boolean sautillementInfiniMouvement = false;
     public transient float ancienneX = 0f;
     public transient float ancienneY = 0f;
+
+    // --- CORRECTION : Lien direct entre le conteneur Prefab et l'objet instancié ---
+    public transient String idCloneRacine = null;
 
     public ObjetBase() {
         this.id = UUID.randomUUID().toString();
