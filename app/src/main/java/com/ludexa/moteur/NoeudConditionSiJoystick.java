@@ -6,11 +6,10 @@ import java.util.List;
 
 public class NoeudConditionSiJoystick extends NoeudBase {
 
-    private ObjetBase cible;
-    private float vitesse = 5f;
+    private String directionRequise = "🕹️"; 
 
     public NoeudConditionSiJoystick() {
-        super(genererId(), "Si Joystick Actif", "Condition");
+        super(genererId(), Traducteur.get("noeud_si_joystick_actif"), "Condition");
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Vrai", Port.TYPE_EXECUTION_SORTIE));
         this.ajouterPort(new Port("Faux", Port.TYPE_EXECUTION_SORTIE));
@@ -18,9 +17,26 @@ public class NoeudConditionSiJoystick extends NoeudBase {
 
     @Override
     public void executer() {
-        if (cible != null && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
-            cible.x += GestionnaireControles.joyDirX * vitesse;
-            cible.y += GestionnaireControles.joyDirY * vitesse;
+        boolean joystickActif = (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0);
+        boolean conditionRemplie = false;
+
+        if ("⏸️".equals(directionRequise)) {
+            conditionRemplie = !joystickActif;
+        } else if (joystickActif) {
+            if ("🕹️".equals(directionRequise)) {
+                conditionRemplie = true;
+            } else {
+                if (Math.abs(GestionnaireControles.joyDirX) > Math.abs(GestionnaireControles.joyDirY)) {
+                    if ("➡️".equals(directionRequise) && GestionnaireControles.joyDirX > 0) conditionRemplie = true;
+                    if ("⬅️".equals(directionRequise) && GestionnaireControles.joyDirX < 0) conditionRemplie = true;
+                } else {
+                    if ("⬇️".equals(directionRequise) && GestionnaireControles.joyDirY > 0) conditionRemplie = true;
+                    if ("⬆️".equals(directionRequise) && GestionnaireControles.joyDirY < 0) conditionRemplie = true;
+                }
+            }
+        }
+
+        if (conditionRemplie) {
             propagerExecution("Vrai");
         } else {
             propagerExecution("Faux");
@@ -29,32 +45,38 @@ public class NoeudConditionSiJoystick extends NoeudBase {
 
     @Override
     public List<String> getNomsParametres() {
-        return Arrays.asList("Vitesse");
+        return Arrays.asList("Direction");
     }
 
     @Override
     public String getValeurParametre(String nom) {
-        if ("Vitesse".equals(nom)) return String.valueOf(vitesse);
+        if ("Direction".equals(nom)) return directionRequise;
         return "";
     }
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        try {
-            if ("Vitesse".equals(nom)) vitesse = Float.parseFloat(valeur);
-        } catch (NumberFormatException e) {}
+        if ("Direction".equals(nom)) directionRequise = valeur;
     }
 
     @Override
-    public boolean requiertCibleObjet() { return true; }
+    public String getTypeEditeurParametre(String nom) {
+        if ("Direction".equals(nom)) return NoeudBase.TYPE_CHOIX_LISTE;
+        return super.getTypeEditeurParametre(nom);
+    }
 
     @Override
-    public void setCibleObjet(ObjetBase objet) { this.cible = objet; }
+    public List<String> getOptionsChoixListe(String nom) {
+        if ("Direction".equals(nom)) {
+            return Arrays.asList("🕹️", "⬆️", "⬇️", "⬅️", "➡️", "⏸️");
+        }
+        return super.getOptionsChoixListe(nom);
+    }
 
     @Override
-    public ObjetBase getCibleObjet() { return this.cible; }
+    public boolean requiertCibleObjet() { return false; }
     
     @Override
-    public boolean utiliseClavierTexte() { return true; }
+    public boolean utiliseClavierTexte() { return false; }
 }
 // bas 1

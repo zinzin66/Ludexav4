@@ -62,9 +62,6 @@ public class VueJeu extends View {
         this.cheminProjet = cheminProjet;
         NoeudBase.cheminProjetCourant = cheminProjet;
 
-        // NOUVEAU : on tient à jour les références statiques de NoeudBase dès la construction.
-        // C'est ce qui permet à getCibleObjet()/neutraliserEtRetirer() de retrouver la bonne
-        // scène sans réflexion, aussi bien en APK qu'en mode test-éditeur (basculerVersJeu()).
         NoeudBase.sceneActiveCourante = this.sceneActive;
         NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
 
@@ -91,15 +88,15 @@ public class VueJeu extends View {
 
         this.moteurPhysique = new MoteurPhysique(); 
 
-if (blueprintActif != null) {
-    this.moteur = new MoteurLogique(blueprintActif);
-    this.moteur.setCheminProjet(this.cheminProjet);
-}
+        if (blueprintActif != null) {
+            this.moteur = new MoteurLogique(blueprintActif);
+            this.moteur.setCheminProjet(this.cheminProjet);
+        }
 
-if (blueprintHud != null) {
-    this.moteurHud = new MoteurLogique(blueprintHud);
-    this.moteurHud.setCheminProjet(this.cheminProjet);
-}
+        if (blueprintHud != null) {
+            this.moteurHud = new MoteurLogique(blueprintHud);
+            this.moteurHud.setCheminProjet(this.cheminProjet);
+        }
     }
 
     private void chargerAnimationsGlobales(List<ObjetBase> objets) {
@@ -135,9 +132,7 @@ if (blueprintHud != null) {
             }
         }
     }
-// bas 1
 
-// haut 2
     private void logDiag(String message) {
         DiagLogger.log(cheminProjet, message);
     }
@@ -181,14 +176,16 @@ if (blueprintHud != null) {
         deballerPrefabs(this.sceneHudActive);
 
         if (blueprintHud != null) {
-    this.moteurHud = new MoteurLogique(blueprintHud);
-    this.moteurHud.setCheminProjet(this.cheminProjet);
-    this.moteurHud.executerDemarrage();
+            this.moteurHud = new MoteurLogique(blueprintHud);
+            this.moteurHud.setCheminProjet(this.cheminProjet);
+            this.moteurHud.executerDemarrage();
         } else {
             this.moteurHud = null;
         }
     }
+// bas 1
 
+// haut 2
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
         if (this.sceneActive != null) GestionnaireEtat.sauvegarderEtat(this.sceneActive);
@@ -217,9 +214,9 @@ if (blueprintHud != null) {
         }
 
         if (nouveauBlueprint != null) {
-    this.moteur = new MoteurLogique(nouveauBlueprint);
-    this.moteur.setCheminProjet(this.cheminProjet);
-    this.moteur.executerDemarrage();
+            this.moteur = new MoteurLogique(nouveauBlueprint);
+            this.moteur.setCheminProjet(this.cheminProjet);
+            this.moteur.executerDemarrage();
         } else {
             this.moteur = null; 
         }
@@ -359,9 +356,7 @@ if (blueprintHud != null) {
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
             }
 
-            // PASSE 1 : liaison complète de TOUS les nœuds du lot avant toute exécution.
             for (NoeudBase noeud : blueprintInstance.noeuds) {
-                
                 majCibleNoeud(noeud, "nomCible", mapNoms); 
                 
                 try {
@@ -410,37 +405,16 @@ if (blueprintHud != null) {
                 }
                 
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
-
-                // VÉRIFICATION AUTOMATIQUE DE CÂBLAGE : si un nœud a besoin d'une cible et
-                // qu'elle est toujours introuvable après la tentative de liaison, on le
-                // signale dans le journal permanent du projet. C'est ce contrôle qui aurait
-                // détecté immédiatement le bug du champ nomCibleObjet dupliqué dans
-                // NoeudActionJouerAnimation, au lieu de 2 jours d'investigation manuelle.
-                if (noeud.requiertCibleObjet() && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
-                    if (noeud.getCibleObjet() == null) {
-                        logDiag("ATTENTION: nœud " + noeud.getClass().getSimpleName() + " du prefab " + prefab.nom + " (scène " + sceneAInstancier.nom + ") sans cible objet valide après liaison (nomCibleObjet=" + noeud.nomCibleObjet + ")");
-                    }
-                }
-                if (noeud.requiertCibleObjetB() && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
-                    if (noeud.getCibleObjetB() == null) {
-                        logDiag("ATTENTION: nœud " + noeud.getClass().getSimpleName() + " du prefab " + prefab.nom + " (scène " + sceneAInstancier.nom + ") sans cible objet B valide après liaison (nomCibleObjetB=" + noeud.nomCibleObjetB + ")");
-                    }
-                }
             }
 
-            // PASSE 2 : exécution des événements de démarrage, une fois le lot entièrement lié.
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 if (noeud instanceof NoeudEventStart) {
                     noeud.executer();
                 }
             }
         }
-        
-        // SUPPRIMÉ ICI : Le déballage récursif de sceneActive qui provoquait la fausse boucle infinie (cycle).
     }
-// bas 2
 
-// haut 3
     public void detruireInstances(Scene sceneCible) {
         if (sceneCible == null || sceneActive == null || sceneActive.objets == null) return;
         
@@ -457,7 +431,9 @@ if (blueprintHud != null) {
             this.moteur.nettoyerNoeudsParTag(tagRecherche);
         }
     }
-
+// bas 2
+                                                                                                           
+// haut 3
     private List<Scene> cacheListeScenesDisque = null;
 
     private List<Scene> chargerToutesLesScenesDepuisDisque() {
@@ -507,8 +483,6 @@ if (blueprintHud != null) {
     private void deballerPrefabs(Scene scene) {
         if (scene == null || scene.objets == null) return;
         
-        // CORRECTION : Boucle d'itération sécurisée pour traiter les prefabs un par un,
-        // sans déclencher le bloqueur de boucle infinie (cycle detector) sur les frères.
         boolean aDeballe = true;
         while (aDeballe) {
             aDeballe = false;
@@ -624,8 +598,7 @@ if (blueprintHud != null) {
         }
         return m;
     }
-// bas 3
-// haut 4
+
     private boolean pointDansObjet(float xVue, float yVue, float xMonde, float yMonde, ObjetBase obj) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         List<ObjetBase> contexte = isHud ? sceneHudActive.objets : sceneActive.objets;
@@ -725,7 +698,10 @@ if (blueprintHud != null) {
             objet.y += deltaY;
         }
     }
+// bas 3
 
+
+// haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
@@ -841,6 +817,9 @@ if (blueprintHud != null) {
             lastXJeu = xMonde;
             lastYJeu = yMonde;
             
+            // CORRECTION : Déclaration de l'appui direct sur l'objet touché
+            if (objetEnGlissement != null) objetEnGlissement.estTouche = true;
+            
             if (objetEnGlissement != null) {
                 MoteurLogique.dernierObjetImplique = objetEnGlissement;
                 
@@ -909,12 +888,16 @@ if (blueprintHud != null) {
                 } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement) && this.moteur != null) {
                     this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
                 }
+                
+                // CORRECTION : Annulation de l'appui lors du relâchement
+                objetEnGlissement.estTouche = false;
             }
             objetEnGlissement = null;
         }
         return true;
     }
 // bas 4
+
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -1281,7 +1264,7 @@ if (blueprintHud != null) {
             shakeY = (float) ((Math.random() - 0.5) * 2.0 * tremblementIntensite);
         }
 
-      canvas.save();
+        canvas.save();
         canvas.translate(-GestionnaireControles.cameraX + shakeX, -GestionnaireControles.cameraY + shakeY);
         if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false, GestionnaireControles.cameraX, GestionnaireControles.cameraY);
         canvas.restore(); 

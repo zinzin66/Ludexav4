@@ -484,7 +484,9 @@
   "insp_erreur_scene_introuvable": "错误：未找到场景",
     "insp_sep_surcharge_vars": "局部变量 (覆盖)",
   "insp_valeur_sur_mesure": "自定义值",
-  "insp_valeur_defaut": "默认"
+  "insp_valeur_defaut": "默认",
+  "noeud_si_bouton_maintenu": "如果长按按钮",
+  "noeud_arreter_anim": "停止动画"
   
   
   

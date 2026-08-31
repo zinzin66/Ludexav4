@@ -24,6 +24,9 @@ public class ObjetBase {
     public boolean estRamassable = false;
     public boolean estZoneDeClic = false;
     
+    // NOUVEAU : Propriété éphémère pour le tactile
+    public transient boolean estTouche = false;
+    
     public int couleur = Color.BLUE;
     public String cheminImage = null;
     
@@ -35,7 +38,6 @@ public class ObjetBase {
     
     public String sceneLieeId = null;
     
-    // NOUVEAU : Dictionnaire des surcharges de variables pour les instances
     public HashMap<String, String> surchargesVariables = new HashMap<>();
     
     public String filtreCouleur = "Aucun";
@@ -136,7 +138,6 @@ public class ObjetBase {
         copie.cibleJoystickId = this.cibleJoystickId;
         copie.sceneLieeId = this.sceneLieeId; 
         
-        // NOUVEAU : On duplique proprement les valeurs surchargées
         copie.surchargesVariables = new HashMap<>(this.surchargesVariables);
         
         copie.filtreCouleur = this.filtreCouleur;
