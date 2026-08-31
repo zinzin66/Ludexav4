@@ -41,6 +41,9 @@ public class VueJeu extends View {
     private float lastXJeu = 0f;
     private float lastYJeu = 0f;
     
+    // Ajout du chronomètre pour le diagnostic du joystick
+    private long dernierLogJoystick = 0;
+    
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
     private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
@@ -184,6 +187,7 @@ public class VueJeu extends View {
         }
     }
 // bas 1
+
 // haut 2
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
@@ -1175,7 +1179,7 @@ public class VueJeu extends View {
                 
                 ObjetBase joueurCible = null;
 
-                // --- 1. RECHERCHE PAR TAG : Fiabilité Absolue ---
+                // --- 1. RECHERCHE PAR TAG ---
                 for (ObjetBase obj : sceneActive.objets) {
                     if (obj.tag != null && (obj.tag.equalsIgnoreCase("Joueur") || obj.tag.equalsIgnoreCase("Player"))) {
                         joueurCible = obj;
@@ -1183,7 +1187,7 @@ public class VueJeu extends View {
                     }
                 }
 
-                // --- 2. RECHERCHE PAR CIBLE ÉDITEUR (Si aucun tag n'est défini) ---
+                // --- 2. RECHERCHE PAR CIBLE ÉDITEUR ---
                 if (joueurCible == null && joystickObj.cibleJoystickId != null) {
                     joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
                     
@@ -1196,7 +1200,15 @@ public class VueJeu extends View {
                     }
                 }
 
-                // --- 3. DÉPLACEMENT ---
+                // --- 3. DÉPLACEMENT & DIAGNOSTIC ---
+                long tempsActuel = System.currentTimeMillis();
+                if (tempsActuel - dernierLogJoystick > 500) { 
+                    logDiag("JOYSTICK cible=" + (joueurCible != null 
+                        ? joueurCible.nom + " id=" + joueurCible.id + " tag=" + joueurCible.tag + " parentId=" + joueurCible.parentId + " phys=" + joueurCible.estPhysique + " stat=" + joueurCible.estStatique + " x=" + joueurCible.x + " y=" + joueurCible.y
+                        : "NULL"));
+                    dernierLogJoystick = tempsActuel;
+                }
+
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
                     float moveX = GestionnaireControles.joyDirX * vitesseDefaut;
@@ -1278,7 +1290,7 @@ public class VueJeu extends View {
         canvas.scale(echelle, echelle);
         canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
-          if (GestionnaireControles.cameraCibleId != null && sceneActive != null) {
+        if (GestionnaireControles.cameraCibleId != null && sceneActive != null) {
             ObjetBase cible = getObjetById(GestionnaireControles.cameraCibleId, sceneActive.objets);
             if (cible != null) {
                 float cibleCamX = cible.x + (cible.largeur / 2f) - (ConfigurationJeu.LARGEUR_JEU / 2f);
