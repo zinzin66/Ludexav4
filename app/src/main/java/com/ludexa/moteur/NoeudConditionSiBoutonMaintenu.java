@@ -27,7 +27,6 @@ public class NoeudConditionSiBoutonMaintenu extends NoeudBase {
         }
     }
 
-    // Le nœud n'a plus besoin de paramètres (plus de liste déroulante ni de vitesse)
     @Override
     public List<String> getNomsParametres() {
         return null;
@@ -40,10 +39,8 @@ public class NoeudConditionSiBoutonMaintenu extends NoeudBase {
 
     @Override
     public void setValeurParametre(String nom, String valeur) {
-        // Plus rien à paramétrer
     }
 
-    // On garde uniquement la sélection de l'Objet A (Le bouton)
     @Override
     public boolean requiertCibleObjet() { return true; }
     
