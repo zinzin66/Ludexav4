@@ -1171,34 +1171,32 @@ public class VueJeu extends View {
         
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
             ObjetBase joystickObj = trouverObjetParType("joystick");
-            if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
+            if (joystickObj != null && sceneActive != null && sceneActive.objets != null) {
                 
-                ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
-                
-                // --- CORRECTION DÉFINITIVE : REDIRECTION DU PREFAB VERS LE VRAI JOUEUR ---
-                // Si la cible est le conteneur "boîte vide" configuré dans l'éditeur (scene_instance)
-                if (joueurCible != null && "scene_instance".equals(joueurCible.type)) {
-                    if (joueurCible.idCloneRacine != null) {
-                        // OPTIMISATION EXTRÊME : On redirige définitivement le joystick vers le vrai ID généré
-                        joystickObj.cibleJoystickId = joueurCible.idCloneRacine;
-                        joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
-                    } else {
-                        joueurCible = null; // La boîte n'a pas pu créer d'enfant
+                ObjetBase joueurCible = null;
+
+                // --- 1. RECHERCHE PAR TAG : Fiabilité Absolue ---
+                for (ObjetBase obj : sceneActive.objets) {
+                    if (obj.tag != null && (obj.tag.equalsIgnoreCase("Joueur") || obj.tag.equalsIgnoreCase("Player"))) {
+                        joueurCible = obj;
+                        break;
                     }
                 }
-                
-                // Sécurité : Si le lien est totalement rompu (ex: changement de scène imprévu)
-                if (joueurCible == null) {
-                    for (ObjetBase obj : sceneActive.objets) {
-                        if (obj.tag != null && (obj.tag.equalsIgnoreCase("Joueur") || obj.tag.equalsIgnoreCase("Player"))) {
-                            joueurCible = obj;
-                            joystickObj.cibleJoystickId = joueurCible.id; // On lie définitivement
-                            break;
+
+                // --- 2. RECHERCHE PAR CIBLE ÉDITEUR (Si aucun tag n'est défini) ---
+                if (joueurCible == null && joystickObj.cibleJoystickId != null) {
+                    joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
+                    
+                    if (joueurCible != null && "scene_instance".equals(joueurCible.type)) {
+                        if (joueurCible.idCloneRacine != null) {
+                            joueurCible = getObjetById(joueurCible.idCloneRacine, sceneActive.objets);
+                        } else {
+                            joueurCible = null; 
                         }
                     }
                 }
-                // -------------------------------------------------------------------------
 
+                // --- 3. DÉPLACEMENT ---
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
                     float moveX = GestionnaireControles.joyDirX * vitesseDefaut;
@@ -1280,7 +1278,7 @@ public class VueJeu extends View {
         canvas.scale(echelle, echelle);
         canvas.drawRect(0, 0, ConfigurationJeu.LARGEUR_JEU, ConfigurationJeu.HAUTEUR_JEU, peintureFondBlanc);
 
-        if (GestionnaireControles.cameraCibleId != null && sceneActive != null) {
+          if (GestionnaireControles.cameraCibleId != null && sceneActive != null) {
             ObjetBase cible = getObjetById(GestionnaireControles.cameraCibleId, sceneActive.objets);
             if (cible != null) {
                 float cibleCamX = cible.x + (cible.largeur / 2f) - (ConfigurationJeu.LARGEUR_JEU / 2f);
