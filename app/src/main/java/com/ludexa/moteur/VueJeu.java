@@ -700,7 +700,6 @@ public class VueJeu extends View {
     }
 // bas 3
 
-
 // haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -817,7 +816,7 @@ public class VueJeu extends View {
             lastXJeu = xMonde;
             lastYJeu = yMonde;
             
-            // CORRECTION : Déclaration de l'appui direct sur l'objet touché
+            // --- CORRECTION : Activation du booléen estTouche ---
             if (objetEnGlissement != null) objetEnGlissement.estTouche = true;
             
             if (objetEnGlissement != null) {
@@ -889,7 +888,7 @@ public class VueJeu extends View {
                     this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
                 }
                 
-                // CORRECTION : Annulation de l'appui lors du relâchement
+                // --- CORRECTION : Désactivation du booléen estTouche ---
                 objetEnGlissement.estTouche = false;
             }
             objetEnGlissement = null;
@@ -897,7 +896,6 @@ public class VueJeu extends View {
         return true;
     }
 // bas 4
-
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -1157,7 +1155,21 @@ public class VueJeu extends View {
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
             ObjetBase joystickObj = trouverObjetParType("joystick");
             if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
+                
                 ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
+                
+                // --- AJOUT : RECHERCHE INTELLIGENTE PREFAB ---
+                if (joueurCible == null) {
+                    String cibleRequise = joystickObj.cibleJoystickId; 
+                    for (ObjetBase obj : sceneActive.objets) {
+                        if (obj.nom != null && (obj.nom.equals(cibleRequise) || obj.nom.startsWith(cibleRequise + "_"))) {
+                            joueurCible = obj;
+                            break;
+                        }
+                    }
+                }
+                // ---------------------------------------------
+
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
                     float moveX = GestionnaireControles.joyDirX * vitesseDefaut;
