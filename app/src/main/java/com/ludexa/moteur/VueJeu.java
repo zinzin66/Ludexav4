@@ -335,11 +335,6 @@ public class VueJeu extends View {
                         clone.graviteScale = prefab.graviteScale;
                         clone.rebond = prefab.rebond;
                     }
-                    
-                    // --- CORRECTION : On relie le conteneur vide à son vrai contenu instancié ---
-                    if (prefab.idCloneRacine == null) {
-                        prefab.idCloneRacine = clone.id;
-                    }
                 }
                 
                 if (clone.parentId != null && mapIds.containsKey(clone.parentId)) clone.parentId = mapIds.get(clone.parentId);
@@ -347,6 +342,25 @@ public class VueJeu extends View {
                 if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
                 sceneActive.ajouterObjet(clone);
             }
+            
+            // --- NOUVELLE RECHERCHE INTELLIGENTE DU CLONE RACINE ---
+            ObjetBase meilleurCandidat = null;
+            for (ObjetBase clone : objetsInjectes) {
+                if (clone.tag != null && (clone.tag.equalsIgnoreCase("Joueur") || clone.tag.equalsIgnoreCase("Player"))) {
+                    meilleurCandidat = clone;
+                    break; // On a trouvé la cible parfaite grâce au Tag
+                }
+                if (meilleurCandidat == null && clone.estPhysique && !clone.estStatique) {
+                    meilleurCandidat = clone; // Candidat de secours : le premier objet physique mobile
+                }
+            }
+            if (meilleurCandidat != null) {
+                prefab.idCloneRacine = meilleurCandidat.id;
+            } else if (!objetsInjectes.isEmpty()) {
+                prefab.idCloneRacine = objetsInjectes.get(0).id; // Ultime recours
+            }
+            // -------------------------------------------------------
+
             chargerAnimationsGlobales(sceneActive.objets);
         }
         
@@ -436,6 +450,7 @@ public class VueJeu extends View {
         }
     }
 // bas 2
+    
 // haut 3
     private List<Scene> cacheListeScenesDisque = null;
 
