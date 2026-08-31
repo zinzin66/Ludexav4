@@ -1158,17 +1158,40 @@ public class VueJeu extends View {
                 
                 ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
                 
-                // --- AJOUT : RECHERCHE INTELLIGENTE PREFAB ---
+                // --- CORRECTION : RECHERCHE INTELLIGENTE PAR UUID ---
                 if (joueurCible == null) {
-                    String cibleRequise = joystickObj.cibleJoystickId; 
-                    for (ObjetBase obj : sceneActive.objets) {
-                        if (obj.nom != null && (obj.nom.equals(cibleRequise) || obj.nom.startsWith(cibleRequise + "_"))) {
-                            joueurCible = obj;
-                            break;
+                    String uuidOriginal = joystickObj.cibleJoystickId; 
+                    String nomOriginal = null;
+                    
+                    // 1. Retrouver le vrai nom de l'objet à partir de son ID d'origine
+                    List<Scene> toutesScenes = obtenirToutesLesScenes();
+                    if (toutesScenes != null) {
+                        for (Scene s : toutesScenes) {
+                            if (s.objets != null) {
+                                for (ObjetBase o : s.objets) {
+                                    if (uuidOriginal.equals(o.id)) {
+                                        nomOriginal = o.nom;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (nomOriginal != null) break;
+                        }
+                    }
+
+                    // 2. Chercher l'instance clonée avec ce nom dans la scène active
+                    if (nomOriginal != null) {
+                        for (ObjetBase obj : sceneActive.objets) {
+                            if (obj.nom != null && (obj.nom.equals(nomOriginal) || obj.nom.startsWith(nomOriginal + "_"))) {
+                                joueurCible = obj;
+                                // 3. OPTIMISATION EXTRÊME : Lier le joystick au nouvel ID pour ne plus jamais refaire ce calcul !
+                                joystickObj.cibleJoystickId = joueurCible.id;
+                                break;
+                            }
                         }
                     }
                 }
-                // ---------------------------------------------
+                // ----------------------------------------------------
 
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
