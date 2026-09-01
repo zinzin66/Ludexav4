@@ -780,7 +780,8 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 // bas 3
-        // haut 4
+
+// haut 4
         TextView titreVars = new TextView(context);
         titreVars.setText(Traducteur.get("noeud_vars_locales_insertion"));
         titreVars.setTextColor(Palette.texteSelectionne);
@@ -821,6 +822,37 @@ public class EditeurNoeudDialog extends Dialog {
                 btnVar.setTag(var.nom);
                 btnVar.setOnClickListener(insertionListener);
                 listeGauche.addView(btnVar);
+            }
+        }
+
+        // --- CORRECTION BUG B : AJOUT DES VARIABLES D'OBJETS ---
+        if (scene != null && scene.objets != null) {
+            List<String> nomsDejaAjoutes = new ArrayList<>();
+            for (ObjetBase obj : scene.objets) {
+                if (obj.variablesLocales != null) {
+                    for (Variable var : obj.variablesLocales) {
+                        if (!nomsDejaAjoutes.contains(var.nom)) {
+                            Button btnVarObj = new Button(context);
+                            btnVarObj.setText(var.nom + " (" + obj.nom + ")");
+                            btnVarObj.setAllCaps(false);
+                            btnVarObj.setTextSize(14f);
+                            btnVarObj.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                            btnVarObj.setTextColor(Palette.texteNormal);
+                            btnVarObj.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
+                            btnVarObj.setMinHeight(0);
+                            btnVarObj.setMinimumHeight(0);
+                            btnVarObj.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
+                            LinearLayout.LayoutParams lpVarObj = new LinearLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                            lpVarObj.setMargins(0, dp(context, 4), 0, 0);
+                            btnVarObj.setLayoutParams(lpVarObj);
+                            btnVarObj.setTag(var.nom);
+                            btnVarObj.setOnClickListener(insertionListener);
+                            listeGauche.addView(btnVarObj);
+                            nomsDejaAjoutes.add(var.nom);
+                        }
+                    }
+                }
             }
         }
 
