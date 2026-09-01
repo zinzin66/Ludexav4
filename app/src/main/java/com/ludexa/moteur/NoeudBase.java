@@ -34,6 +34,10 @@ public abstract class NoeudBase {
     public String nomCibleObjet = null;
     public String nomCibleObjetB = null;
 
+    // --- AJOUT POUR LA SAUVEGARDE DES VARIABLES (Bug C) ---
+    public String nomCibleVariable = null;
+    protected transient Variable cibleVariableResolue = null;
+
     // NOUVEAU : références directes posées UNE SEULE FOIS à l'instanciation d'un prefab
     // par VueJeu.instancierSceneInterne(). Transitoires : jamais sérialisées en JSON,
     // donc aucun impact sur la sauvegarde/le chargement des Blueprints.
@@ -141,6 +145,7 @@ public abstract class NoeudBase {
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
 // bas 1
+    
 
 
 // haut 2
