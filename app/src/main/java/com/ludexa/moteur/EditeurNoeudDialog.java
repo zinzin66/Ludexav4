@@ -412,7 +412,13 @@ public class EditeurNoeudDialog extends Dialog {
         if (noeud.requiertCibleVariable()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_variable"));
-            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : null);
+            
+            // CORRECTION : Priorité absolue à nomCibleVariable pour éviter la perte de mémoire visuelle
+            String nomAfficheVar = (noeud.nomCibleVariable != null && !noeud.nomCibleVariable.isEmpty()) 
+                                    ? noeud.nomCibleVariable 
+                                    : (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : null);
+            mettreAJourAfficheurCible(txtAfficheur, nomAfficheVar);
+            
             btnCible.setOnClickListener(v -> {
                 List<String> nomsVars = new ArrayList<>();
                 List<Variable> refsVars = new ArrayList<>();
@@ -425,7 +431,7 @@ public class EditeurNoeudDialog extends Dialog {
                     }
                 }
                 
-                // 2. Variables d'Instances (Objets) - NOUVEAU !
+                // 2. Variables d'Instances (Objets)
                 if (scene != null && scene.objets != null) {
                     List<String> nomsDejaAjoutes = new ArrayList<>();
                     for (ObjetBase obj : scene.objets) {
@@ -566,8 +572,7 @@ public class EditeurNoeudDialog extends Dialog {
 
         colonneDroite.addView(champSaisie);
 // bas 2
-                         
-
+        
 
 // haut 3
         String[][] touchesCode = {
