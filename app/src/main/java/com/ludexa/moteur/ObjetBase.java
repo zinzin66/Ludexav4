@@ -192,9 +192,8 @@ public class ObjetBase {
         copie.variablesLocales = new ArrayList<>();
         if (this.variablesLocales != null) {
             for (Variable v : this.variablesLocales) {
-                Variable nouvVar = new Variable();
-                nouvVar.nom = v.nom;
-                nouvVar.type = v.type;
+                // CORRECTION : Instanciation avec 3 chaînes de caractères.
+                Variable nouvVar = new Variable(v.nom, v.type, "");
                 nouvVar.valeur = v.valeur;
                 copie.variablesLocales.add(nouvVar);
             }
