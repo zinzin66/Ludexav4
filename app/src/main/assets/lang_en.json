@@ -484,7 +484,12 @@
   "insp_valeur_sur_mesure": "Custom value",
   "insp_valeur_defaut": "Default",
   "noeud_si_bouton_maintenu": "If Button Held",
-  "noeud_arreter_anim": "Stop Animation"
+  "noeud_arreter_anim": "Stop Animation",
+    "insp_sep_variables_objet": "Object Variables",
+  "insp_btn_ajouter_variable": "Add Variable",
+  "insp_titre_ajouter_variable": "New Variable",
+  "insp_hint_nom_variable": "Variable name"
+  
   
   
   
