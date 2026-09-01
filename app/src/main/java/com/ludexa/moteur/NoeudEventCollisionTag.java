@@ -19,6 +19,19 @@ public class NoeudEventCollisionTag extends NoeudBase {
 
     @Override
     public void executer() {
+        // CORRECTION : On définit officiellement l'objet impliqué pour les nœuds suivants
+        if (!objetsEnCollision.isEmpty()) {
+            String idTouche = objetsEnCollision.iterator().next(); // On prend le premier objet touché
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
+                    if (idTouche.equals(o.id)) {
+                        MoteurLogique.dernierObjetImplique = o;
+                        break;
+                    }
+                }
+            }
+        }
+
         DiagLogger.log(NoeudBase.cheminProjetCourant, "COLLISION_TAG executer() appele, propagation Sortie...");
         propagerExecution("Sortie");
     }
@@ -43,12 +56,10 @@ public class NoeudEventCollisionTag extends NoeudBase {
 
     @Override
     public String getTypeEditeurParametre(String nom) {
-        // MODIFICATION : On utilise le composant de liste déroulante standard
         if ("Tag".equals(nom)) return NoeudBase.TYPE_CHOIX_LISTE;
         return super.getTypeEditeurParametre(nom);
     }
 
-    // AJOUT : On alimente la liste avec le scanner global de tags
     @Override
     public List<String> getOptionsChoixListe(String nom) {
         if ("Tag".equals(nom)) return NoeudBase.getTagsDisponibles();
