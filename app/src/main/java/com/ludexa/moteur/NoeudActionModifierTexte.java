@@ -88,49 +88,49 @@ public class NoeudActionModifierTexte extends NoeudBase {
             }
         }
 
-        
-        if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
-            for (ObjetBase obj : NoeudBase.sceneHudActiveCourante.objets) {
-                if (obj == cibleActuelle || obj.variablesLocales == null) continue;
-                for (Variable v : obj.variablesLocales) {
-         // CORRECTIF BUG VARIABLE D'INSTANCE (ex: "viealien" appartenant à l'objet "alien",
+        // CORRECTIF BUG VARIABLE D'INSTANCE (ex: "viealien" appartenant à l'objet "alien",
         // alors que la cible DE CE NŒUD est un autre objet, ex: "TexteVar").
         // AVANT : seule cibleActuelle.variablesLocales était vérifiée pour les variables
         // d'objet -> si le token désigne une variable d'un AUTRE objet de la scène,
         // elle n'était jamais trouvée (trouve=false) alors qu'elle existe bien en mémoire.
         // MAINTENANT : on parcourt les variablesLocales de TOUS les objets de la scène
-        // active et de la scène HUD active avant d'abandonner.
+        // active et de la scène HUD active avant d'abandonner. Logs DEBUG_SCENE/DEBUG_OBJETS
+        // ajoutés pour diagnostiquer si sceneActiveCourante est bien peuplée à cet instant.
         DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE DEBUG_SCENE: sceneActiveCourante="
                 + (NoeudBase.sceneActiveCourante == null ? "NULL" : ("non-null, nbObjets=" + (NoeudBase.sceneActiveCourante.objets == null ? "objets_null" : NoeudBase.sceneActiveCourante.objets.size())))
                 + " | sceneHudActiveCourante=" + (NoeudBase.sceneHudActiveCourante == null ? "NULL" : "non-null"));
 
         if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
             StringBuilder noms = new StringBuilder();
-            for (ObjetBase obj : NoeudBase.sceneActiveCourante.objets) {
-                noms.append(obj.nom).append("[vars=");
-                if (obj.variablesLocales == null) {
+            for (ObjetBase objDebug : NoeudBase.sceneActiveCourante.objets) {
+                noms.append(objDebug.nom).append("[vars=");
+                if (objDebug.variablesLocales == null) {
                     noms.append("null");
                 } else {
-                    noms.append(obj.variablesLocales.size());
-                    for (Variable vv : obj.variablesLocales) noms.append(":").append(vv.nom);
+                    noms.append(objDebug.variablesLocales.size());
+                    for (Variable vDebug : objDebug.variablesLocales) noms.append(":").append(vDebug.nom);
                 }
                 noms.append("] ");
             }
             DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE DEBUG_OBJETS: " + noms.toString());
 
-            for (ObjetBase obj : NoeudBase.sceneActiveCourante.objets) {
-                if (obj == cibleActuelle || obj.variablesLocales == null) continue;
-                for (Variable v : obj.variablesLocales) {
-                    if (v.nom.equals(nomVar)) {
-                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + obj.nom + "' (scene active, hors cible du noeud)");
-                        return v;
+            for (ObjetBase objScene : NoeudBase.sceneActiveCourante.objets) {
+                if (objScene == cibleActuelle || objScene.variablesLocales == null) continue;
+                for (Variable vScene : objScene.variablesLocales) {
+                    if (vScene.nom.equals(nomVar)) {
+                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + objScene.nom + "' (scene active, hors cible du noeud)");
+                        return vScene;
                     }
                 }
             }
-        }           
-                    if (v.nom.equals(nomVar)) {
-                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + obj.nom + "' (scene HUD active, hors cible du noeud)");
-                        return v;
+        }
+        if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+            for (ObjetBase objHud : NoeudBase.sceneHudActiveCourante.objets) {
+                if (objHud == cibleActuelle || objHud.variablesLocales == null) continue;
+                for (Variable vHud : objHud.variablesLocales) {
+                    if (vHud.nom.equals(nomVar)) {
+                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + objHud.nom + "' (scene HUD active, hors cible du noeud)");
+                        return vHud;
                     }
                 }
             }
