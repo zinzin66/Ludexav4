@@ -141,6 +141,8 @@ public abstract class NoeudBase {
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
 // bas 1
+
+
 // haut 2
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
@@ -159,7 +161,6 @@ public abstract class NoeudBase {
         return new ArrayList<>();
     }
 
-    // CORRECTION MAJEURE : Scanner global robuste même depuis l'écran Blueprint
     public static java.util.List<String> getTagsDisponibles() {
         java.util.Set<String> tagsUniques = new java.util.HashSet<>();
         tagsUniques.add("Joueur"); 
@@ -170,7 +171,6 @@ public abstract class NoeudBase {
             toutesLesScenes = ((FournisseurDonneesJeu) contexteApplication).getListeScenes();
         } else if (contexteApplication != null && "InterfaceBlueprint".equals(contexteApplication.getClass().getSimpleName())) {
             try {
-                // On va chercher le champ statique que InterfaceBlueprint utilise pour stocker le jeu
                 java.lang.reflect.Field field = contexteApplication.getClass().getField("listeScenesACharger");
                 toutesLesScenes = (java.util.List<Scene>) field.get(null);
             } catch (Exception e) {}
@@ -253,8 +253,68 @@ public abstract class NoeudBase {
     }
     
     public boolean requiertCibleVariable() { return false; }
-    public void setCibleVariable(Variable v) {}
-    public Variable getCibleVariable() { return null; }
+    
+    // CORRECTION BUG C : Mémorisation prioritaire sur le Nom seul
+    public void setCibleVariable(Variable v) {
+        this.cibleVariableResolue = v;
+        if (v != null) {
+            this.nomCibleVariable = v.nom;
+        } else {
+            this.nomCibleVariable = null;
+        }
+    }
+    
+    public Variable getCibleVariable() { 
+        if (cibleVariableResolue != null) return cibleVariableResolue;
+        
+        if (nomCibleVariable != null && !nomCibleVariable.isEmpty()) {
+            Scene scene = null;
+            if (contexteApplication != null) {
+                try {
+                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                    scene = (Scene) sceneField.get(contexteApplication);
+                } catch (Exception e) {}
+            }
+            if (scene == null) scene = sceneActiveCourante;
+            
+            if (scene != null) {
+                // 1. Chercher d'abord sur l'objet cible du noeud (priorité absolue)
+                ObjetBase cibleObj = getCibleObjet();
+                if (cibleObj != null && cibleObj.variablesLocales != null) {
+                    for (Variable v : cibleObj.variablesLocales) {
+                        if (nomCibleVariable.equals(v.nom)) return v;
+                    }
+                }
+                
+                // 2. Chercher dans les variables de scène
+                if (scene.variablesLocales != null) {
+                    for (Variable v : scene.variablesLocales) {
+                        if (nomCibleVariable.equals(v.nom)) return v;
+                    }
+                }
+                
+                // 3. Fallback : chercher dans n'importe quel objet de la scène
+                if (scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (obj.variablesLocales != null) {
+                            for (Variable v : obj.variablesLocales) {
+                                if (nomCibleVariable.equals(v.nom)) return v;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 4. Variables Globales
+            List<Variable> globales = getVariablesGlobalesDisponibles();
+            if (globales != null) {
+                for (Variable v : globales) {
+                    if (nomCibleVariable.equals(v.nom)) return v;
+                }
+            }
+        }
+        return null;
+    }
     
     public boolean requiertCibleScene() { return false; }
     public void setCibleScene(Scene s) {}
@@ -267,4 +327,3 @@ public abstract class NoeudBase {
     }
 }
 // bas 2
-
