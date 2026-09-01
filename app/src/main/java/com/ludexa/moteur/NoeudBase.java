@@ -145,13 +145,34 @@ public abstract class NoeudBase {
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
 
-    // NOUVEAU : appelée UNIQUEMENT par VueJeu lors de l'instanciation d'un prefab.
-    // Ne modifie JAMAIS nomCibleObjet (qui reste la valeur "éditeur" / JSON d'origine).
+    // NOUVEAU : Utilitaires securises par Interface
+    public static java.util.List<Scene> getScenesDisponibles() {
+        if (contexteApplication instanceof FournisseurDonneesJeu) {
+            return ((FournisseurDonneesJeu) contexteApplication).getListeScenes();
+        }
+        DiagLogger.log(cheminProjetCourant, "ERREUR ARCHITECTURE : contexteApplication n'implemente pas FournisseurDonneesJeu !");
+        return new ArrayList<>();
+    }
+
+    public static java.util.List<Variable> getVariablesGlobalesDisponibles() {
+        if (contexteApplication instanceof FournisseurDonneesJeu) {
+            return ((FournisseurDonneesJeu) contexteApplication).getVariablesGlobales();
+        }
+        return new ArrayList<>();
+    }
+
+    public static java.util.List<String> getTagsDisponibles() {
+        if (contexteApplication instanceof FournisseurDonneesJeu) {
+            return ((FournisseurDonneesJeu) contexteApplication).getTousLesTags();
+        }
+        DiagLogger.log(cheminProjetCourant, "ECHEC TAGS : Utilisation du fallback (Joueur seul)");
+        return java.util.Arrays.asList("Joueur");
+    }
+
     public void lierCibleObjetInstance(ObjetBase objet) {
         this.cibleObjetResolue = objet;
     }
     
-    // Interception Objet A : référence directe d'instance en priorité, sinon comportement d'origine
     public ObjetBase getCibleObjet() { 
         if (cibleObjetResolue != null) return cibleObjetResolue;
 
@@ -179,12 +200,10 @@ public abstract class NoeudBase {
     public boolean requiertCibleObjetB() { return false; }
     public void setCibleObjetB(ObjetBase objet) {}
 
-    // NOUVEAU : pendant de lierCibleObjetInstance() pour la cible B
     public void lierCibleObjetBInstance(ObjetBase objet) {
         this.cibleObjetBResolue = objet;
     }
     
-    // Interception Objet B : référence directe d'instance en priorité, sinon comportement d'origine
     public ObjetBase getCibleObjetB() { 
         if (cibleObjetBResolue != null) return cibleObjetBResolue;
 
@@ -224,6 +243,4 @@ public abstract class NoeudBase {
     }
 }
 // bas 2
-
-
-    
+                    
