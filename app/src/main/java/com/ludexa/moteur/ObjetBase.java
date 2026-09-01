@@ -99,7 +99,9 @@ public class ObjetBase {
     public transient float ancienneX = 0f;
     public transient float ancienneY = 0f;
 
-    // --- CORRECTION : Lien direct entre le conteneur Prefab et l'objet instancié ---
+    // Variables locales de l'instance
+    public List<Variable> variablesLocales = new ArrayList<>();
+
     public transient String idCloneRacine = null;
 
     public ObjetBase() {
@@ -186,6 +188,17 @@ public class ObjetBase {
         copie.sautillementInfiniMouvement = this.sautillementInfiniMouvement;
         copie.ancienneX = this.x;
         copie.ancienneY = this.y;
+
+        copie.variablesLocales = new ArrayList<>();
+        if (this.variablesLocales != null) {
+            for (Variable v : this.variablesLocales) {
+                Variable nouvVar = new Variable();
+                nouvVar.nom = v.nom;
+                nouvVar.type = v.type;
+                nouvVar.valeur = v.valeur;
+                copie.variablesLocales.add(nouvVar);
+            }
+        }
         
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
