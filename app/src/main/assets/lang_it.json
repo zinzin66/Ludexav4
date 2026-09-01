@@ -486,7 +486,12 @@
   "insp_valeur_sur_mesure": "Valore personalizzato",
   "insp_valeur_defaut": "Predefinito",
   "noeud_si_bouton_maintenu": "Wenn Taste Gehalten",
-  "noeud_arreter_anim": "Ferma animazione"
+  "noeud_arreter_anim": "Ferma animazione",
+    "insp_sep_variables_objet": "Variabili dell'oggetto",
+  "insp_btn_ajouter_variable": "Aggiungi variabile",
+  "insp_titre_ajouter_variable": "Nuova variabile",
+  "insp_hint_nom_variable": "Nome della variabile"
+  
   
   
   
