@@ -326,7 +326,6 @@ public class EditeurNoeudDialog extends Dialog {
         });
 // bas 1
 
-
 // haut 2
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -417,6 +416,8 @@ public class EditeurNoeudDialog extends Dialog {
             btnCible.setOnClickListener(v -> {
                 List<String> nomsVars = new ArrayList<>();
                 List<Variable> refsVars = new ArrayList<>();
+                
+                // 1. Variables de la Scène
                 if (scene != null && scene.variablesLocales != null) {
                     for (Variable var : scene.variablesLocales) {
                         nomsVars.add(var.nom + " (" + Traducteur.get("variable_locale") + ")");
@@ -424,6 +425,23 @@ public class EditeurNoeudDialog extends Dialog {
                     }
                 }
                 
+                // 2. Variables d'Instances (Objets) - NOUVEAU !
+                if (scene != null && scene.objets != null) {
+                    List<String> nomsDejaAjoutes = new ArrayList<>();
+                    for (ObjetBase obj : scene.objets) {
+                        if (obj.variablesLocales != null) {
+                            for (Variable var : obj.variablesLocales) {
+                                if (!nomsDejaAjoutes.contains(var.nom)) {
+                                    nomsVars.add(var.nom + " (" + obj.nom + ")");
+                                    refsVars.add(var);
+                                    nomsDejaAjoutes.add(var.nom);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 3. Variables Globales
                 List<Variable> globales = null;
                 if (context instanceof FournisseurDonneesJeu) {
                     globales = ((FournisseurDonneesJeu) context).getVariablesGlobales();
@@ -440,6 +458,7 @@ public class EditeurNoeudDialog extends Dialog {
                         refsVars.add(var);
                     }
                 }
+                
                 if (!nomsVars.isEmpty()) {
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_variable"))
                         .setItems(nomsVars.toArray(new String[0]), (d, which) -> {
@@ -547,6 +566,8 @@ public class EditeurNoeudDialog extends Dialog {
 
         colonneDroite.addView(champSaisie);
 // bas 2
+                         
+
 
 // haut 3
         String[][] touchesCode = {
