@@ -486,7 +486,12 @@
   "insp_valeur_sur_mesure": "Benutzerdefinierter Wert",
   "insp_valeur_defaut": "Standard",
   "noeud_si_bouton_maintenu": "Wenn Taste Gehalten",
-  "noeud_arreter_anim": "Animation stoppen"
+  "noeud_arreter_anim": "Animation stoppen",
+    "insp_sep_variables_objet": "Objektvariablen",
+  "insp_btn_ajouter_variable": "Variable hinzufügen",
+  "insp_titre_ajouter_variable": "Neue Variable",
+  "insp_hint_nom_variable": "Variablenname"
+  
   
   
   
