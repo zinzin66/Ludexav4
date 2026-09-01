@@ -763,6 +763,7 @@ public class EditeurNoeudDialog extends Dialog {
                     Button btnTag = new Button(context);
                     btnTag.setText(t);
                     btnTag.setAllCaps(false);
+        
                     btnTag.setTextSize(14f);
                     btnTag.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                     btnTag.setTextColor(Color.parseColor("#FF9800")); 
@@ -785,7 +786,6 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 // bas 3
-
 // haut 4
         TextView titreVars = new TextView(context);
         titreVars.setText(Traducteur.get("noeud_vars_locales_insertion"));
@@ -808,6 +808,7 @@ public class EditeurNoeudDialog extends Dialog {
             champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), texteAInserer, 0, texteAInserer.length());
         };
 
+        // Variables de la scène
         if (scene != null && scene.variablesLocales != null) {
             for (Variable var : scene.variablesLocales) {
                 Button btnVar = new Button(context);
@@ -830,7 +831,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
-        // --- CORRECTION BUG B : AJOUT DES VARIABLES D'OBJETS ---
+        // CORRECTION BUG B : AJOUT DES VARIABLES D'INSTANCES DANS LE PANNEAU GAUCHE
         if (scene != null && scene.objets != null) {
             List<String> nomsDejaAjoutes = new ArrayList<>();
             for (ObjetBase obj : scene.objets) {
@@ -851,7 +852,7 @@ public class EditeurNoeudDialog extends Dialog {
                                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                             lpVarObj.setMargins(0, dp(context, 4), 0, 0);
                             btnVarObj.setLayoutParams(lpVarObj);
-                            btnVarObj.setTag(var.nom);
+                            btnVarObj.setTag(var.nom); // N'insère que le nom pur de la variable
                             btnVarObj.setOnClickListener(insertionListener);
                             listeGauche.addView(btnVarObj);
                             nomsDejaAjoutes.add(var.nom);
@@ -1018,7 +1019,11 @@ public class EditeurNoeudDialog extends Dialog {
         }
         else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
             txtResume.setVisibility(View.VISIBLE);
-            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
+            // CORRECTION : Forcer l'affichage du nom mémorisé pour éviter [?]
+            String varName = (noeud.nomCibleVariable != null && !noeud.nomCibleVariable.isEmpty()) 
+                             ? noeud.nomCibleVariable 
+                             : ((noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]");
+            
             String op = noeud.getValeurParametre("Opérateur");
             if (op == null || op.isEmpty()) op = "=";
             String val = noeud.getValeurParametre("Valeur de comparaison");
@@ -1026,7 +1031,11 @@ public class EditeurNoeudDialog extends Dialog {
             txtResume.setText(Traducteur.get("resume_expression") + " : " + varName + " " + op + " " + val);
         } else if (noeud.requiertCibleVariable()) {
             txtResume.setVisibility(View.VISIBLE);
-            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
+            // CORRECTION : Forcer l'affichage du nom mémorisé pour éviter [?]
+            String varName = (noeud.nomCibleVariable != null && !noeud.nomCibleVariable.isEmpty()) 
+                             ? noeud.nomCibleVariable 
+                             : ((noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]");
+            
             StringBuilder sb = new StringBuilder();
             if (noeud.getNomsParametres() != null) {
                 for (String p : noeud.getNomsParametres()) {
@@ -1103,12 +1112,4 @@ public class EditeurNoeudDialog extends Dialog {
     }
 }
 // bas 4
-
-        
-
-
-
-        
-
-
-    
+                             
