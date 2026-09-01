@@ -39,7 +39,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
                 } else if (!dansGuillemets && c == '+') {
                     String nomVar = tokenCourant.toString().trim();
                     if (!nomVar.isEmpty()) {
-                        Variable v = trouverVariable(nomVar);
+                        Variable v = trouverVariable(nomVar, cibleActuelle);
                         DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE token(+): nomVar=" + nomVar + " trouve=" + (v != null) + " valeur=" + (v != null ? v.valeur : "null"));
                         resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                     }
@@ -52,7 +52,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
             if (!dansGuillemets) {
                 String nomVar = tokenCourant.toString().trim();
                 if (!nomVar.isEmpty()) {
-                    Variable v = trouverVariable(nomVar);
+                    Variable v = trouverVariable(nomVar, cibleActuelle);
                     DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE token(fin): nomVar=" + nomVar + " trouve=" + (v != null) + " valeur=" + (v != null ? v.valeur : "null"));
                     resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                 }
@@ -68,9 +68,15 @@ public class NoeudActionModifierTexte extends NoeudBase {
     }
 
     @SuppressWarnings("unchecked")
-    private Variable trouverVariable(String nomVar) {
-        // CORRECTIF : résolution fiable via les références statiques posées par VueJeu,
-        // au lieu de la réflexion fragile sur contexteApplication (jamais posé en jeu réel).
+    private Variable trouverVariable(String nomVar, ObjetBase cibleActuelle) {
+        // AJOUT: Résolution prioritaire sur l'instance de l'objet
+        if (cibleActuelle != null && cibleActuelle.variablesLocales != null) {
+            for (Variable v : cibleActuelle.variablesLocales) {
+                if (v.nom.equals(nomVar)) return v;
+            }
+        }
+
+        // CORRECTIF : résolution fiable via les références statiques posées par VueJeu
         if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.variablesLocales != null) {
             for (Variable v : NoeudBase.sceneActiveCourante.variablesLocales) {
                 if (v.nom.equals(nomVar)) return v;
