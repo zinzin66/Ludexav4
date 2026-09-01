@@ -829,6 +829,10 @@ public class InspecteurProprietes extends LinearLayout {
                 String typeChoisi = types[spinType.getSelectedItemPosition()];
                 Variable nouvelleVar = new Variable(nomVar, typeChoisi, "");
                 
+                // CORRECTION : Forcer l'assignation explicite des champs pour contourner le constructeur
+                nouvelleVar.nom = nomVar;
+                nouvelleVar.type = typeChoisi;
+                
                 if ("CHIFFRE".equals(typeChoisi)) nouvelleVar.valeur = 0f;
                 else if ("ENTIER".equals(typeChoisi)) nouvelleVar.valeur = 0;
                 else if ("TEXTE".equals(typeChoisi)) nouvelleVar.valeur = "";
@@ -889,6 +893,7 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
+                                            
                 
 
 // haut 4
