@@ -491,7 +491,8 @@ public class InspecteurProprietes extends LinearLayout {
         });
 // bas 2
 
-// haut 3
+
+   // haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocTexte);
@@ -822,9 +823,8 @@ public class InspecteurProprietes extends LinearLayout {
                 if (nomVar.isEmpty()) return;
                 
                 String typeChoisi = types[spinType.getSelectedItemPosition()];
-                Variable nouvelleVar = new Variable();
-                nouvelleVar.nom = nomVar;
-                nouvelleVar.type = typeChoisi;
+                // CORRECTION : Instanciation avec 3 chaînes de caractères.
+                Variable nouvelleVar = new Variable(nomVar, typeChoisi, "");
                 
                 if ("CHIFFRE".equals(typeChoisi)) nouvelleVar.valeur = 0f;
                 else if ("CHAINE".equals(typeChoisi)) nouvelleVar.valeur = "";
@@ -885,7 +885,7 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
-        
+            
 
 
 // haut 4
