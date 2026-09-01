@@ -69,7 +69,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
 
     @SuppressWarnings("unchecked")
     private Variable trouverVariable(String nomVar, ObjetBase cibleActuelle) {
-        // AJOUT: Résolution prioritaire sur l'instance de l'objet
+        // Résolution prioritaire sur l'instance de l'objet CIBLE DU NŒUD (ex: TexteVar)
         if (cibleActuelle != null && cibleActuelle.variablesLocales != null) {
             for (Variable v : cibleActuelle.variablesLocales) {
                 if (v.nom.equals(nomVar)) return v;
@@ -88,12 +88,50 @@ public class NoeudActionModifierTexte extends NoeudBase {
             }
         }
 
+        // CORRECTIF BUG VARIABLE D'INSTANCE (ex: "viealien" appartenant à l'objet "alien",
+        // alors que la cible DE CE NŒUD est un autre objet, ex: "TexteVar").
+        // AVANT : seule cibleActuelle.variablesLocales était vérifiée pour les variables
+        // d'objet -> si le token désigne une variable d'un AUTRE objet de la scène,
+        // elle n'était jamais trouvée (trouve=false) alors qu'elle existe bien en mémoire.
+        // MAINTENANT : on parcourt les variablesLocales de TOUS les objets de la scène
+        // active et de la scène HUD active avant d'abandonner.
+        if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+            for (ObjetBase obj : NoeudBase.sceneActiveCourante.objets) {
+                if (obj == cibleActuelle || obj.variablesLocales == null) continue;
+                for (Variable v : obj.variablesLocales) {
+                    if (v.nom.equals(nomVar)) {
+                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + obj.nom + "' (scene active, hors cible du noeud)");
+                        return v;
+                    }
+                }
+            }
+        }
+        if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+            for (ObjetBase obj : NoeudBase.sceneHudActiveCourante.objets) {
+                if (obj == cibleActuelle || obj.variablesLocales == null) continue;
+                for (Variable v : obj.variablesLocales) {
+                    if (v.nom.equals(nomVar)) {
+                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + obj.nom + "' (scene HUD active, hors cible du noeud)");
+                        return v;
+                    }
+                }
+            }
+        }
+
         // Fallback compatibilité éditeur (inchangé)
         if (contexteApplication instanceof InterfaceEditeur) {
             InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
             if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
                 for (Variable v : editeur.sceneActive.variablesLocales) {
                     if (v.nom.equals(nomVar)) return v;
+                }
+            }
+            if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+                for (ObjetBase obj : editeur.sceneActive.objets) {
+                    if (obj.variablesLocales == null) continue;
+                    for (Variable v : obj.variablesLocales) {
+                        if (v.nom.equals(nomVar)) return v;
+                    }
                 }
             }
             if (editeur.variablesGlobales != null) {
@@ -108,6 +146,14 @@ public class NoeudActionModifierTexte extends NoeudBase {
                 if (scene != null && scene.variablesLocales != null) {
                     for (Variable v : scene.variablesLocales) {
                         if (v.nom.equals(nomVar)) return v;
+                    }
+                }
+                if (scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (obj.variablesLocales == null) continue;
+                        for (Variable v : obj.variablesLocales) {
+                            if (v.nom.equals(nomVar)) return v;
+                        }
                     }
                 }
                 java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
