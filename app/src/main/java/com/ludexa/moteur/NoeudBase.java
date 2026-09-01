@@ -145,12 +145,10 @@ public abstract class NoeudBase {
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
 
-    // NOUVEAU : Utilitaires securises par Interface
     public static java.util.List<Scene> getScenesDisponibles() {
         if (contexteApplication instanceof FournisseurDonneesJeu) {
             return ((FournisseurDonneesJeu) contexteApplication).getListeScenes();
         }
-        DiagLogger.log(cheminProjetCourant, "ERREUR ARCHITECTURE : contexteApplication n'implemente pas FournisseurDonneesJeu !");
         return new ArrayList<>();
     }
 
@@ -161,12 +159,38 @@ public abstract class NoeudBase {
         return new ArrayList<>();
     }
 
+    // CORRECTION MAJEURE : Scanner global robuste même depuis l'écran Blueprint
     public static java.util.List<String> getTagsDisponibles() {
+        java.util.Set<String> tagsUniques = new java.util.HashSet<>();
+        tagsUniques.add("Joueur"); 
+        
+        java.util.List<Scene> toutesLesScenes = null;
+
         if (contexteApplication instanceof FournisseurDonneesJeu) {
-            return ((FournisseurDonneesJeu) contexteApplication).getTousLesTags();
+            toutesLesScenes = ((FournisseurDonneesJeu) contexteApplication).getListeScenes();
+        } else if (contexteApplication != null && "InterfaceBlueprint".equals(contexteApplication.getClass().getSimpleName())) {
+            try {
+                // On va chercher le champ statique que InterfaceBlueprint utilise pour stocker le jeu
+                java.lang.reflect.Field field = contexteApplication.getClass().getField("listeScenesACharger");
+                toutesLesScenes = (java.util.List<Scene>) field.get(null);
+            } catch (Exception e) {}
         }
-        DiagLogger.log(cheminProjetCourant, "ECHEC TAGS : Utilisation du fallback (Joueur seul)");
-        return java.util.Arrays.asList("Joueur");
+
+        if (toutesLesScenes != null) {
+            for (Scene s : toutesLesScenes) {
+                if (s.objets != null) {
+                    for (ObjetBase obj : s.objets) {
+                        if (obj.tag != null && !obj.tag.trim().isEmpty()) {
+                            tagsUniques.add(obj.tag.trim());
+                        }
+                    }
+                }
+            }
+        }
+        
+        java.util.List<String> listeFinale = new java.util.ArrayList<>(tagsUniques);
+        java.util.Collections.sort(listeFinale);
+        return listeFinale;
     }
 
     public void lierCibleObjetInstance(ObjetBase objet) {
@@ -243,4 +267,4 @@ public abstract class NoeudBase {
     }
 }
 // bas 2
-                    
+
