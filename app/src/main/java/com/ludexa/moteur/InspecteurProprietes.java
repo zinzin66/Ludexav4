@@ -827,9 +827,9 @@ public class InspecteurProprietes extends LinearLayout {
                 if (nomVar.isEmpty()) return;
                 
                 String typeChoisi = types[spinType.getSelectedItemPosition()];
-                Variable nouvelleVar = new Variable(nomVar, typeChoisi, "");
+                // CORRECTION BUG A : Ordre des arguments rétabli (nom, scope, type)
+                Variable nouvelleVar = new Variable(nomVar, "LOCALE", typeChoisi);
                 
-                // CORRECTION : Forcer l'assignation explicite des champs pour contourner le constructeur
                 nouvelleVar.nom = nomVar;
                 nouvelleVar.type = typeChoisi;
                 
@@ -893,6 +893,7 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
+            
                                             
                 
 
