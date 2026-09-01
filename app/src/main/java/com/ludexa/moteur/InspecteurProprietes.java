@@ -491,8 +491,7 @@ public class InspecteurProprietes extends LinearLayout {
         });
 // bas 2
 
-
-   // haut 3
+// haut 3
         blocTexte = new LinearLayout(context);
         blocTexte.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocTexte);
@@ -809,8 +808,13 @@ public class InspecteurProprietes extends LinearLayout {
             styliserChamp(champNomVar);
             layoutDlg.addView(champNomVar);
             
-            String[] types = {"CHIFFRE", "CHAINE", "BOOLEEN"};
-            String[] typesLoc = {Traducteur.get("var_type_chiffre"), Traducteur.get("var_type_chaine"), Traducteur.get("var_type_booleen")};
+            String[] types = {"CHIFFRE", "ENTIER", "TEXTE", "BOOLEEN"};
+            String[] typesLoc = {
+                Traducteur.get("var_type_chiffre"), 
+                Traducteur.get("var_type_entier"),
+                Traducteur.get("var_type_texte"), 
+                Traducteur.get("var_type_booleen")
+            };
             
             Spinner spinType = new Spinner(context);
             ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, typesLoc);
@@ -823,11 +827,11 @@ public class InspecteurProprietes extends LinearLayout {
                 if (nomVar.isEmpty()) return;
                 
                 String typeChoisi = types[spinType.getSelectedItemPosition()];
-                // CORRECTION : Instanciation avec 3 chaînes de caractères.
                 Variable nouvelleVar = new Variable(nomVar, typeChoisi, "");
                 
                 if ("CHIFFRE".equals(typeChoisi)) nouvelleVar.valeur = 0f;
-                else if ("CHAINE".equals(typeChoisi)) nouvelleVar.valeur = "";
+                else if ("ENTIER".equals(typeChoisi)) nouvelleVar.valeur = 0;
+                else if ("TEXTE".equals(typeChoisi)) nouvelleVar.valeur = "";
                 else if ("BOOLEEN".equals(typeChoisi)) nouvelleVar.valeur = false;
                 
                 if (objetCourant.variablesLocales == null) objetCourant.variablesLocales = new ArrayList<>();
@@ -885,8 +889,7 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
-            
-
+                
 
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
