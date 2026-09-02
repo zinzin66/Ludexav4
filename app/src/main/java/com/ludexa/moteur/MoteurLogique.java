@@ -115,6 +115,14 @@ public class MoteurLogique {
                 ObjetBase objA = noeudTag.getCibleObjet();
                 String cibleTag = noeudTag.getTagCible();
 
+                // DEBUG AJOUTÉ : on veut savoir, pour CHAQUE nœud de ce type et CHAQUE frame,
+                // si objA et cibleTag sont bien renseignés. Le bloc plus bas est
+                // silencieusement ignoré si l'un des deux est null/vide - ce log permet
+                // de savoir lequel des deux pose problème pour le nœud ciblant "alien".
+                logDiag("COLLISION_TAG_CHECK noeud=" + noeud.id
+                        + " objA=" + (objA != null ? (objA.nom + " id=" + objA.id) : "NULL")
+                        + " cibleTag='" + cibleTag + "'");
+
                 if (objA != null && cibleTag != null && !cibleTag.trim().isEmpty()) {
 
                     java.util.Set<String> idsEnCollisionCetteFrame = new java.util.HashSet<>();
