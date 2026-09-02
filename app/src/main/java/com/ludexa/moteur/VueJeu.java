@@ -187,7 +187,6 @@ public class VueJeu extends View {
         }
     }
 // bas 1
-
 // haut 2
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
@@ -251,6 +250,9 @@ public class VueJeu extends View {
     private void instancierSceneInterne(Scene sceneAInstancier, ObjetBase prefab) {
         float offsetX = prefab.x;
         float offsetY = prefab.y;
+        
+        logDiag("INSTANCIER_SCENE_DEBUT prefab=" + prefab.nom + " sceneOrigine=" + sceneAInstancier.nom);
+        
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
             try {
@@ -366,6 +368,11 @@ public class VueJeu extends View {
             // -------------------------------------------------------
 
             chargerAnimationsGlobales(sceneActive.objets);
+            
+            for (ObjetBase clone : objetsInjectes) {
+                logDiag("CLONE_CREE nom=" + clone.nom + " nbVarsLocales=" + (clone.variablesLocales != null ? clone.variablesLocales.size() : -1)
+                        + (clone.variablesLocales != null && !clone.variablesLocales.isEmpty() ? " premiereVar=" + clone.variablesLocales.get(0).nom : ""));
+            }
         }
         
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
@@ -454,6 +461,8 @@ public class VueJeu extends View {
         }
     }
 // bas 2
+    
+
     
 // haut 3
     private List<Scene> cacheListeScenesDisque = null;
