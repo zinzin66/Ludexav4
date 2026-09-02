@@ -388,6 +388,11 @@ public class VueJeu extends View {
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 majCibleNoeud(noeud, "nomCible", mapNoms); 
                 
+                logDiag("REMAP_NOEUD classe=" + noeud.getClass().getSimpleName()
+                        + " nomCibleObjet=" + noeud.nomCibleObjet
+                        + " requiertCibleObjet=" + noeud.requiertCibleObjet()
+                        + " presentDansMap=" + mapNomOrigineVersClone.containsKey(noeud.nomCibleObjet));
+                
                 try {
                     java.lang.reflect.Field champVar = noeud.getClass().getField("nomVariable");
                     String ancienneVar = (String) champVar.get(noeud);
@@ -425,6 +430,12 @@ public class VueJeu extends View {
                         noeud.lierCibleObjetInstance(cibleResolue);
                     }
                 }
+                
+                if (noeud.getClass().getSimpleName().equals("NoeudEventCollisionTag")) {
+                    logDiag("REMAP_COLLISION_TAG apres_remap: nomCibleObjet=" + noeud.nomCibleObjet
+                            + " cibleObjetResolue_nulle=" + (noeud.getCibleObjet() == null));
+                }
+
                 if (noeud.requiertCibleObjetB() && noeud.nomCibleObjetB != null
                     && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
                     ObjetBase cibleBResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjetB);
@@ -461,9 +472,7 @@ public class VueJeu extends View {
         }
     }
 // bas 2
-    
 
-    
 // haut 3
     private List<Scene> cacheListeScenesDisque = null;
 
