@@ -1,4 +1,4 @@
-// haut 1 02 09 2026
+// haut 1 02 09 2026 bis
 package com.ludexa.moteur;
 
 import java.util.List;
@@ -79,6 +79,7 @@ public class MoteurLogique {
         
         java.util.List<NoeudBase> copieNoeuds = new java.util.ArrayList<>(blueprintActif.noeuds);
         for (NoeudBase noeud : copieNoeuds) {
+            logDiag("VERIF_COLLISIONS_BOUCLE noeud=" + noeud.getClass().getSimpleName() + " id=" + noeud.id);
             if (noeud instanceof NoeudEventCollisionAB) {
                 NoeudEventCollisionAB noeudCol = (NoeudEventCollisionAB) noeud;
                 ObjetBase objA = noeudCol.getCibleObjet();
