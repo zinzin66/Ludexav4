@@ -41,6 +41,9 @@ public class VueJeu extends View {
     private float lastXJeu = 0f;
     private float lastYJeu = 0f;
     
+    // Ajout du chronomètre pour le diagnostic du joystick
+    private long dernierLogJoystick = 0;
+    
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
     private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
@@ -184,7 +187,6 @@ public class VueJeu extends View {
         }
     }
 // bas 1
-
 // haut 2
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
@@ -248,6 +250,9 @@ public class VueJeu extends View {
     private void instancierSceneInterne(Scene sceneAInstancier, ObjetBase prefab) {
         float offsetX = prefab.x;
         float offsetY = prefab.y;
+        
+        logDiag("INSTANCIER_SCENE_DEBUT prefab=" + prefab.nom + " sceneOrigine=" + sceneAInstancier.nom);
+        
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
             try {
@@ -343,7 +348,31 @@ public class VueJeu extends View {
                 if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
                 sceneActive.ajouterObjet(clone);
             }
+            
+            // --- NOUVELLE RECHERCHE INTELLIGENTE DU CLONE RACINE ---
+            ObjetBase meilleurCandidat = null;
+            for (ObjetBase clone : objetsInjectes) {
+                if (clone.tag != null && (clone.tag.equalsIgnoreCase("Joueur") || clone.tag.equalsIgnoreCase("Player"))) {
+                    meilleurCandidat = clone;
+                    break; // On a trouvé la cible parfaite grâce au Tag
+                }
+                if (meilleurCandidat == null && clone.estPhysique && !clone.estStatique) {
+                    meilleurCandidat = clone; // Candidat de secours : le premier objet physique mobile
+                }
+            }
+            if (meilleurCandidat != null) {
+                prefab.idCloneRacine = meilleurCandidat.id;
+            } else if (!objetsInjectes.isEmpty()) {
+                prefab.idCloneRacine = objetsInjectes.get(0).id; // Ultime recours
+            }
+            // -------------------------------------------------------
+
             chargerAnimationsGlobales(sceneActive.objets);
+            
+            for (ObjetBase clone : objetsInjectes) {
+                logDiag("CLONE_CREE nom=" + clone.nom + " nbVarsLocales=" + (clone.variablesLocales != null ? clone.variablesLocales.size() : -1)
+                        + (clone.variablesLocales != null && !clone.variablesLocales.isEmpty() ? " premiereVar=" + clone.variablesLocales.get(0).nom : ""));
+            }
         }
         
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
@@ -358,6 +387,11 @@ public class VueJeu extends View {
 
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 majCibleNoeud(noeud, "nomCible", mapNoms); 
+                
+                logDiag("REMAP_NOEUD classe=" + noeud.getClass().getSimpleName()
+                        + " nomCibleObjet=" + noeud.nomCibleObjet
+                        + " requiertCibleObjet=" + noeud.requiertCibleObjet()
+                        + " presentDansMap=" + mapNomOrigineVersClone.containsKey(noeud.nomCibleObjet));
                 
                 try {
                     java.lang.reflect.Field champVar = noeud.getClass().getField("nomVariable");
@@ -396,6 +430,12 @@ public class VueJeu extends View {
                         noeud.lierCibleObjetInstance(cibleResolue);
                     }
                 }
+                
+                if (noeud.getClass().getSimpleName().equals("NoeudEventCollisionTag")) {
+                    logDiag("REMAP_COLLISION_TAG apres_remap: nomCibleObjet=" + noeud.nomCibleObjet
+                            + " cibleObjetResolue_nulle=" + (noeud.getCibleObjet() == null));
+                }
+
                 if (noeud.requiertCibleObjetB() && noeud.nomCibleObjetB != null
                     && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
                     ObjetBase cibleBResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjetB);
@@ -432,7 +472,7 @@ public class VueJeu extends View {
         }
     }
 // bas 2
-                                                                                                           
+
 // haut 3
     private List<Scene> cacheListeScenesDisque = null;
 
@@ -700,7 +740,6 @@ public class VueJeu extends View {
     }
 // bas 3
 
-
 // haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -817,7 +856,6 @@ public class VueJeu extends View {
             lastXJeu = xMonde;
             lastYJeu = yMonde;
             
-            // CORRECTION : Déclaration de l'appui direct sur l'objet touché
             if (objetEnGlissement != null) objetEnGlissement.estTouche = true;
             
             if (objetEnGlissement != null) {
@@ -889,7 +927,6 @@ public class VueJeu extends View {
                     this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
                 }
                 
-                // CORRECTION : Annulation de l'appui lors du relâchement
                 objetEnGlissement.estTouche = false;
             }
             objetEnGlissement = null;
@@ -1087,7 +1124,7 @@ public class VueJeu extends View {
                 peintureTexte.setColor(Color.WHITE);
                 peintureTexte.setTextSize(objet.largeur * 0.25f);
                 peintureTexte.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText("ACTION", objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
+                canvas.drawText(Traducteur.get("cle_action"), objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
                 peintureTexte.setTextAlign(Paint.Align.LEFT);
                 
             } else if ("rond".equals(objet.type)) {
@@ -1156,8 +1193,40 @@ public class VueJeu extends View {
         
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
             ObjetBase joystickObj = trouverObjetParType("joystick");
-            if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
-                ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
+            if (joystickObj != null && sceneActive != null && sceneActive.objets != null) {
+                
+                ObjetBase joueurCible = null;
+
+                // --- 1. RECHERCHE PAR TAG ---
+                for (ObjetBase obj : sceneActive.objets) {
+                    if (obj.tag != null && (obj.tag.equalsIgnoreCase("Joueur") || obj.tag.equalsIgnoreCase("Player"))) {
+                        joueurCible = obj;
+                        break;
+                    }
+                }
+
+                // --- 2. RECHERCHE PAR CIBLE ÉDITEUR ---
+                if (joueurCible == null && joystickObj.cibleJoystickId != null) {
+                    joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
+                    
+                    if (joueurCible != null && "scene_instance".equals(joueurCible.type)) {
+                        if (joueurCible.idCloneRacine != null) {
+                            joueurCible = getObjetById(joueurCible.idCloneRacine, sceneActive.objets);
+                        } else {
+                            joueurCible = null; 
+                        }
+                    }
+                }
+
+                // --- 3. DÉPLACEMENT & DIAGNOSTIC ---
+                long tempsActuel = System.currentTimeMillis();
+                if (tempsActuel - dernierLogJoystick > 500) { 
+                    logDiag("JOYSTICK cible=" + (joueurCible != null 
+                        ? joueurCible.nom + " id=" + joueurCible.id + " tag=" + joueurCible.tag + " parentId=" + joueurCible.parentId + " phys=" + joueurCible.estPhysique + " stat=" + joueurCible.estStatique + " x=" + joueurCible.x + " y=" + joueurCible.y
+                        : "NULL"));
+                    dernierLogJoystick = tempsActuel;
+                }
+
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
                     float moveX = GestionnaireControles.joyDirX * vitesseDefaut;

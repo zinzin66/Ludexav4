@@ -53,6 +53,7 @@ public class Blueprint {
     public String toJson() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         BlueprintDTO dto = new BlueprintDTO();
+        String cheminLog = NoeudBase.cheminProjetCourant;
 
         for (NoeudBase n : noeuds) {
             NoeudDTO ndto = new NoeudDTO();
@@ -87,7 +88,25 @@ public class Blueprint {
                     ndto.cibleNomB = n.getCibleObjetB().nom;
                 }
             }
-            if (n.requiertCibleVariable() && n.getCibleVariable() != null) ndto.cibleVariableNom = n.getCibleVariable().nom;
+
+            // CORRECTION BUG VARIABLE (même pattern que cibleNom/cibleNomB ci-dessus) :
+            // AVANT : on appelait n.getCibleVariable() qui fait une résolution complexe
+            // (scène active, réflexion sur contexteApplication) et peut échouer
+            // silencieusement -> cibleVariableNom restait null dans le JSON, donc le lien
+            // était perdu DES LA SAUVEGARDE, avant même le rechargement.
+            // MAINTENANT : on lit nomCibleVariable directement (déjà fiable en mémoire
+            // dès la sélection dans l'éditeur, voir NoeudBase.setCibleVariable()).
+            if (n.requiertCibleVariable()) {
+                if (n.nomCibleVariable != null && !n.nomCibleVariable.isEmpty()) {
+                    ndto.cibleVariableNom = n.nomCibleVariable;
+                } else if (n.getCibleVariable() != null) {
+                    ndto.cibleVariableNom = n.getCibleVariable().nom;
+                }
+                DiagLogger.log(cheminLog, "SAVE_VAR noeud=" + n.nom + " id=" + n.id
+                        + " nomCibleVariable(champ)=" + n.nomCibleVariable
+                        + " -> ecrit_dans_json=" + ndto.cibleVariableNom);
+            }
+
             if (n.requiertCibleScene() && n.getCibleScene() != null) ndto.cibleSceneNom = n.getCibleScene().nom;
 
             for (Port p : n.portsEntree) {
@@ -119,6 +138,7 @@ public class Blueprint {
         Gson gson = new Gson();
         BlueprintDTO dto = gson.fromJson(json, BlueprintDTO.class);
         Blueprint bp = new Blueprint();
+        String cheminLog = NoeudBase.cheminProjetCourant;
 
         if (dto == null) {
             if (NoeudBase.contexteApplication != null) Toast.makeText(NoeudBase.contexteApplication, Traducteur.get("erreur_json_invalide"), Toast.LENGTH_LONG).show();
@@ -168,11 +188,49 @@ public class Blueprint {
                     }
                 }
                 
-                if (ndto.cibleVariableNom != null) {
+                // CORRECTION BUG VARIABLE (chargement) :
+                // AVANT : n.nomCibleVariable n'était affecté QUE si setCibleVariable() était
+                // appelé, lui-même appelé QUE si cibleTrouvee != null. Si la variable était
+                // une variable D'OBJET (ex: viealien) elle n'était jamais cherchée ici (seule
+                // la scène et les globales l'étaient) -> cibleTrouvee restait null ->
+                // n.nomCibleVariable restait null -> perte totale de la référence texte,
+                // même si elle avait été correctement écrite dans le JSON.
+                // MAINTENANT : le nom brut est restauré INCONDITIONNELLEMENT sur le champ,
+                // exactement comme pour cibleNom/cibleNomB. La résolution de l'objet Variable
+                // réel (cibleVariableResolue) reste une best-effort en plus, mais même si elle
+                // échoue ici, NoeudBase.getCibleVariable() sait déjà retenter au runtime via
+                // nomCibleVariable (recherche objet cible -> scène -> tous objets -> globales).
+                if (ndto.cibleVariableNom != null && !ndto.cibleVariableNom.isEmpty()) {
+                    n.nomCibleVariable = ndto.cibleVariableNom;
+
                     Variable cibleTrouvee = null;
-                    if (scene != null && scene.variablesLocales != null) {
+
+                    // 1. Variables de l'objet ciblé par CE nœud (le cas "viealien" sur Alien)
+                    ObjetBase objetCibleDuNoeud = n.getCibleObjet();
+                    if (objetCibleDuNoeud != null && objetCibleDuNoeud.variablesLocales != null) {
+                        for (Variable v : objetCibleDuNoeud.variablesLocales) {
+                            if (ndto.cibleVariableNom.equals(v.nom)) { cibleTrouvee = v; break; }
+                        }
+                    }
+
+                    // 2. Variables de la scène
+                    if (cibleTrouvee == null && scene != null && scene.variablesLocales != null) {
                         for (Variable v : scene.variablesLocales) { if (ndto.cibleVariableNom.equals(v.nom)) { cibleTrouvee = v; break; } }
                     }
+
+                    // 3. Fallback : n'importe quel objet de la scène (au cas où le nœud ne
+                    // cible pas directement l'objet propriétaire de la variable)
+                    if (cibleTrouvee == null && scene != null && scene.objets != null) {
+                        for (ObjetBase obj : scene.objets) {
+                            if (obj.variablesLocales == null) continue;
+                            for (Variable v : obj.variablesLocales) {
+                                if (ndto.cibleVariableNom.equals(v.nom)) { cibleTrouvee = v; break; }
+                            }
+                            if (cibleTrouvee != null) break;
+                        }
+                    }
+
+                    // 4. Variables globales
                     if (cibleTrouvee == null && NoeudBase.contexteApplication != null) {
                         try {
                             java.lang.reflect.Field field = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
@@ -183,7 +241,17 @@ public class Blueprint {
                             }
                         } catch (Exception e) {}
                     }
-                    if (cibleTrouvee != null) n.setCibleVariable(cibleTrouvee);
+
+                    if (cibleTrouvee != null) {
+                        n.setCibleVariable(cibleTrouvee);
+                        // setCibleVariable() réécrit nomCibleVariable avec cibleTrouvee.nom,
+                        // ce qui est sans danger ici car c'est censé être la même valeur.
+                    }
+
+                    DiagLogger.log(cheminLog, "LOAD_VAR noeud=" + n.nom + " id=" + n.id
+                            + " nom_json=" + ndto.cibleVariableNom
+                            + " objet_trouve=" + (cibleTrouvee != null)
+                            + " nomCibleVariable_final=" + n.nomCibleVariable);
                 }
                 
                 if (ndto.cibleSceneNom != null && NoeudBase.contexteApplication != null) {

@@ -325,6 +325,7 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
+
 // haut 2
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -411,29 +412,59 @@ public class EditeurNoeudDialog extends Dialog {
         if (noeud.requiertCibleVariable()) {
             TextView txtAfficheur = creerTextViewAfficheurCible(context);
             Button btnCible = creerBoutonSelectionCible(context, Traducteur.get("noeud_cible_variable"));
-            mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : null);
+            
+            // CORRECTION : Priorité absolue à nomCibleVariable pour éviter la perte de mémoire visuelle
+            String nomAfficheVar = (noeud.nomCibleVariable != null && !noeud.nomCibleVariable.isEmpty()) 
+                                    ? noeud.nomCibleVariable 
+                                    : (noeud.getCibleVariable() != null ? noeud.getCibleVariable().nom : null);
+            mettreAJourAfficheurCible(txtAfficheur, nomAfficheVar);
+            
             btnCible.setOnClickListener(v -> {
                 List<String> nomsVars = new ArrayList<>();
                 List<Variable> refsVars = new ArrayList<>();
+                
+                // 1. Variables de la Scène
                 if (scene != null && scene.variablesLocales != null) {
                     for (Variable var : scene.variablesLocales) {
                         nomsVars.add(var.nom + " (" + Traducteur.get("variable_locale") + ")");
                         refsVars.add(var);
                     }
                 }
+                
+                // 2. Variables d'Instances (Objets)
+                if (scene != null && scene.objets != null) {
+                    List<String> nomsDejaAjoutes = new ArrayList<>();
+                    for (ObjetBase obj : scene.objets) {
+                        if (obj.variablesLocales != null) {
+                            for (Variable var : obj.variablesLocales) {
+                                if (!nomsDejaAjoutes.contains(var.nom)) {
+                                    nomsVars.add(var.nom + " (" + obj.nom + ")");
+                                    refsVars.add(var);
+                                    nomsDejaAjoutes.add(var.nom);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 3. Variables Globales
                 List<Variable> globales = null;
-                if (NoeudBase.contexteApplication != null) {
+                if (context instanceof FournisseurDonneesJeu) {
+                    globales = ((FournisseurDonneesJeu) context).getVariablesGlobales();
+                } else if (NoeudBase.contexteApplication != null) {
                     try {
                         java.lang.reflect.Field globalesField = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
                         globales = (List<Variable>) globalesField.get(NoeudBase.contexteApplication);
                     } catch (Exception e) {}
                 }
+                
                 if (globales != null) {
                     for (Variable var : globales) {
                         nomsVars.add(var.nom + " (" + Traducteur.get("variable_globale") + ")");
                         refsVars.add(var);
                     }
                 }
+                
                 if (!nomsVars.isEmpty()) {
                     new android.app.AlertDialog.Builder(context).setTitle(Traducteur.get("noeud_choisir_cible_variable"))
                         .setItems(nomsVars.toArray(new String[0]), (d, which) -> {
@@ -453,12 +484,15 @@ public class EditeurNoeudDialog extends Dialog {
             mettreAJourAfficheurCible(txtAfficheur, noeud.getCibleScene() != null ? noeud.getCibleScene().nom : null);
             btnCible.setOnClickListener(v -> {
                 List<Scene> tempScenes = null;
-                if (NoeudBase.contexteApplication != null) {
+                if (context instanceof FournisseurDonneesJeu) {
+                    tempScenes = ((FournisseurDonneesJeu) context).getListeScenes();
+                } else if (NoeudBase.contexteApplication != null) {
                     try {
                         java.lang.reflect.Field scenesField = NoeudBase.contexteApplication.getClass().getField("listeScenes");
                         tempScenes = (List<Scene>) scenesField.get(NoeudBase.contexteApplication);
                     } catch (Exception e) {}
                 }
+                
                 final List<Scene> scenesRecuperees = tempScenes;
                 if (scenesRecuperees != null && !scenesRecuperees.isEmpty()) {
                     String[] noms = new String[scenesRecuperees.size()];
@@ -538,7 +572,9 @@ public class EditeurNoeudDialog extends Dialog {
 
         colonneDroite.addView(champSaisie);
 // bas 2
-   // haut 3
+        
+
+// haut 3
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -727,6 +763,7 @@ public class EditeurNoeudDialog extends Dialog {
                     Button btnTag = new Button(context);
                     btnTag.setText(t);
                     btnTag.setAllCaps(false);
+        
                     btnTag.setTextSize(14f);
                     btnTag.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
                     btnTag.setTextColor(Color.parseColor("#FF9800")); 
@@ -748,7 +785,8 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         }
-
+// bas 3
+// haut 4
         TextView titreVars = new TextView(context);
         titreVars.setText(Traducteur.get("noeud_vars_locales_insertion"));
         titreVars.setTextColor(Palette.texteSelectionne);
@@ -770,6 +808,7 @@ public class EditeurNoeudDialog extends Dialog {
             champSaisie.getText().replace(Math.min(start, end), Math.max(start, end), texteAInserer, 0, texteAInserer.length());
         };
 
+        // Variables de la scène
         if (scene != null && scene.variablesLocales != null) {
             for (Variable var : scene.variablesLocales) {
                 Button btnVar = new Button(context);
@@ -792,6 +831,37 @@ public class EditeurNoeudDialog extends Dialog {
             }
         }
 
+        // CORRECTION BUG B : AJOUT DES VARIABLES D'INSTANCES DANS LE PANNEAU GAUCHE
+        if (scene != null && scene.objets != null) {
+            List<String> nomsDejaAjoutes = new ArrayList<>();
+            for (ObjetBase obj : scene.objets) {
+                if (obj.variablesLocales != null) {
+                    for (Variable var : obj.variablesLocales) {
+                        if (!nomsDejaAjoutes.contains(var.nom)) {
+                            Button btnVarObj = new Button(context);
+                            btnVarObj.setText(var.nom + " (" + obj.nom + ")");
+                            btnVarObj.setAllCaps(false);
+                            btnVarObj.setTextSize(14f);
+                            btnVarObj.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                            btnVarObj.setTextColor(Palette.texteNormal);
+                            btnVarObj.setBackground(fond(context, Palette.boutonNormal, Palette.bordure, 8));
+                            btnVarObj.setMinHeight(0);
+                            btnVarObj.setMinimumHeight(0);
+                            btnVarObj.setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9));
+                            LinearLayout.LayoutParams lpVarObj = new LinearLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                            lpVarObj.setMargins(0, dp(context, 4), 0, 0);
+                            btnVarObj.setLayoutParams(lpVarObj);
+                            btnVarObj.setTag(var.nom); // N'insère que le nom pur de la variable
+                            btnVarObj.setOnClickListener(insertionListener);
+                            listeGauche.addView(btnVarObj);
+                            nomsDejaAjoutes.add(var.nom);
+                        }
+                    }
+                }
+            }
+        }
+
         TextView titreVarsGlobales = new TextView(context);
         titreVarsGlobales.setText(Traducteur.get("noeud_vars_globales_insertion"));
         titreVarsGlobales.setTextColor(Palette.texteSelectionne);
@@ -807,7 +877,9 @@ public class EditeurNoeudDialog extends Dialog {
         listeGauche.addView(titreVarsGlobales);
 
         List<Variable> variablesGlobalesRecuperees = null;
-        if (NoeudBase.contexteApplication != null) {
+        if (context instanceof FournisseurDonneesJeu) {
+            variablesGlobalesRecuperees = ((FournisseurDonneesJeu) context).getVariablesGlobales();
+        } else if (NoeudBase.contexteApplication != null) {
             try {
                 java.lang.reflect.Field globalesField = NoeudBase.contexteApplication.getClass().getField("variablesGlobales");
                 @SuppressWarnings("unchecked")
@@ -917,7 +989,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
     }
 
-      private void ajouterCoupleALaRangee(Context context, LinearLayout rangee, Button btn, TextView txt) {
+    private void ajouterCoupleALaRangee(Context context, LinearLayout rangee, Button btn, TextView txt) {
         LinearLayout couple = new LinearLayout(context);
         couple.setOrientation(LinearLayout.HORIZONTAL);
         couple.setGravity(Gravity.CENTER_VERTICAL);
@@ -947,7 +1019,11 @@ public class EditeurNoeudDialog extends Dialog {
         }
         else if (noeud.nom.equals("Condition") || estComparaisonGenerique) {
             txtResume.setVisibility(View.VISIBLE);
-            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
+            // CORRECTION : Forcer l'affichage du nom mémorisé pour éviter [?]
+            String varName = (noeud.nomCibleVariable != null && !noeud.nomCibleVariable.isEmpty()) 
+                             ? noeud.nomCibleVariable 
+                             : ((noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]");
+            
             String op = noeud.getValeurParametre("Opérateur");
             if (op == null || op.isEmpty()) op = "=";
             String val = noeud.getValeurParametre("Valeur de comparaison");
@@ -955,7 +1031,11 @@ public class EditeurNoeudDialog extends Dialog {
             txtResume.setText(Traducteur.get("resume_expression") + " : " + varName + " " + op + " " + val);
         } else if (noeud.requiertCibleVariable()) {
             txtResume.setVisibility(View.VISIBLE);
-            String varName = (noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]";
+            // CORRECTION : Forcer l'affichage du nom mémorisé pour éviter [?]
+            String varName = (noeud.nomCibleVariable != null && !noeud.nomCibleVariable.isEmpty()) 
+                             ? noeud.nomCibleVariable 
+                             : ((noeud.getCibleVariable() != null && noeud.getCibleVariable().nom != null) ? noeud.getCibleVariable().nom : "[?]");
+            
             StringBuilder sb = new StringBuilder();
             if (noeud.getNomsParametres() != null) {
                 for (String p : noeud.getNomsParametres()) {
@@ -1031,6 +1111,5 @@ public class EditeurNoeudDialog extends Dialog {
         }
     }
 }
-// bas 3
-    
-    
+// bas 4
+                             

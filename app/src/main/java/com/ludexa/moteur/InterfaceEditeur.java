@@ -23,7 +23,7 @@ import java.lang.reflect.Type;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-public class InterfaceEditeur extends Activity {
+public class InterfaceEditeur extends Activity implements FournisseurDonneesJeu {
 
     public static final List<Handler> handlersActifs = new ArrayList<>();
 
@@ -236,6 +236,7 @@ public class InterfaceEditeur extends Activity {
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
+        
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -478,7 +479,6 @@ public class InterfaceEditeur extends Activity {
         }
     }
 // bas 2
-
 // haut 3
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
@@ -669,7 +669,6 @@ public class InterfaceEditeur extends Activity {
                 e.printStackTrace();
             }
 
-            // NOUVEAU : Sauvegarde de la vignette du projet de manière sécurisée
             if (canvasEditeur != null) {
                 String cheminVignette = new File(cheminProjet, "vignette.png").getAbsolutePath();
                 canvasEditeur.sauvegarderVignette(cheminVignette);
@@ -681,9 +680,46 @@ public class InterfaceEditeur extends Activity {
             Toast.makeText(this, Traducteur.get("erreur_sauvegarde"), Toast.LENGTH_SHORT).show();
         }
     }
+
+    // --- IMPLEMENTATION FOURNISSEUR DONNEES JEU ---
+    @Override
+    public List<Scene> getListeScenes() {
+        return this.listeScenes;
+    }
+
+    @Override
+    public List<Variable> getVariablesGlobales() {
+        return this.variablesGlobales;
+    }
+
+    @Override
+    public List<String> getTousLesTags() {
+        java.util.Set<String> tagsUniques = new java.util.HashSet<>();
+        tagsUniques.add("Joueur"); 
+        
+        int objetsScannes = 0;
+        if (this.listeScenes != null) {
+            for (Scene s : this.listeScenes) {
+                if (s.objets != null) {
+                    for (ObjetBase obj : s.objets) {
+                        if (obj.tag != null && !obj.tag.trim().isEmpty()) {
+                            tagsUniques.add(obj.tag.trim());
+                            objetsScannes++;
+                        }
+                    }
+                }
+            }
+        }
+        
+        List<String> listeFinale = new ArrayList<>(tagsUniques);
+        java.util.Collections.sort(listeFinale);
+        
+        DiagLogger.log(cheminProjet, "TAGS EXTRAITS : " + listeFinale.size() + " tags uniques trouves parmi " + objetsScannes + " objets tagues dans l'editeur.");
+        return listeFinale;
+    }
 }
 // bas 3
-            
+
 
 
     

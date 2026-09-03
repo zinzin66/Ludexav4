@@ -24,7 +24,6 @@ public class ObjetBase {
     public boolean estRamassable = false;
     public boolean estZoneDeClic = false;
     
-    // NOUVEAU : Propriété éphémère pour le tactile
     public transient boolean estTouche = false;
     
     public int couleur = Color.BLUE;
@@ -99,6 +98,11 @@ public class ObjetBase {
     public boolean sautillementInfiniMouvement = false;
     public transient float ancienneX = 0f;
     public transient float ancienneY = 0f;
+
+    // Variables locales de l'instance
+    public List<Variable> variablesLocales = new ArrayList<>();
+
+    public transient String idCloneRacine = null;
 
     public ObjetBase() {
         this.id = UUID.randomUUID().toString();
@@ -184,6 +188,16 @@ public class ObjetBase {
         copie.sautillementInfiniMouvement = this.sautillementInfiniMouvement;
         copie.ancienneX = this.x;
         copie.ancienneY = this.y;
+
+        copie.variablesLocales = new ArrayList<>();
+        if (this.variablesLocales != null) {
+            for (Variable v : this.variablesLocales) {
+                // CORRECTION : Instanciation avec 3 chaînes de caractères.
+                Variable nouvVar = new Variable(v.nom, v.type, "");
+                nouvVar.valeur = v.valeur;
+                copie.variablesLocales.add(nouvVar);
+            }
+        }
         
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
