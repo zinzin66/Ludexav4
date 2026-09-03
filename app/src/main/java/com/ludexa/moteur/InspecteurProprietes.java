@@ -178,9 +178,7 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
-    
-
-// haut 2
+    // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
         this.setBackgroundColor(Palette.fondPanneaux);
@@ -893,9 +891,6 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
-            
-                                            
-                
 
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
@@ -1283,7 +1278,7 @@ public class InspecteurProprietes extends LinearLayout {
             LinearLayout layoutPalette = new LinearLayout(context);
             layoutPalette.setOrientation(LinearLayout.HORIZONTAL);
             
-           int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
+          int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
             for (int c : couleursRapides) {
                 View pastille = new View(context);
                 LinearLayout.LayoutParams pastilleParams = new LinearLayout.LayoutParams(dp(40), dp(40));
@@ -1331,6 +1326,7 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
+
 // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
@@ -1613,8 +1609,10 @@ public class InspecteurProprietes extends LinearLayout {
                 champVar.setText(var.valeur != null ? var.valeur.toString() : "");
                 styliserChampFlexible(champVar);
                 champVar.addTextChangedListener(creerWatcherSimple(texte -> {
-                    if ("CHIFFRE".equals(var.type) || "ENTIER".equals(var.type)) {
+                    if ("CHIFFRE".equals(var.type)) {
                         try { var.valeur = Float.parseFloat(texte); } catch(Exception ignored){}
+                    } else if ("ENTIER".equals(var.type)) {
+                        try { var.valeur = Integer.parseInt(texte); } catch(Exception ignored){}
                     } else {
                         var.valeur = texte;
                     }
@@ -1695,3 +1693,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 5
+                    
+
+
