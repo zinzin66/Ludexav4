@@ -66,3 +66,47 @@ public class NoeudActionConcatenerTexte extends NoeudBase {
     @Override
     public ObjetBase getCibleObjet() { return null; }
 // bas 1
+// haut 2
+    @Override
+    public boolean requiertCibleVariable() { return true; }
+    
+    @Override
+    public void setCibleVariable(Variable v) { 
+        this.cible = v; 
+        this.nomCibleVariable = (v != null) ? v.nom : null;
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public Variable getCibleVariable() { 
+        // Logique de reconnexion dynamique calquée sur NoeudActionModifierVariable
+        if (cible == null && nomCibleVariable != null && contexteApplication != null) {
+            try {
+                if (contexteApplication instanceof InterfaceEditeur) {
+                    InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
+                    if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
+                        for (Variable v : editeur.sceneActive.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                    }
+                    if (cible == null && editeur.variablesGlobales != null) {
+                        for (Variable v : editeur.variablesGlobales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                    }
+                } else {
+                    java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
+                    Scene s = (Scene) sceneField.get(contexteApplication);
+                    if (s != null && s.variablesLocales != null) {
+                        for (Variable v : s.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                    }
+                    if (cible == null) {
+                        java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
+                        List<Variable> globales = (List<Variable>) varsField.get(contexteApplication);
+                        if (globales != null) {
+                            for (Variable v : globales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                        }
+                    }
+                }
+            } catch (Exception e) {}
+        }
+        return this.cible; 
+    }
+}
+// bas 2
