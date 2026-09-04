@@ -18,9 +18,6 @@ public class NoeudEventPersonnalise extends NoeudBase {
     public boolean aDesParametresEditables() { return true; }
 
     @Override
-    public boolean utiliseClavierTexte() { return true; }
-
-    @Override
     public List<String> getNomsParametres() { return Arrays.asList("Nom de l'événement"); }
 
     @Override
@@ -32,6 +29,12 @@ public class NoeudEventPersonnalise extends NoeudBase {
     @Override
     public void setValeurParametre(String nom, String valeur) {
         if ("Nom de l'événement".equals(nom)) nomEvenement = valeur;
+    }
+
+    @Override
+    public String getTypeEditeurParametre(String nomParametre) {
+        // CORRECTIF 2 : Forcer le clavier alphabétique pour le nom de l'événement
+        return TYPE_TEXTE_ALPHABETIQUE;
     }
 
     @Override
