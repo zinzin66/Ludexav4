@@ -17,6 +17,7 @@ public abstract class NoeudBase {
     public static String cheminProjetCourant;
 
     public static final String TYPE_TEXTE_LIBRE = "TYPE_TEXTE_LIBRE";
+    public static final String TYPE_TEXTE_ALPHABETIQUE = "TYPE_TEXTE_ALPHABETIQUE"; // CORRECTIF 2 : Nouveau type
     public static final String TYPE_NOMBRE = "TYPE_NOMBRE";
     public static final String TYPE_COULEUR = "TYPE_COULEUR";
     public static final String TYPE_CHOIX_LISTE = "TYPE_CHOIX_LISTE";
@@ -118,7 +119,9 @@ public abstract class NoeudBase {
     }
 
     protected static String genererId() { return UUID.randomUUID().toString(); }
+// bas 1
 
+// haut 2
     public abstract void executer();
 
     public List<String> getNomsParametres() {
@@ -144,11 +147,7 @@ public abstract class NoeudBase {
         InfoParametre p = parametresDynamiques.get(nomParametre);
         return (p != null && p.optionsListe != null) ? p.optionsListe : new ArrayList<>();
     }
-// bas 1
-    
 
-
-// haut 2
     public boolean requiertCibleObjet() { return false; }
     public void setCibleObjet(ObjetBase objet) {}
 
@@ -332,3 +331,6 @@ public abstract class NoeudBase {
     }
 }
 // bas 2
+
+
+
