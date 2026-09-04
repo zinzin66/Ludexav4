@@ -115,14 +115,8 @@ public class EditeurNoeudDialog extends Dialog {
                         
                 switch (typeEditeur) {
                     case "TYPE_CHOIX_TAG":
-                        List<String> tagsUniques = new ArrayList<>();
-                        if (scene != null && scene.objets != null) {
-                            for (ObjetBase o : scene.objets) {
-                                if (o.tag != null && !o.tag.trim().isEmpty() && !tagsUniques.contains(o.tag.trim())) {
-                                    tagsUniques.add(o.tag.trim());
-                                }
-                            }
-                        }
+                        // CORRECTIF 1 : Récupération centralisée des tags du projet complet
+                        List<String> tagsUniques = NoeudBase.getTagsDisponibles();
                         tagsUniques.add(Traducteur.get("noeud_tag_manuel"));
                         
                         android.app.AlertDialog.Builder builderTag = new android.app.AlertDialog.Builder(context);
@@ -325,7 +319,6 @@ public class EditeurNoeudDialog extends Dialog {
             }
         });
 // bas 1
-
 // haut 2
         LinearLayout wrapperDroite = new LinearLayout(context);
         wrapperDroite.setOrientation(LinearLayout.VERTICAL);
@@ -571,10 +564,7 @@ public class EditeurNoeudDialog extends Dialog {
         }
 
         colonneDroite.addView(champSaisie);
-// bas 2
-        
 
-// haut 3
         String[][] touchesCode = {
             {"1", "2", "3", "DEL"},
             {"4", "5", "6", "ESPACE"},
@@ -678,7 +668,9 @@ public class EditeurNoeudDialog extends Dialog {
         conteneurBooleen.addView(btnVrai);
         conteneurBooleen.addView(btnFaux);
         colonneDroite.addView(conteneurBooleen);
+// bas 2
 
+// haut 3
         scrollDroit.addView(colonneDroite);
         wrapperDroite.addView(scrollDroit);
 
@@ -785,8 +777,7 @@ public class EditeurNoeudDialog extends Dialog {
                 }
             }
         }
-// bas 3
-// haut 4
+
         TextView titreVars = new TextView(context);
         titreVars.setText(Traducteur.get("noeud_vars_locales_insertion"));
         titreVars.setTextColor(Palette.texteSelectionne);
@@ -1096,20 +1087,20 @@ public class EditeurNoeudDialog extends Dialog {
             champSaisie.setFocusableInTouchMode(true);
             champSaisie.setClickable(true);
 
-            if (!noeud.utiliseClavierTexte()) {
+            // CORRECTIF 2 : Le clavier natif est déclenché par le nouveau type ou la méthode spécifique du nœud
+            if (NoeudBase.TYPE_TEXTE_ALPHABETIQUE.equals(type) || noeud.utiliseClavierTexte()) {
+                champSaisie.setShowSoftInputOnFocus(true);
+                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                if (conteneurClavier != null) conteneurClavier.setVisibility(View.GONE);
+                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
+                champSaisie.requestFocus();
+            } else {
                 champSaisie.setShowSoftInputOnFocus(false);
                 champSaisie.setInputType(InputType.TYPE_NULL);
                 if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
                 if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-            } else {
-                champSaisie.setShowSoftInputOnFocus(true);
-                champSaisie.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                if (conteneurClavier != null) conteneurClavier.setVisibility(View.VISIBLE);
-                if (conteneurBooleen != null) conteneurBooleen.setVisibility(View.GONE);
-                champSaisie.requestFocus();
             }
         }
     }
 }
-// bas 4
-                             
+// bas 3
