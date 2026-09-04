@@ -484,7 +484,14 @@
   "insp_erreur_scene_introuvable": "エラー：シーンが見つかりません",
     "insp_sep_surcharge_vars": "ローカル変数 (上書き)",
   "insp_valeur_sur_mesure": "カスタム値",
-  "insp_valeur_defaut": "デフォルト"
+  "insp_valeur_defaut": "デフォルト",
+  "noeud_si_bouton_maintenu": "ボタン保持時",
+  "noeud_arreter_anim": "アニメーションを停止",
+    "insp_sep_variables_objet": "オブジェクト変数",
+  "insp_btn_ajouter_variable": "変数を追加",
+  "insp_titre_ajouter_variable": "新しい変数",
+  "insp_hint_nom_variable": "変数名"
+  
   
   
   

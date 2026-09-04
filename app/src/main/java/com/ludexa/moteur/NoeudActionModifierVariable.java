@@ -20,6 +20,7 @@ public class NoeudActionModifierVariable extends NoeudBase {
     public void executer() {
         Variable cibleActuelle = getCibleVariable();
         String valeurSaisie = getValeurParametre("Valeur");
+        ObjetBase objTarget = getCibleObjet(); 
         
         if (cibleActuelle != null) {
             if ("CHIFFRE".equals(cibleActuelle.type)) {
@@ -34,7 +35,7 @@ public class NoeudActionModifierVariable extends NoeudBase {
                         try {
                             somme += Float.parseFloat(token);
                         } catch (NumberFormatException e) {
-                            Variable v = trouverVariable(token);
+                            Variable v = trouverVariable(token, objTarget);
                             if (v != null && v.valeur != null) {
                                 try {
                                     somme += Float.parseFloat(v.valeur.toString());
@@ -57,7 +58,24 @@ public class NoeudActionModifierVariable extends NoeudBase {
     }
 
     @SuppressWarnings("unchecked")
-    private Variable trouverVariable(String nomVar) {
+    private Variable trouverVariable(String nomVar, ObjetBase objTarget) {
+        if (objTarget != null && objTarget.variablesLocales != null) {
+            for (Variable v : objTarget.variablesLocales) {
+                if (v.nom.equals(nomVar)) return v;
+            }
+        }
+        
+        if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.variablesLocales != null) {
+            for (Variable v : NoeudBase.sceneActiveCourante.variablesLocales) {
+                if (v.nom.equals(nomVar)) return v;
+            }
+        }
+        if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.variablesLocales != null) {
+            for (Variable v : NoeudBase.sceneHudActiveCourante.variablesLocales) {
+                if (v.nom.equals(nomVar)) return v;
+            }
+        }
+
         if (contexteApplication instanceof InterfaceEditeur) {
             InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
             if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
@@ -92,6 +110,34 @@ public class NoeudActionModifierVariable extends NoeudBase {
     }
 
     @Override
+    public boolean requiertCibleObjet() { return true; }
+
+    @Override
+    public void setCibleObjet(ObjetBase objet) {
+        this.nomCibleObjet = (objet != null) ? objet.nom : null;
+    }
+
+    @Override
+    public ObjetBase getCibleObjet() {
+        if (cibleObjetResolue != null) return cibleObjetResolue;
+        if ("__OBJET_IMPLIQUE__".equals(nomCibleObjet)) return MoteurLogique.dernierObjetImplique;
+
+        if (nomCibleObjet != null) {
+            if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
+            if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+                for (ObjetBase o : NoeudBase.sceneHudActiveCourante.objets) {
+                    if (nomCibleObjet.equals(o.nom)) return o;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public boolean requiertCibleVariable() { return true; }
     
     @Override
@@ -103,28 +149,44 @@ public class NoeudActionModifierVariable extends NoeudBase {
     @SuppressWarnings("unchecked")
     @Override
     public Variable getCibleVariable() { 
-        if (cible == null && nomCibleVariable != null && contexteApplication != null) {
+        if (nomCibleVariable == null) return null;
+
+        ObjetBase objTarget = getCibleObjet();
+        if (objTarget != null && objTarget.variablesLocales != null) {
+            for (Variable v : objTarget.variablesLocales) {
+                if (nomCibleVariable.equals(v.nom)) return v;
+            }
+        }
+
+        if (cible != null && nomCibleVariable.equals(cible.nom)) return cible;
+
+        if (contexteApplication != null) {
             try {
                 if (contexteApplication instanceof InterfaceEditeur) {
                     InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
                     if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
-                        for (Variable v : editeur.sceneActive.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                        for (Variable v : editeur.sceneActive.variablesLocales) if (v.nom.equals(nomCibleVariable)) { cible = v; return cible; }
                     }
-                    if (cible == null && editeur.variablesGlobales != null) {
-                        for (Variable v : editeur.variablesGlobales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                    if (editeur.variablesGlobales != null) {
+                        for (Variable v : editeur.variablesGlobales) if (v.nom.equals(nomCibleVariable)) { cible = v; return cible; }
                     }
                 } else {
+                    if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.variablesLocales != null) {
+                        for (Variable v : NoeudBase.sceneActiveCourante.variablesLocales) if (nomCibleVariable.equals(v.nom)) { cible = v; return cible; }
+                    }
+                    if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.variablesLocales != null) {
+                        for (Variable v : NoeudBase.sceneHudActiveCourante.variablesLocales) if (nomCibleVariable.equals(v.nom)) { cible = v; return cible; }
+                    }
+                    
                     java.lang.reflect.Field sceneField = contexteApplication.getClass().getField("sceneActive");
                     Scene s = (Scene) sceneField.get(contexteApplication);
                     if (s != null && s.variablesLocales != null) {
-                        for (Variable v : s.variablesLocales) if (v.nom.equals(nomCibleVariable)) cible = v;
+                        for (Variable v : s.variablesLocales) if (v.nom.equals(nomCibleVariable)) { cible = v; return cible; }
                     }
-                    if (cible == null) {
-                        java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
-                        List<Variable> globales = (List<Variable>) varsField.get(contexteApplication);
-                        if (globales != null) {
-                            for (Variable v : globales) if (v.nom.equals(nomCibleVariable)) cible = v;
-                        }
+                    java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
+                    List<Variable> globales = (List<Variable>) varsField.get(contexteApplication);
+                    if (globales != null) {
+                        for (Variable v : globales) if (v.nom.equals(nomCibleVariable)) { cible = v; return cible; }
                     }
                 }
             } catch (Exception e) {}

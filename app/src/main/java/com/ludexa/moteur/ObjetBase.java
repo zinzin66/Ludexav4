@@ -24,6 +24,8 @@ public class ObjetBase {
     public boolean estRamassable = false;
     public boolean estZoneDeClic = false;
     
+    public transient boolean estTouche = false;
+    
     public int couleur = Color.BLUE;
     public String cheminImage = null;
     
@@ -35,7 +37,6 @@ public class ObjetBase {
     
     public String sceneLieeId = null;
     
-    // NOUVEAU : Dictionnaire des surcharges de variables pour les instances
     public HashMap<String, String> surchargesVariables = new HashMap<>();
     
     public String filtreCouleur = "Aucun";
@@ -98,6 +99,11 @@ public class ObjetBase {
     public transient float ancienneX = 0f;
     public transient float ancienneY = 0f;
 
+    // Variables locales de l'instance
+    public List<Variable> variablesLocales = new ArrayList<>();
+
+    public transient String idCloneRacine = null;
+
     public ObjetBase() {
         this.id = UUID.randomUUID().toString();
     }
@@ -136,7 +142,6 @@ public class ObjetBase {
         copie.cibleJoystickId = this.cibleJoystickId;
         copie.sceneLieeId = this.sceneLieeId; 
         
-        // NOUVEAU : On duplique proprement les valeurs surchargées
         copie.surchargesVariables = new HashMap<>(this.surchargesVariables);
         
         copie.filtreCouleur = this.filtreCouleur;
@@ -183,6 +188,16 @@ public class ObjetBase {
         copie.sautillementInfiniMouvement = this.sautillementInfiniMouvement;
         copie.ancienneX = this.x;
         copie.ancienneY = this.y;
+
+        copie.variablesLocales = new ArrayList<>();
+        if (this.variablesLocales != null) {
+            for (Variable v : this.variablesLocales) {
+                // CORRECTION : Instanciation avec 3 chaînes de caractères.
+                Variable nouvVar = new Variable(v.nom, v.type, "");
+                nouvVar.valeur = v.valeur;
+                copie.variablesLocales.add(nouvVar);
+            }
+        }
         
         for (Map.Entry<String, List<String>> entry : this.animations.entrySet()) {
             copie.animations.put(entry.getKey(), new ArrayList<>(entry.getValue()));

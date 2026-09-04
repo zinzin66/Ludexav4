@@ -41,6 +41,9 @@ public class VueJeu extends View {
     private float lastXJeu = 0f;
     private float lastYJeu = 0f;
     
+    // Ajout du chronomètre pour le diagnostic du joystick
+    private long dernierLogJoystick = 0;
+    
     private java.util.Map<String, android.graphics.Bitmap> cacheImages = new java.util.HashMap<>();
     private java.util.Map<String, android.graphics.Typeface> cachePolices = new java.util.HashMap<>();
 
@@ -62,9 +65,6 @@ public class VueJeu extends View {
         this.cheminProjet = cheminProjet;
         NoeudBase.cheminProjetCourant = cheminProjet;
 
-        // NOUVEAU : on tient à jour les références statiques de NoeudBase dès la construction.
-        // C'est ce qui permet à getCibleObjet()/neutraliserEtRetirer() de retrouver la bonne
-        // scène sans réflexion, aussi bien en APK qu'en mode test-éditeur (basculerVersJeu()).
         NoeudBase.sceneActiveCourante = this.sceneActive;
         NoeudBase.sceneHudActiveCourante = this.sceneHudActive;
 
@@ -91,15 +91,15 @@ public class VueJeu extends View {
 
         this.moteurPhysique = new MoteurPhysique(); 
 
-if (blueprintActif != null) {
-    this.moteur = new MoteurLogique(blueprintActif);
-    this.moteur.setCheminProjet(this.cheminProjet);
-}
+        if (blueprintActif != null) {
+            this.moteur = new MoteurLogique(blueprintActif);
+            this.moteur.setCheminProjet(this.cheminProjet);
+        }
 
-if (blueprintHud != null) {
-    this.moteurHud = new MoteurLogique(blueprintHud);
-    this.moteurHud.setCheminProjet(this.cheminProjet);
-}
+        if (blueprintHud != null) {
+            this.moteurHud = new MoteurLogique(blueprintHud);
+            this.moteurHud.setCheminProjet(this.cheminProjet);
+        }
     }
 
     private void chargerAnimationsGlobales(List<ObjetBase> objets) {
@@ -135,9 +135,7 @@ if (blueprintHud != null) {
             }
         }
     }
-// bas 1
 
-// haut 2
     private void logDiag(String message) {
         DiagLogger.log(cheminProjet, message);
     }
@@ -181,14 +179,15 @@ if (blueprintHud != null) {
         deballerPrefabs(this.sceneHudActive);
 
         if (blueprintHud != null) {
-    this.moteurHud = new MoteurLogique(blueprintHud);
-    this.moteurHud.setCheminProjet(this.cheminProjet);
-    this.moteurHud.executerDemarrage();
+            this.moteurHud = new MoteurLogique(blueprintHud);
+            this.moteurHud.setCheminProjet(this.cheminProjet);
+            this.moteurHud.executerDemarrage();
         } else {
             this.moteurHud = null;
         }
     }
-
+// bas 1
+// haut 2
     public void chargerNouvelleScene(Scene nouvelleScene) {
         if (nouvelleScene == null) return;
         if (this.sceneActive != null) GestionnaireEtat.sauvegarderEtat(this.sceneActive);
@@ -217,9 +216,9 @@ if (blueprintHud != null) {
         }
 
         if (nouveauBlueprint != null) {
-    this.moteur = new MoteurLogique(nouveauBlueprint);
-    this.moteur.setCheminProjet(this.cheminProjet);
-    this.moteur.executerDemarrage();
+            this.moteur = new MoteurLogique(nouveauBlueprint);
+            this.moteur.setCheminProjet(this.cheminProjet);
+            this.moteur.executerDemarrage();
         } else {
             this.moteur = null; 
         }
@@ -251,6 +250,9 @@ if (blueprintHud != null) {
     private void instancierSceneInterne(Scene sceneAInstancier, ObjetBase prefab) {
         float offsetX = prefab.x;
         float offsetY = prefab.y;
+        
+        logDiag("INSTANCIER_SCENE_DEBUT prefab=" + prefab.nom + " sceneOrigine=" + sceneAInstancier.nom);
+        
         Blueprint blueprintInstance = null;
         if (cheminProjet != null) {
             try {
@@ -346,7 +348,31 @@ if (blueprintHud != null) {
                 if (clone.idCiblePoursuite != null && mapIds.containsKey(clone.idCiblePoursuite)) clone.idCiblePoursuite = mapIds.get(clone.idCiblePoursuite);
                 sceneActive.ajouterObjet(clone);
             }
+            
+            // --- NOUVELLE RECHERCHE INTELLIGENTE DU CLONE RACINE ---
+            ObjetBase meilleurCandidat = null;
+            for (ObjetBase clone : objetsInjectes) {
+                if (clone.tag != null && (clone.tag.equalsIgnoreCase("Joueur") || clone.tag.equalsIgnoreCase("Player"))) {
+                    meilleurCandidat = clone;
+                    break; // On a trouvé la cible parfaite grâce au Tag
+                }
+                if (meilleurCandidat == null && clone.estPhysique && !clone.estStatique) {
+                    meilleurCandidat = clone; // Candidat de secours : le premier objet physique mobile
+                }
+            }
+            if (meilleurCandidat != null) {
+                prefab.idCloneRacine = meilleurCandidat.id;
+            } else if (!objetsInjectes.isEmpty()) {
+                prefab.idCloneRacine = objetsInjectes.get(0).id; // Ultime recours
+            }
+            // -------------------------------------------------------
+
             chargerAnimationsGlobales(sceneActive.objets);
+            
+            for (ObjetBase clone : objetsInjectes) {
+                logDiag("CLONE_CREE nom=" + clone.nom + " nbVarsLocales=" + (clone.variablesLocales != null ? clone.variablesLocales.size() : -1)
+                        + (clone.variablesLocales != null && !clone.variablesLocales.isEmpty() ? " premiereVar=" + clone.variablesLocales.get(0).nom : ""));
+            }
         }
         
         if (blueprintInstance != null && blueprintInstance.noeuds != null && this.moteur != null) {
@@ -359,10 +385,13 @@ if (blueprintHud != null) {
                 noeud.categorie = (noeud.categorie != null ? noeud.categorie + " " : "") + "_INSTANCE_" + sceneAInstancier.id;
             }
 
-            // PASSE 1 : liaison complète de TOUS les nœuds du lot avant toute exécution.
             for (NoeudBase noeud : blueprintInstance.noeuds) {
-                
                 majCibleNoeud(noeud, "nomCible", mapNoms); 
+                
+                logDiag("REMAP_NOEUD classe=" + noeud.getClass().getSimpleName()
+                        + " nomCibleObjet=" + noeud.nomCibleObjet
+                        + " requiertCibleObjet=" + noeud.requiertCibleObjet()
+                        + " presentDansMap=" + mapNomOrigineVersClone.containsKey(noeud.nomCibleObjet));
                 
                 try {
                     java.lang.reflect.Field champVar = noeud.getClass().getField("nomVariable");
@@ -401,6 +430,12 @@ if (blueprintHud != null) {
                         noeud.lierCibleObjetInstance(cibleResolue);
                     }
                 }
+                
+                if (noeud.getClass().getSimpleName().equals("NoeudEventCollisionTag")) {
+                    logDiag("REMAP_COLLISION_TAG apres_remap: nomCibleObjet=" + noeud.nomCibleObjet
+                            + " cibleObjetResolue_nulle=" + (noeud.getCibleObjet() == null));
+                }
+
                 if (noeud.requiertCibleObjetB() && noeud.nomCibleObjetB != null
                     && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
                     ObjetBase cibleBResolue = mapNomOrigineVersClone.get(noeud.nomCibleObjetB);
@@ -410,37 +445,16 @@ if (blueprintHud != null) {
                 }
                 
                 this.moteur.ajouterNoeudAuBlueprintActif(noeud);
-
-                // VÉRIFICATION AUTOMATIQUE DE CÂBLAGE : si un nœud a besoin d'une cible et
-                // qu'elle est toujours introuvable après la tentative de liaison, on le
-                // signale dans le journal permanent du projet. C'est ce contrôle qui aurait
-                // détecté immédiatement le bug du champ nomCibleObjet dupliqué dans
-                // NoeudActionJouerAnimation, au lieu de 2 jours d'investigation manuelle.
-                if (noeud.requiertCibleObjet() && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjet)) {
-                    if (noeud.getCibleObjet() == null) {
-                        logDiag("ATTENTION: nœud " + noeud.getClass().getSimpleName() + " du prefab " + prefab.nom + " (scène " + sceneAInstancier.nom + ") sans cible objet valide après liaison (nomCibleObjet=" + noeud.nomCibleObjet + ")");
-                    }
-                }
-                if (noeud.requiertCibleObjetB() && !"__OBJET_IMPLIQUE__".equals(noeud.nomCibleObjetB)) {
-                    if (noeud.getCibleObjetB() == null) {
-                        logDiag("ATTENTION: nœud " + noeud.getClass().getSimpleName() + " du prefab " + prefab.nom + " (scène " + sceneAInstancier.nom + ") sans cible objet B valide après liaison (nomCibleObjetB=" + noeud.nomCibleObjetB + ")");
-                    }
-                }
             }
 
-            // PASSE 2 : exécution des événements de démarrage, une fois le lot entièrement lié.
             for (NoeudBase noeud : blueprintInstance.noeuds) {
                 if (noeud instanceof NoeudEventStart) {
                     noeud.executer();
                 }
             }
         }
-        
-        // SUPPRIMÉ ICI : Le déballage récursif de sceneActive qui provoquait la fausse boucle infinie (cycle).
     }
-// bas 2
 
-// haut 3
     public void detruireInstances(Scene sceneCible) {
         if (sceneCible == null || sceneActive == null || sceneActive.objets == null) return;
         
@@ -457,7 +471,9 @@ if (blueprintHud != null) {
             this.moteur.nettoyerNoeudsParTag(tagRecherche);
         }
     }
+// bas 2
 
+// haut 3
     private List<Scene> cacheListeScenesDisque = null;
 
     private List<Scene> chargerToutesLesScenesDepuisDisque() {
@@ -507,8 +523,6 @@ if (blueprintHud != null) {
     private void deballerPrefabs(Scene scene) {
         if (scene == null || scene.objets == null) return;
         
-        // CORRECTION : Boucle d'itération sécurisée pour traiter les prefabs un par un,
-        // sans déclencher le bloqueur de boucle infinie (cycle detector) sur les frères.
         boolean aDeballe = true;
         while (aDeballe) {
             aDeballe = false;
@@ -624,8 +638,7 @@ if (blueprintHud != null) {
         }
         return m;
     }
-// bas 3
-// haut 4
+
     private boolean pointDansObjet(float xVue, float yVue, float xMonde, float yMonde, ObjetBase obj) {
         boolean isHud = (sceneHudActive != null && sceneHudActive.objets != null && sceneHudActive.objets.contains(obj));
         List<ObjetBase> contexte = isHud ? sceneHudActive.objets : sceneActive.objets;
@@ -725,7 +738,9 @@ if (blueprintHud != null) {
             objet.y += deltaY;
         }
     }
+// bas 3
 
+// haut 4
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_HOVER_MOVE) {
@@ -841,6 +856,8 @@ if (blueprintHud != null) {
             lastXJeu = xMonde;
             lastYJeu = yMonde;
             
+            if (objetEnGlissement != null) objetEnGlissement.estTouche = true;
+            
             if (objetEnGlissement != null) {
                 MoteurLogique.dernierObjetImplique = objetEnGlissement;
                 
@@ -909,12 +926,15 @@ if (blueprintHud != null) {
                 } else if (sceneActive != null && sceneActive.objets != null && sceneActive.objets.contains(objetEnGlissement) && this.moteur != null) {
                     this.moteur.executerEvenementSurObjet(NoeudEventFinGlisser.class, objetEnGlissement);
                 }
+                
+                objetEnGlissement.estTouche = false;
             }
             objetEnGlissement = null;
         }
         return true;
     }
 // bas 4
+
 // haut 5
     private void dessinerImage(Canvas canvas, ObjetBase objet, String cheminAAfficher) {
         if (cheminAAfficher != null && cheminProjet != null) {
@@ -1104,7 +1124,7 @@ if (blueprintHud != null) {
                 peintureTexte.setColor(Color.WHITE);
                 peintureTexte.setTextSize(objet.largeur * 0.25f);
                 peintureTexte.setTextAlign(Paint.Align.CENTER);
-                canvas.drawText("ACTION", objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
+                canvas.drawText(Traducteur.get("cle_action"), objet.largeur / 2f, (objet.hauteur / 2f) + (peintureTexte.getTextSize() / 3f), peintureTexte);
                 peintureTexte.setTextAlign(Paint.Align.LEFT);
                 
             } else if ("rond".equals(objet.type)) {
@@ -1173,8 +1193,40 @@ if (blueprintHud != null) {
         
         if (GestionnaireControles.modeAventureActif && (GestionnaireControles.joyDirX != 0 || GestionnaireControles.joyDirY != 0)) {
             ObjetBase joystickObj = trouverObjetParType("joystick");
-            if (joystickObj != null && joystickObj.cibleJoystickId != null && sceneActive != null && sceneActive.objets != null) {
-                ObjetBase joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
+            if (joystickObj != null && sceneActive != null && sceneActive.objets != null) {
+                
+                ObjetBase joueurCible = null;
+
+                // --- 1. RECHERCHE PAR TAG ---
+                for (ObjetBase obj : sceneActive.objets) {
+                    if (obj.tag != null && (obj.tag.equalsIgnoreCase("Joueur") || obj.tag.equalsIgnoreCase("Player"))) {
+                        joueurCible = obj;
+                        break;
+                    }
+                }
+
+                // --- 2. RECHERCHE PAR CIBLE ÉDITEUR ---
+                if (joueurCible == null && joystickObj.cibleJoystickId != null) {
+                    joueurCible = getObjetById(joystickObj.cibleJoystickId, sceneActive.objets);
+                    
+                    if (joueurCible != null && "scene_instance".equals(joueurCible.type)) {
+                        if (joueurCible.idCloneRacine != null) {
+                            joueurCible = getObjetById(joueurCible.idCloneRacine, sceneActive.objets);
+                        } else {
+                            joueurCible = null; 
+                        }
+                    }
+                }
+
+                // --- 3. DÉPLACEMENT & DIAGNOSTIC ---
+                long tempsActuel = System.currentTimeMillis();
+                if (tempsActuel - dernierLogJoystick > 500) { 
+                    logDiag("JOYSTICK cible=" + (joueurCible != null 
+                        ? joueurCible.nom + " id=" + joueurCible.id + " tag=" + joueurCible.tag + " parentId=" + joueurCible.parentId + " phys=" + joueurCible.estPhysique + " stat=" + joueurCible.estStatique + " x=" + joueurCible.x + " y=" + joueurCible.y
+                        : "NULL"));
+                    dernierLogJoystick = tempsActuel;
+                }
+
                 if (joueurCible != null) {
                     float vitesseDefaut = 5f; 
                     float moveX = GestionnaireControles.joyDirX * vitesseDefaut;
@@ -1281,7 +1333,7 @@ if (blueprintHud != null) {
             shakeY = (float) ((Math.random() - 0.5) * 2.0 * tremblementIntensite);
         }
 
-      canvas.save();
+        canvas.save();
         canvas.translate(-GestionnaireControles.cameraX + shakeX, -GestionnaireControles.cameraY + shakeY);
         if (sceneActive != null && sceneActive.objets != null) dessinerListeObjets(canvas, sceneActive.objets, false, GestionnaireControles.cameraX, GestionnaireControles.cameraY);
         canvas.restore(); 

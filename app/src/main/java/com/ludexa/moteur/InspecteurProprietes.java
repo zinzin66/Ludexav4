@@ -70,6 +70,10 @@ public class InspecteurProprietes extends LinearLayout {
     private EditText champRebond;
     private EditText champGravite;
 
+    private LinearLayout blocVariables;
+    private LinearLayout conteneurListeVariables;
+    private Button btnAjouterVariable;
+
     private Scene sceneActive;
     private CanvasEditeur canvasEditeur;
     private ObjetBase objetCourant;
@@ -174,8 +178,7 @@ public class InspecteurProprietes extends LinearLayout {
         cb.setLayoutParams(lp);
     }
 // bas 1
-
-// haut 2
+    // haut 2
     private void initialiserInterface(Context context) {
         this.setOrientation(LinearLayout.VERTICAL);
         this.setBackgroundColor(Palette.fondPanneaux);
@@ -695,7 +698,6 @@ public class InspecteurProprietes extends LinearLayout {
 
         blocProprietes.addView(blocJoystick);
 
-        // --- UI POUR SCENE INSTANCE ET SURCHARGES ---
         blocSceneInstance = new LinearLayout(context);
         blocSceneInstance.setOrientation(LinearLayout.VERTICAL);
         styliserSection(blocSceneInstance);
@@ -721,7 +723,6 @@ public class InspecteurProprietes extends LinearLayout {
         blocSceneInstance.addView(conteurVariablesSurcharge);
         
         blocProprietes.addView(blocSceneInstance);
-        // ----------------------------------------
         
         blocPhysique = new LinearLayout(context);
         blocPhysique.setOrientation(LinearLayout.VERTICAL);
@@ -771,6 +772,78 @@ public class InspecteurProprietes extends LinearLayout {
         blocPhysique.addView(conteneurPhysiqueDetails);
         blocProprietes.addView(blocPhysique);
 
+        blocVariables = new LinearLayout(context);
+        blocVariables.setOrientation(LinearLayout.VERTICAL);
+        styliserSection(blocVariables);
+
+        TextView sepVariables = new TextView(context);
+        sepVariables.setText(Traducteur.get("insp_sep_variables_objet"));
+        styliserSousTitre(sepVariables);
+        blocVariables.addView(sepVariables);
+
+        btnAjouterVariable = new Button(context);
+        btnAjouterVariable.setText(Traducteur.get("insp_btn_ajouter_variable"));
+        styliserBouton(btnAjouterVariable);
+        blocVariables.addView(btnAjouterVariable);
+
+        conteneurListeVariables = new LinearLayout(context);
+        conteneurListeVariables.setOrientation(LinearLayout.VERTICAL);
+        blocVariables.addView(conteneurListeVariables);
+
+        blocProprietes.addView(blocVariables);
+
+        btnAjouterVariable.setOnClickListener(v -> {
+            if (objetCourant == null) return;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(Traducteur.get("insp_titre_ajouter_variable"));
+            
+            LinearLayout layoutDlg = new LinearLayout(context);
+            layoutDlg.setOrientation(LinearLayout.VERTICAL);
+            layoutDlg.setPadding(dp(16), dp(16), dp(16), dp(16));
+            
+            EditText champNomVar = new EditText(context);
+            champNomVar.setHint(Traducteur.get("insp_hint_nom_variable"));
+            styliserChamp(champNomVar);
+            layoutDlg.addView(champNomVar);
+            
+            String[] types = {"CHIFFRE", "ENTIER", "TEXTE", "BOOLEEN"};
+            String[] typesLoc = {
+                Traducteur.get("var_type_chiffre"), 
+                Traducteur.get("var_type_entier"),
+                Traducteur.get("var_type_texte"), 
+                Traducteur.get("var_type_booleen")
+            };
+            
+            Spinner spinType = new Spinner(context);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, typesLoc);
+            spinType.setAdapter(adapter);
+            layoutDlg.addView(spinType);
+            
+            builder.setView(layoutDlg);
+            builder.setPositiveButton(Traducteur.get("bouton_valider"), (dialog, which) -> {
+                String nomVar = champNomVar.getText().toString().trim();
+                if (nomVar.isEmpty()) return;
+                
+                String typeChoisi = types[spinType.getSelectedItemPosition()];
+                // CORRECTION BUG A : Ordre des arguments rétabli (nom, scope, type)
+                Variable nouvelleVar = new Variable(nomVar, "LOCALE", typeChoisi);
+                
+                nouvelleVar.nom = nomVar;
+                nouvelleVar.type = typeChoisi;
+                
+                if ("CHIFFRE".equals(typeChoisi)) nouvelleVar.valeur = 0f;
+                else if ("ENTIER".equals(typeChoisi)) nouvelleVar.valeur = 0;
+                else if ("TEXTE".equals(typeChoisi)) nouvelleVar.valeur = "";
+                else if ("BOOLEEN".equals(typeChoisi)) nouvelleVar.valeur = false;
+                
+                if (objetCourant.variablesLocales == null) objetCourant.variablesLocales = new ArrayList<>();
+                objetCourant.variablesLocales.add(nouvelleVar);
+                rafraichirVariablesObjet(context);
+            });
+            builder.setNegativeButton(Traducteur.get("bouton_annuler"), null);
+            builder.show();
+        });
+
         cbRamassable = new CheckBox(context);
         cbRamassable.setText(Traducteur.get("insp_cb_ramassable"));
         styliserCase(cbRamassable);
@@ -818,7 +891,6 @@ public class InspecteurProprietes extends LinearLayout {
         scrollInspecteur.addView(contenuInspecteur);
         this.addView(scrollInspecteur);
 // bas 3
-
 
 // haut 4
         boutonMasquer.setOnClickListener(v -> {
@@ -1206,7 +1278,7 @@ public class InspecteurProprietes extends LinearLayout {
             LinearLayout layoutPalette = new LinearLayout(context);
             layoutPalette.setOrientation(LinearLayout.HORIZONTAL);
             
-           int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
+          int[] couleursRapides = {Color.WHITE, Color.BLACK, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA, Color.parseColor("#FFA500"), Color.parseColor("#808080")};
             for (int c : couleursRapides) {
                 View pastille = new View(context);
                 LinearLayout.LayoutParams pastilleParams = new LinearLayout.LayoutParams(dp(40), dp(40));
@@ -1254,6 +1326,7 @@ public class InspecteurProprietes extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 // bas 4
+
 // haut 5
     private void verifierEtConfirmerRenommage(Context context) {
         if (objetCourant == null) return;
@@ -1495,9 +1568,78 @@ public class InspecteurProprietes extends LinearLayout {
                     blocJoystick.setVisibility(View.GONE);
                 }
             }
+            
+            rafraichirVariablesObjet(getContext());
         }
 
         miseAJourEnCours = false;
+    }
+
+    private void rafraichirVariablesObjet(Context context) {
+        conteneurListeVariables.removeAllViews();
+        if (objetCourant == null || objetCourant.variablesLocales == null) return;
+        
+        for (Variable var : objetCourant.variablesLocales) {
+            LinearLayout ligne = new LinearLayout(context);
+            ligne.setOrientation(LinearLayout.HORIZONTAL);
+            ligne.setGravity(Gravity.CENTER_VERTICAL);
+            ligne.setPadding(0, dp(4), 0, dp(4));
+            
+            TextView labelVar = new TextView(context);
+            String cleType = var.type != null ? var.type.toLowerCase() : "chiffre";
+            labelVar.setText(var.nom + " (" + Traducteur.get("var_type_" + cleType) + ")");
+            styliserLabel(labelVar);
+            LinearLayout.LayoutParams paramsLabel = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            labelVar.setLayoutParams(paramsLabel);
+            ligne.addView(labelVar);
+            
+            if ("BOOLEEN".equals(var.type)) {
+                CheckBox cbVar = new CheckBox(context);
+                styliserCase(cbVar);
+                cbVar.setChecked(var.valeur != null && var.valeur.toString().equalsIgnoreCase("true"));
+                cbVar.setOnCheckedChangeListener((btn, isChecked) -> {
+                    if (!miseAJourEnCours) var.valeur = isChecked;
+                });
+                ligne.addView(cbVar);
+            } else {
+                EditText champVar = new EditText(context);
+                if ("CHIFFRE".equals(var.type) || "ENTIER".equals(var.type)) {
+                    champVar.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+                }
+                champVar.setText(var.valeur != null ? var.valeur.toString() : "");
+                styliserChampFlexible(champVar);
+                champVar.addTextChangedListener(creerWatcherSimple(texte -> {
+                    if ("CHIFFRE".equals(var.type)) {
+                        try { var.valeur = Float.parseFloat(texte); } catch(Exception ignored){}
+                    } else if ("ENTIER".equals(var.type)) {
+                        try { var.valeur = Integer.parseInt(texte); } catch(Exception ignored){}
+                    } else {
+                        var.valeur = texte;
+                    }
+                }));
+                ligne.addView(champVar);
+            }
+            
+            Button btnSuppr = new Button(context);
+            btnSuppr.setText("X");
+            btnSuppr.setTextColor(Color.WHITE);
+            btnSuppr.setBackground(fond(Color.parseColor("#8B3A3A"), Palette.bordure, 8));
+            btnSuppr.setPadding(dp(8), dp(4), dp(8), dp(4));
+            LinearLayout.LayoutParams paramsBtn = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            paramsBtn.setMargins(dp(4), 0, 0, 0);
+            btnSuppr.setLayoutParams(paramsBtn);
+            btnSuppr.setOnClickListener(v -> {
+                new AlertDialog.Builder(context)
+                    .setTitle(Traducteur.get("insp_titre_confirm_suppr"))
+                    .setPositiveButton(Traducteur.get("bouton_supprimer"), (dialog, which) -> {
+                        objetCourant.variablesLocales.remove(var);
+                        rafraichirVariablesObjet(context);
+                    }).setNegativeButton(Traducteur.get("bouton_annuler"), null).show();
+            });
+            ligne.addView(btnSuppr);
+            
+            conteneurListeVariables.addView(ligne);
+        }
     }
 
     private List<String> listerImagesLocales(java.io.File dir, String cheminBase) {
@@ -1551,21 +1693,6 @@ public class InspecteurProprietes extends LinearLayout {
     }
 }
 // bas 5
-
-
-
-
-
-    
-
-
-
-        
-
-
-
-
-        
-
+                    
 
 

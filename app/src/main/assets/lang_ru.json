@@ -482,7 +482,14 @@
   "insp_erreur_scene_introuvable": "Ошибка: Сцена не найдена",
     "insp_sep_surcharge_vars": "Локальные переменные (Переопределение)",
   "insp_valeur_sur_mesure": "Специальное значение",
-  "insp_valeur_defaut": "По умолчанию"
+  "insp_valeur_defaut": "По умолчанию",
+  "noeud_si_bouton_maintenu": "Если кнопка удерживается",
+  "noeud_arreter_anim": "Остановить анимацию",
+    "insp_sep_variables_objet": "Переменные объекта",
+  "insp_btn_ajouter_variable": "Добавить переменную",
+  "insp_titre_ajouter_variable": "Новая переменная",
+  "insp_hint_nom_variable": "Имя переменной"
+  
   
   
   

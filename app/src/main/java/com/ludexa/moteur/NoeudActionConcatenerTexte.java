@@ -1,3 +1,4 @@
+// haut 1
 package com.ludexa.moteur;
 
 import java.util.Arrays;
@@ -51,6 +52,12 @@ public class NoeudActionConcatenerTexte extends NoeudBase {
     }
 
     @Override
+    public String getTypeEditeurParametre(String nomParametre) {
+        // CORRECTIF 2 : Forcer le clavier alphabétique pour la saisie de texte
+        return TYPE_TEXTE_ALPHABETIQUE;
+    }
+
+    @Override
     public boolean requiertCibleObjet() { return false; }
     
     @Override
@@ -58,7 +65,8 @@ public class NoeudActionConcatenerTexte extends NoeudBase {
     
     @Override
     public ObjetBase getCibleObjet() { return null; }
-
+// bas 1
+// haut 2
     @Override
     public boolean requiertCibleVariable() { return true; }
     
@@ -100,9 +108,5 @@ public class NoeudActionConcatenerTexte extends NoeudBase {
         }
         return this.cible; 
     }
-
-    @Override
-    public boolean utiliseClavierTexte() {
-        return true;
-    }
 }
+// bas 2

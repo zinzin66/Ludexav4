@@ -1,28 +1,26 @@
 // haut 1
 package com.ludexa.moteur;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class NoeudEventCollisionTag extends NoeudBase {
     
     private transient ObjetBase cible;
-    private String tagCible = "";
     private transient Set<String> objetsEnCollision = new HashSet<>();
 
     public NoeudEventCollisionTag() {
         super(genererId(), "Si objet touche Tag", "Événements");
         this.ajouterPort(new Port("Sortie", Port.TYPE_EXECUTION_SORTIE));
+        
+        // CORRECTION : Utilisation du système natif de paramètres pour garantir la sauvegarde JSON
+        this.ajouterParametre("Tag", "", "TYPE_CHOIX_TAG");
     }
 
     @Override
     public void executer() {
-        // On définit officiellement l'objet impliqué pour les nœuds suivants
-        // (ex: pour que __OBJET_IMPLIQUE__ fonctionne dans un nœud en aval)
         if (!objetsEnCollision.isEmpty()) {
-            String idTouche = objetsEnCollision.iterator().next(); // On prend le premier objet touché
+            String idTouche = objetsEnCollision.iterator().next(); 
             if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
                 for (ObjetBase o : NoeudBase.sceneActiveCourante.objets) {
                     if (idTouche.equals(o.id)) {
@@ -38,27 +36,8 @@ public class NoeudEventCollisionTag extends NoeudBase {
     }
 
     @Override
-    public List<String> getNomsParametres() {
-        List<String> params = new ArrayList<>();
-        params.add("Tag");
-        return params;
-    }
-
-    @Override
-    public String getValeurParametre(String nom) {
-        if ("Tag".equals(nom)) return tagCible;
-        return "";
-    }
-
-    @Override
-    public void setValeurParametre(String nom, String valeur) {
-        if ("Tag".equals(nom)) this.tagCible = valeur;
-    }
-
-    @Override
-    public String getTypeEditeurParametre(String nom) {
-        if ("Tag".equals(nom)) return "TYPE_CHOIX_TAG";
-        return super.getTypeEditeurParametre(nom);
+    public boolean utiliseClavierTexte() { 
+        return false; 
     }
 
     @Override
@@ -113,6 +92,8 @@ public class NoeudEventCollisionTag extends NoeudBase {
         return objetsEnCollision;
     }
 
-    public String getTagCible() { return tagCible; }
+    public String getTagCible() { 
+        return getValeurParametre("Tag"); 
+    }
 }
 // bas 1

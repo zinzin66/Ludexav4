@@ -39,7 +39,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
                 } else if (!dansGuillemets && c == '+') {
                     String nomVar = tokenCourant.toString().trim();
                     if (!nomVar.isEmpty()) {
-                        Variable v = trouverVariable(nomVar);
+                        Variable v = trouverVariable(nomVar, cibleActuelle);
                         DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE token(+): nomVar=" + nomVar + " trouve=" + (v != null) + " valeur=" + (v != null ? v.valeur : "null"));
                         resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                     }
@@ -52,7 +52,7 @@ public class NoeudActionModifierTexte extends NoeudBase {
             if (!dansGuillemets) {
                 String nomVar = tokenCourant.toString().trim();
                 if (!nomVar.isEmpty()) {
-                    Variable v = trouverVariable(nomVar);
+                    Variable v = trouverVariable(nomVar, cibleActuelle);
                     DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE token(fin): nomVar=" + nomVar + " trouve=" + (v != null) + " valeur=" + (v != null ? v.valeur : "null"));
                     resultatFinal.append(v != null && v.valeur != null ? v.valeur.toString() : "");
                 }
@@ -66,11 +66,18 @@ public class NoeudActionModifierTexte extends NoeudBase {
         }
         propagerExecution("Suivant");
     }
-
+// bas 1
+    // haut 2
     @SuppressWarnings("unchecked")
-    private Variable trouverVariable(String nomVar) {
-        // CORRECTIF : résolution fiable via les références statiques posées par VueJeu,
-        // au lieu de la réflexion fragile sur contexteApplication (jamais posé en jeu réel).
+    private Variable trouverVariable(String nomVar, ObjetBase cibleActuelle) {
+        // Résolution prioritaire sur l'instance de l'objet CIBLE DU NŒUD (ex: TexteVar)
+        if (cibleActuelle != null && cibleActuelle.variablesLocales != null) {
+            for (Variable v : cibleActuelle.variablesLocales) {
+                if (v.nom.equals(nomVar)) return v;
+            }
+        }
+
+        // CORRECTIF : résolution fiable via les références statiques posées par VueJeu
         if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.variablesLocales != null) {
             for (Variable v : NoeudBase.sceneActiveCourante.variablesLocales) {
                 if (v.nom.equals(nomVar)) return v;
@@ -82,12 +89,68 @@ public class NoeudActionModifierTexte extends NoeudBase {
             }
         }
 
+        // CORRECTIF BUG VARIABLE D'INSTANCE (ex: "viealien" appartenant à l'objet "alien",
+        // alors que la cible DE CE NŒUD est un autre objet, ex: "TexteVar").
+        // AVANT : seule cibleActuelle.variablesLocales était vérifiée pour les variables
+        // d'objet -> si le token désigne une variable d'un AUTRE objet de la scène,
+        // elle n'était jamais trouvée (trouve=false) alors qu'elle existe bien en mémoire.
+        // MAINTENANT : on parcourt les variablesLocales de TOUS les objets de la scène
+        // active et de la scène HUD active avant d'abandonner. Logs DEBUG_SCENE/DEBUG_OBJETS
+        // ajoutés pour diagnostiquer si sceneActiveCourante est bien peuplée à cet instant.
+        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE DEBUG_SCENE: sceneActiveCourante="
+                + (NoeudBase.sceneActiveCourante == null ? "NULL" : ("non-null, nbObjets=" + (NoeudBase.sceneActiveCourante.objets == null ? "objets_null" : NoeudBase.sceneActiveCourante.objets.size())))
+                + " | sceneHudActiveCourante=" + (NoeudBase.sceneHudActiveCourante == null ? "NULL" : "non-null"));
+
+        if (NoeudBase.sceneActiveCourante != null && NoeudBase.sceneActiveCourante.objets != null) {
+            StringBuilder noms = new StringBuilder();
+            for (ObjetBase objDebug : NoeudBase.sceneActiveCourante.objets) {
+                noms.append(objDebug.nom).append("[vars=");
+                if (objDebug.variablesLocales == null) {
+                    noms.append("null");
+                } else {
+                    noms.append(objDebug.variablesLocales.size());
+                    for (Variable vDebug : objDebug.variablesLocales) noms.append(":").append(vDebug.nom);
+                }
+                noms.append("] ");
+            }
+            DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE DEBUG_OBJETS: " + noms.toString());
+
+            for (ObjetBase objScene : NoeudBase.sceneActiveCourante.objets) {
+                if (objScene == cibleActuelle || objScene.variablesLocales == null) continue;
+                for (Variable vScene : objScene.variablesLocales) {
+                    if (vScene.nom.equals(nomVar)) {
+                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + objScene.nom + "' (scene active, hors cible du noeud)");
+                        return vScene;
+                    }
+                }
+            }
+        }
+        if (NoeudBase.sceneHudActiveCourante != null && NoeudBase.sceneHudActiveCourante.objets != null) {
+            for (ObjetBase objHud : NoeudBase.sceneHudActiveCourante.objets) {
+                if (objHud == cibleActuelle || objHud.variablesLocales == null) continue;
+                for (Variable vHud : objHud.variablesLocales) {
+                    if (vHud.nom.equals(nomVar)) {
+                        DiagLogger.log(NoeudBase.cheminProjetCourant, "MODIFIER_TEXTE trouverVariable: '" + nomVar + "' trouve sur objet '" + objHud.nom + "' (scene HUD active, hors cible du noeud)");
+                        return vHud;
+                    }
+                }
+            }
+        }
+
         // Fallback compatibilité éditeur (inchangé)
         if (contexteApplication instanceof InterfaceEditeur) {
             InterfaceEditeur editeur = (InterfaceEditeur) contexteApplication;
             if (editeur.sceneActive != null && editeur.sceneActive.variablesLocales != null) {
                 for (Variable v : editeur.sceneActive.variablesLocales) {
                     if (v.nom.equals(nomVar)) return v;
+                }
+            }
+            if (editeur.sceneActive != null && editeur.sceneActive.objets != null) {
+                for (ObjetBase obj : editeur.sceneActive.objets) {
+                    if (obj.variablesLocales == null) continue;
+                    for (Variable v : obj.variablesLocales) {
+                        if (v.nom.equals(nomVar)) return v;
+                    }
                 }
             }
             if (editeur.variablesGlobales != null) {
@@ -104,6 +167,14 @@ public class NoeudActionModifierTexte extends NoeudBase {
                         if (v.nom.equals(nomVar)) return v;
                     }
                 }
+                if (scene != null && scene.objets != null) {
+                    for (ObjetBase obj : scene.objets) {
+                        if (obj.variablesLocales == null) continue;
+                        for (Variable v : obj.variablesLocales) {
+                            if (v.nom.equals(nomVar)) return v;
+                        }
+                    }
+                }
                 java.lang.reflect.Field varsField = contexteApplication.getClass().getField("variablesGlobales");
                 List<Variable> globales = (List<Variable>) varsField.get(contexteApplication);
                 if (globales != null) {
@@ -115,9 +186,14 @@ public class NoeudActionModifierTexte extends NoeudBase {
         }
         return null;
     }
+// bas 2
 
+// haut 3
     @Override
-    public boolean utiliseClavierTexte() { return true; }
+    public String getTypeEditeurParametre(String nomParametre) {
+        // CORRECTIF 2 : Forcer le clavier alphabétique pour la modification de texte
+        return TYPE_TEXTE_ALPHABETIQUE;
+    }
 
     @Override
     public List<String> getNomsParametres() { return Arrays.asList("Nouveau texte"); }
@@ -163,4 +239,10 @@ public class NoeudActionModifierTexte extends NoeudBase {
         return this.cible;
     }
 }
-// bas 1
+// bas 3
+
+
+
+    
+
+

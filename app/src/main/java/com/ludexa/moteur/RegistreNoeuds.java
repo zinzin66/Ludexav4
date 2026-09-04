@@ -65,6 +65,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_appeler_evenement_local"), Traducteur.get("cat_logique_conditions"), "NoeudActionAppelerEvent"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_joystick_actif"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiJoystick"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_mouvement"), Traducteur.get("cat_logique_conditions"), "NoeudConditionMouvement"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_si_bouton_maintenu"), Traducteur.get("cat_logique_conditions"), "NoeudConditionSiBoutonMaintenu"));
+        
 // bas 1
     // haut 2
         // SCÈNE & HUD
@@ -144,6 +146,8 @@ public class RegistreNoeuds {
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_reprendre_anim"), Traducteur.get("cat_animations"), "NoeudActionReprendreAnimation"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_vitesse_anim"), Traducteur.get("cat_animations"), "NoeudActionVitesseAnimation"));
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_condition_frame"), Traducteur.get("cat_animations"), "NoeudConditionFrameAnimation"));
+        REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_arreter_anim"), Traducteur.get("cat_animations"), "NoeudActionArreterAnimation"));
+        
         
         // PHYSIQUE
         REGISTRE.add(new InfoNoeud(Traducteur.get("noeud_activer_physique"), Traducteur.get("cat_physique"), "NoeudActionModifierPhysique"));

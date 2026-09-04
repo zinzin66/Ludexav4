@@ -482,7 +482,14 @@
   "insp_erreur_scene_introuvable": "Erreur : Scène introuvable",
     "insp_sep_surcharge_vars": "Variables Locales (Surcharge)",
   "insp_valeur_sur_mesure": "Valeur spécifique",
-  "insp_valeur_defaut": "Défaut"
+  "insp_valeur_defaut": "Défaut",
+  "noeud_si_bouton_maintenu": "Si Bouton Maintenu",
+  "noeud_arreter_anim": "Arrêter l'animation",
+    "insp_sep_variables_objet": "Variables de l'objet",
+  "insp_btn_ajouter_variable": "Ajouter une variable",
+  "insp_titre_ajouter_variable": "Nouvelle variable",
+  "insp_hint_nom_variable": "Nom de la variable"
+  
   
   
   
