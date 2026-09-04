@@ -10,7 +10,8 @@ public class NoeudActionToast extends NoeudBase {
         this.ajouterPort(new Port("Entrer", Port.TYPE_EXECUTION_ENTREE));
         this.ajouterPort(new Port("Suivant", Port.TYPE_EXECUTION_SORTIE));
         
-        this.ajouterParametre("Message", "", TYPE_TEXTE_LIBRE);
+        // CORRECTIF 2 : Forcer le clavier alphabétique pour le message du Toast
+        this.ajouterParametre("Message", "", TYPE_TEXTE_ALPHABETIQUE);
     }
 
     @Override
@@ -20,8 +21,5 @@ public class NoeudActionToast extends NoeudBase {
         }
         propagerExecution("Suivant");
     }
-
-    @Override
-    public boolean utiliseClavierTexte() { return true; }
 }
 // bas 1

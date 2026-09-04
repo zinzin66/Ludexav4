@@ -66,7 +66,8 @@ public class NoeudActionModifierTexte extends NoeudBase {
         }
         propagerExecution("Suivant");
     }
-
+// bas 1
+    // haut 2
     @SuppressWarnings("unchecked")
     private Variable trouverVariable(String nomVar, ObjetBase cibleActuelle) {
         // Résolution prioritaire sur l'instance de l'objet CIBLE DU NŒUD (ex: TexteVar)
@@ -185,9 +186,14 @@ public class NoeudActionModifierTexte extends NoeudBase {
         }
         return null;
     }
+// bas 2
 
+// haut 3
     @Override
-    public boolean utiliseClavierTexte() { return true; }
+    public String getTypeEditeurParametre(String nomParametre) {
+        // CORRECTIF 2 : Forcer le clavier alphabétique pour la modification de texte
+        return TYPE_TEXTE_ALPHABETIQUE;
+    }
 
     @Override
     public List<String> getNomsParametres() { return Arrays.asList("Nouveau texte"); }
@@ -233,4 +239,10 @@ public class NoeudActionModifierTexte extends NoeudBase {
         return this.cible;
     }
 }
-// bas 1
+// bas 3
+
+
+
+    
+
+

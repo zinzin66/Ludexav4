@@ -39,7 +39,10 @@ public class NoeudActionDefinirTag extends NoeudBase {
     }
 
     @Override
-    public String getTypeEditeurParametre(String nomParametre) { return TYPE_TEXTE_LIBRE; }
+    public String getTypeEditeurParametre(String nomParametre) { 
+        // CORRECTIF 2 : Forcer le clavier alphabétique
+        return TYPE_TEXTE_ALPHABETIQUE; 
+    }
 
     @Override
     public boolean requiertCibleObjet() { return true; }
@@ -67,8 +70,5 @@ public class NoeudActionDefinirTag extends NoeudBase {
         }
         return cible;
     }
-    
-    @Override
-    public boolean utiliseClavierTexte() { return true; }
 }
 // bas 1
