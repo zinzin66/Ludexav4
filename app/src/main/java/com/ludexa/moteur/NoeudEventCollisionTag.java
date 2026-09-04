@@ -41,6 +41,11 @@ public class NoeudEventCollisionTag extends NoeudBase {
     }
 
     @Override
+    public boolean utiliseClavierTexte() { 
+        return false; 
+    }
+
+    @Override
     public boolean requiertCibleObjet() { return true; }
 
     @Override
