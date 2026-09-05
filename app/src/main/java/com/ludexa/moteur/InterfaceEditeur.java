@@ -236,7 +236,7 @@ public class InterfaceEditeur extends Activity implements FournisseurDonneesJeu 
 
         bandeauHaut.addView(separateurVertical());
 // bas 1
-        
+
 // haut 2
         listeScenes = new ArrayList<>();
         if (cheminProjet != null) {
@@ -327,6 +327,33 @@ public class InterfaceEditeur extends Activity implements FournisseurDonneesJeu 
         canvasEditeur.setCheminProjet(cheminProjet); 
         canvasEditeur.setScene(sceneActive);
         canvasEditeur.setEditeur(this);
+
+        // --- DEBUT AJOUT : CORRECTION RÉTROACTIVE DES PREFABS ---
+        if (listeScenes != null) {
+            for (Scene s : listeScenes) {
+                if (s.objets != null) {
+                    for (ObjetBase obj : s.objets) {
+                        if ("scene_instance".equals(obj.type) && obj.sceneLieeId != null) {
+                            Scene sceneLiee = null;
+                            for (Scene searchScene : listeScenes) {
+                                if (searchScene.id != null && searchScene.id.equals(obj.sceneLieeId)) {
+                                    sceneLiee = searchScene;
+                                    break;
+                                }
+                            }
+                            
+                            if (sceneLiee != null) {
+                                android.graphics.RectF limites = canvasEditeur.calculerLimitesScene(sceneLiee);
+                                obj.largeur = Math.max(50f, limites.right);
+                                obj.hauteur = Math.max(50f, limites.bottom);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // --- FIN AJOUT ---
+
         LinearLayout.LayoutParams paramsCentre = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
         paramsCentre.setMargins(dp(8), 0, dp(8), 0);
@@ -479,6 +506,7 @@ public class InterfaceEditeur extends Activity implements FournisseurDonneesJeu 
         }
     }
 // bas 2
+
 // haut 3
     private void basculerVersJeu() {
         listeScenesBackup = new ArrayList<>(listeScenes);
@@ -722,7 +750,18 @@ public class InterfaceEditeur extends Activity implements FournisseurDonneesJeu 
 
 
 
+
+
+
+
+
     
+
+        
+
+
+        
+
 
 
 

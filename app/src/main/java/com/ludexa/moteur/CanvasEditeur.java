@@ -305,8 +305,8 @@ public class CanvasEditeur extends View {
         return null;
     }
 
-    // NOUVEAU : Phase 2 - Calcul du redimensionnement dynamique de la Hitbox
-    private android.graphics.RectF calculerLimitesScene(Scene scene) {
+    // NOUVEAU : Phase 2 - Calcul du redimensionnement dynamique de la Hitbox (rendu PUBLIC)
+    public android.graphics.RectF calculerLimitesScene(Scene scene) {
         if (scene == null || scene.objets == null || scene.objets.isEmpty()) {
             return new android.graphics.RectF(0, 0, 150, 150);
         }
@@ -340,7 +340,7 @@ public class CanvasEditeur extends View {
         return new android.graphics.RectF(minX, minY, maxX, maxY);
     }
 
-    // NOUVEAU : Fonction de dessin modulaire et récursive (Remplace l'ancienne boucle OnDraw)
+    // NOUVEAU : Fonction de dessin modulaire et récursive
     private void dessinerObjetBase(Canvas canvas, ObjetBase objet, List<ObjetBase> contexteObjets, int baseAlpha, boolean isRoot) {
         int alphaVal = (int) (objet.alpha * baseAlpha);
         if (alphaVal < 0) alphaVal = 0;
@@ -434,14 +434,13 @@ public class CanvasEditeur extends View {
                 if (sceneLiee != null) {
                     pilesRenduEnCours.add(objet.sceneLieeId);
                     
-                    // Phase 2 : Redimensionnement automatique de la boîte de contrôle
-                    android.graphics.RectF limites = calculerLimitesScene(sceneLiee);
-                    objet.largeur = Math.max(150f, limites.right);
-                    objet.hauteur = Math.max(150f, limites.bottom);
+                    // PARTIE 1 : Variables visuelles en LECTURE SEULE (Plancher à 50f)
+                    float largeurVisuelle = Math.max(50f, objet.largeur);
+                    float hauteurVisuelle = Math.max(50f, objet.hauteur);
                     
                     // Discret fond teinté
                     paintObjet.setColor(Color.argb(30, 50, 150, 255));
-                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintObjet);
+                    canvas.drawRect(0, 0, largeurVisuelle, hauteurVisuelle, paintObjet);
                     
                     // Phase 3 : Rendu WYSIWYG de tous les enfants
                     List<ObjetBase> enfants = new ArrayList<>(sceneLiee.objets);
@@ -457,7 +456,7 @@ public class CanvasEditeur extends View {
                     paintSelection.setColor(Color.argb(150, 50, 150, 255));
                     paintSelection.setStrokeWidth(2f);
                     paintSelection.setPathEffect(new android.graphics.DashPathEffect(new float[]{10f, 10f}, 0f));
-                    canvas.drawRect(0, 0, objet.largeur, objet.hauteur, paintSelection);
+                    canvas.drawRect(0, 0, largeurVisuelle, hauteurVisuelle, paintSelection);
                     paintSelection.setPathEffect(null);
                     paintSelection.setColor(Palette.texteSelectionne);
                     
@@ -481,19 +480,20 @@ public class CanvasEditeur extends View {
 
         // --- DESSIN DU CADRE DE SÉLECTION ---
         if (objet == objetSelectionne) {
-            float scaleFactorX = Math.abs(objet.scaleX);
-            if (scaleFactorX < 0.01f) scaleFactorX = 0.01f;
-            float scaleFactorY = Math.abs(objet.scaleY);
-            if (scaleFactorY < 0.01f) scaleFactorY = 0.01f;
+            float scaleFactorX = Math.max(0.01f, Math.abs(objet.scaleX));
+            float scaleFactorY = Math.max(0.01f, Math.abs(objet.scaleY));
 
             float maxScale = Math.max(scaleFactorX, scaleFactorY);
             paintSelection.setStrokeWidth(2f / maxScale);
             
+            // Adaptation : intégration du plancher visuel pour le cadre de sélection
+            float dimLargeur = ("scene_instance".equals(objet.type)) ? Math.max(50f, objet.largeur) : objet.largeur;
+            float dimHauteur = ("scene_instance".equals(objet.type)) ? Math.max(50f, getHauteurReelle(objet)) : getHauteurReelle(objet);
+            
             float l = -4f / scaleFactorX;
             float t = -4f / scaleFactorY;
-            float r = objet.largeur + 4f / scaleFactorX;
-            float objHauteur = getHauteurReelle(objet);
-            float b = objHauteur + 4f / scaleFactorY;
+            float r = dimLargeur + 4f / scaleFactorX;
+            float b = dimHauteur + 4f / scaleFactorY;
             
             canvas.drawRect(l, t, r, b, paintSelection);
             
@@ -508,7 +508,7 @@ public class CanvasEditeur extends View {
                 canvas.drawRoundRect(new android.graphics.RectF(l - hsX, b - hsY, l + hsX, b + hsY), rcX, rcY, paintPoignee);
                 canvas.drawRoundRect(new android.graphics.RectF(r - hsX, b - hsY, r + hsX, b + hsY), rcX, rcY, paintPoignee);
                 
-                float cx = objet.largeur / 2f;
+                float cx = dimLargeur / 2f;
                 float rotY = t - (50f / scaleFactorY);
                 canvas.drawLine(cx, t, cx, rotY, paintSelection);
                 
@@ -606,16 +606,17 @@ public class CanvasEditeur extends View {
             float[] localPos = worldToLocal(objet, sx, sy);
             float lx = localPos[0], ly = localPos[1];
             
-            float objHauteur = getHauteurReelle(objet);
+            // PARTIE 2 : Hitbox minimale de 50f
+            float objLargeur = ("scene_instance".equals(objet.type)) ? Math.max(50f, objet.largeur) : objet.largeur;
+            float objHauteur = ("scene_instance".equals(objet.type)) ? Math.max(50f, getHauteurReelle(objet)) : getHauteurReelle(objet);
             
-            if (lx >= 0 && lx <= objet.largeur && ly >= 0 && ly <= objHauteur) {
+            if (lx >= 0 && lx <= objLargeur && ly >= 0 && ly <= objHauteur) {
                 return objet;
             }
         }
         return null;
     }
 // bas 2
-
 // haut 3
     private int getTouchTarget(float xEcran, float yEcran) {
         float[] scenePos = ecranVersScene(xEcran, yEcran);
@@ -625,29 +626,30 @@ public class CanvasEditeur extends View {
             float[] pts = worldToLocal(objetSelectionne, sx, sy);
             float lx = pts[0], ly = pts[1];
             
-            float scaleX = Math.abs(objetSelectionne.scaleX);
-            if (scaleX < 0.01f) scaleX = 0.01f;
-            float scaleY = Math.abs(objetSelectionne.scaleY);
-            if (scaleY < 0.01f) scaleY = 0.01f;
+            float scaleX = Math.max(0.01f, Math.abs(objetSelectionne.scaleX));
+            float scaleY = Math.max(0.01f, Math.abs(objetSelectionne.scaleY));
             
             float hitX = (30f / niveauZoom) / scaleX;
             float hitY = (30f / niveauZoom) / scaleY;
             float hitAvg = (hitX + hitY) / 2f;
             
-            float midX = objetSelectionne.largeur / 2f;
+            // PARTIE 2 : Hitbox de sélection minimale pour les poignées
+            float dimLargeur = ("scene_instance".equals(objetSelectionne.type)) ? Math.max(50f, objetSelectionne.largeur) : objetSelectionne.largeur;
+            float dimHauteur = ("scene_instance".equals(objetSelectionne.type)) ? Math.max(50f, getHauteurReelle(objetSelectionne)) : getHauteurReelle(objetSelectionne);
+
+            float midX = dimLargeur / 2f;
             float rotY = -50f / scaleY;
-            float objHauteur = getHauteurReelle(objetSelectionne);
 
             if (!isModeDeplacementObjet) {
                 if (Math.hypot(lx - midX, ly - rotY) < hitAvg) return 8; 
                 
                 if (Math.abs(lx) < hitX && Math.abs(ly) < hitY) return 4; 
-                if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly) < hitY) return 5; 
-                if (Math.abs(lx) < hitX && Math.abs(ly - objHauteur) < hitY) return 6; 
-                if (Math.abs(lx - objetSelectionne.largeur) < hitX && Math.abs(ly - objHauteur) < hitY) return 7; 
+                if (Math.abs(lx - dimLargeur) < hitX && Math.abs(ly) < hitY) return 5; 
+                if (Math.abs(lx) < hitX && Math.abs(ly - dimHauteur) < hitY) return 6; 
+                if (Math.abs(lx - dimLargeur) < hitX && Math.abs(ly - dimHauteur) < hitY) return 7; 
             }
             
-            if (lx >= 0 && lx <= objetSelectionne.largeur && ly >= 0 && ly <= objHauteur) return 2; 
+            if (lx >= 0 && lx <= dimLargeur && ly >= 0 && ly <= dimHauteur) return 2; 
         }
         
         ObjetBase obj = trouverObjetSousToucher(xEcran, yEcran);
@@ -837,12 +839,11 @@ public class CanvasEditeur extends View {
     }
 }
 // bas 3
-
+                            
 
 
 
 
     
-
 
 
