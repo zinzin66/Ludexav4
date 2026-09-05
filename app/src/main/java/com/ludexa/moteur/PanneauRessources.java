@@ -206,7 +206,6 @@ public class PanneauRessources extends LinearLayout {
         return nom;
     }
 // bas 2
-
 // haut 3 : SECTION SCENES
     private View creerSectionScenes(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -424,7 +423,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 3
-// haut 4 : SECTION OBJETS (Ajout avec icônes explicites et intégration du bouton Prefab)
+// haut 4 : SECTION OBJETS
     private View creerSectionObjets(Context context) {
         LinearLayout section = new LinearLayout(context);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -646,9 +645,15 @@ public class PanneauRessources extends LinearLayout {
                 
                 btnScene.setOnClickListener(vScene -> {
                     String nomUnique = genererNomUnique(Traducteur.get("obj_prefix_prefab"), editeur.sceneActive);
-                    ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, 150f, 150f);
+                    
+                    // PARTIE 3 : Calcul unique de la bounding box lors de l'instanciation
+                    android.graphics.RectF limites = canvasEditeur.calculerLimitesScene(s);
+                    float initLargeur = Math.max(50f, limites.right);
+                    float initHauteur = Math.max(50f, limites.bottom);
+                    
+                    ObjetBase nouveau = new ObjetBase(nomUnique, 150f, 150f, initLargeur, initHauteur);
                     nouveau.type = "scene_instance";
-                    nouveau.sceneLieeId = s.id; // Garantie absolue de l'ID
+                    nouveau.sceneLieeId = s.id;
                     nouveau.afficherFondColore = true;
                     nouveau.couleur = Color.argb(120, 100, 150, 255); 
                     nouveau.zOrder = editeur.sceneActive.prochainZOrder();
@@ -657,7 +662,7 @@ public class PanneauRessources extends LinearLayout {
                     canvasEditeur.invalidate();
                     rafraichirArborescence();
                     
-                    // NOUVEAU: Force l'éditeur à sélectionner et inspecter le Prefab instantanément
+                    // Force l'éditeur à sélectionner et inspecter le Prefab instantanément
                     canvasEditeur.setObjetSelectionne(nouveau);
                     
                     dialog.dismiss();
@@ -717,8 +722,6 @@ public class PanneauRessources extends LinearLayout {
         return section;
     }
 // bas 4
-                                                              
-     
 // haut 5 : SECTION ARBORESCENCE (Hierarchie objets)
     private View creerSectionArborescence(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -1006,7 +1009,6 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 6
-    
 // haut 7 : SECTION ASSETS LOGIQUE (Popups et import)
     private void rafraichirListeAssets() {
         if (conteneurListeAssets == null || currentFolderSelected == null) return;
@@ -1761,6 +1763,7 @@ public class PanneauRessources extends LinearLayout {
         dialog.show();
     }
 // bas 10
+
 // haut 11 : SECTION FONCTIONS UI
     private View creerSectionFonctions(Context context) {
         LinearLayout section = new LinearLayout(context);
@@ -1869,7 +1872,6 @@ public class PanneauRessources extends LinearLayout {
         }
     }
 // bas 11
-
 // haut 12 : SECTION FONCTIONS POPUPS
     private void afficherPopupCreerFonction(Context context) {
         Dialog dialog = new Dialog(context);
@@ -2017,18 +2019,46 @@ public class PanneauRessources extends LinearLayout {
 
 
 
-    
-
-    
-
-
-    
-
-    
 
 
 
     
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+    
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+
+    
+
+
 
 
     
